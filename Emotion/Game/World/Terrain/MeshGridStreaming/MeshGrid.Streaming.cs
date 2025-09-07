@@ -12,15 +12,15 @@ using System.Collections.Concurrent;
 
 namespace Emotion.Game.World.Terrain;
 
-public struct ChunkStreamRequest(Vector2 chunkCoord, float distance, ChunkState state)
-{
-    public Vector2 ChunkCoord = chunkCoord;
-    public float Distance = distance;
-    public ChunkState State = state;
-}
-
 public abstract partial class MeshGrid<T, ChunkT, IndexT>
 {
+    protected struct ChunkStreamRequest(Vector2 chunkCoord, float distance, ChunkState state)
+    {
+        public Vector2 ChunkCoord = chunkCoord;
+        public float Distance = distance;
+        public ChunkState State = state;
+    }
+
     #region Chunk State Update logic
 
     /// <summary>
@@ -156,61 +156,45 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
 
                     // Further away than unload range.
                     if (distanceSq > unloadRangeSq)
-                    {
-                        ChunkState chunkState = chunk.State;
-                        SubmitChunkStateRequest(new ChunkStreamRequest(chunkCoord, distanceSq, ChunkState.DataOnly));
-                    }
-
-                    continue;
+                        SubmitChunkStateRequest(chunkCoord, distanceSq, ChunkState.DataOnly);
                 }
-
                 // If the chunk is missing request a generation
-                if (chunk == null)
+                else if (chunk == null)
                 {
                     // This chunk doesn't exist, query loading/generation and skip.
                     if (CanGenerateChunks)
-                        SubmitChunkStateRequest(new ChunkStreamRequest(chunkCoord, distanceSq, ChunkState.DataOnly));
-                    continue;
+                        SubmitChunkStateRequest(chunkCoord, distanceSq, ChunkState.DataOnly);
                 }
-
-                if (distanceSq <= renderChunkRangeSq)
+                else if (distanceSq <= renderChunkRangeSq)
                 {
-                    ChunkState chunkState = chunk.State;
-
-                    // If already in this state, skip
-                    if (chunkState == ChunkState.HasGPUData)
-                        continue;
-
-                    SubmitChunkStateRequest(new ChunkStreamRequest(chunkCoord, distanceSq, ChunkState.HasGPUData));
+                    SubmitChunkStateRequest(chunkCoord, distanceSq, ChunkState.HasGPUData, chunk.State);
                 }
                 else // Just within sim range, demote from HasGPU
                 {
-                    ChunkState chunkState = chunk.State;
-                    if (chunkState == ChunkState.HasMesh)
-                        continue;
-
-                    SubmitChunkStateRequest(new ChunkStreamRequest(chunkCoord, distanceSq, ChunkState.HasMesh));
+                    SubmitChunkStateRequest(chunkCoord, distanceSq, ChunkState.HasMesh, chunk.State);
                 }
             }
         }
     }
 
-    private void SubmitChunkStateRequest(ChunkStreamRequest requestState)
+    private void SubmitChunkStateRequest(Vector2 chunkCoord, float distanceSq, ChunkState state, ChunkState? currentState = null)
     {
-        if (_currentChunkStateRequestDedupe.TryGetValue(requestState.ChunkCoord, out int requestIndex)) // Already requested
+        if (currentState == state) return;
+
+        if (_currentChunkStateRequestDedupe.TryGetValue(chunkCoord, out int requestIndex)) // Already requested
         {
             ChunkStreamRequest existingRequest = _currentChunkStateRequest[requestIndex];
-            if (existingRequest.State <= requestState.State)
+            if (existingRequest.State <= state)
             {
-                existingRequest.Distance = MathF.Min(existingRequest.Distance, requestState.Distance);
-                existingRequest.State = requestState.State;
+                existingRequest.Distance = MathF.Min(existingRequest.Distance, distanceSq);
+                existingRequest.State = state;
                 _currentChunkStateRequest[requestIndex] = existingRequest;
             }
         }
         else
         {
-            _currentChunkStateRequest.Add(requestState);
-            _currentChunkStateRequestDedupe[requestState.ChunkCoord] = _currentChunkStateRequest.Count - 1;
+            _currentChunkStateRequest.Add(new ChunkStreamRequest(chunkCoord, distanceSq, state));
+            _currentChunkStateRequestDedupe[chunkCoord] = _currentChunkStateRequest.Count - 1;
         }
     }
 
@@ -444,7 +428,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
             }
 
             int maximumChunkMeshUpdates = Math.Max(4, Engine.Jobs.ThreadCount);
-            _chunkMeshUpdateRoutines = new Coroutine[maximumChunkMeshUpdates];  // Highest priority
+            _chunkMeshUpdateRoutines = new Coroutine[maximumChunkMeshUpdates];  // Medium priority
             _chunkMeshUpdatePriorityRoutines = new Coroutine[maximumChunkMeshUpdates];  // Highest priority
 
             _chunkUpdateInit = true;

@@ -24,6 +24,26 @@ public enum CubeFace
     NegativeZ
 }
 
+public static class CubeFaceExtensions
+{
+    public static Vector3 GetDirection(this CubeFace face)
+    {
+        return face switch
+        {
+            CubeFace.PositiveX => new Vector3(1, 0, 0),
+            CubeFace.NegativeX => new Vector3(-1, 0, 0),
+
+            CubeFace.PositiveY => new Vector3(0, 1, 0),
+            CubeFace.NegativeY => new Vector3(0, -1, 0),
+
+            CubeFace.PositiveZ => new Vector3(0, 0, 1),
+            CubeFace.NegativeZ => new Vector3(0, 0, -1),
+
+            _ => Vector3.Zero
+        };
+    }
+}
+
 /// <summary>
 /// Represents an axis aligned cube.
 /// </summary>

@@ -63,7 +63,7 @@ public class MinecraftMovementController
             Vector3 placement = PlacementPosCursor;
             if (placement != Vector3.NaN)
             {
-                Cube selectedCube = voxelTerrain.GetCubeOfTilePos(placement);
+                Cube selectedCube = voxelTerrain.GetVoxelBoundsOfTile(placement);
                 selectedCube.RenderOutline(c, Color.White * 0.5f, 0.07f);
             }
         });
@@ -228,5 +228,10 @@ public class MinecraftMovementController
     public bool IsTilePosOfCursorValid()
     {
         return TilePosOfCursor != Vector3.NaN;
+    }
+
+    public override string ToString()
+    {
+        return nameof(MinecraftMovementController);
     }
 }
