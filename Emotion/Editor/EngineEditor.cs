@@ -211,41 +211,67 @@ public static partial class EngineEditor
 
     #region Game Debug Hooks
 
-    private class EditorVisualization
+    private class EditorVisualizationBase(object owner, string name)
     {
-        public object OwningObject;
-        public string Name;
-        public Action<Renderer> Function;
-        public bool Enabled;
+        public object OwningObject = owner;
+        public string Name = name;
+        public virtual bool Enabled { get; set; }
     }
 
-    private class EditorVisualizationText
+    private class EditorVisualizationRender : EditorVisualizationBase
     {
-        public object OwningObject;
-        public Func<string> GetText;
+        public Action<Renderer> RenderFunc;
+
+        public EditorVisualizationRender(object owner, string name, Action<Renderer> onRender) : base(owner, name)
+        {
+            RenderFunc = onRender;
+        }
     }
 
-    private static List<EditorVisualization> _editorVisualization = new();
+    private class EditorVisualizationBoolean : EditorVisualizationBase
+    {
+        public override bool Enabled
+        {
+            get => _enabled;
+            set
+            {
+                _enabled = value;
+                ChangeFunc(value);
+            }
+        }
+        private bool _enabled;
+
+        public Action<bool> ChangeFunc;
+
+        public EditorVisualizationBoolean(object owner, string name, Action<bool> onChange) : base(owner, name)
+        {
+            ChangeFunc = onChange;
+        }
+    }
+
+    private class EditorVisualizationText(object owner, Func<string> getText)
+    {
+        public object OwningObject = owner;
+        public Func<string> GetText = getText;
+    }
+
+    private static List<EditorVisualizationBase> _editorVisualization = new();
     private static List<EditorVisualizationText> _editorTextVisualization = new();
     private static EditorLabel? _textVisualization;
 
     public static void AddEditorVisualization(object owningObject, string name, Action<Renderer> func)
     {
-        _editorVisualization.Add(new EditorVisualization()
-        {
-            OwningObject = owningObject,
-            Name = name,
-            Function = func
-        });
+        _editorVisualization.Add(new EditorVisualizationRender(owningObject, name, func));
+    }
+
+    public static void AddEditorVisualizationBool(object owningObject, string name, Action<bool> func)
+    {
+        _editorVisualization.Add(new EditorVisualizationBoolean(owningObject, name, func));
     }
 
     public static void AddEditorVisualizationText(object owningObject, Func<string> getText)
     {
-        _editorTextVisualization.Add(new EditorVisualizationText()
-        {
-            OwningObject = owningObject,
-            GetText = getText
-        });
+        _editorTextVisualization.Add(new EditorVisualizationText(owningObject, getText));
     }
 
     public static void RemoveEditorVisualizations(object owningObject)
@@ -256,10 +282,11 @@ public static partial class EngineEditor
     private static void RenderEditorVisualizations(Renderer c)
     {
         // We render these visualizations regardless if the editor is open.
-        foreach (EditorVisualization visualization in _editorVisualization)
+        foreach (EditorVisualizationBase visualization in _editorVisualization)
         {
             if (!visualization.Enabled) continue;
-            visualization.Function(c);
+            if (visualization is EditorVisualizationRender visRender)
+                visRender.RenderFunc(c);
         }
 
         // This is really bad allocation wise, but its for debug so whatever
@@ -298,13 +325,13 @@ public static partial class EngineEditor
         _textVisualization = textVisualization;
 
         object? lastOwningObject = null;
-        foreach (EditorVisualization visualization in _editorVisualization)
+        foreach (EditorVisualizationBase visualization in _editorVisualization)
         {
             // Assumes items with the same owning object follow each other.
             object owningObject = visualization.OwningObject;
             if (owningObject != lastOwningObject)
             {
-                var objSeparator = EditorLabel.GetLabel(LabelStyle.MapEditor, owningObject.ToString() + "\n-------------");
+                EditorLabel objSeparator = EditorLabel.GetLabel(LabelStyle.MapEditor, owningObject.ToString() + "\n-------------");
                 objSeparator.Margins = new Primitives.Rectangle(0, lastOwningObject != null ? 30 : 0, 0, 0);
                 container.AddChild(objSeparator);
                 lastOwningObject = owningObject;
