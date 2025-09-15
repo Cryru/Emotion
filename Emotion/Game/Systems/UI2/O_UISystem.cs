@@ -10,20 +10,15 @@ public class O_UISystem : O_UIBaseWindow
         Layout.FitY = false;
         Layout.GrowX = false;
         Layout.GrowY = false;
-    }
-
-    public void AddChild(O_UIBaseWindow window)
-    {
-        Children.Add(window);
-        _needLayout = true;
+        Name = "UISystem";
     }
 
     public override void Update()
     {
-        if (_needLayout)
-            ApplyLayout();
-
-
+        foreach (O_UIBaseWindow child in Children)
+        {
+            UpdateLayoutIfNeeded();
+        }
     }
 
     #region System
@@ -31,21 +26,6 @@ public class O_UISystem : O_UIBaseWindow
     protected override Vector2 InternalGetWindowMinSize()
     {
         return Engine.Renderer.ScreenBuffer.Size;
-    }
-
-    #endregion
-
-    #region Layout
-
-    protected bool _needLayout = true;
-
-    private void ApplyLayout()
-    {
-        _needLayout = false;
-
-        SystemDoLayout(UILayoutPass.Measure);
-        SystemDoLayout(UILayoutPass.Grow);
-        SystemDoLayout(UILayoutPass.Layout);
     }
 
     #endregion

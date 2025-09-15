@@ -9,7 +9,7 @@ namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 
 public class AssetHandleEditor<T> : TypeEditor where T : Asset, new()
 {
-    private SerializableAsset<T>? _objectEditting = null;
+    private SerializableAsset<T>? _objectEditing = null;
 
     public AssetHandleEditor()
     {
@@ -53,11 +53,11 @@ public class AssetHandleEditor<T> : TypeEditor where T : Asset, new()
             {
                 FilePicker<T>.SelectFile(this, (file) =>
                 {
-                    if (_objectEditting == null) return;
+                    if (_objectEditing == null) return;
 
                     // Create a new handle, we treat these as immutable
-                    _objectEditting = file?.Name;
-                    OnValueChanged(_objectEditting);
+                    _objectEditing = file?.Name;
+                    OnValueChanged(_objectEditing);
                     UpdateTextInput();
                 });
             }
@@ -68,7 +68,7 @@ public class AssetHandleEditor<T> : TypeEditor where T : Asset, new()
     public override void SetValue(object? value)
     {
         if (value is SerializableAsset<T> serializedHandle)
-            _objectEditting = serializedHandle;
+            _objectEditing = serializedHandle;
 
         UpdateTextInput();
     }
@@ -77,6 +77,6 @@ public class AssetHandleEditor<T> : TypeEditor where T : Asset, new()
     {
         UITextInput2? textInput = GetWindowById<UITextInput2>("TextInput");
         AssertNotNull(textInput);
-        textInput.Text = _objectEditting?.Name ?? string.Empty;
+        textInput.Text = _objectEditing?.Name ?? string.Empty;
     }
 }

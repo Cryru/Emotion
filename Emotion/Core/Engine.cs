@@ -20,6 +20,7 @@ using Emotion.Core.Utility.Profiling;
 using Emotion.Core.Utility.Threading;
 using Emotion.Editor;
 using Emotion.Game.Systems.UI.New;
+using Emotion.Game.Systems.UI2;
 using Emotion.Graphics.Shading;
 using Emotion.Standard.Reflector;
 using OpenGL;
@@ -107,6 +108,12 @@ public static class Engine
     /// [Setup Module]
     /// </summary>
     public static UISystem UI;
+
+    /// <summary>
+    /// Global UI system.
+    /// [Setup module]
+    /// </summary>
+    public static O_UISystem NewUI;
 
     #endregion
 
@@ -297,6 +304,7 @@ public static class Engine
         // Now "game-mode" modules can be created.
         SceneManager = new SceneManager();
         UI = new UISystem();
+        NewUI = new O_UISystem();
 
         // Load game data.
         GameDatabase.Initialize();
@@ -491,6 +499,7 @@ public static class Engine
         CoroutineManager.Update(DeltaTime);
         CoroutineManagerGameTime.Update(DeltaTime);
 
+        NewUI.Update();
         UI.Update();
         SceneManager.Update();
         EngineEditor.UpdateEditor();
@@ -557,6 +566,7 @@ public static class Engine
         Renderer.SetDepthTest(false);
         Renderer.ClearDepth();
         UI.Render(Renderer);
+        NewUI.Render(Renderer);
         PerfProfiler.FrameEventEnd("Render UI");
 
         PerfProfiler.FrameEventStart("EndFrame");

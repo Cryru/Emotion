@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
+using Emotion.Game.Systems.UI2;
 using Emotion.Standard.DataStructures.OptimizedStringReadWrite;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
@@ -45,6 +46,7 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
 
     public override TypeEditor? GetEditor()
     {
+        // todo: some way of specifying these, maybe static members on an interface that T could have
         if (typeof(T) == typeof(Vector2))
             return new VectorEditor(2);
         if (typeof(T) == typeof(Vector3))
@@ -53,6 +55,8 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
             return new VectorEditor(4);
         if (typeof(T) == typeof(Rectangle))
             return new VectorEditor(4, ["X", "Y", "Width", "Height"]);
+        if (ReflectorEngine.IsTypeDescendedFrom(typeof(T), typeof(O_UITemplate)))
+            return new UITemplateEditor();
 
         return new ComplexObjectEditor<T>();
     }

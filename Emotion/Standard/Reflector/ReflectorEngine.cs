@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Game.Systems.UI2;
 using Emotion.Standard.Reflector.Handlers;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
@@ -268,6 +269,17 @@ public static class ReflectorEngine
         Dictionary<Type, Type[]> dict = directOnly ? _typeRelationsDirect : _typeRelations;
         if (dict.TryGetValue(typ, out Type[]? value)) return value;
         return Array.Empty<Type>();
+    }
+
+    public static bool IsTypeDescendedFrom(Type typ, Type typ2)
+    {
+        Type? baseTyp = typ.BaseType;
+        while (baseTyp != null)
+        {
+            if (baseTyp == typ2) return true;
+            baseTyp = baseTyp.BaseType;
+        }
+        return false;
     }
 
     public static Type? GetBaseType(Type typ)

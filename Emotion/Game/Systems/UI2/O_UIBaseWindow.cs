@@ -6,6 +6,11 @@ namespace Emotion.Game.Systems.UI2;
 
 public partial class O_UIBaseWindow
 {
+    [DontSerialize]
+    public O_UIBaseWindow? Parent;
+
+    public string Name = string.Empty;
+
     [SerializeNonPublicGetSet]
     public O_UIWindowLayoutMetrics Layout { get; private set; } = new O_UIWindowLayoutMetrics();
 
@@ -49,13 +54,57 @@ public partial class O_UIBaseWindow
     public void Render(Renderer c)
     {
         var calc = CalculatedMetrics;
-        c.RenderSprite(calc.Position, calc.Size, Visuals.Color);
+        //c.RenderSprite(calc.Position, calc.Size, Visuals.Color);
 
         foreach (O_UIBaseWindow win in Children)
         {
             win.Render(c);
         }
     }
+
+    #region Hierarchy
+
+    public void AddChild(O_UIBaseWindow window)
+    {
+        Assert(window.Parent == null, "UI window already present in the hierarchy, or wasn't removed properly!");
+        if (window.Parent != null) return;
+
+        Children.Add(window);
+        window.Parent = this;
+        InvalidateLayout();
+    }
+
+    public void RemoveChild(O_UIBaseWindow window)
+    {
+        Assert(Children.Contains(window), "Tried to remove child that isn't mine!");
+        Assert(window.Parent == this);
+
+        Children.Remove(window);
+        window.Parent = null;
+        InvalidateLayout();
+    }
+
+    #endregion
+
+    #region Invalidation
+
+    protected bool _layoutDirty = true;
+
+    public virtual void InvalidateLayout()
+    {
+        _layoutDirty = true;
+        Parent?.InvalidateLayout(); // todo: not always the case
+    }
+
+    public void UpdateLayoutIfNeeded()
+    {
+        if (!_layoutDirty) return;
+        SystemDoLayout(UILayoutPass.Measure);
+        SystemDoLayout(UILayoutPass.Grow);
+        SystemDoLayout(UILayoutPass.Layout);
+    }
+
+    #endregion
 
     #region Layout
 
@@ -252,6 +301,6 @@ public partial class O_UIBaseWindow
 
     public override string ToString()
     {
-        return $"Window: {Layout.LayoutMode}";
+        return $"{(string.IsNullOrEmpty(Name) ? "Window" : Name)}: {Layout.LayoutMode}";
     }
 }
