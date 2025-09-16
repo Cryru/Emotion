@@ -132,7 +132,7 @@ public class UIText : UIBaseWindow
 
         // Load atlas as well. This one will change based on UI scale.
         // Todo: Split scaled atlas from drawing so that metrics don't need the full thing.
-        float scale = GetScale();
+        float scale = Engine.UI.GetScale();// GetScale();
         _atlas = _fontFile.GetAtlas((int) MathF.Ceiling(FontSize * scale), FontSizePixelPerfect);
 
         // Reload the layouter if needed. Changing this means the text needs to be relayouted.

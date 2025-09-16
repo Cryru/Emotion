@@ -29,6 +29,7 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
     {
         GameDataType = typ;
         TypeHandler = ReflectorEngine.GetComplexTypeHandler(GameDataType);
+        StartingSplit = 0.25f;
     }
 
     public override void AttachedToController(UIController controller)

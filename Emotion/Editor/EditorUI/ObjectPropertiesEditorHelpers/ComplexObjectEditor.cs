@@ -189,6 +189,9 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
                 GrowX = true,
                 OnClickedProxy = (_) => OpenEditor()
             };
+            var padding = editButton.Paddings;
+            padding.Width = 30;
+            editButton.Paddings = padding;
             AddChild(editButton);
             _button = editButton;
 

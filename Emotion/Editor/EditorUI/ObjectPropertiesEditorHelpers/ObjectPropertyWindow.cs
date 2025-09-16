@@ -13,6 +13,7 @@ public class ObjectPropertyWindow : UIBaseWindow
     public object? ObjectBeingEdited { get; protected set; }
 
     private TypeEditor? _editor;
+    private UIBaseWindow _pagingContainer = null!;
 
     public ObjectPropertyWindow()
     {
@@ -82,6 +83,12 @@ public class ObjectPropertyWindow : UIBaseWindow
                 SetObjectValueInStack(obj);
             });
             AddChild(editor);
+
+            _pagingContainer.Visible = editor is ComplexObjectEditor;
+        }
+        else
+        {
+            _pagingContainer.Visible = false;
         }
     }
 
@@ -222,9 +229,11 @@ public class ObjectPropertyWindow : UIBaseWindow
         var pagingContainer = new UIBaseWindow()
         {
             LayoutMode = LayoutMode.HorizontalListWrap,
-            ListSpacing = new Vector2(5, 5)
+            ListSpacing = new Vector2(5, 5),
+            DontTakeSpaceWhenHidden = true
         };
         AddChild(pagingContainer);
+        _pagingContainer = pagingContainer;
 
         EditorButton rootPage = new EditorButton("root");
         rootPage.OnClickedProxy = (_) =>

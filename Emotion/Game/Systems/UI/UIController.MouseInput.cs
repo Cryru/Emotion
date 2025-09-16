@@ -76,8 +76,8 @@ public partial class UIController
             if (newMouseFocus != null && newMouseFocus is not UIController)
             {
                 UIRollover? newRollover = newMouseFocus.GetRollover();
-                CurrentRollover = newRollover;
                 newMouseFocus.Controller!.AddChild(newRollover);
+                CurrentRollover = newRollover;
             }
 
             // This is very spammy.

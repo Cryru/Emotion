@@ -96,12 +96,13 @@ public partial class UIController : UIBaseWindow
     protected override bool UpdateInternal()
     {
         if (!_loadingThread.IsCompleted) return false;
-        if (_updatePreload) UpdateLoading();
-        if (_updateLayout) UpdateLayout();
-        if (_updateInputFocus) UpdateInputFocus();
 
+        if (_updateInputFocus) UpdateInputFocus();
         if (!_mouseUpdatedThisTick) UpdateMouseFocus();
         _mouseUpdatedThisTick = false;
+
+        if (_updatePreload) UpdateLoading();
+        if (_updateLayout) UpdateLayout();
 
         return true;
     }

@@ -1224,9 +1224,7 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
     /// <returns></returns>
     public float GetScale()
     {
-        if (Scale.X > Scale.Y)
-            return Scale.Y;
-        return Scale.X;
+        return MathF.Max(Scale.X, Scale.Y);
     }
 
     #endregion
