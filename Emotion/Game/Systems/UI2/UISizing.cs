@@ -1,0 +1,48 @@
+﻿namespace Emotion.Game.Systems.UI2;
+
+public struct UISizing
+{
+    public enum UISizingMode
+    {
+        Invalid,
+        Fit,
+        Grow,
+        Fixed,
+    }
+
+    public float Size;
+    public UISizingMode Mode;
+
+    public static UISizing Fixed(float size)
+    {
+        return new UISizing()
+        {
+            Size = size,
+            Mode = UISizingMode.Fixed
+        };
+    }
+
+    public static UISizing Fit()
+    {
+        return new UISizing()
+        {
+            Mode = UISizingMode.Fit
+        };
+    }
+
+    public static UISizing Grow()
+    {
+        return new UISizing()
+        {
+            Mode = UISizingMode.Grow
+        };
+    }
+
+    public override string ToString()
+    {
+        if (Mode == UISizingMode.Fixed)
+            return $"Fixed {Size}";
+
+        return $"{Mode}";
+    }
+}

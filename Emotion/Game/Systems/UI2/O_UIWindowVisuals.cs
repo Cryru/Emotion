@@ -4,7 +4,7 @@ namespace Emotion.Game.Systems.UI2;
 
 public class O_UIWindowVisuals
 {
-    public Color Color = Color.White;
+    public Color Color = Color.White.SetAlpha(0);
 
     public override string ToString()
     {

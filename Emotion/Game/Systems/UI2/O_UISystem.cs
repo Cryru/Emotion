@@ -6,10 +6,6 @@ public class O_UISystem : O_UIBaseWindow
 {
     public O_UISystem()
     {
-        Layout.FitX = false;
-        Layout.FitY = false;
-        Layout.GrowX = false;
-        Layout.GrowY = false;
         Name = "UISystem";
     }
 
@@ -20,6 +16,35 @@ public class O_UISystem : O_UIBaseWindow
             UpdateLayoutIfNeeded();
         }
     }
+
+    #region Layout
+
+    public void UpdateLayoutIfNeeded()
+    {
+        //if (!_layoutDirty) return;
+        SystemDoLayout(UILayoutPass.Measure);
+        SystemDoLayout(UILayoutPass.Grow);
+        SystemDoLayout(UILayoutPass.Layout);
+    }
+
+    protected void SystemDoLayout(UILayoutPass pass)
+    {
+        switch (pass)
+        {
+            case UILayoutPass.Measure:
+                CalculatedMetrics.Size = MeasureWindow();
+                break;
+            case UILayoutPass.Grow:
+                GrowWindow();
+                break;
+            case UILayoutPass.Layout:
+                LayoutWindow(Vector2.Zero);
+                break;
+        }
+    }
+
+
+    #endregion
 
     #region System
 

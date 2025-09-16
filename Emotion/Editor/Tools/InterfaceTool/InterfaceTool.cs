@@ -48,8 +48,8 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
                     Layout =
                     {
                         MinSize = new Vector2(50, 20),
-                        GrowX = true,
-                        GrowY = true
+                        SizingX = UISizing.Grow(),
+                        SizingY = UISizing.Grow()
                     },
 
                     Visuals = {
@@ -60,7 +60,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
                     Layout =
                     {
                         MinSize = new Vector2(50, 20),
-                        GrowX = true,
+                        SizingX = UISizing.Grow(),
                     },
 
                     Visuals = {

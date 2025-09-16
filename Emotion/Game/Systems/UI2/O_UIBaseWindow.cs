@@ -46,15 +46,18 @@ public partial class O_UIBaseWindow
 
     public virtual void Update()
     {
-        SystemDoLayout(UILayoutPass.Measure);
-        SystemDoLayout(UILayoutPass.Grow);
-        SystemDoLayout(UILayoutPass.Layout);
+        //SystemDoLayout(UILayoutPass.Measure);
+        //SystemDoLayout(UILayoutPass.Grow);
+        //SystemDoLayout(UILayoutPass.Layout);
     }
 
     public void Render(Renderer c)
     {
         var calc = CalculatedMetrics;
-        //c.RenderSprite(calc.Position, calc.Size, Visuals.Color);
+        if (Visuals.Color.A != 0)
+        {
+            c.RenderSprite(calc.Position, calc.Size, Visuals.Color);
+        }
 
         foreach (O_UIBaseWindow win in Children)
         {
@@ -66,8 +69,8 @@ public partial class O_UIBaseWindow
 
     public void AddChild(O_UIBaseWindow window)
     {
-        Assert(window.Parent == null, "UI window already present in the hierarchy, or wasn't removed properly!");
-        if (window.Parent != null) return;
+        //Assert(window.Parent == null, "UI window already present in the hierarchy, or wasn't removed properly!");
+        //if (window.Parent != null) return;
 
         Children.Add(window);
         window.Parent = this;
@@ -84,6 +87,15 @@ public partial class O_UIBaseWindow
         InvalidateLayout();
     }
 
+    public void ClearChildren()
+    {
+        for (var i = Children.Count - 1; i >= 0; i--)
+        {
+            O_UIBaseWindow child = Children[i];
+            RemoveChild(child);
+        }
+    }
+
     #endregion
 
     #region Invalidation
@@ -94,14 +106,6 @@ public partial class O_UIBaseWindow
     {
         _layoutDirty = true;
         Parent?.InvalidateLayout(); // todo: not always the case
-    }
-
-    public void UpdateLayoutIfNeeded()
-    {
-        if (!_layoutDirty) return;
-        SystemDoLayout(UILayoutPass.Measure);
-        SystemDoLayout(UILayoutPass.Grow);
-        SystemDoLayout(UILayoutPass.Layout);
     }
 
     #endregion
@@ -117,22 +121,6 @@ public partial class O_UIBaseWindow
         Layout
     }
 
-    protected void SystemDoLayout(UILayoutPass pass)
-    {
-        switch (pass)
-        {
-            case UILayoutPass.Measure:
-                CalculatedMetrics.Size = MeasureWindow();
-                break;
-            case UILayoutPass.Grow:
-                GrowWindow();
-                break;
-            case UILayoutPass.Layout:
-                LayoutWindow(Vector2.Zero);
-                break;
-        }
-    }
-
     protected Vector2 MeasureWindow()
     {
         Vector2 mySize = InternalGetWindowMinSize();
@@ -141,6 +129,14 @@ public partial class O_UIBaseWindow
 
         switch (Layout.LayoutMode)
         {
+            case LayoutMode.Free:
+                foreach (O_UIBaseWindow child in Children)
+                {
+                    Vector2 windowMinSize = child.MeasureWindow();
+                    child.CalculatedMetrics.Size = windowMinSize;
+                }
+                break;
+
             case LayoutMode.HorizontalList:
             case LayoutMode.VerticalList:
                 int listMask = Layout.LayoutMode == LayoutMode.HorizontalList ? 0 : 1;
@@ -158,11 +154,11 @@ public partial class O_UIBaseWindow
 
                 float totalSpacing = Layout.ListSpacing[listMask] * (Children.Count - 1);
 
-                bool fitAlongList = listMask == 0 ? Layout.FitX : Layout.FitY;
+                bool fitAlongList = listMask == 0 ? Layout.SizingX.Mode == UISizing.UISizingMode.Fit : Layout.SizingY.Mode == UISizing.UISizingMode.Fit;
                 if (fitAlongList)
                     mySize[listMask] += pen[listMask] + totalSpacing;
 
-                bool fitAcrossList = inverseListMask == 0 ? Layout.FitX : Layout.FitY;
+                bool fitAcrossList = inverseListMask == 0 ? Layout.SizingX.Mode == UISizing.UISizingMode.Fit : Layout.SizingY.Mode == UISizing.UISizingMode.Fit;
                 if (fitAcrossList)
                     mySize[inverseListMask] += pen[inverseListMask];
 
@@ -184,6 +180,19 @@ public partial class O_UIBaseWindow
 
         switch (Layout.LayoutMode)
         {
+            case LayoutMode.Free:
+                foreach (O_UIBaseWindow child in Children)
+                {
+                    if (child.Layout.SizingX.Mode == UISizing.UISizingMode.Grow)
+                        child.CalculatedMetrics.Size.X = myMeasuredSize.X;
+
+                    if (child.Layout.SizingY.Mode == UISizing.UISizingMode.Grow)
+                        child.CalculatedMetrics.Size.Y = myMeasuredSize.Y;
+
+                    child.GrowWindow();
+                }
+                break;
+
             case LayoutMode.HorizontalList:
             case LayoutMode.VerticalList:
                 int listMask = Layout.LayoutMode == LayoutMode.HorizontalList ? 0 : 1;
@@ -200,7 +209,7 @@ public partial class O_UIBaseWindow
                 // Grow across list
                 foreach (O_UIBaseWindow child in Children)
                 {
-                    bool growAcrossList = inverseListMask == 0 ? child.Layout.GrowX : child.Layout.GrowY;
+                    bool growAcrossList = inverseListMask == 0 ? child.Layout.SizingX.Mode == UISizing.UISizingMode.Grow : child.Layout.SizingY.Mode == UISizing.UISizingMode.Grow;
                     if (growAcrossList)
                         child.CalculatedMetrics.Size[inverseListMask] = myMeasuredSize[inverseListMask];
                 }
@@ -213,7 +222,7 @@ public partial class O_UIBaseWindow
                     int growingCount = 0;
                     foreach (O_UIBaseWindow child in Children)
                     {
-                        bool growAlongList = listMask == 0 ? child.Layout.GrowX : child.Layout.GrowY;
+                        bool growAlongList = listMask == 0 ? child.Layout.SizingX.Mode == UISizing.UISizingMode.Grow : child.Layout.SizingY.Mode == UISizing.UISizingMode.Grow;
                         if (!growAlongList) continue;
 
                         growingCount++;
@@ -245,7 +254,7 @@ public partial class O_UIBaseWindow
                     float widthToAdd = MathF.Min(secondSmallest - smallest, listRemainingSize / growingCount);
                     foreach (O_UIBaseWindow child in Children)
                     {
-                        bool growAlongList = listMask == 0 ? child.Layout.GrowX : child.Layout.GrowY;
+                        bool growAlongList = listMask == 0 ? child.Layout.SizingX.Mode == UISizing.UISizingMode.Grow : child.Layout.SizingY.Mode == UISizing.UISizingMode.Grow;
                         if (!growAlongList) continue;
 
                         float sizeListDirection = child.CalculatedMetrics.Size[listMask];
@@ -269,13 +278,21 @@ public partial class O_UIBaseWindow
 
     protected void LayoutWindow(Vector2 pos)
     {
-        CalculatedMetrics.Position = pos.ToVec3();
+        Vector2 myPos = Layout.Offset + pos;
+        CalculatedMetrics.Position = myPos.ToVec3();
 
-        Vector2 pen = new Vector2();
+        Vector2 pen = myPos;
         pen += Layout.Padding.TopLeft;
 
         switch (Layout.LayoutMode)
         {
+            case LayoutMode.Free:
+                foreach (O_UIBaseWindow child in Children)
+                {
+                    child.LayoutWindow(pen);
+                }
+                break;
+
             case LayoutMode.HorizontalList:
             case LayoutMode.VerticalList:
                 int listMask = Layout.LayoutMode == LayoutMode.HorizontalList ? 0 : 1;
@@ -286,6 +303,8 @@ public partial class O_UIBaseWindow
                 }
                 break;
         }
+
+        _layoutDirty = false;
     }
 
     #endregion
