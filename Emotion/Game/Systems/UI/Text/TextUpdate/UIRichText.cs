@@ -159,7 +159,8 @@ public class UIRichText : UIBaseWindow
             _atlas = null; // Update atlas
         }
 
-        float scale = GetScale();
+        // todo: the current loading scheme cannot reliably access GetScale in LoadContent
+        float scale = Engine.UI.GetScale();//GetScale();
         if (UpdateAtlasIfNeeded(scale, FontSize))
             InvalidateLayout();
     }
@@ -280,14 +281,6 @@ public class UIRichText : UIBaseWindow
     private Vector2 _virtualLastDrawnSize;
     private bool _virtualDrawInvalidated = true;
 
-    private IEnumerator VirtualUILoadAssetsRoutine()
-    {
-        Task<FontAsset?> loadTask = Engine.AssetLoader.GetAsync<FontAsset>(FontFile);
-        yield return new TaskRoutineWaiter(loadTask);
-        _fontFile = loadTask.Result;
-        _atlas = null; // Update atlas
-    }
-
     private bool FontNeedsUpdate()
     {
         return _fontFile == null || _fontFile.Name != FontFile || _fontFile.Disposed;
@@ -296,7 +289,6 @@ public class UIRichText : UIBaseWindow
     private bool UpdateAtlasIfNeeded(float scale, int fontSize)
     {
         float atlasSize = (int)MathF.Ceiling(fontSize * scale);
-
         if (_atlas != null && _atlas.FontSize == atlasSize)
             return false;
 
@@ -332,9 +324,13 @@ public class UIRichText : UIBaseWindow
         if (string.IsNullOrEmpty(_text)) return;
 
         // Load assets
-        if (!_loadingRoutine.Finished) return; // Loading currently
-        if (FontNeedsUpdate()) _loadingRoutine = Engine.CoroutineManager.StartCoroutine(VirtualUILoadAssetsRoutine());
-        if (!_loadingRoutine.Finished) return; // Loading currently
+        if (FontNeedsUpdate())
+        {
+            FontAsset fontAsset = Engine.AssetLoader.ONE_Get<FontAsset>(FontFile);
+            if (!fontAsset.Loaded) return;
+            _fontFile = fontAsset;
+            _atlas = null; // Update atlas
+        }
 
         // Check update metrics and atlas
         UpdateVirtual(space, scale);
