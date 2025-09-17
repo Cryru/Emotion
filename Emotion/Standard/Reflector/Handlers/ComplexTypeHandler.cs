@@ -2,6 +2,7 @@
 
 using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 using Emotion.Game.Systems.UI2;
+using Emotion.Game.Systems.UI2.Editor;
 using Emotion.Standard.DataStructures.OptimizedStringReadWrite;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
