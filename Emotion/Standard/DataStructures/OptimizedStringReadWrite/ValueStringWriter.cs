@@ -123,4 +123,25 @@ public ref struct ValueStringWriter
         // but would require switching over all number types :P
         return WriteString(number.ToString() ?? string.Empty);
     }
+
+    #region Indent
+
+    private int _indent;
+
+    public void PushIndent()
+    {
+        _indent += 3;
+    }
+
+    public void PopIndent()
+    {
+        _indent -= 3;
+    }
+
+    public bool WriteIndent()
+    {
+        return WriteString(new string(' ', _indent));
+    }
+
+    #endregion
 }

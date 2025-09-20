@@ -144,17 +144,25 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
 
     public override void WriteAsCode(T value, ref ValueStringWriter writer)
     {
+        //if (!writer.WriteIndent()) return;
         if (!writer.WriteString("{\n")) return;
 
         bool first = true;
         foreach (ComplexTypeHandlerMemberBase member in GetMembersDeep())
         {
+            if (member.HasAttribute<DontSerializeButShowInEditorAttribute>() != null) continue;
+
             if (!first) if (!writer.WriteString(",\n")) return;
             first = false;
+
+            writer.PushIndent();
+            if (!writer.WriteIndent()) return;
 
             if (!writer.WriteString(member.Name)) return;
             if (!writer.WriteString(" = ")) return;
             member.WriteAsCode(value, ref writer);
+
+            writer.PopIndent();
         }
 
         if (!writer.WriteString("}")) return;
