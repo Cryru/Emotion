@@ -68,6 +68,7 @@ public class ObjectPropertyWindow : UIBaseWindow
             EditorLabel label = new EditorLabel();
             label.Text = $"The object attempting to be edited is non-editable,\nor no object was provided..";
             AddChild(label);
+            _pagingContainer.Visible = false;
             return;
         }
 

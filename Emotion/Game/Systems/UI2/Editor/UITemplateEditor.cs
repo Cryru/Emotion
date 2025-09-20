@@ -1,6 +1,8 @@
 ﻿#nullable enable
 
 using Emotion.Editor;
+using Emotion.Editor.EditorUI;
+using Emotion.Editor.EditorUI.Components;
 using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 using Emotion.Game.Systems.UI;
 
@@ -18,17 +20,122 @@ public class O_TempWorkaround : O_UIBaseWindow
 
     protected override Vector2 InternalGetWindowMinSize()
     {
+        Visuals.Visible = ViewportOldSystem.Controller != null;
         Layout.Offset = ViewportOldSystem.Position2;
         return ViewportOldSystem.Size;
     }
 }
 
+public class EditorTreeViewWindow<T> : UIBaseWindow
+{
+    public T? SelectedObject;
+
+    public Action<T?>? OnObjectSelected;
+
+    private UIBaseWindow _container;
+    private Action<T, List<T>> _treeWalk;
+
+#pragma warning disable CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
+    private Dictionary<T, EditorButton> _objectToButton = new();
+#pragma warning restore CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
+
+    public EditorTreeViewWindow(Action<T, List<T>> treeWalk)
+    {
+        _treeWalk = treeWalk;
+
+        var container = new UIBaseWindow()
+        {
+            LayoutMode = LayoutMode.VerticalList,
+            ListSpacing = new Vector2(0, 5)
+        };
+        AddChild(container);
+        _container = container;
+    }
+
+    public override void DetachedFromController(UIController controller)
+    {
+        base.DetachedFromController(controller);
+        EngineEditor.UnregisterForObjectChanges(this);
+    }
+
+    public void SetObject(T? obj)
+    {
+        _container.ClearChildren();
+        _objectToButton.Clear();
+        SelectedObject = default;
+
+        if (obj == null) return;
+        RecursiveWalk(_container, 0, obj);
+
+        // Respawn the tree view if the object changes
+        EngineEditor.RegisterForObjectChanges(obj, (change) =>
+        {
+            _container.ClearChildren();
+            _objectToButton.Clear();
+            RecursiveWalk(_container, 0, obj);
+            SelectObject(SelectedObject, false);
+        }, this);
+    }
+
+    public void SelectObject(T? obj, bool notify = true)
+    {
+        SelectedObject = obj;
+
+        foreach (KeyValuePair<T, EditorButton> item in _objectToButton)
+        {
+            item.Value.SetActiveMode(false);
+        }
+
+        if (obj != null && _objectToButton.TryGetValue(obj, out EditorButton? button))
+            button.SetActiveMode(true);
+
+        if (notify)
+            OnObjectSelected?.Invoke(obj);
+    }
+
+    private void RecursiveWalk(UIBaseWindow parent, int indent, T obj)
+    {
+        var currentButtonContainer = new UIBaseWindow()
+        {
+            LayoutMode = LayoutMode.VerticalList,
+            ListSpacing = new Vector2(0, 3)
+        };
+        parent.AddChild(currentButtonContainer);
+
+        var currentButton = new EditorButton($"{obj}")
+        {
+            Margins = new Primitives.Rectangle(indent, 0, 0, 0),
+            OnClickedProxy = (_) => SelectObject(obj)
+        };
+        currentButtonContainer.AddChild(currentButton);
+        _objectToButton.Add(obj, currentButton);
+
+        var currentButtonChildren = new UIBaseWindow()
+        {
+            LayoutMode = LayoutMode.VerticalList,
+            ListSpacing = new Vector2(0, 5)
+        };
+        currentButtonContainer.AddChild(currentButtonChildren);
+
+        List<T> currentChildren = new List<T>();
+        _treeWalk(obj, currentChildren);
+        foreach (T? child in currentChildren)
+        {
+            if (child == null) continue;
+            RecursiveWalk(currentButtonChildren, indent + 5, child);
+        }
+    }
+}
+
 public class UITemplateEditor : TypeEditor
 {
+    private O_UIBaseWindow? _selectedWindow;
+
     private O_UITemplate? _objectEditing = null;
     private ComplexObjectEditor<O_UITemplate> _objEditor;
     private ObjectPropertyWindow _windowEditor;
     private UISolidColor _viewPort;
+    private EditorTreeViewWindow<O_UIBaseWindow>? _treeView;
 
     public UITemplateEditor()
     {
@@ -42,8 +149,35 @@ public class UITemplateEditor : TypeEditor
         {
             WindowColor = Color.CornflowerBlue
         };
-        contentPanel.AddChild(viewPort);
         _viewPort = viewPort;
+
+        var leftSideTabs = new EditorTabbedContent();
+        leftSideTabs.AddTab("Visual", (tabParent) =>
+        {
+            tabParent.AddChild(_viewPort);
+        });
+        leftSideTabs.AddTab("Tree View", (tabParent) =>
+        {
+            var treeViewContainer = new UIBaseWindow();
+            tabParent.AddChild(treeViewContainer);
+
+            var treeViewScrollContent = new EditorScrollArea();
+            treeViewContainer.AddChild(treeViewScrollContent);
+
+            var treeView = new EditorTreeViewWindow<O_UIBaseWindow>((obj, list) => list.AddRange(obj.Children));
+            if (_objectEditing != null)
+                treeView.SetObject(_objectEditing.Window);
+            treeView.SelectObject(_selectedWindow, false);
+            treeViewScrollContent.AddChildInside(treeView);
+            treeView.OnObjectSelected = SelectSubWindow;
+            _treeView = treeView;
+
+            var scrollVert = new EditorScrollBar();
+            treeViewContainer.AddChild(scrollVert);
+            scrollVert.ScrollParent = treeViewScrollContent;
+        });
+        leftSideTabs.SetTab("Visual");
+        contentPanel.AddChild(leftSideTabs);
 
         contentPanel.AddChild(new HorizontalPanelSeparator()
         {
@@ -74,6 +208,7 @@ public class UITemplateEditor : TypeEditor
 
     public override void SetValue(object? value)
     {
+        _selectedWindow = null;
         if (_objectEditing != null)
             EngineEditor.UnregisterForObjectChanges(_objectEditing);
 
@@ -86,8 +221,10 @@ public class UITemplateEditor : TypeEditor
 
         if (_objectEditing != null)
         {
+            SelectSubWindow(_objectEditing.Window);
+
             _objEditor.SetValue(_objectEditing);
-            _windowEditor.SetEditor(_objectEditing.Window);
+            _treeView?.SetObject(_objectEditing.Window);
             //EngineEditor.RegisterForObjectChanges(_objectEditing.Window, (ev) => _objectEditing.Window.InvalidateLayout());
 
             // temp
@@ -102,9 +239,17 @@ public class UITemplateEditor : TypeEditor
         }
         else
         {
+            _treeView?.SetObject(null);
             _objEditor.SetValue(null);
             _windowEditor.SetEditor(null);
             EngineEditor.EditorUI.ClearChildren();
         }
+    }
+
+    public void SelectSubWindow(O_UIBaseWindow? win)
+    {
+        _selectedWindow = win;
+        _windowEditor.SetEditor(_selectedWindow);
+        _treeView?.SelectObject(_selectedWindow, false);
     }
 }

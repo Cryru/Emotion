@@ -24,7 +24,7 @@ public partial class O_UIBaseWindow
     public List<O_UIBaseWindow> Children { get => ChildrenSerialized; init => ChildrenSerialized = value; }
 
     [SerializeNonPublicGetSet]
-    public List<O_UIBaseWindow> ChildrenSerialized { get; private set; } = new List<O_UIBaseWindow>();
+    public List<O_UIBaseWindow> ChildrenSerialized { get; protected set; } = new List<O_UIBaseWindow>();
 
     public class O_UIBaseWindowSystemAdapter // Friend class workaround.
     {
@@ -46,22 +46,25 @@ public partial class O_UIBaseWindow
 
     public virtual void Update()
     {
-        //SystemDoLayout(UILayoutPass.Measure);
-        //SystemDoLayout(UILayoutPass.Grow);
-        //SystemDoLayout(UILayoutPass.Layout);
     }
 
     public void Render(Renderer c)
+    {
+        if (!Visuals.Visible) return;
+
+        InternalRender(c);
+        foreach (O_UIBaseWindow win in Children)
+        {
+            win.Render(c);
+        }
+    }
+
+    protected virtual void InternalRender(Renderer c)
     {
         var calc = CalculatedMetrics;
         if (Visuals.Color.A != 0)
         {
             c.RenderSprite(calc.Position, calc.Size, Visuals.Color);
-        }
-
-        foreach (O_UIBaseWindow win in Children)
-        {
-            win.Render(c);
         }
     }
 
@@ -146,6 +149,10 @@ public partial class O_UIBaseWindow
                 foreach (O_UIBaseWindow child in Children)
                 {
                     Vector2 windowMinSize = child.MeasureWindow();
+                    if (child.Layout.SizingX.Mode == UISizing.UISizingMode.Fixed)
+                        windowMinSize.X = MathF.Max(windowMinSize.X, child.Layout.SizingX.Size);
+                    if (child.Layout.SizingY.Mode == UISizing.UISizingMode.Fixed)
+                        windowMinSize.Y = MathF.Max(windowMinSize.Y, child.Layout.SizingY.Size);
                     child.CalculatedMetrics.Size = windowMinSize;
 
                     pen[listMask] += windowMinSize[listMask];

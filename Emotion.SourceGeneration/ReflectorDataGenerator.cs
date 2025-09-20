@@ -376,7 +376,8 @@ namespace SourceGenerator
                     {
                         INamedTypeSymbol clazz = attribute.AttributeClass;
                         if (clazz.Name != "VertexAttributeAttribute" &&
-                            clazz.Name != "DontShowInEditorAttribute") continue; // todo
+                            clazz.Name != "DontShowInEditorAttribute" &&
+                            clazz.Name != "DontSerializeButShowInEditorAttribute") continue; // todo
 
                         sb.AppendLine($"                       {GenerateAttributeDeclaration(attribute)},");
                     }
