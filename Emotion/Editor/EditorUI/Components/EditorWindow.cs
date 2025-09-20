@@ -68,14 +68,14 @@ public class EditorWindow : UIBaseWindow
         }
     }
 
-    private PanelMode _panelMode = PanelMode.Default;
+    private PanelMode _panelMode = PanelMode.SubWindow;
 
     private UIBaseWindow _contentParent = null!;
     private EditorWindowContent _panelItself = null!;
     private UIBaseWindow _panelInner = null!;
     private bool _centered;
 
-    protected Vector2 _initialSize = new Vector2(960, 540);
+    protected Vector2 _initialSize = new Vector2(1280, 800);
 
     public EditorWindow()
     {
@@ -128,6 +128,14 @@ public class EditorWindow : UIBaseWindow
         _panelItself = panelItself;
         _panelInner = panelInner;
         _contentParent = panelContent;
+
+        if (_panelMode == PanelMode.SubWindow)
+        {
+            if (Engine.Host.SupportsSubWindows() && AllowSubWindow)
+                CreateSubWindow();
+            else
+                _panelMode = PanelMode.Default;
+        }
 
         if (_panelMode == PanelMode.Modal)
         {
@@ -448,13 +456,13 @@ public class EditorWindow : UIBaseWindow
 
         GLThread.ExecuteGLThreadAsync(() =>
         {
-            Vector2 contentSize = _contentParent.Size;
+            Vector2 contentSize = _panelItself.SizeConstraint;
             _windowFB = new FrameBuffer(contentSize).WithColor();
             _hostWindow = Engine.Host.CreateSubWindow(Header, contentSize);
 
             _panelItself.Offset = Vector2.Zero;
             _panelItself.AnchorAndParentAnchor = UIAnchor.TopLeft;
-            _panelItself.SizeConstraint = _hostWindow.Size / GetScale();
+            _panelItself.SizeConstraint = contentSize;
             _centered = true;
         });
     }
@@ -500,7 +508,7 @@ public class EditorWindow : UIBaseWindow
     public static void SubmitUndoOperation(UIBaseWindow originator, EditorUndoableOperation operation)
     {
         UIBaseWindow? parent = originator.Parent;
-        while(true)
+        while (true)
         {
             if (parent == null) break;
             if (parent is EditorWindow editorWindow && editorWindow.PanelMode != PanelMode.Embedded)
