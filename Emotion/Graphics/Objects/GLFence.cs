@@ -7,7 +7,8 @@ namespace Emotion.Graphics.Objects;
 /// <summary>
 /// https://www.khronos.org/opengl/wiki/Sync_Object
 /// </summary>
-public class Fence
+[DontSerialize]
+public class GLFence
 {
     /// <summary>
     /// The OpenGL pointer to the fence.
@@ -22,7 +23,7 @@ public class Fence
     /// <summary>
     /// Create a new GL fence object which lets you know when certain GL commands have executed on the GPU.
     /// </summary>
-    public Fence()
+    public GLFence()
     {
         Pointer = Gl.FenceSync(SyncCondition.SyncGpuCommandsComplete, 0);
     }

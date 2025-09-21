@@ -294,7 +294,7 @@ public class FrameBuffer : IDisposable
             return null;
         }
 
-        var newFence = new Fence();
+        var newFence = new GLFence();
         PixelBuffer.EnsureBound(0);
 
         // Start a coroutine to poll until this is ready.
@@ -302,14 +302,14 @@ public class FrameBuffer : IDisposable
         return sampleRequest;
     }
 
-    private IEnumerator FramebufferSampleRequest_CheckingCoroutine(Fence fence, int byteSize, byte[] data)
+    private IEnumerator FramebufferSampleRequest_CheckingCoroutine(GLFence fence, int byteSize, byte[] data)
     {
         GLThread.ExecuteOnGLThreadAsync(FramebufferSampleRequest_UpdateFenceFinished, fence);
         while (!fence.Finished) yield return null;
         GLThread.ExecuteOnGLThreadAsync(FramebufferSampleRequest_DownloadData, byteSize, data);
     }
 
-    private void FramebufferSampleRequest_UpdateFenceFinished(Fence fence)
+    private void FramebufferSampleRequest_UpdateFenceFinished(GLFence fence)
     {
         fence.IsSignaled();
     }

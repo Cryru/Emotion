@@ -280,6 +280,13 @@ public sealed partial class Renderer
         Vector4 c = Engine.Configuration.ClearColor.ToVec4();
         Gl.ClearColor((int)c.X, (int)c.Y, (int)c.Z, (int)c.W);
 
+        // Create bound dictionary for all slots and texture types
+        TextureTarget[] possibleTypes = Enum.GetValues<TextureTarget>();
+        foreach (TextureTarget type in possibleTypes)
+        {
+            TextureObjectBase.Bound[type] = new uint[Engine.Renderer.TextureBindLimit];
+        }
+
         // Initialize misc graphics objects.
         Texture.InitializeEmptyTexture();
 

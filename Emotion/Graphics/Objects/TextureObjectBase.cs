@@ -182,16 +182,6 @@ public abstract class TextureObjectBase : IDisposable
     public static Dictionary<TextureTarget, uint[]> Bound = new Dictionary<TextureTarget, uint[]>();
     private static int _activeSlot = -1;
 
-    static TextureObjectBase()
-    {
-        // Create bound dictionary with all types.
-        TextureTarget[] possibleTypes = Enum.GetValues<TextureTarget>();
-        foreach (TextureTarget type in possibleTypes)
-        {
-            Bound[type] = new uint[Engine.Renderer.TextureBindLimit];
-        }
-    }
-
     /// <summary>
     /// Ensures the provided pointer is the currently bound texture in the provided slot.
     /// </summary>
