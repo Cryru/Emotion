@@ -193,7 +193,7 @@ public class EditorWindow : UIBaseWindow
         if (_centered && PanelMode != PanelMode.Embedded)
         {
             _panelItself.AnchorAndParentAnchor = UIAnchor.TopLeft;
-            _panelItself.Offset = _panelItself.Position2 / GetScale();
+            _panelItself.Layout.Offset = _panelItself.Position2 / GetScale();
             _centered = false;
         }
     }
@@ -424,8 +424,8 @@ public class EditorWindow : UIBaseWindow
             Vector2 posDiff = mousePosNow - _topBarMouseDownPos;
             _topBarMouseDownPos = mousePosNow;
 
-            float containerScale = _panelItself.GetScale();
-            var panelBounds = new Rectangle(_panelItself.Offset * containerScale + posDiff, _panelItself.Size);
+            float containerScale = _panelItself.CalculatedMetrics.ScaleF;
+            var panelBounds = new Rectangle(_panelItself.Layout.Offset * containerScale + posDiff, _panelItself.Size);
 
             Rectangle snapArea = Controller!.Bounds;
             snapArea.Width += panelBounds.Width / 2f;
@@ -439,7 +439,7 @@ public class EditorWindow : UIBaseWindow
                 snapArea.Height -= topBarPos;
             }
 
-            _panelItself.Offset = snapArea.SnapRectangleInside(panelBounds) / containerScale;
+            _panelItself.Layout.Offset = snapArea.SnapRectangleInside(panelBounds) / containerScale;
             _panelItself.InvalidateLayout();
         }
     }

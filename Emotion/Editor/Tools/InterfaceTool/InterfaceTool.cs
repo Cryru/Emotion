@@ -29,7 +29,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
                 LayoutMethod = UILayoutMethod.HorizontalList(5),
 
                 MinSize = new Vector2(200, 100),
-                Padding = new UIRectangleSpacingMetric(5, 5, 5, 5)
+                Padding = new UISpacing(5, 5, 5, 5)
             },
 
             Children = [

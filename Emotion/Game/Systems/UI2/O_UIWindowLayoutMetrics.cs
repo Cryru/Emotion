@@ -6,7 +6,10 @@ namespace Emotion.Game.Systems.UI2;
 
 public class O_UIWindowLayoutMetrics
 {
-    public const float DefaultMaxSize = 99999;
+    public const float DEFAULT_MAX_SIZE = 99999;
+
+    public Vector2 Scale = new Vector2(1f);
+    public bool ScaleWithResolution = true;
 
     public Vector2 Offset = Vector2.Zero;
 
@@ -27,7 +30,7 @@ public class O_UIWindowLayoutMetrics
         set => MinSize.Y = value;
     }
 
-    public Vector2 MaxSize = new Vector2(DefaultMaxSize);
+    public Vector2 MaxSize = new Vector2(DEFAULT_MAX_SIZE);
 
     public float MaxSizeX
     {
@@ -40,8 +43,8 @@ public class O_UIWindowLayoutMetrics
         set => MaxSize.Y = value;
     }
 
-    public UIRectangleSpacingMetric Padding;
-    public UIRectangleSpacingMetric Margins;
+    public UISpacing Padding;
+    public UISpacing Margins;
 
     public UILayoutMethod LayoutMethod = UILayoutMethod.Free(UIAnchor.TopLeft, UIAnchor.TopLeft);
     public UISizing SizingX = UISizing.Grow();

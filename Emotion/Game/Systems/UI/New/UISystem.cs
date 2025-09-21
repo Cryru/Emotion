@@ -14,8 +14,6 @@ public class UISystem : UIBaseWindow
     public Vector2 TargetResolution = new Vector2(1920, 1080);
     public Vector2 TargetDPI = new Vector2(96);
 
-    protected bool _updateScale;
-
     public UISystem()
     {
         State = UIWindowState.Open;
@@ -23,42 +21,18 @@ public class UISystem : UIBaseWindow
         HostResized(Engine.Renderer.ScreenBuffer.Size);
     }
 
-    protected override Vector2 InternalGetWindowMinSize()
-    {
-        return Engine.Renderer.ScreenBuffer.Size;
-    }
-
     private void HostResized(Vector2 size)
     {
         Vector2 scaledTarget = TargetResolution * TargetDPI;
         Vector2 scaledCurrent = size * Engine.Host.GetDPI();
 
-        Scale = scaledCurrent / scaledTarget;
-        _updateScale = true;
-        Engine.Log.Info($"UI Scale is {Scale}", MessageSource.UI);
+        Layout.Scale = scaledCurrent / scaledTarget;
+        Engine.Log.Info($"UI Scale is {Layout.Scale}", MessageSource.UI);
     }
 
-    public override void InvalidateLayout()
+    protected override Vector2 InternalGetWindowMinSize()
     {
-        _updateScale = true;
-        base.InvalidateLayout();
-    }
-
-    protected override bool UpdateInternal()
-    {
-        if (_updateScale) UpdateScaleValues();
-        return base.UpdateInternal();
-    }
-
-    private void UpdateScaleValues()
-    {
-        foreach (UIBaseWindow win in this)
-        {
-            AssertNotNull(win.Parent);
-            if (win.ScaleMode != UIScaleMode.NoScale)
-                win.Scale = 1f * win.Parent.Scale;
-        }
-        _updateScale = false;
+        return Engine.Renderer.ScreenBuffer.Size;
     }
 
     protected override void RenderChildren(Renderer c)

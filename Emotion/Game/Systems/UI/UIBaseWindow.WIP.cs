@@ -191,7 +191,7 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
         }
 
         float scale = GetScale();
-        pos += (Offset * scale).Round();
+        pos += (Layout.Offset * scale).Round();
         pos = pos.Floor();
         Position = pos.ToVec3(Z);
         Size = size.Ceiling();

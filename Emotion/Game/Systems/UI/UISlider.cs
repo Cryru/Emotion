@@ -181,7 +181,7 @@ public class UISlider : UIBaseWindow
                 offset = (size.X - selectorSize) / range * (Value - MinValue);
             }
 
-            _selector.Offset = new Vector2(offset, 0);
+            _selector.Layout.Offset = new Vector2(offset, 0);
         }
         else
         {
@@ -197,7 +197,7 @@ public class UISlider : UIBaseWindow
                 offset = (size.Y - selectorSize) / range * (Value - MinValue);
             }
 
-            _selector.Offset = new Vector2(0, float.IsNaN(offset) ? 0 : offset);
+            _selector.Layout.Offset = new Vector2(0, float.IsNaN(offset) ? 0 : offset);
         }
     }
 

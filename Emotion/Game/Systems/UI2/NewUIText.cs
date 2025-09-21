@@ -102,7 +102,9 @@ public class NewUIText : UIBaseWindow
         }
 
         FontAsset font = Font.GetObject() ?? FontAsset.GetDefaultBuiltIn();
-        _atlas = font.GetAtlas(FontSize);
+
+        float atlasSize = (int)MathF.Ceiling(FontSize * CalculatedMetrics.ScaleF);
+        _atlas = font.GetAtlas(atlasSize);
 
         if (_layoutEngine.NeedsToReRun(Text, null, _atlas))
         {

@@ -32,7 +32,7 @@ public class EditorTopBar : UIBaseWindow
             Layout =
             {
                 LayoutMethod = UILayoutMethod.HorizontalList(5),
-                Margins = new UIRectangleSpacingMetric(5, 5, 5, 10)
+                Margins = new UISpacing(5, 5, 5, 5)
             },
             AnchorAndParentAnchor = UIAnchor.CenterLeft,
         };

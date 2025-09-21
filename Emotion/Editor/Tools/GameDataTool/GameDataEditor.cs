@@ -4,6 +4,7 @@ using Emotion.Editor.EditorUI;
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI2;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
@@ -161,10 +162,15 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
 
             SquareEditorButtonWithTexture hotReloadButton = new("Editor/HotReload.png")
             {
-                Scale = new Vector2(0.75f),
+                Layout =
+                {
+                    Scale = new Vector2(0.75f),
+                    Padding = new UISpacing(4, 4, 4, 4),
+                },
+
                 NormalColor = new Color(31, 31, 31),
                 RolloverColor = new Color(31, 31, 31),
-                Paddings = new Rectangle(4, 4, 4, 4),
+                
 
                 OnMouseEnterProxy = (_) => hotReloadButtonHighlight.Visible = true,
                 OnMouseLeaveProxy = (_) => hotReloadButtonHighlight.Visible = false,

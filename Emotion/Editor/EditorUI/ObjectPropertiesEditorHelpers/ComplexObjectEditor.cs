@@ -207,10 +207,13 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
 
             var arrowIcon = new UITexture()
             {
+                Layout = {
+                    Offset = new Vector2(0, 4)
+                },
+
                 Smooth = true,
                 TextureFile = "Editor/Edit.png",
                 ImageScale = new Vector2(0.6f),
-                Offset = new Vector2(0, 4),
                 AnchorAndParentAnchor = UIAnchor.CenterCenter
             };
             arrowSquare.AddChild(arrowIcon);

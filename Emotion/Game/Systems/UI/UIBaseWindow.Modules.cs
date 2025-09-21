@@ -2,9 +2,7 @@
 
 #region Using
 
-using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
-using Emotion.Game.Systems.UI.New;
 using Emotion.Game.Systems.UI2;
 using static Emotion.Game.Systems.UI2.UILayoutMethod;
 
@@ -49,11 +47,6 @@ public partial class UIBaseWindow
 
     #region Lifecycle
 
-    public void RestoreFromSerialized()
-    {
-        EnsureParentLinks();
-    }
-
     private void SetStateOpened()
     {
         Assert(State != UIWindowState.Open);
@@ -84,6 +77,7 @@ public partial class UIBaseWindow
             child.SetStateClosed();
         }
     }
+
     protected virtual void OnClose()
     {
 
@@ -251,6 +245,8 @@ public partial class UIBaseWindow
 
     #region Updates
 
+    private bool _needsLoading = true;
+
     protected void InvalidateAssets()
     {
         _needsLoading = true;
@@ -270,7 +266,6 @@ public partial class UIBaseWindow
 
     #region Loading
 
-    private bool _needsLoading = true;
     private Coroutine _loadingRoutine = Coroutine.CompletedRoutine;
 
     public bool IsLoading()
@@ -333,12 +328,14 @@ public partial class UIBaseWindow
     {
         Assert(State == UIWindowState.Open);
 
-        // Check if needs to load something.
+        // Check if needs to load...If loading we don't want to update or draw the UI
         if (_needsLoading) AttemptLoad();
         if (IsLoading()) return;
 
         if (_needsLayout)
         {
+            // A layout can be started at any part of the tree,
+            // and all UI below it will be handled.
             CalculatedMetrics.Size = MeasureWindow();
             GrowWindow();
             LayoutWindow(CalculatedMetrics.Position);
@@ -367,6 +364,11 @@ public partial class UIBaseWindow
 
     protected Vector2 MeasureWindow()
     {
+        if (Layout.ScaleWithResolution)
+            CalculatedMetrics.Scale = Layout.Scale * (Parent?.CalculatedMetrics.Scale ?? Vector2.One);
+        else
+            Layout.Scale = Vector2.One;
+
         Vector2 childrenSize = Vector2.Zero;
         switch (Layout.LayoutMethod.Mode)
         {
@@ -394,7 +396,7 @@ public partial class UIBaseWindow
                     pen[inverseListMask] = MathF.Max(pen[inverseListMask], windowMinSize[inverseListMask]);
                 }
 
-                float totalSpacing = Layout.LayoutMethod.ListSpacing[listMask] * (Children.Count - 1);
+                float totalSpacing = Layout.LayoutMethod.ListSpacing[listMask] * CalculatedMetrics.Scale[listMask] * (Children.Count - 1);
 
                 //bool fitAlongList = listMask == 0 ? Layout.SizingX.Mode == UISizing.UISizingMode.Fit : Layout.SizingY.Mode == UISizing.UISizingMode.Fit;
                 childrenSize[listMask] += pen[listMask] + totalSpacing;
@@ -408,19 +410,21 @@ public partial class UIBaseWindow
         }
 
         Vector2 mySize = Vector2.Zero;
+
         if (Layout.SizingX.Mode == UISizing.UISizingMode.Fixed)
-            mySize.X = Layout.SizingX.Size;
+            mySize.X = Layout.SizingX.Size * CalculatedMetrics.Scale.X;
         if (Layout.SizingY.Mode == UISizing.UISizingMode.Fixed)
-            mySize.Y = Layout.SizingY.Size;
-        mySize += Layout.Padding.TopLeft;
-        mySize += Layout.Padding.BottomRight;
-        mySize += Layout.Margins.TopLeft;
-        mySize += Layout.Margins.BottomRight;
+            mySize.Y = Layout.SizingY.Size * CalculatedMetrics.Scale.Y;
+
+        mySize += Layout.Padding.TopLeft * CalculatedMetrics.Scale;
+        mySize += Layout.Padding.BottomRight * CalculatedMetrics.Scale;
+        mySize += Layout.Margins.TopLeft * CalculatedMetrics.Scale;
+        mySize += Layout.Margins.BottomRight * CalculatedMetrics.Scale;
 
         Vector2 contentSize = Vector2.Max(childrenSize, InternalGetWindowMinSize());
         mySize += contentSize;
 
-        return Vector2.Clamp(mySize, Layout.MinSize, Layout.MaxSize);
+        return Vector2.Clamp(mySize, Layout.MinSize * CalculatedMetrics.Scale, Layout.MaxSize * CalculatedMetrics.Scale);
     }
 
     protected void GrowWindow()
@@ -430,11 +434,11 @@ public partial class UIBaseWindow
             return;
 
         Vector2 myMeasuredSize = CalculatedMetrics.Size;
-        myMeasuredSize -= Layout.Padding.TopLeft;
-        myMeasuredSize -= Layout.Padding.BottomRight;
+        myMeasuredSize -= Layout.Padding.TopLeft * CalculatedMetrics.Scale;
+        myMeasuredSize -= Layout.Padding.BottomRight * CalculatedMetrics.Scale;
 
-        myMeasuredSize -= Layout.Margins.TopLeft;
-        myMeasuredSize -= Layout.Margins.BottomRight;
+        myMeasuredSize -= Layout.Margins.TopLeft * CalculatedMetrics.Scale;
+        myMeasuredSize -= Layout.Margins.BottomRight * CalculatedMetrics.Scale;
 
         switch (Layout.LayoutMethod.Mode)
         {
@@ -462,7 +466,7 @@ public partial class UIBaseWindow
                     float listSize = child.CalculatedMetrics.Size[listMask];
                     listRemainingSize -= listSize;
                 }
-                listRemainingSize -= Layout.LayoutMethod.ListSpacing[listMask] * (Children.Count - 1);
+                listRemainingSize -= Layout.LayoutMethod.ListSpacing[listMask] * CalculatedMetrics.Scale[listMask] * (Children.Count - 1);
 
                 // Grow across list
                 foreach (UIBaseWindow child in Children)
@@ -536,12 +540,17 @@ public partial class UIBaseWindow
 
     protected void LayoutWindow(Vector2 pos)
     {
-        Vector2 myPos = Layout.Offset + pos;
-        myPos += Layout.Margins.TopLeft;
-        CalculatedMetrics.Position = myPos;
+        // Round size
+        CalculatedMetrics.Size = CalculatedMetrics.Size.Ceiling();
+
+        Vector2 offsetScaled = (Layout.Offset * CalculatedMetrics.Scale).Round();
+
+        Vector2 myPos = offsetScaled + pos;
+        myPos += Layout.Margins.TopLeft * CalculatedMetrics.Scale;
+        CalculatedMetrics.Position = myPos.Floor();
 
         Vector2 pen = myPos;
-        pen += Layout.Padding.TopLeft;
+        pen += Layout.Padding.TopLeft * CalculatedMetrics.Scale;
 
         switch (Layout.LayoutMethod.Mode)
         {
@@ -558,7 +567,7 @@ public partial class UIBaseWindow
                 foreach (UIBaseWindow child in Children)
                 {
                     child.LayoutWindow(pen);
-                    pen[listMask] += child.CalculatedMetrics.Size[listMask] + Layout.LayoutMethod.ListSpacing[listMask];
+                    pen[listMask] += child.CalculatedMetrics.Size[listMask] + Layout.LayoutMethod.ListSpacing[listMask] * CalculatedMetrics.Scale[listMask];
                 }
                 break;
         }

@@ -43,10 +43,13 @@ public class EnumEditor<T, TNum> : TypeEditor
 
         var arrowIcon = new UITexture()
         {
+            Layout = {
+                Offset = new Vector2(0, 4)
+            },
+
             Smooth = true,
             TextureFile = "Editor/LittleArrow.png",
             ImageScale = new Vector2(0.6f),
-            Offset = new Vector2(0, 4),
             AnchorAndParentAnchor = UIAnchor.CenterCenter
         };
         arrowSquare.AddChild(arrowIcon);

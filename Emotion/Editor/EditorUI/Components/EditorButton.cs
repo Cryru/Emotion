@@ -53,7 +53,7 @@ public class EditorButton : UICallbackButton
     {
         Layout.SizingX = UISizing.Fit();
         Layout.SizingY = UISizing.Fit();
-        Layout.Padding = new UIRectangleSpacingMetric(6, 3, 6, 3);
+        Layout.Padding = new UISpacing(6, 3, 6, 3);
 
         _label = new EditorLabel
         {

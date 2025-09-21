@@ -350,13 +350,6 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
     private Vector2 _offsetBacking;
 
     /// <summary>
-    /// Position and size is multiplied by Renderer.Scale, Renderer.IntScale or neither.
-    /// </summary>
-    public UIScaleMode ScaleMode { get; set; } = UIScaleMode.FloatScale;
-
-    public Vector2 Scale = Vector2.One;
-
-    /// <summary>
     /// Position relative to another window in the same controller.
     /// </summary>
     public string? RelativeTo
@@ -936,7 +929,7 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
     /// <returns></returns>
     public float GetScale()
     {
-        return MathF.Max(Scale.X, Scale.Y);
+        return CalculatedMetrics.ScaleF;
     }
 
     #endregion
