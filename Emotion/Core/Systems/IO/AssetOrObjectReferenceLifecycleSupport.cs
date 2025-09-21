@@ -4,14 +4,18 @@ using Emotion.Core.Utility.Coroutines;
 
 namespace Emotion.Core.Systems.IO;
 
-public class AssetOrObjectReferenceLifecycleSupport<TAsset, TObject>
+[DontSerialize]
+public partial class AssetOrObjectReferenceLifecycleSupport<TAsset, TObject>
     where TAsset : Asset, IAssetContainingObject<TObject>, new()
 {
+    public Coroutine CurrentSetRoutine = Coroutine.CompletedRoutine;
+
     private AssetOrObjectReference<TAsset, TObject> _initialRef = AssetOrObjectReference<TAsset, TObject>.Invalid;
     private AssetOrObjectReference<TAsset, TObject> _currentRef = AssetOrObjectReference<TAsset, TObject>.Invalid;
-    private Action<TObject?> _onObjectChanged;
 
-    public AssetOrObjectReferenceLifecycleSupport(AssetOrObjectReference<TAsset, TObject> initial, Action<TObject?> onChanged)
+    private Action<TObject?>? _onObjectChanged;
+
+    public AssetOrObjectReferenceLifecycleSupport(AssetOrObjectReference<TAsset, TObject> initial, Action<TObject?>? onChanged)
     {
         _initialRef = initial;
         _onObjectChanged = onChanged;
@@ -34,7 +38,11 @@ public class AssetOrObjectReferenceLifecycleSupport<TAsset, TObject>
             return null;
         }
 
-        return Engine.CoroutineManager.StartCoroutine(SwapRoutine(this, objRef));
+        // Stop old
+        if (!CurrentSetRoutine.Finished) CurrentSetRoutine.RequestStop();
+
+        CurrentSetRoutine = Engine.CoroutineManager.StartCoroutine(SwapRoutine(this, objRef));
+        return CurrentSetRoutine;
     }
 
     public void Done()

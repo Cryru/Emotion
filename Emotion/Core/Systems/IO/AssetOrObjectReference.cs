@@ -12,6 +12,7 @@ public enum AssetOrObjectReferenceType
     AssetName,
     Object
 }
+
 public interface IAssetContainingObject<TObject>
 {
     public bool Finished { get; }
@@ -68,11 +69,16 @@ public class AssetOrObjectReference<TAsset, TObject>
             _owningObject = null;
             _onAssetChanged = null;
 
-            _type = AssetOrObjectReferenceType.Deleted;
+            // If the reference was to an asset and not directly to the object,
+            // then this instance can be reused!
+            if (_assetName != null)
+                _type = AssetOrObjectReferenceType.AssetName;
+            else
+                _type = AssetOrObjectReferenceType.Deleted;
         }
     }
 
-    public IEnumerator PerformLoading(object? owningObject, Action<object>? onChanged)
+    public IEnumerator PerformLoading(object? owningObject, Action<object>? onChanged) // This is more of an owner-reference binding than loading
     {
         if (_type == AssetOrObjectReferenceType.AssetName)
         {
@@ -83,14 +89,15 @@ public class AssetOrObjectReference<TAsset, TObject>
 
         if (_type == AssetOrObjectReferenceType.Asset)
         {
+            AssertNotNull(_asset);
+            if (!_asset.Loaded)
+                yield return _asset;
+
             if (_owningObject == null && owningObject != null)
             {
                 Engine.AssetLoader.AddReferenceToAsset(_asset, owningObject);
                 _owningObject = owningObject;
             }
-
-            AssertNotNull(_asset);
-            yield return _asset;
 
             _onAssetChanged = onChanged;
             _asset.OnLoaded += AssetReloaded;
