@@ -19,9 +19,9 @@ public class ObjectPropertyEditorWindow : EditorWindow
         _initialSize = new Vector2(500, 300);
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
 
         UIBaseWindow contentParent = GetContentParent();
         contentParent.AddChild(_editorWindow);

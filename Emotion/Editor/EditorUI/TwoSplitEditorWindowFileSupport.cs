@@ -17,9 +17,9 @@ public abstract class TwoSplitEditorWindowFileSupport<TLeft, TRight, TEditType> 
     {
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
 
         UIBaseWindow contentParent = GetContentParent();
         var content = new UIBaseWindow()

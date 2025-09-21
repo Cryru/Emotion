@@ -101,9 +101,9 @@ public class EditorWindow : UIBaseWindow
         return base.Measure(space);
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
 
         var panelItself = new EditorWindowContent()
         {
@@ -166,7 +166,7 @@ public class EditorWindow : UIBaseWindow
         }
         AttachTopBar(panelItself);
 
-        controller.SetInputFocus(panelContent);
+        Engine.UI.SetInputFocus(panelContent);
         ApplySettings();
     }
 

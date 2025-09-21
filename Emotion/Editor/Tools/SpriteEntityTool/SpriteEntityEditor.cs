@@ -26,9 +26,9 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UIViewport, Ob
     {
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
         NewFile();
 
         var contentParent = GetContentParent();

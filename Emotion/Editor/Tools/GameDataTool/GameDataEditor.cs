@@ -32,9 +32,9 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
         StartingSplit = 0.25f;
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
 
         UIBaseWindow contentParent = GetContentParent();
         _unsavedChangesNotification.DontTakeSpaceWhenHidden = false;
@@ -76,9 +76,9 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
         return properties;
     }
 
-    public override void DetachedFromController(UIController controller)
+    protected override void OnClose()
     {
-        base.DetachedFromController(controller);
+        base.OnClose();
         EngineEditor.UnregisterForObjectChanges(this);
         EditorAdapter.OnHotReloadNeededChange -= HotReloadNeededChange;
         EngineEditor.UnregisterForObjectChanges(_propertyEditorListener);

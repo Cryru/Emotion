@@ -50,6 +50,8 @@ public class NewUIText : UIBaseWindow
 
     public NewUIText()
     {
+        Layout.SizingX = UISizing.Fit();
+        Layout.SizingY = UISizing.Fit();
     }
 
     protected override void OnClose()

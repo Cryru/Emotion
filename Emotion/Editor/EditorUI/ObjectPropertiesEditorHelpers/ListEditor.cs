@@ -54,18 +54,18 @@ public class ListEditor<TItem> : ListEditor
         scrollArea.AddChildInside(_itemList);
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
 
         _objEdit = GetParentOfKind<ObjectPropertyWindow>();
         _member = _objEdit?.GetMemberForEditor(this);
         RespawnItemsUI(_items);
     }
 
-    public override void DetachedFromController(UIController controller)
+    protected override void OnClose()
     {
-        base.DetachedFromController(controller);
+        base.OnClose();
         EngineEditor.UnregisterForObjectChanges(this);
     }
 

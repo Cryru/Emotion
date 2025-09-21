@@ -20,17 +20,17 @@ public class ObjectPropertyWindow : UIBaseWindow
         LayoutMode = LayoutMode.VerticalList;
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
         SpawnEditors();
 
         ReflectorEngine.TypeHotReloaded += OnHotReload;
     }
 
-    public override void DetachedFromController(UIController controller)
+    protected override void OnClose()
     {
-        base.DetachedFromController(controller);
+        base.OnClose();
 
         ReflectorEngine.TypeHotReloaded -= OnHotReload;
     }

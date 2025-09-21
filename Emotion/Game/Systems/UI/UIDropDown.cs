@@ -25,21 +25,21 @@ public class UIDropDown : UIBaseWindow
         return base.RenderInternal(c);
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
 
-        if (controller.DropDown != null)
-            controller.DropDown.Close();
+        //if (controller.DropDown != null)
+        //    controller.DropDown.Close();
 
-        controller.SetInputFocus(this);
-        controller.DropDown = this;
+        //controller.SetInputFocus(this);
+        //controller.DropDown = this;
     }
 
-    public override void DetachedFromController(UIController controller)
+    protected override void OnClose()
     {
-        base.DetachedFromController(controller);
-        if (controller.DropDown == this) controller.DropDown = null;
+        base.OnClose();
+        //if (controller.DropDown == this) controller.DropDown = null;
     }
 
     // Close on defocus logic is implemented in the UISystem

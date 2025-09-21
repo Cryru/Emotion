@@ -34,9 +34,9 @@ public class EditorTreeViewWindow<T> : UIBaseWindow
         _container = container;
     }
 
-    public override void DetachedFromController(UIController controller)
+    protected override void OnClose()
     {
-        base.DetachedFromController(controller);
+        base.OnClose();
         EngineEditor.UnregisterForObjectChanges(this);
     }
 
@@ -182,9 +182,9 @@ public class UITemplateEditor : TypeEditor
         _windowEditor = windowEditor;
     }
 
-    public override void DetachedFromController(UIController controller)
+    protected override void OnClose()
     {
-        base.DetachedFromController(controller);
+        base.OnClose();
         SetValue(null);
     }
 

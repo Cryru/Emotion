@@ -130,9 +130,9 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
         }
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
 
         UIBaseWindow contentParent = GetContentParent();
 

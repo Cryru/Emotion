@@ -60,11 +60,11 @@ public partial class UIBaseWindow
         if (State == UIWindowState.Open) return;
 
         State = UIWindowState.Open;
-        OnOpen();
         foreach (UIBaseWindow child in Children)
         {
             child.SetStateOpened();
         }
+        OnOpen();
     }
 
     protected virtual void OnOpen()
@@ -92,16 +92,6 @@ public partial class UIBaseWindow
     #endregion
 
     #region DeleteMe
-
-    public virtual void AttachedToController(UIController controller)
-    {
-
-    }
-
-    public virtual void DetachedFromController(UIController controller)
-    {
-
-    }
 
     protected virtual bool RenderInternal(Renderer c)
     {

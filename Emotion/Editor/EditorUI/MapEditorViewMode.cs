@@ -18,9 +18,9 @@ public class MapEditorViewMode : UIBaseWindow
         Margins = new Rectangle(0, 5, 0, 0);
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
 
         UIBaseWindow overallContainer = new()
         {
@@ -109,9 +109,9 @@ public class MapEditorViewMode : UIBaseWindow
         return base.UpdateInternal();
     }
 
-    public override void DetachedFromController(UIController controller)
+    protected override void OnClose()
     {
-        base.DetachedFromController(controller);
+        base.OnClose();
 
         EngineEditor.OnMapEditorModeChanged -= EngineEditor_OnMapEditorModeChanged;
     }
@@ -166,9 +166,9 @@ public class MapEditorViewMode : UIBaseWindow
             _gizmoEntity ??= TranslationGizmo.GetTranslationGizmoEntity(15, 15, false)!;
         }
 
-        public override void AttachedToController(UIController controller)
+        protected override void OnOpen()
         {
-            base.AttachedToController(controller);
+            base.OnOpen();
         }
 
         protected override bool RenderInternal(Renderer c)

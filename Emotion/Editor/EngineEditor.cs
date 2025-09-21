@@ -59,7 +59,10 @@ public static partial class EngineEditor
 
         UIBaseWindow barContainer = new()
         {
-            LayoutMode = LayoutMode.VerticalList
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.VerticalList(0)
+            }
         };
         EditorRoot.AddChild(barContainer);
         barContainer.AddChild(new EditorTopBar());

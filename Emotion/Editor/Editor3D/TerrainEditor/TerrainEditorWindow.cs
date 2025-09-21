@@ -24,10 +24,6 @@ public sealed class TerrainEditorWindow : GridEditorWindow
         ];
     }
 
-    protected override void OnOpen()
-    {
-    }
-
     protected override void OnClose()
     {
         TerrainMeshGrid? terrain = GetCurrentMapTerrain();

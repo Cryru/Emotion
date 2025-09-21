@@ -52,9 +52,9 @@ public class EditorListItem<T> : EditorButton
         UpdateLabel();
     }
 
-    public override void DetachedFromController(UIController controller)
+    protected override void OnClose()
     {
-        base.DetachedFromController(controller);
+        base.OnClose();
         EngineEditor.UnregisterForObjectChanges(this);
     }
 

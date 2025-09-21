@@ -67,9 +67,9 @@ public class EditorButton : UICallbackButton
         RecalculateButtonColor();
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
         RecalculateButtonColor();
     }
 

@@ -21,7 +21,7 @@ public abstract partial class PlatformBase
     /// <summary>
     /// Called when the mouse moves. The first vector is the old one, the second is the new position.
     /// </summary>
-    public event Action<Vector2, Vector2> OnMouseMove;
+    public event Action<Vector2, Vector2>? OnMouseMove;
 
     /// <summary>
     /// Called when text input is detected. Most of the time this is identical to OnKey, but without the state.
@@ -62,10 +62,7 @@ public abstract partial class PlatformBase
         _keysIm = new bool[totalKeys];
         _keysPreviousIm = new bool[totalKeys];
 
-        Engine.Input.OnMouseMove += (old, nu) =>
-        {
-            OnMouseMove(old, nu);
-        };
+        Engine.Input.OnMouseMove += (old, nu) => OnMouseMove?.Invoke(old, nu);
         OnKey.AddListener(DefaultButtonBehavior, KeyListenerType.System);
         OnFocusChanged += PreventButtonInputOnRefocus;
     }

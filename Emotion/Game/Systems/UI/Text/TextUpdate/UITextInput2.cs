@@ -46,17 +46,17 @@ public class UITextInput2 : UIRichText
         GrowY = true;
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
         // We check focused so we can hook to the text input function that isnt blocked by anything.
         Engine.Host.OnTextInputAll += TextInputEventHandler;
-        base.AttachedToController(controller);
+        base.OnOpen();
     }
 
-    public override void DetachedFromController(UIController controller)
+    protected override void OnClose()
     {
         Engine.Host.OnTextInputAll -= TextInputEventHandler;
-        base.DetachedFromController(controller);
+        base.OnClose();
     }
 
     public override bool OnKey(Key key, KeyState status, Vector2 mousePos)

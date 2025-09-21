@@ -19,9 +19,9 @@ public class ChunkStreamVisualizer : EditorWindow
         _grid = grid;
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
 
         var contentParent = GetContentParent();
 

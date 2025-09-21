@@ -76,9 +76,9 @@ public class UISlider : UIBaseWindow
         GrowY = false;
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
         UIBaseWindow? scroll = GetWindowById("Selector");
         if (scroll == null)
         {

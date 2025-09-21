@@ -14,9 +14,9 @@ public class JobSystemVisualizer : EditorWindow
     {
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
 
         var contentParent = GetContentParent();
         contentParent.LayoutMode = LayoutMode.VerticalList;

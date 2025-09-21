@@ -28,9 +28,9 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
             _typeHandler = ReflectorEngine.GetComplexTypeHandler<T>();
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
 
         UIBaseWindow contentParent = GetContentParent();
 

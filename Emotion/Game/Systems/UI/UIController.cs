@@ -102,8 +102,8 @@ public partial class UIController : UIBaseWindow
         if (!_mouseUpdatedThisTick) UpdateMouseFocus();
         _mouseUpdatedThisTick = false;
 
-        if (_updatePreload) UpdateLoading();
-        if (_updateLayout) UpdateLayout();
+        //if (_updatePreload) UpdateLoading();
+        //if (_updateLayout) UpdateLayout();
 
         return true;
     }
@@ -125,39 +125,39 @@ public partial class UIController : UIBaseWindow
     }
 #endif
 
-    protected void UpdateLayout()
-    {
-        _updateLayout = false;
+    //protected void UpdateLayout()
+    //{
+    //    _updateLayout = false;
 
-        BuildRelativeToMapping();
+    //    BuildRelativeToMapping();
 
-        // 1. Measure the minimum size each window needs, which in turn
-        // determines the minimum size of the parent.
-        // Layout rules and extra metrics (paddings, margins) are measured too.
-        // Children are measured in insertion order (and by the OrderInParent property).
-        Size = Engine.Renderer.DrawBuffer.Size; // Used by "amInsideParent" during measurement
-        Measure(Size);
+    //    // 1. Measure the minimum size each window needs, which in turn
+    //    // determines the minimum size of the parent.
+    //    // Layout rules and extra metrics (paddings, margins) are measured too.
+    //    // Children are measured in insertion order (and by the OrderInParent property).
+    //    Size = Engine.Renderer.DrawBuffer.Size; // Used by "amInsideParent" during measurement
+    //    Measure(Size);
 
-        // 2. Layout windows within their parents, starting with the controller taking up the full screen.
-        // Sizes returned during measuring can be used, but larger sizes can be set. Positions are
-        // absolute and not relative.
-        OLDLayout(Vector2.Zero, Size);
-    }
+    //    // 2. Layout windows within their parents, starting with the controller taking up the full screen.
+    //    // Sizes returned during measuring can be used, but larger sizes can be set. Positions are
+    //    // absolute and not relative.
+    //    OLDLayout(Vector2.Zero, Size);
+    //}
 
-    public override void AddChild(UIBaseWindow? child)
-    {
-        if (child == null) return;
-        base.AddChild(child);
-        child.AttachedToController(this);
-    }
+    //public override void AddChild(UIBaseWindow? child)
+    //{
+    //    if (child == null) return;
+    //    base.AddChild(child);
+    //    child.AttachedToController(this);
+    //}
 
-    public override void RemoveChild(UIBaseWindow? child)
-    {
-        if (child == null) return;
-        base.RemoveChild(child);
-        child.DetachedFromController(this);
-        InvalidateInputFocus();
-    }
+    //public override void RemoveChild(UIBaseWindow? child)
+    //{
+    //    if (child == null) return;
+    //    base.RemoveChild(child);
+    //    child.DetachedFromController(this);
+    //    InvalidateInputFocus();
+    //}
 
     protected override void RenderChildren(Renderer c)
     {

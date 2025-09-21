@@ -15,9 +15,9 @@ public class CoroutineViewerTool : EditorWindow
     {
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
 
         UIBaseWindow contentParent = GetContentParent();
 

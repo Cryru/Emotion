@@ -34,9 +34,9 @@ public class UIScrollbar : UIBaseWindow
         HandleInput = true;
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
         _selectorColor = DefaultSelectorColor;
     }
 

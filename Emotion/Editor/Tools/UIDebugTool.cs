@@ -27,9 +27,9 @@ public class UIDebugTool : EditorWindow
         _debugInfo = new UIWindowDebugInfo();
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
 
         UIBaseWindow contentParent = GetContentParent();
 
@@ -164,9 +164,9 @@ public class UIDebugTool : EditorWindow
         UIController.SetUIDebugTool(this);
     }
 
-    public override void DetachedFromController(UIController controller)
+    protected override void OnClose()
     {
-        base.DetachedFromController(controller);
+        base.OnClose();
 
         UIController.SetUIDebugTool(null);
     }

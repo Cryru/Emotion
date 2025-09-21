@@ -9,7 +9,7 @@ namespace Emotion.Game.Systems.UI.New;
 // todo: scenes - make current scene current even while loading, add loaded bool
 // todo: investigate loading exceptions for the 100th time
 
-public class UISystem : UIController
+public class UISystem : UIBaseWindow
 {
     public Vector2 TargetResolution = new Vector2(1920, 1080);
     public Vector2 TargetDPI = new Vector2(96);
@@ -74,22 +74,31 @@ public class UISystem : UIController
         }
     }
 
-    protected override void UpdateMouseFocus()
-    {
-        base.UpdateMouseFocus();
+    //protected override void UpdateMouseFocus()
+    //{
+    //    base.UpdateMouseFocus();
 
-        if (_debugInspectMode) DebugInspectModeUpdate();
+    //    if (_debugInspectMode) DebugInspectModeUpdate();
+    //}
+
+    //protected override bool MouseFocusOnKey(Key key, KeyState status)
+    //{
+    //    if (_debugInspectMode && key == Key.MouseKeyLeft && status == KeyState.Down)
+    //    {
+    //        _debugInspectMode = false;
+    //        return false;
+    //    }
+    //    return base.MouseFocusOnKey(key, status);
+    //}
+
+    #region Input
+
+    public void SetInputFocus(UIBaseWindow window)
+    {
+
     }
 
-    protected override bool MouseFocusOnKey(Key key, KeyState status)
-    {
-        if (_debugInspectMode && key == Key.MouseKeyLeft && status == KeyState.Down)
-        {
-            _debugInspectMode = false;
-            return false;
-        }
-        return base.MouseFocusOnKey(key, status);
-    }
+    #endregion
 
     #region Debugger
 
@@ -104,7 +113,7 @@ public class UISystem : UIController
 
     private void DebugInspectModeUpdate()
     {
-        Debug_GetWindowsUnderMouse(_debugWindowsUnderMouse);
+        //Debug_GetWindowsUnderMouse(_debugWindowsUnderMouse);
     }
 
     public List<UIBaseWindow>? GetInspectModeSelectedWindow()

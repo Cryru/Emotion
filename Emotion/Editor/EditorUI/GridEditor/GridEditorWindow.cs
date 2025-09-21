@@ -26,21 +26,12 @@ public abstract class GridEditorWindow : UIBaseWindow
         _lastUsedPlacingTool = CurrentTool;
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        OnOpen();
-
-        base.AttachedToController(controller);
+        base.OnOpen();
 
         // temp
-        controller.SetInputFocus(this);
-    }
-
-    public override void DetachedFromController(UIController controller)
-    {
-        OnClose();
-
-        base.DetachedFromController(controller);
+        Engine.UI.SetInputFocus(this);
     }
 
     public virtual void SpawnBottomBarContent(Editor2DBottomBar bar, UIBaseWindow barContent)
@@ -232,8 +223,6 @@ public abstract class GridEditorWindow : UIBaseWindow
     #endregion
 
     protected abstract GridEditorTool[] GetTools();
-    protected abstract void OnOpen();
-    protected abstract void OnClose();
     protected abstract string GetGridName();
     protected abstract IGridWorldSpaceTiles? GetCurrentGrid();
     protected abstract Vector2 UpdateCursor();

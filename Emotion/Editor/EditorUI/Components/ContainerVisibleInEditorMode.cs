@@ -10,17 +10,17 @@ public class ContainerVisibleInEditorMode : UIBaseWindow
     public MapEditorMode VisibleIn = MapEditorMode.Off | MapEditorMode.TwoDee | MapEditorMode.ThreeDee;
     public Action<MapEditorMode>? OnModeChanged;
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
 
         EngineEditor.OnMapEditorModeChanged += UpdateVisibility;
         UpdateVisibility(EngineEditor.MapEditorMode);
     }
 
-    public override void DetachedFromController(UIController controller)
+    protected override void OnClose()
     {
-        base.DetachedFromController(controller);
+        base.OnClose();
 
         EngineEditor.OnMapEditorModeChanged -= UpdateVisibility;
     }

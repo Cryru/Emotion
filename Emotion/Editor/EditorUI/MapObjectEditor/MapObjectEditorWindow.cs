@@ -27,9 +27,9 @@ public class MapObjectEditorWindow : UIBaseWindow
         OrderInParent = -1;
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
 
         _moveGizmo = new TranslationGizmo();
 
@@ -37,9 +37,9 @@ public class MapObjectEditorWindow : UIBaseWindow
         map?.AddObject(_moveGizmo);
     }
 
-    public override void DetachedFromController(UIController controller)
+    protected override void OnClose()
     {
-        base.DetachedFromController(controller);
+        base.OnClose();
 
         if (_moveGizmo != null)
         {

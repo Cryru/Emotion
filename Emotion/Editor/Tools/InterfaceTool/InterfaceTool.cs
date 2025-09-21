@@ -13,9 +13,9 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
     {
     }
 
-    public override void AttachedToController(UIController controller)
+    protected override void OnOpen()
     {
-        base.AttachedToController(controller);
+        base.OnOpen();
         NewFile();
         SetObjectBeingEdited(new UIBaseWindow()
         {

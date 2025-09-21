@@ -39,16 +39,6 @@ public sealed class TileEditorWindow : GridEditorWindow
         ];
     }
 
-    protected override void OnOpen()
-    {
-        
-    }
-
-    protected override void OnClose()
-    {
-        
-    }
-
     protected override string GetGridName()
     {
         return "TileMap";
