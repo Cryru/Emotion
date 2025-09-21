@@ -208,7 +208,7 @@ public class UITemplateEditor : TypeEditor
 
     public override void SetValue(object? value)
     {
-        _selectedWindow = null;
+        SelectSubWindow(null);
         if (_objectEditing != null)
             EngineEditor.UnregisterForObjectChanges(_objectEditing);
 
@@ -241,8 +241,7 @@ public class UITemplateEditor : TypeEditor
         {
             _treeView?.SetObject(null);
             _objEditor.SetValue(null);
-            _windowEditor.SetEditor(null);
-            EngineEditor.EditorUI.ClearChildren();
+            EngineEditor.EditorUI.ClearChildren(); // TEMP
         }
     }
 
@@ -250,6 +249,11 @@ public class UITemplateEditor : TypeEditor
     {
         _selectedWindow = win;
         _windowEditor.SetEditor(_selectedWindow);
+        if (_selectedWindow != null)
+        {
+            AssertNotNull(_objectEditing);
+            _windowEditor.HACK_SetActualPageRoot(_objectEditing);
+        }
         _treeView?.SelectObject(_selectedWindow, false);
     }
 }

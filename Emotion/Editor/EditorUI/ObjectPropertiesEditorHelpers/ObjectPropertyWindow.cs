@@ -35,21 +35,22 @@ public class ObjectPropertyWindow : UIBaseWindow
         ReflectorEngine.TypeHotReloaded -= OnHotReload;
     }
 
+    // Refresh the editors on hot reload (there might be new properties and stuff)
     private void OnHotReload(Type t)
     {
-        // Refresh
         if (ObjectBeingEdited != null)
             SetEditor(ObjectBeingEdited);
     }
 
     public void SetEditor(object? obj)
     {
+        _alsoNotify = null;
         ObjectBeingEdited = obj;
         _pages.Clear();
         SpawnEditors();
     }
 
-    protected void SpawnEditors()
+    private void SpawnEditors()
     {
         if (Controller == null) return;
 
@@ -283,7 +284,6 @@ public class ObjectPropertyWindow : UIBaseWindow
         SpawnEditors();
     }
 
-
     private object? GetObjectValueFromStack(int depth)
     {
         if (_pagingRoot == null)
@@ -327,15 +327,18 @@ public class ObjectPropertyWindow : UIBaseWindow
         }
     }
 
-    public void ThrowObjectPropertyChangedThroughStack()
+    public void NotifyPropertyChangedThroughStack()
     {
         if (_pagingRoot == null)
             return;
 
+        if (_alsoNotify != null)
+            EngineEditor.ReportChange_NoInfo(_alsoNotify, this);
+
         EngineEditor.ReportChange_NoInfo(_pagingRoot, this);
 
         object? val = _pagingRoot;
-        foreach (var entry in _pages)
+        foreach (ObjectPropertyEditorStackEntry entry in _pages)
         {
             val = entry.ResolveValue(val);
             if (val == null) return;
@@ -343,6 +346,15 @@ public class ObjectPropertyWindow : UIBaseWindow
             if (val is not ValueType)
                 EngineEditor.ReportChange_NoInfo(val, this);
         }
+    }
+
+    // This is a workaround for the UITemplate editor, we don't actually want to 
+    // find where the current page root is inside this...
+    private object? _alsoNotify;
+
+    public void HACK_SetActualPageRoot(object obj)
+    {
+        _alsoNotify = obj;
     }
 
     #endregion

@@ -45,7 +45,7 @@ public static partial class GameDatabase
         _definedData.TryGetValue(typ, out GameDataObject[]? definitions);
         if (definitions == null)
         {
-            // We initialize, this should happen only when hot reloading in def mode, but who knows
+            // We initialize, this should happen only when hot reloading in dev mode, but who knows
             definitions = [];
             _definedData.TryAdd(typ, definitions);
         }

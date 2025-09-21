@@ -116,7 +116,7 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
                     {
                         member.SetValueInComplexObject(_value, newValue);
                         if(_objEdit != null)
-                            _objEdit.ThrowObjectPropertyChangedThroughStack();
+                            _objEdit.NotifyPropertyChangedThroughStack();
                         else
                             EngineEditor.ReportChange_ObjectProperty(_value, member.Name, _value, newValue, this);
                     }

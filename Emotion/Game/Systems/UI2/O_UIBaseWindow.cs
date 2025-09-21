@@ -21,10 +21,7 @@ public partial class O_UIBaseWindow
     [DontSerializeButShowInEditor]
     public O_UIWindowCalculatedMetrics CalculatedMetrics { get; private set; } = new O_UIWindowCalculatedMetrics();
 
-    public List<O_UIBaseWindow> Children { get => ChildrenSerialized; init => ChildrenSerialized = value; }
-
-    [SerializeNonPublicGetSet]
-    public List<O_UIBaseWindow> ChildrenSerialized { get; protected set; } = new List<O_UIBaseWindow>();
+    public List<O_UIBaseWindow> Children { get; set; } = new List<O_UIBaseWindow>();
 
     public class O_UIBaseWindowSystemAdapter // Friend class workaround.
     {
