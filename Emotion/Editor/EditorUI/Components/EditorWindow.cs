@@ -75,21 +75,30 @@ public class EditorWindow : UIBaseWindow
     private UIBaseWindow _panelInner = null!;
     private bool _centered;
 
-    protected Vector2 _initialSize = new Vector2(1280, 800);
+    protected Vector2 _initialSize = new Vector2(960, 540);
 
     public EditorWindow()
     {
+        OrderInParent = 10;
+#if AUTOBUILD
+        _panelMode = PanelMode.Default;
+#endif
     }
 
-    public EditorWindow(string header)
+    public EditorWindow(string header) : this()
     {
         Header = header;
-        OrderInParent = 10;
     }
 
     protected virtual UIBaseWindow GetContentParent()
     {
         return _contentParent;
+    }
+
+    protected override Vector2 Measure(Vector2 space)
+    {
+        if (_hostWindow != null) space = _hostWindow.Size;
+        return base.Measure(space);
     }
 
     public override void AttachedToController(UIController controller)
@@ -132,9 +141,18 @@ public class EditorWindow : UIBaseWindow
         if (_panelMode == PanelMode.SubWindow)
         {
             if (Engine.Host.SupportsSubWindows() && AllowSubWindow)
-                CreateSubWindow();
+            {
+                IEnumerator OpenSubWindowDelayedRoutine()
+                {
+                    yield return null;
+                    CreateSubWindow();
+                }
+                Engine.CoroutineManager.StartCoroutine(OpenSubWindowDelayedRoutine());
+            }
             else
+            {
                 _panelMode = PanelMode.Default;
+            }
         }
 
         if (_panelMode == PanelMode.Modal)
@@ -462,8 +480,8 @@ public class EditorWindow : UIBaseWindow
 
             _panelItself.Offset = Vector2.Zero;
             _panelItself.AnchorAndParentAnchor = UIAnchor.TopLeft;
-            _panelItself.SizeConstraint = contentSize;
-            _centered = true;
+            _panelItself.SizeConstraint = contentSize / GetScale();
+            _centered = false;
         });
     }
 
