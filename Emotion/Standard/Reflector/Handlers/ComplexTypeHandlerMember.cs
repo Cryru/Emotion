@@ -28,6 +28,22 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMemberBa
         _getValue = getValue;
     }
 
+    public override bool IsValueDefault<TOwner>(TOwner owner)
+    {
+        if (owner is not ParentT parentT)
+            return false;
+
+        MyT? val = _getValue(parentT);
+        MyT? defaultVal = default;
+
+        if (_typeHandler is ComplexTypeHandler<ParentT> complex && complex.DefaultInstance != null)
+        {
+            defaultVal = _getValue(complex.DefaultInstance);
+        }
+
+        return EqualityComparer<MyT>.Default.Equals(val, defaultVal);
+    }
+
     public override void PostInit()
     {
         _typeHandler = ReflectorEngine.GetTypeHandler<MyT>();

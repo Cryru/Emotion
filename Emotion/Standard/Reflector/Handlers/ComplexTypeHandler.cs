@@ -14,6 +14,8 @@ namespace Emotion.Standard.Reflector.Handlers;
 
 public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflectorComplexTypeHandler
 {
+    public T? DefaultInstance { get; init; }
+
     public override string TypeName => _typeName;
 
     public override Type Type => typeof(T);
@@ -43,6 +45,9 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
         }
 
         _membersCaseInsensitiveDeep = _membersCaseInsensitive;
+
+        //if (_createNew != null)
+        //    DefaultInstance = _createNew();
     }
 
     public override TypeEditor? GetEditor()
@@ -144,15 +149,16 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
 
     public override void WriteAsCode(T value, ref ValueStringWriter writer)
     {
-        //if (!writer.WriteIndent()) return;
         if (!writer.WriteString("{\n")) return;
 
         bool first = true;
         foreach (ComplexTypeHandlerMemberBase member in GetMembersDeep())
         {
             if (member.HasAttribute<DontSerializeButShowInEditorAttribute>() != null) continue;
+            if (member.IsValueDefault(value)) continue;
 
-            if (!first) if (!writer.WriteString(",\n")) return;
+            if (!first)
+                if (!writer.WriteString(",\n")) return;
             first = false;
 
             writer.PushIndent();
@@ -165,6 +171,8 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
             writer.PopIndent();
         }
 
+        if (!writer.WriteChar('\n')) return;
+        if (!writer.WriteIndent()) return;
         if (!writer.WriteString("}")) return;
     }
 

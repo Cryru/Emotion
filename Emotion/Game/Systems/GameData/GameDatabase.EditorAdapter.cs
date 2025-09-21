@@ -319,6 +319,10 @@ public static partial class GameDatabase
 
             var builder = new StringBuilder();
             var writer = new ValueStringWriter(builder);
+            writer.PushIndent();
+            writer.PushIndent();
+            writer.PushIndent();
+            writer.WriteIndent();
             reflectorHandler.WriteAsCode(obj, ref writer);
             return builder.ToString();
         }
@@ -335,7 +339,7 @@ public static partial class GameDatabase
             StringBuilder definitionsList = new StringBuilder(definitions.Length * 10);
             for (int i = 0; i < definitions.Length; i++)
             {
-                var def = definitions[i];
+                GameDataObject def = definitions[i];
                 definitionsList.Append("            ");
                 definitionsList.Append(def.Id);
                 definitionsList.Append(",\n");

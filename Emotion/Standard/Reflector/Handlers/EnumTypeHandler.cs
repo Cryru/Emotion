@@ -28,7 +28,7 @@ public class EnumTypeHandler<T, TNum> : ReflectorTypeHandlerBase<T>, IReflectorE
 
     public EnumTypeHandler(Dictionary<string, (T enumVal, TNum underVal)> items)
     {
-        _fullEnumName = $"global::{typeof(T).FullName}";
+        _fullEnumName = $"global::{(typeof(T).FullName ?? "").Replace("+", ".")}";
         _items = items;
 
         int curIdx = 0;

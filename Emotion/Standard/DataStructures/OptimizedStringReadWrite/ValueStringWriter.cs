@@ -130,17 +130,17 @@ public ref struct ValueStringWriter
 
     public void PushIndent()
     {
-        _indent += 3;
+        _indent += 1;
     }
 
     public void PopIndent()
     {
-        _indent -= 3;
+        _indent -= 1;
     }
 
     public bool WriteIndent()
     {
-        return WriteString(new string(' ', _indent));
+        return WriteString(new string(' ', _indent * 4));
     }
 
     #endregion

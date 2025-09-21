@@ -128,15 +128,19 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
             return;
 
         bool first = true;
-        writer.WriteString("[\n");
+        if (!writer.WriteString("[\n")) return;
         foreach (TItem? item in value)
         {
-            if (!first) writer.WriteString(",\n");
+            if (!first)
+                if (!writer.WriteString(",\n")) return;
             itemHandler.WriteAsCode(item, ref writer);
 
             first = false;
         }
-        writer.WriteString("\n]");
+
+        if (!writer.WriteChar('\n')) return;
+        if (!writer.WriteIndent()) return;
+        if (!writer.WriteString("]")) return;
     }
 
     #endregion

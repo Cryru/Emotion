@@ -32,6 +32,8 @@ public abstract class ComplexTypeHandlerMemberBase
         Name = memberName;
     }
 
+    public abstract bool IsValueDefault<TOwner>(TOwner owner);
+
     public abstract void PostInit();
 
     public T? HasAttribute<T>() where T : Attribute
