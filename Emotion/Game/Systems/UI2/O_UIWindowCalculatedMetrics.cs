@@ -9,6 +9,6 @@ public class O_UIWindowCalculatedMetrics
 
     public override string ToString()
     {
-        return $"{Position} x {Size}";
+        return $"{Position}:{Size}";
     }
 }

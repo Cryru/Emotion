@@ -238,7 +238,7 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
         _tilesetScale = 32f / _tileset.TileSize.X;
         var textureUI = new UITexture
         {
-            Id = "TilesetTexture",
+            Name = "TilesetTexture",
             TextureFile = _tileset.Texture,
             ImageScale = new Vector2(_tilesetScale),
             //ScaleMode = UIScaleMode.NoScale,

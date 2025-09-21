@@ -26,8 +26,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
 
             Layout =
             {
-                LayoutMode = LayoutMode.HorizontalList,
-                ListSpacing = new Vector2(5, 0),
+                LayoutMethod = UILayoutMethod.HorizontalList(5),
 
                 MinSize = new Vector2(200, 100),
                 Padding = new UIRectangleSpacingMetric(5, 5, 5, 5)
@@ -85,7 +84,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
     {
         var objProps = new ObjectPropertyWindow()
         {
-            Id = "EntityData",
+            Name = "EntityData",
             IgnoreParentColor = true,
             MinSize = new Vector2(50)
         };

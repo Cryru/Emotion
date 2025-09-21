@@ -17,7 +17,8 @@ namespace Emotion.Core.Systems.IO;
 /// <summary>
 /// A font file and cached atlas textures.
 /// </summary>
-public class FontAsset : Asset
+public class FontAsset : Asset,
+    IAssetContainingObject<FontAsset> // todo: Atlases should be in Font, not in Asset
 {
     /// <summary>
     /// The Emotion.Standard.OpenType font generated from the font file.
@@ -93,7 +94,7 @@ public class FontAsset : Asset
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public DrawableFontAtlas GetAtlas(float fontSize, bool pixelFont = false)
     {
-        var intFontSize = (int) MathF.Ceiling(fontSize); // Ceil so we dont store atlases for every floating deviation.
+        var intFontSize = (int)MathF.Ceiling(fontSize); // Ceil so we dont store atlases for every floating deviation.
         return GetAtlas(intFontSize, pixelFont);
     }
 
@@ -117,7 +118,7 @@ public class FontAsset : Asset
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DestroyAtlas(float fontSize)
     {
-        DestroyAtlas((int) MathF.Ceiling(fontSize));
+        DestroyAtlas((int)MathF.Ceiling(fontSize));
     }
 
     public static string DefaultBuiltInFontName = AssetLoader.NameToEngineName("Editor/UbuntuMono-Regular.ttf");
@@ -130,6 +131,11 @@ public class FontAsset : Asset
     /// <returns></returns>
     public static FontAsset GetDefaultBuiltIn()
     {
-        return Engine.AssetLoader.Get<FontAsset>(DefaultBuiltInFontName);
+        return Engine.AssetLoader.ONE_Get<FontAsset>(DefaultBuiltInFontName);
+    }
+
+    public FontAsset? GetObject()
+    {
+        return this;
     }
 }

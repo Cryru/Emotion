@@ -20,7 +20,7 @@ public class GridEditorToolButton : UICallbackButton
 
         var windowBackground = new UISolidColor
         {
-            Id = "Background"
+            Name = "Background"
         };
         AddChild(windowBackground);
         _windowBackground = windowBackground;

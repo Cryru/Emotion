@@ -30,7 +30,7 @@ public class MapEditorViewMode : UIBaseWindow
 
         UISolidColor buttonContainer = new()
         {
-            Id = "ButtonList",
+            Name = "ButtonList",
             LayoutMode = LayoutMode.HorizontalList,
             ListSpacing = new Vector2(5, 0),
             AnchorAndParentAnchor = UIAnchor.CenterLeft,
@@ -70,7 +70,7 @@ public class MapEditorViewMode : UIBaseWindow
             {
                 new EditorLabel()
                 {
-                    Id = "CameraPosition",
+                    Name = "CameraPosition",
                     TextShadow = Color.Black,
                     ShadowOffset = new Vector2(1f),
                     OutlineColor = Color.Black,

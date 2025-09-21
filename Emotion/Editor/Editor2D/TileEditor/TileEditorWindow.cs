@@ -90,7 +90,7 @@ public sealed class TileEditorWindow : GridEditorWindow
 
         var sidePanel = new UIBaseWindow()
         {
-            Id = "TileEditorSidePanel",
+            Name = "TileEditorSidePanel",
             Anchor = UIAnchor.BottomRight,
             ParentAnchor = UIAnchor.TopRight,
             MinSizeX = 400,
@@ -157,7 +157,7 @@ public sealed class TileEditorWindow : GridEditorWindow
 
             var tilesetTileSelector = new TileEditorTileTextureSelector(this)
             {
-                Id = "TileSelector",
+                Name = "TileSelector",
 
                 //MaxSizeX = 400, // temp
                 MinSizeY = 450,

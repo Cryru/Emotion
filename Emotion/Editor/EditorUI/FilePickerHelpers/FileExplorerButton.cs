@@ -38,7 +38,7 @@ public class FileExplorerButton : UICallbackButton
         var bg = new UISolidColor
         {
             WindowColor = EditorColorPalette.ButtonColor,
-            Id = "buttonBackground",
+            Name = "buttonBackground",
             MinSizeY = 60,
             MaxSizeY = 60
         };
@@ -50,7 +50,7 @@ public class FileExplorerButton : UICallbackButton
             ParentAnchor = UIAnchor.TopCenter,
             Anchor = UIAnchor.TopCenter,
             WindowColor = EditorColorPalette.TextColor,
-            Id = "buttonText",
+            Name = "buttonText",
             FontSize = EditorColorPalette.EditorButtonTextSize - 2,
             IgnoreParentColor = true,
             Margins = new Rectangle(0, 5, 0, 0),
@@ -105,7 +105,7 @@ public class FileExplorerButton : UICallbackButton
         UIBaseWindow? filePreview = GetWindowById("FilePreview");
         if (filePreview != null) filePreview.Parent?.RemoveChild(filePreview);
 
-        previewWindow.Id = "FilePreview";
+        previewWindow.Name = "FilePreview";
         UIBaseWindow? bg = GetWindowById("buttonBackground");
         if (bg != null) bg.AddChild(previewWindow);
     }

@@ -21,12 +21,6 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
     /// </summary>
     public static Vector2 DefaultMaxSize = new(DefaultMaxSizeF, DefaultMaxSizeF);
 
-    /// <summary>
-    /// Unique identifier for this window to be used with GetWindowById. If two windows share an id the one closer
-    /// to the parent GetWindowById is called from will be returned.
-    /// </summary>
-    public string? Id { get; set; }
-
     #region Runtime State
 
     [DontSerialize]
@@ -68,8 +62,8 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
 
     protected virtual void InvalidateLoaded()
     {
-        _needsLoad = true;
-        Controller?.InvalidatePreload();
+        //_needsLoad = true;
+        //Controller?.InvalidatePreload();
     }
 
     protected virtual Task LoadContent()
@@ -971,12 +965,12 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
         if (id == SPECIAL_WIN_ID_CONTROLLER)
             return Controller;
 
-        if (id == Id) return this;
+        if (id == Name) return this;
         if (Children == null) return null;
 
         for (var i = 0; i < Children.Count; i++)
         {
-            if (Children[i].Id == id) return Children[i];
+            if (Children[i].Name == id) return Children[i];
         }
 
         for (var i = 0; i < Children.Count; i++)
@@ -998,7 +992,7 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
         return asType;
     }
 
-    private static UIBaseWindow _invalidWindow = new UIBaseWindow() { Id = "Invalid Window" };
+    private static UIBaseWindow _invalidWindow = new UIBaseWindow() { Name = "Invalid Window" };
 
     public UIBaseWindow GetWindowByIdSafe(string id)
     {

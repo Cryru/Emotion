@@ -138,7 +138,7 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
 
         UIBaseWindow container = new UIBaseWindow
         {
-            Id = "MainContainer",
+            Name = "MainContainer",
             LayoutMode = LayoutMode.VerticalList,
             Paddings = new Rectangle(10, 10, 10, 10),
             ListSpacing = new Vector2(0, 10)
@@ -147,13 +147,13 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
 
         EditorLabel label = new EditorLabel("Loading")
         {
-            Id = "CurrentPathLabel",
+            Name = "CurrentPathLabel",
         };
         container.AddChild(label);
 
         UIBaseWindow containerList = new()
         {
-            Id = "ContainerList",
+            Name = "ContainerList",
             LayoutMode = LayoutMode.HorizontalListWrap,
             ListSpacing = new Vector2(10, 10),
             GrowX = false,

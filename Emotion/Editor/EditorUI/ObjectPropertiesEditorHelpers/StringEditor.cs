@@ -20,7 +20,7 @@ public class StringEditor : TypeEditor
 
         UITextInput2 input = new UITextInput2
         {
-            Id = "TextInput",
+            Name = "TextInput",
 
             FontSize = EditorColorPalette.EditorButtonTextSize,
             MinSizeX = 100,

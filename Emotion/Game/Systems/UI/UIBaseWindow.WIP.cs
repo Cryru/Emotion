@@ -157,7 +157,7 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
 
         if (size.X < 0 || size.Y < 0)
         {
-            Assert(false, $"UIWindow of id {Id} measured with a size smaller than 0.");
+            Assert(false, $"UIWindow of id {Name} measured with a size smaller than 0.");
             size.X = MathF.Max(size.X, 0);
             size.Y = MathF.Max(size.Y, 0);
         }
@@ -185,7 +185,7 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
     {
         if (size.X < 0 || size.Y < 0)
         {
-            Assert(false, $"UIWindow of id {Id} layouted with a size smaller than 0.");
+            Assert(false, $"UIWindow of id {Name} layouted with a size smaller than 0.");
             size.X = MathF.Max(size.X, 0);
             size.Y = MathF.Max(size.Y, 0);
         }

@@ -112,7 +112,7 @@ public class EditorWindow : UIBaseWindow
             GrowX = false,
             GrowY = false,
             AnchorAndParentAnchor = UIAnchor.CenterCenter,
-            Id = "PanelItself",
+            Name = "PanelItself",
             SizeConstraint = _initialSize
         };
         AddChild(panelItself);
@@ -121,7 +121,7 @@ public class EditorWindow : UIBaseWindow
         var panelInner = new UIBaseWindow()
         {
             HandleInput = true,
-            Id = "PanelInner"
+            Name = "PanelInner"
         };
         panelItself.AddChild(panelInner);
 
@@ -129,7 +129,7 @@ public class EditorWindow : UIBaseWindow
         // to make them work inside the subwindows.
         var panelContent = new UIOverlayWindowParent
         {
-            Id = "Content",
+            Name = "Content",
             Margins = new Rectangle(5, 5, 5, 5)
         };
         panelInner.AddChild(panelContent);
@@ -362,7 +362,7 @@ public class EditorWindow : UIBaseWindow
             OrderInParent = -1,
             HandleInput = true,
             MaxSizeY = 40,
-            Id = "TopBar",
+            Name = "TopBar",
             OnClickedProxy = (_) =>
             {
                 _topBarMouseDown = true;
@@ -379,7 +379,7 @@ public class EditorWindow : UIBaseWindow
 
         var txt = new EditorLabel
         {
-            Id = "PanelLabel",
+            Name = "PanelLabel",
             Margins = new Rectangle(10, 0, 10, 0)
         };
         topBar.AddChild(txt);
@@ -397,7 +397,7 @@ public class EditorWindow : UIBaseWindow
             var subWindowButton = new SquareEditorButtonWithTexture("Editor/SubWindow.png", 17)
             {
                 IconColor = new Color(70, 70, 70),
-                Id = "SubWindowButton",
+                Name = "SubWindowButton",
                 NormalColor = Color.PrettyYellow * 0.75f,
                 RolloverColor = Color.PrettyYellow,
                 OnClickedProxy = _ => CreateSubWindow()
@@ -408,7 +408,7 @@ public class EditorWindow : UIBaseWindow
         var closeButton = new SquareEditorButtonWithTexture("Editor/Close.png", 17)
         {
             IconColor = new Color(70, 70, 70),
-            Id = "CloseButton",
+            Name = "CloseButton",
             NormalColor = Color.PrettyRed * 0.75f,
             RolloverColor = Color.PrettyRed,
             OnClickedProxy = _ => Close()

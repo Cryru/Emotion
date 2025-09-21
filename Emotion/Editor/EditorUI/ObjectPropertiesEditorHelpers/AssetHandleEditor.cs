@@ -23,7 +23,7 @@ public class AssetHandleEditor<T> : TypeEditor where T : Asset, new()
 
         EditorLabel label = new EditorLabel
         {
-            Id = "Label",
+            Name = "Label",
             Margins = new Rectangle(0, 0, 5, 0)
         };
         container.AddChild(label);
@@ -37,7 +37,7 @@ public class AssetHandleEditor<T> : TypeEditor where T : Asset, new()
 
         UITextInput2 input = new UITextInput2
         {
-            Id = "TextInput",
+            Name = "TextInput",
 
             FontSize = EditorColorPalette.EditorButtonTextSize,
             MinSizeX = 100,

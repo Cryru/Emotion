@@ -13,52 +13,59 @@ using Emotion.Game.World;
 using Emotion.Game.World.Terrain.GridStreaming;
 using Emotion.Core.Platform.Implementation.Win32;
 using Emotion.Standard.Reflector;
+using Emotion.Game.Systems.UI2;
 
 namespace Emotion.Editor.EditorUI;
 
-public class EditorTopBar : UISolidColor
+public class EditorTopBar : UIBaseWindow
 {
     public EditorTopBar()
     {
-        GrowY = false;
-        WindowColor = EditorColorPalette.BarColor;
-    }
-
-    public override void AttachedToController(UIController controller)
-    {
-        base.AttachedToController(controller);
+        Layout.SizingX = UISizing.Grow();
+        Layout.SizingY = UISizing.Fit();
+        Visuals.Color = EditorColorPalette.BarColor;
+        Layout.LayoutMethod = UILayoutMethod.VerticalList(0);
 
         UIBaseWindow buttonContainer = new()
         {
-            LayoutMode = LayoutMode.HorizontalList,
-            ListSpacing = new Vector2(5, 0),
+            Name = "ButtonContainer",
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalList(5),
+                Margins = new UIRectangleSpacingMetric(5, 5, 5, 10)
+            },
             AnchorAndParentAnchor = UIAnchor.CenterLeft,
-            Margins = new Rectangle(5, 5, 5, 10)
         };
         AddChild(buttonContainer);
 
-        var accent = new UISolidColor
+        var accent = new UIBaseWindow
         {
-            WindowColor = EditorColorPalette.ActiveButtonColor,
-            MinSizeY = 5,
+            Layout =
+            {
+                SizingY = UISizing.Fixed(5),
+            },
+            Visuals =
+            {
+                Color = EditorColorPalette.ActiveButtonColor
+            },
             Anchor = UIAnchor.BottomLeft,
             ParentAnchor = UIAnchor.BottomLeft
         };
         AddChild(accent);
+    }
 
+    protected override bool RenderInternal(Renderer c)
+    {
+        return base.RenderInternal(c);
+    }
+
+    protected override void OnOpen()
+    {
+        base.OnOpen();
+
+        UIBaseWindow? buttonContainer = GetWindowById("ButtonContainer");
+        if (buttonContainer == null) return;
         AttachMapMenu(buttonContainer);
-
-        //{
-        //    EditorButton toolButton = new EditorButton("Test Tool");
-        //    toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new TestTool());
-        //    buttonContainer.AddChild(toolButton);
-        //}
-
-        //{
-        //    EditorButton toolButton = new EditorButton("Coroutines");
-        //    toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new CoroutineViewerTool());
-        //    buttonContainer.AddChild(toolButton);
-        //}
 
         {
             EditorButton toolButton = new EditorButton("Sprite Tool");
@@ -126,9 +133,19 @@ public class EditorTopBar : UISolidColor
             toolButton.Enabled = Engine.Host is Win32Platform;
             buttonContainer.AddChild(toolButton);
         }
-    }
 
-    #region Map Menu
+        //{
+        //    EditorButton toolButton = new EditorButton("Test Tool");
+        //    toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new TestTool());
+        //    buttonContainer.AddChild(toolButton);
+        //}
+
+        //{
+        //    EditorButton toolButton = new EditorButton("Coroutines");
+        //    toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new CoroutineViewerTool());
+        //    buttonContainer.AddChild(toolButton);
+        //}
+    }
 
     private void AttachMapMenu(UIBaseWindow buttonContainer)
     {
@@ -197,6 +214,4 @@ public class EditorTopBar : UISolidColor
             buttonContainer.AddChild(toolButton);
         }
     }
-
-    #endregion
 }

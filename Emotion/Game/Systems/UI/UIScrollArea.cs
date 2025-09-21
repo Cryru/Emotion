@@ -37,7 +37,7 @@ public class UIScrollArea : UIBaseWindow
         var areaInside = new UIScrollContentArea(this)
         {
             OrderInParent = -1,
-            Id = "ScrollAreaContent",
+            Name = "ScrollAreaContent",
         };
         AddChild(areaInside);
         _content = areaInside;

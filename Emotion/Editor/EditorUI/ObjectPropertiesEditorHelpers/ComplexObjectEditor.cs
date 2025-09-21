@@ -35,7 +35,7 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
         _scroll = new EditorScrollArea()
         {
             AutoHideScrollY = true,
-            Id = "EditorScrollArea",
+            Name = "EditorScrollArea",
         };
         AddChild(_scroll);
 
@@ -44,7 +44,7 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
             LayoutMode = LayoutMode.VerticalList,
             ListSpacing = new Vector2(0, 5),
             Paddings = new Rectangle(10, 5, 10, 5),
-            Id = "EditorListParent"
+            Name = "EditorListParent"
         };
         _scroll.AddChildInside(EditorList);
     }

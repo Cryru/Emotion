@@ -10,7 +10,7 @@ public class BooleanEditor : TypeEditor
     {
         var checkbox = new EditorCheckboxButton()
         {
-            Id = "Checkbox",
+            Name = "Checkbox",
             OnValueChanged = OnInputValueChanged
         };
         AddChild(checkbox);

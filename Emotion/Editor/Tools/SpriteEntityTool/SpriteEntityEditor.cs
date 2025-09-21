@@ -61,7 +61,7 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UIViewport, Ob
         var viewPort = new UIViewport()
         {
             IgnoreParentColor = true,
-            Id = "Viewport",
+            Name = "Viewport",
             OnRender = RenderViewport,
             WindowColor = Color.CornflowerBlue
         };
@@ -72,7 +72,7 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UIViewport, Ob
     {
         var objProps = new ObjectPropertyWindow()
         {
-            Id = "EntityData",
+            Name = "EntityData",
             IgnoreParentColor = true,
             MinSize = new Vector2(50)
         };

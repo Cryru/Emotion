@@ -19,7 +19,7 @@ public class NumberEditor<TNumber> : TypeEditor where TNumber : INumber<TNumber>
 
         UITextInput2 input = new UITextInput2
         {
-            Id = "TextInput",
+            Name = "TextInput",
 
             FontSize = EditorColorPalette.EditorButtonTextSize,
             MinSizeX = 100,

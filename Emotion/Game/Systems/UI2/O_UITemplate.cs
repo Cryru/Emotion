@@ -6,13 +6,8 @@ namespace Emotion.Game.Systems.UI2;
 
 public class O_UITemplate : GameDataObject
 {
-    public UIBaseWindow Window = new UIBaseWindow()
+    public UIBaseWindow Window = new UIContainer()
     {
-        Layout =
-        {
-            SizingX = UISizing.Grow(),
-            SizingY = UISizing.Grow()
-        },
         Visuals =
         {
             Color = Color.White

@@ -32,7 +32,7 @@ public static partial class EngineEditor
         Engine.Host.OnKey.AddListener(EditorButtonHandler, KeyListenerType.Editor);
         EditorRoot = new UIBaseWindow()
         {
-            Id = "EditorRoot"
+            Name = "EditorRoot"
         };
     }
 
@@ -309,7 +309,7 @@ public static partial class EngineEditor
 
         var container = new UIBaseWindow
         {
-            Id = "GameEditorVisualizations",
+            Name = "GameEditorVisualizations",
             Margins = new Primitives.Rectangle(10, 15, 0, 0),
             LayoutMode = LayoutMode.VerticalList,
             ListSpacing = new Vector2(0, 5)

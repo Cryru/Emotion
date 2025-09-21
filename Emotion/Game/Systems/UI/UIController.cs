@@ -71,11 +71,11 @@ public partial class UIController : UIBaseWindow
         _mouseUpdatedThisTick = true;
     }
 
-    public override void InvalidateLayout()
-    {
-        _updateLayout = true;
-        _updateInputFocus = true;
-    }
+    //public override void InvalidateLayout()
+    //{
+    //    _updateLayout = true;
+    //    _updateInputFocus = true;
+    //}
 
     public void InvalidatePreload()
     {

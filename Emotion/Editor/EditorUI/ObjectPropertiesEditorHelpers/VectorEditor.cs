@@ -52,7 +52,7 @@ public class VectorEditor : TypeEditor
             int inputIndex = i;
             UITextInput2 input = new UITextInput2
             {
-                Id = "TextInput",
+                Name = "TextInput",
 
                 FontSize = EditorColorPalette.EditorButtonTextSize,
                 MinSizeX = 50,

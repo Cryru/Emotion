@@ -4,6 +4,7 @@
 
 using Emotion.Core.Systems.Input;
 using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI2;
 
 #endregion
 
@@ -50,19 +51,20 @@ public class EditorButton : UICallbackButton
 
     public EditorButton()
     {
-        GrowX = false;
-        GrowY = false;
-        Paddings = new Rectangle(6, 3, 6, 3);
+        Layout.SizingX = UISizing.Fit();
+        Layout.SizingY = UISizing.Fit();
+        Layout.Padding = new UIRectangleSpacingMetric(6, 3, 6, 3);
 
         _label = new EditorLabel
         {
             IgnoreParentColor = true,
-            Id = "buttonText",
+            Name = "buttonText",
             Text = _text,
             Visible = _text != null,
             DontTakeSpaceWhenHidden = true
         };
         AddChild(_label);
+        RecalculateButtonColor();
     }
 
     public override void AttachedToController(UIController controller)
@@ -124,17 +126,17 @@ public class EditorButton : UICallbackButton
 
         if (!Enabled)
         {
-            WindowColor = DisabledColor;
+            Visuals.Color = DisabledColor;
             return;
         }
 
         if (_activeMode || _dropDownSpawned)
         {
-            WindowColor = ActiveColor;
+            Visuals.Color = ActiveColor;
             return;
         }
 
-        WindowColor = MouseInside ? RolloverColor : NormalColor;
+        Visuals.Color = MouseInside ? RolloverColor : NormalColor;
     }
 
     #region DropDown Support

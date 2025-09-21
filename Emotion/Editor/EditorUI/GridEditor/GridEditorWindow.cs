@@ -14,7 +14,7 @@ public abstract class GridEditorWindow : UIBaseWindow
     public Vector2? CursorTilePos { get; private set; }
 
     protected UIBaseWindow? _bottomBarToolButtons;
-    protected UIRichText? _bottomText;
+    protected EditorLabel? _bottomText;
 
     protected GridEditorWindow()
     {

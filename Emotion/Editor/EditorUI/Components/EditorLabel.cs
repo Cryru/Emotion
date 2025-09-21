@@ -2,6 +2,7 @@
 
 using Emotion.Game.Systems.UI;
 using Emotion.Game.Systems.UI.Text.TextUpdate;
+using Emotion.Game.Systems.UI2;
 
 namespace Emotion.Editor.EditorUI.Components;
 
@@ -11,8 +12,14 @@ public enum LabelStyle
     MapEditor
 }
 
-public class EditorLabel : UIRichText
+public class EditorLabel : NewUIText
 {
+    public bool AllowRenderBatch;
+    public Color TextShadow = Color.Black;
+    public Vector2 ShadowOffset = new Vector2(1f);
+    public Color OutlineColor = Color.Black;
+    public float OutlineSize = 2;
+
     public EditorLabel()
     {
         WindowColor = EditorColorPalette.TextColor;
@@ -31,14 +38,14 @@ public class EditorLabel : UIRichText
     {
         var label = new EditorLabel(txt);
 
-        switch (style)
-        {
-            case LabelStyle.MapEditor:
-                label.OutlineColor = Color.Black;
-                label.OutlineSize = 2;
-                label.FontSize = 23;
-                break;
-        }
+        //switch (style)
+        //{
+        //    case LabelStyle.MapEditor:
+        //        label.OutlineColor = Color.Black;
+        //        label.OutlineSize = 2;
+        //        label.FontSize = 23;
+        //        break;
+        //}
 
         return label;
     }

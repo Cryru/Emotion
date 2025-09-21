@@ -33,7 +33,7 @@ public abstract class TypeEditor : UIBaseWindow
         };
 
         EditorLabel label = EditorLabel.GetLabel(style, labelText);
-        label.Id = "Label";
+        label.Name = "Label";
         label.Margins = new Rectangle(0, 0, 10, 0);
         container.AddChild(label);
 
@@ -41,7 +41,7 @@ public abstract class TypeEditor : UIBaseWindow
         TypeEditor? editor = handler?.GetEditor();
         if (editor != null)
         {
-            editor.Id = "Editor";
+            editor.Name = "Editor";
             editor.SetValue(initialValue);
             editor.SetCallbackOnValueChange((newVal) =>
             {
@@ -64,7 +64,7 @@ public abstract class TypeEditor : UIBaseWindow
 
         EditorLabel label = new EditorLabel
         {
-            Id = "Label",
+            Name = "Label",
             Margins = new Rectangle(0, 0, 10, 0),
             Text = labelText,
         };

@@ -199,7 +199,7 @@ public class UIDebugTool : EditorWindow
     {
         _debuggingWindow = dbgWindow;
         _debugInfo.Path = GetWindowPath(dbgWindow);
-        _debugInfo.Id = dbgWindow.Id;
+        _debugInfo.Id = dbgWindow.Name;
         _debugInfo.WindowType = dbgWindow.GetType().Name;
         _debugInfo.LayoutMode = dbgWindow.LayoutMode;
         _debugInfo.Bounds = dbgWindow.Bounds;
@@ -213,9 +213,9 @@ public class UIDebugTool : EditorWindow
         StringBuilder pathBuild = new StringBuilder();
         while (cur != null)
         {
-            if (cur.Id != null)
+            if (cur.Name != null)
             {
-                pathBuild.Insert(0, cur.Id);
+                pathBuild.Insert(0, cur.Name);
             }
             else
             {

@@ -251,7 +251,7 @@ public class UITexture : UISolidColor
         float yVal = RenderSize!.Value.Y;
 
         if (MathF.Abs(xVal) < 0 || MathF.Abs(yVal) < 0)
-            Engine.Log.Warning($"RenderSize of texture {Id} is less than 0. You sure?", MessageSource.UI, true);
+            Engine.Log.Warning($"RenderSize of texture {Name} is less than 0. You sure?", MessageSource.UI, true);
 
         // Percentage of space.
         if (xVal < 0)

@@ -34,7 +34,7 @@ public class Editor2DBottomBar : UISolidColor
         {
             Paddings = new Primitives.Rectangle(5, 10, 5, 5),
             AnchorAndParentAnchor = UIAnchor.BottomLeft,
-            Id = "Content",
+            Name = "Content",
             HandleInput = true
         };
         AddChild(barContent);
@@ -42,7 +42,7 @@ public class Editor2DBottomBar : UISolidColor
 
         SpawnEditorChoiceScreen();
 
-        Id = "BottomBar";
+        Name = "BottomBar";
     }
 
     protected override void OnClose()

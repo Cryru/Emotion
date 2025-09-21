@@ -45,7 +45,7 @@ public abstract class SceneWithMap : Scene
 {
     public UIBaseWindow SceneUI { get; } = new()
     {
-        Id = "SceneRoot"
+        Name = "SceneRoot"
     };
 
     public GameMap Map

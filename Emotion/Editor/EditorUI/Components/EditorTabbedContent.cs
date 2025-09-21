@@ -32,7 +32,7 @@ public class EditorTabbedContent : UIBaseWindow
         _tabToBuildFunc.Add(tabName, buildTabContent);
         _tabButtons.AddChild(new EditorButton(tabName)
         {
-            Id = tabName,
+            Name = tabName,
             OnClickedProxy = TabButtonClicked
         });
     }
@@ -51,7 +51,7 @@ public class EditorTabbedContent : UIBaseWindow
 
     private void TabButtonClicked(UICallbackButton button)
     {
-        SetTab(button.Id ?? string.Empty);
+        SetTab(button.Name ?? string.Empty);
     }
 
     public void SetTab(string tabName)
