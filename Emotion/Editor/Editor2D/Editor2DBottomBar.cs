@@ -12,19 +12,13 @@ namespace Emotion.Editor.Editor2D;
 public class Editor2DBottomBar : UISolidColor
 {
     private UIBaseWindow? _currentEditor;
+    private UIBaseWindow _barContent;
 
     public Editor2DBottomBar()
     {
         GrowY = false;
         WindowColor = EditorColorPalette.BarColor;
         AnchorAndParentAnchor = UIAnchor.BottomLeft;
-
-        Id = "BottomBar";
-    }
-
-    public override void AttachedToController(UIController controller)
-    {
-        base.AttachedToController(controller);
 
         var accent = new UISolidColor
         {
@@ -44,14 +38,16 @@ public class Editor2DBottomBar : UISolidColor
             HandleInput = true
         };
         AddChild(barContent);
+        _barContent = barContent;
 
         SpawnEditorChoiceScreen();
+
+        Id = "BottomBar";
     }
 
-    public override void DetachedFromController(UIController controller)
+    protected override void OnClose()
     {
-        base.DetachedFromController(controller);
-
+        base.OnClose();
         _currentEditor?.Close();
         _currentEditor = null;
     }
@@ -60,9 +56,7 @@ public class Editor2DBottomBar : UISolidColor
 
     public void SpawnEditorChoiceScreen()
     {
-        UIBaseWindow? barContent = GetWindowById("Content");
-        AssertNotNull(barContent);
-
+        UIBaseWindow? barContent = _barContent;
         barContent.ClearChildren();
 
         UIBaseWindow toolButtonList = new UIBaseWindow()

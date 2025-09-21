@@ -7,7 +7,7 @@ using Emotion.Game.Systems.UI2;
 
 namespace Emotion.Editor.Tools.InterfaceTool;
 
-public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectPropertyWindow, O_UIBaseWindow>
+public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectPropertyWindow, UIBaseWindow>
 {
     public InterfaceTool() : base("Interface Tool")
     {
@@ -17,7 +17,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
     {
         base.AttachedToController(controller);
         NewFile();
-        SetObjectBeingEdited(new O_UIBaseWindow()
+        SetObjectBeingEdited(new UIBaseWindow()
         {
             Visuals =
             {
@@ -34,7 +34,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
             },
 
             Children = [
-                new O_UIBaseWindow() {
+                new UIBaseWindow() {
                     Layout =
                     {
                         MinSize = new Vector2(20, 20)
@@ -44,7 +44,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
                         Color = Color.PrettyPink
                     }
                 },
-                new O_UIBaseWindow() {
+                new UIBaseWindow() {
                     Layout =
                     {
                         MinSize = new Vector2(50, 20),
@@ -56,7 +56,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
                         Color = Color.PrettyYellow
                     }
                 },
-                new O_UIBaseWindow() {
+                new UIBaseWindow() {
                     Layout =
                     {
                         MinSize = new Vector2(50, 20),
@@ -100,7 +100,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
         ObjectBeingEdited?.Render(c);
     }
 
-    protected override void OnObjectBeingEditedChange(O_UIBaseWindow? newObj)
+    protected override void OnObjectBeingEditedChange(UIBaseWindow? newObj)
     {
         EngineEditor.UnregisterForObjectChanges(this);
         if (newObj != null)

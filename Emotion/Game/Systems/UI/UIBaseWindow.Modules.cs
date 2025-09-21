@@ -1,15 +1,28 @@
 ﻿#nullable enable
 
-using Emotion.Game.Systems.UI;
+#region Using
 
-namespace Emotion.Game.Systems.UI2;
+using Emotion.Core.Systems.IO;
+using Emotion.Core.Utility.Coroutines;
+using Emotion.Game.Systems.UI2;
 
-public partial class O_UIBaseWindow
+#endregion
+
+namespace Emotion.Game.Systems.UI;
+
+public enum UIWindowState
 {
-    [DontSerialize]
-    public O_UIBaseWindow? Parent;
+    Uninitialized,
+    Open,
+    Closed
+}
 
+public partial class UIBaseWindow
+{
     public string Name = string.Empty;
+
+    [DontSerialize]
+    public UIWindowState State = UIWindowState.Uninitialized;
 
     [SerializeNonPublicGetSet]
     public O_UIWindowLayoutMetrics Layout { get; private set; } = new O_UIWindowLayoutMetrics();
@@ -17,108 +30,324 @@ public partial class O_UIBaseWindow
     [SerializeNonPublicGetSet]
     public O_UIWindowVisuals Visuals { get; private set; } = new O_UIWindowVisuals();
 
-    [SerializeNonPublicGetSet]
-    [DontSerializeButShowInEditor]
     public O_UIWindowCalculatedMetrics CalculatedMetrics { get; private set; } = new O_UIWindowCalculatedMetrics();
 
-    public List<O_UIBaseWindow> Children { get; set; } = new List<O_UIBaseWindow>();
+    #region Lifecycle
 
-    public class O_UIBaseWindowSystemAdapter // Friend class workaround.
+    public void RestoreFromSerialized()
     {
-        private O_UIBaseWindow _this;
+        EnsureParentLinks();
+    }
 
-        public O_UIBaseWindowSystemAdapter(O_UIBaseWindow win)
+    private void SetStateOpened()
+    {
+        Assert(State != UIWindowState.Open);
+        if (State == UIWindowState.Open) return;
+
+        State = UIWindowState.Open;
+        OnOpen();
+        foreach (UIBaseWindow child in Children)
         {
-            _this = win;
+            child.SetStateOpened();
         }
     }
 
-    [DontSerialize]
-    public O_UIBaseWindowSystemAdapter UISystemAdapter { get; private set; }
-
-    public O_UIBaseWindow()
+    protected virtual void OnOpen()
     {
-        UISystemAdapter = new O_UIBaseWindowSystemAdapter(this);
+
     }
 
-    public virtual void Update()
+    private void SetStateClosed()
     {
-    }
+        if (State != UIWindowState.Open) return;
 
-    public void Render(Renderer c)
-    {
-        if (!Visuals.Visible) return;
-
-        InternalRender(c);
-        foreach (O_UIBaseWindow win in Children)
+        Assert(State != UIWindowState.Closed);
+        State = UIWindowState.Closed;
+        OnClose();
+        foreach (UIBaseWindow child in Children)
         {
-            win.Render(c);
+            child.SetStateClosed();
         }
     }
-
-    protected virtual void InternalRender(Renderer c)
+    protected virtual void OnClose()
     {
-        var calc = CalculatedMetrics;
-        if (Visuals.Color.A != 0)
-        {
-            c.RenderSprite(calc.Position, calc.Size, Visuals.Color);
-        }
-    }
 
-    #region Hierarchy
-
-    public void AddChild(O_UIBaseWindow window)
-    {
-        //Assert(window.Parent == null, "UI window already present in the hierarchy, or wasn't removed properly!");
-        //if (window.Parent != null) return;
-
-        Children.Add(window);
-        window.Parent = this;
-        InvalidateLayout();
-    }
-
-    public void RemoveChild(O_UIBaseWindow window)
-    {
-        Assert(Children.Contains(window), "Tried to remove child that isn't mine!");
-        Assert(window.Parent == this);
-
-        Children.Remove(window);
-        window.Parent = null;
-        InvalidateLayout();
-    }
-
-    public void ClearChildren()
-    {
-        for (var i = Children.Count - 1; i >= 0; i--)
-        {
-            O_UIBaseWindow child = Children[i];
-            RemoveChild(child);
-        }
     }
 
     #endregion
 
-    #region Invalidation
+    #region DeleteMe
 
-    protected bool _layoutDirty = true;
+    public virtual void AttachedToController(UIController controller)
+    {
+
+    }
+
+    public virtual void DetachedFromController(UIController controller)
+    {
+
+    }
+
+    protected virtual bool RenderInternal(Renderer c)
+    {
+        return false;
+    }
+
+    protected virtual void AfterRenderChildren(Renderer c)
+    {
+    }
+
+    #endregion
+
+    #region Hierarchy
+
+    /// <summary>
+    /// This window's parent.
+    /// </summary>
+    [DontSerialize]
+    public UIBaseWindow Parent = null!; // note: only UISystem doesn't have a parent.
+
+    /// <summary>
+    /// Children of this window.
+    /// </summary>
+    [SerializeNonPublicGetSet]
+    public List<UIBaseWindow> Children { get; set; } = new List<UIBaseWindow>(0);
+
+    public virtual void AddChild(UIBaseWindow? child)
+    {
+        Assert(child != null || child == this);
+        if (child == this || child == null) return;
+
+        Assert(child.State != UIWindowState.Open, "Adding a child that is already attached to the UI system.");
+        if (child.State == UIWindowState.Open) return;
+
+        // Check for duplicate ids
+        if (Engine.Configuration.DebugMode && !string.IsNullOrEmpty(child.Id))
+        {
+            for (var i = 0; i < Children.Count; i++)
+            {
+                UIBaseWindow c = Children[i];
+                if (c.Id == child.Id)
+                {
+                    Engine.Log.Warning($"Child with duplicate id was added - {child.Id}", "UI");
+                    break;
+                }
+            }
+        }
+
+        child.EnsureParentLinks();
+        child.Parent = this;
+        Children.Add(child);
+
+        // Custom insertion sort as Array.Sort is unstable
+        // Isn't too problematic performance wise since adding children shouldn't happen often.
+        for (var i = 1; i < Children.Count; i++)
+        {
+            UIBaseWindow thisC = Children[i];
+            for (int j = i - 1; j >= 0;)
+            {
+                UIBaseWindow otherC = Children[j];
+                if (thisC.CompareTo(otherC) < 0)
+                {
+                    Children[j + 1] = otherC;
+                    Children[j] = thisC;
+                    j--;
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+        if (State == UIWindowState.Open)
+            child.SetStateOpened();
+
+        Invalidate();
+    }
+
+    /// <summary>
+    /// Parents aren't serialized so the links need to be reestablished once the UI is loaded.
+    /// </summary>
+    private void EnsureParentLinks()
+    {
+        foreach (UIBaseWindow child in Children)
+        {
+            child.Parent = this;
+            child.EnsureParentLinks();
+        }
+    }
+
+    public virtual void RemoveChild(UIBaseWindow child)
+    {
+        Assert(child.Parent == this);
+
+        Children.Remove(child);
+        child.SetStateClosed();
+
+        Invalidate();
+    }
+
+    public bool IsWithin(UIBaseWindow? within)
+    {
+        if (within == null) return false;
+        if (within == this) return true;
+
+        if (RelativeTo != null)
+        {
+            UIBaseWindow? relativeToWin = Controller?.GetWindowById(RelativeTo);
+            if (relativeToWin == null) return false;
+            return relativeToWin.IsWithin(within);
+        }
+
+        UIBaseWindow? parent = Parent;
+        while (parent != null)
+        {
+            if (parent == within) return true;
+            parent = parent.Parent;
+        }
+
+        return false;
+    }
+
+    // Helpers
+    // ------
+
+    protected T? FindParentOfType<T>() where T : UIBaseWindow
+    {
+        UIBaseWindow? parent = Parent;
+        while (parent != null && parent is not T)
+        {
+            parent = parent.Parent;
+        }
+        return (T?)parent;
+    }
+
+    public virtual void ClearChildren()
+    {
+        foreach (UIBaseWindow child in Children)
+        {
+            Assert(child.Parent == this);
+            child.SetStateClosed();
+        }
+        Children.Clear();
+
+        Invalidate();
+    }
+
+    public void Close()
+    {
+        AssertNotNull(Parent);
+        if (Parent == null) return;
+        Parent.RemoveChild(this);
+    }
+
+    #endregion
+
+    #region Updates
+
+    public void Invalidate()
+    {
+        InvalidateLayout();
+    }
+
+    private void InvalidateAssets()
+    {
+        _needsLoading = true;
+    }
+
+    protected bool _needsLayout = true;
 
     public virtual void InvalidateLayout()
     {
-        _layoutDirty = true;
+        _needsLayout = true;
+
+        // Note: since this will reach all the way to the UISystem we need to check nullability of parent.
         Parent?.InvalidateLayout(); // todo: not always the case
+    }
+
+    #endregion
+
+    #region Loading
+
+    private bool _needsLoading = true;
+    private Coroutine _loadingRoutine = Coroutine.CompletedRoutine;
+
+    public bool IsLoading()
+    {
+        return _needsLoading || !_loadingRoutine.Finished;
+    }
+
+    #endregion
+
+    #region Per-Frame Methods
+
+    public void Render(Renderer c)
+    {
+        Assert(State == UIWindowState.Open);
+
+        // Draw background
+        if (Visuals.Color.A != 0)
+            c.RenderSprite(CalculatedMetrics.Position, CalculatedMetrics.Size, Visuals.Color);
+
+        // todo: Draw border
+
+        InternalRender(c);
+        RenderChildren(c);
+    }
+
+    protected virtual void InternalRender(Renderer r)
+    {
+
+    }
+
+    protected virtual void RenderChildren(Renderer r)
+    {
+        foreach (UIBaseWindow child in Children)
+        {
+            if (!child.Visuals.Visible) continue;
+            if (child.IsLoading()) continue;
+
+            //if (child.OverlayWindow) continue;
+            child.Render(r);
+        }
+    }
+
+    public void Update()
+    {
+        Assert(State == UIWindowState.Open);
+
+        if (_needsLayout)
+        {
+            CalculatedMetrics.Size = MeasureWindow();
+            GrowWindow();
+            LayoutWindow(CalculatedMetrics.Position);
+        }
+
+        if (_needsLoading)
+        {
+            _needsLoading = false;
+        }
+
+        foreach (UIBaseWindow child in Children)
+        {
+            child.Update();
+        }
+    }
+
+    protected virtual bool UpdateInternal()
+    {
+        // nop
+        return true;
     }
 
     #endregion
 
     #region Layout
 
-    public enum UILayoutPass
+    protected virtual Vector2 InternalGetWindowMinSize()
     {
-        None,
-
-        Measure,
-        Grow,
-        Layout
+        return Vector2.Zero;
     }
 
     protected Vector2 MeasureWindow()
@@ -130,7 +359,7 @@ public partial class O_UIBaseWindow
         switch (Layout.LayoutMode)
         {
             case LayoutMode.Free:
-                foreach (O_UIBaseWindow child in Children)
+                foreach (UIBaseWindow child in Children)
                 {
                     Vector2 windowMinSize = child.MeasureWindow();
                     child.CalculatedMetrics.Size = windowMinSize;
@@ -143,7 +372,7 @@ public partial class O_UIBaseWindow
                 int inverseListMask = listMask == 1 ? 0 : 1;
 
                 Vector2 pen = new Vector2();
-                foreach (O_UIBaseWindow child in Children)
+                foreach (UIBaseWindow child in Children)
                 {
                     Vector2 windowMinSize = child.MeasureWindow();
                     if (child.Layout.SizingX.Mode == UISizing.UISizingMode.Fixed)
@@ -185,7 +414,7 @@ public partial class O_UIBaseWindow
         switch (Layout.LayoutMode)
         {
             case LayoutMode.Free:
-                foreach (O_UIBaseWindow child in Children)
+                foreach (UIBaseWindow child in Children)
                 {
                     if (child.Layout.SizingX.Mode == UISizing.UISizingMode.Grow)
                         child.CalculatedMetrics.Size.X = myMeasuredSize.X;
@@ -203,7 +432,7 @@ public partial class O_UIBaseWindow
                 int inverseListMask = listMask == 1 ? 0 : 1;
 
                 float listRemainingSize = myMeasuredSize[listMask];
-                foreach (O_UIBaseWindow child in Children)
+                foreach (UIBaseWindow child in Children)
                 {
                     float listSize = child.CalculatedMetrics.Size[listMask];
                     listRemainingSize -= listSize;
@@ -211,7 +440,7 @@ public partial class O_UIBaseWindow
                 listRemainingSize -= Layout.ListSpacing[listMask] * (Children.Count - 1);
 
                 // Grow across list
-                foreach (O_UIBaseWindow child in Children)
+                foreach (UIBaseWindow child in Children)
                 {
                     bool growAcrossList = inverseListMask == 0 ? child.Layout.SizingX.Mode == UISizing.UISizingMode.Grow : child.Layout.SizingY.Mode == UISizing.UISizingMode.Grow;
                     if (growAcrossList)
@@ -224,7 +453,7 @@ public partial class O_UIBaseWindow
                     float smallest = float.PositiveInfinity;
                     float secondSmallest = float.PositiveInfinity;
                     int growingCount = 0;
-                    foreach (O_UIBaseWindow child in Children)
+                    foreach (UIBaseWindow child in Children)
                     {
                         bool growAlongList = listMask == 0 ? child.Layout.SizingX.Mode == UISizing.UISizingMode.Grow : child.Layout.SizingY.Mode == UISizing.UISizingMode.Grow;
                         if (!growAlongList) continue;
@@ -256,7 +485,7 @@ public partial class O_UIBaseWindow
                         break;
 
                     float widthToAdd = MathF.Min(secondSmallest - smallest, listRemainingSize / growingCount);
-                    foreach (O_UIBaseWindow child in Children)
+                    foreach (UIBaseWindow child in Children)
                     {
                         bool growAlongList = listMask == 0 ? child.Layout.SizingX.Mode == UISizing.UISizingMode.Grow : child.Layout.SizingY.Mode == UISizing.UISizingMode.Grow;
                         if (!growAlongList) continue;
@@ -271,7 +500,7 @@ public partial class O_UIBaseWindow
                 }
 
                 // Now the children can grow their children
-                foreach (O_UIBaseWindow child in Children)
+                foreach (UIBaseWindow child in Children)
                 {
                     child.GrowWindow();
                 }
@@ -283,7 +512,7 @@ public partial class O_UIBaseWindow
     protected void LayoutWindow(Vector2 pos)
     {
         Vector2 myPos = Layout.Offset + pos;
-        CalculatedMetrics.Position = myPos.ToVec3();
+        CalculatedMetrics.Position = myPos;
 
         Vector2 pen = myPos;
         pen += Layout.Padding.TopLeft;
@@ -291,7 +520,7 @@ public partial class O_UIBaseWindow
         switch (Layout.LayoutMode)
         {
             case LayoutMode.Free:
-                foreach (O_UIBaseWindow child in Children)
+                foreach (UIBaseWindow child in Children)
                 {
                     child.LayoutWindow(pen);
                 }
@@ -300,7 +529,7 @@ public partial class O_UIBaseWindow
             case LayoutMode.HorizontalList:
             case LayoutMode.VerticalList:
                 int listMask = Layout.LayoutMode == LayoutMode.HorizontalList ? 0 : 1;
-                foreach (O_UIBaseWindow child in Children)
+                foreach (UIBaseWindow child in Children)
                 {
                     child.LayoutWindow(pen);
                     pen[listMask] += child.CalculatedMetrics.Size[listMask] + Layout.ListSpacing[listMask];
@@ -308,22 +537,8 @@ public partial class O_UIBaseWindow
                 break;
         }
 
-        _layoutDirty = false;
+        _needsLayout = false;
     }
 
     #endregion
-
-    #region API
-
-    protected virtual Vector2 InternalGetWindowMinSize()
-    {
-        return Vector2.Zero;
-    }
-
-    #endregion
-
-    public override string ToString()
-    {
-        return $"{(string.IsNullOrEmpty(Name) ? "Window" : Name)}: {Layout.LayoutMode}";
-    }
 }

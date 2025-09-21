@@ -1,10 +1,12 @@
 ﻿#nullable enable
 
+using Emotion.Game.Systems.UI;
+
 namespace Emotion.Game.Systems.UI2;
 
 public class O_UITemplate : GameDataObject
 {
-    public O_UIBaseWindow Window = new O_UIBaseWindow()
+    public UIBaseWindow Window = new UIBaseWindow()
     {
         Layout =
         {

@@ -11,22 +11,10 @@ public class UIDropDown : UIBaseWindow
     public UIDropDown(UIBaseWindow spawningWindow)
     {
         SpawningWindow = spawningWindow;
-        CodeGenerated = true;
         HandleInput = true;
         RelativeTo = SPECIAL_WIN_ID_DROPDOWN;
         OrderInParent = 99;
         OverlayWindow = true;
-
-        GrowX = false;
-        GrowY = false;
-    }
-
-    // todo: ONE delete me
-    public UIDropDown()
-    {
-        CodeGenerated = true;
-        HandleInput = true;
-        OrderInParent = 99;
 
         GrowX = false;
         GrowY = false;

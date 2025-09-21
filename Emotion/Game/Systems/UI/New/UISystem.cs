@@ -18,8 +18,14 @@ public class UISystem : UIController
 
     public UISystem()
     {
+        State = UIWindowState.Open;
         Engine.Host.OnResize += HostResized;
         HostResized(Engine.Renderer.ScreenBuffer.Size);
+    }
+
+    protected override Vector2 InternalGetWindowMinSize()
+    {
+        return Engine.Renderer.ScreenBuffer.Size;
     }
 
     private void HostResized(Vector2 size)

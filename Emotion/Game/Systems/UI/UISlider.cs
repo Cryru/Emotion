@@ -85,7 +85,6 @@ public class UISlider : UIBaseWindow
             scroll = new UISolidColor {
                 WindowColor = DefaultSelectorColor,
                 Id = "Selector",
-                CodeGenerated = true
             };
             AddChild(scroll);
         }

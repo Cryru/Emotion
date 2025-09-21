@@ -10,6 +10,7 @@ using Emotion.Core.Systems.Input;
 
 namespace Emotion.Game.Systems.UI;
 
+[DontSerialize]
 public partial class UIController : UIBaseWindow
 {
     /// <summary>
@@ -140,7 +141,7 @@ public partial class UIController : UIBaseWindow
         // 2. Layout windows within their parents, starting with the controller taking up the full screen.
         // Sizes returned during measuring can be used, but larger sizes can be set. Positions are
         // absolute and not relative.
-        Layout(Vector2.Zero, Size);
+        OLDLayout(Vector2.Zero, Size);
     }
 
     public override void AddChild(UIBaseWindow? child)
@@ -150,10 +151,10 @@ public partial class UIController : UIBaseWindow
         child.AttachedToController(this);
     }
 
-    public override void RemoveChild(UIBaseWindow? child, bool evict = true)
+    public override void RemoveChild(UIBaseWindow? child)
     {
         if (child == null) return;
-        base.RemoveChild(child, evict);
+        base.RemoveChild(child);
         child.DetachedFromController(this);
         InvalidateInputFocus();
     }
@@ -252,110 +253,110 @@ public partial class UIController : UIBaseWindow
 
     protected void BuildRelativeToMapping()
     {
-        _overlayWindows.Clear();
+        //_overlayWindows.Clear();
 
-        Dictionary<UIBaseWindow, List<UIBaseWindow>> parentToChildren = _parentToChildren;
-        parentToChildren.Clear();
+        //Dictionary<UIBaseWindow, List<UIBaseWindow>> parentToChildren = _parentToChildren;
+        //parentToChildren.Clear();
 
-        foreach (UIBaseWindow child in ForEachChildrenDeep())
-        {
-            UIBaseWindow thisWin = child;
-            List<UIBaseWindow> children = thisWin.Children ?? EMPTY_CHILDREN_LIST;
+        //foreach (UIBaseWindow child in ForEachChildrenDeep())
+        //{
+        //    UIBaseWindow thisWin = child;
+        //    List<UIBaseWindow> children = thisWin.Children ?? EMPTY_CHILDREN_LIST;
 
-            // Create mapping or add my children if it exists.
-            // This window would have a mapping already (encountered) only if a relative window is attached to it.
-            bool hasMapping = parentToChildren.TryGetValue(thisWin, out List<UIBaseWindow>? myMappingList);
+        //    // Create mapping or add my children if it exists.
+        //    // This window would have a mapping already (encountered) only if a relative window is attached to it.
+        //    bool hasMapping = parentToChildren.TryGetValue(thisWin, out List<UIBaseWindow>? myMappingList);
 
-            // Check if any of my children are supposed to be relative to another window,
-            // in which case my mapping can't reuse my children list.
-            bool anyRelative = false;
-            for (int i = 0; i < children.Count; i++)
-            {
-                UIBaseWindow ch = children[i];
-                if (ch.RelativeTo != null)
-                {
-                    anyRelative = true;
-                    break;
-                }
-            }
+        //    // Check if any of my children are supposed to be relative to another window,
+        //    // in which case my mapping can't reuse my children list.
+        //    bool anyRelative = false;
+        //    for (int i = 0; i < children.Count; i++)
+        //    {
+        //        UIBaseWindow ch = children[i];
+        //        if (ch.RelativeTo != null)
+        //        {
+        //            anyRelative = true;
+        //            break;
+        //        }
+        //    }
 
-            bool iterateAddToMapping = false;
-            if (!hasMapping)
-            {
-                if (anyRelative)
-                {
-                    myMappingList = new List<UIBaseWindow>();
-                    parentToChildren.Add(thisWin, myMappingList);
-                    iterateAddToMapping = true;
-                }
-                else
-                {
-                    parentToChildren.Add(thisWin, children);
-                }
-            }
-            else
-            {
-                iterateAddToMapping = true;
-            }
+        //    bool iterateAddToMapping = false;
+        //    if (!hasMapping)
+        //    {
+        //        if (anyRelative)
+        //        {
+        //            myMappingList = new List<UIBaseWindow>();
+        //            parentToChildren.Add(thisWin, myMappingList);
+        //            iterateAddToMapping = true;
+        //        }
+        //        else
+        //        {
+        //            parentToChildren.Add(thisWin, children);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        iterateAddToMapping = true;
+        //    }
 
-            // Add children which are not relative to another window.
-            if (iterateAddToMapping)
-            {
-                AssertNotNull(myMappingList);
+        //    // Add children which are not relative to another window.
+        //    if (iterateAddToMapping)
+        //    {
+        //        AssertNotNull(myMappingList);
 
-                for (int i = 0; i < children.Count; i++)
-                {
-                    UIBaseWindow ch = children[i];
-                    if (ch.RelativeTo == null)
-                        myMappingList.Add(ch);
-                }
-            }
+        //        for (int i = 0; i < children.Count; i++)
+        //        {
+        //            UIBaseWindow ch = children[i];
+        //            if (ch.RelativeTo == null)
+        //                myMappingList.Add(ch);
+        //        }
+        //    }
 
-            if (thisWin.OverlayWindow)
-                _overlayWindows.Add((thisWin, false));
+        //    if (thisWin.OverlayWindow)
+        //        _overlayWindows.Add((thisWin, false));
 
-            // Check if my window is supposed to be relative to another.
-            if (thisWin.RelativeTo != null)
-            {
-                UIBaseWindow? relativeToParent = thisWin.GetWindowById(thisWin.RelativeTo) ?? GetWindowById(thisWin.RelativeTo);
-                if (relativeToParent != null)
-                {
-                    bool relativeToWindowHasMapping = parentToChildren.TryGetValue(relativeToParent, out List<UIBaseWindow>? parentMapping);
-                    if (!relativeToWindowHasMapping)
-                    {
-                        parentMapping = new List<UIBaseWindow>();
-                        parentToChildren.Add(relativeToParent, parentMapping);
-                    }
-                    // Check if remapping from children copy
-                    else if (relativeToWindowHasMapping && parentMapping == relativeToParent.Children)
-                    {
-                        AssertNotNull(parentMapping);
+        //    // Check if my window is supposed to be relative to another.
+        //    if (thisWin.RelativeTo != null)
+        //    {
+        //        UIBaseWindow? relativeToParent = thisWin.GetWindowById(thisWin.RelativeTo) ?? GetWindowById(thisWin.RelativeTo);
+        //        if (relativeToParent != null)
+        //        {
+        //            bool relativeToWindowHasMapping = parentToChildren.TryGetValue(relativeToParent, out List<UIBaseWindow>? parentMapping);
+        //            if (!relativeToWindowHasMapping)
+        //            {
+        //                parentMapping = new List<UIBaseWindow>();
+        //                parentToChildren.Add(relativeToParent, parentMapping);
+        //            }
+        //            // Check if remapping from children copy
+        //            else if (relativeToWindowHasMapping && parentMapping == relativeToParent.Children)
+        //            {
+        //                AssertNotNull(parentMapping);
 
-                        var newParentMapping = new List<UIBaseWindow>();
-                        newParentMapping.AddRange(parentMapping);
-                        parentMapping = newParentMapping;
+        //                var newParentMapping = new List<UIBaseWindow>();
+        //                newParentMapping.AddRange(parentMapping);
+        //                parentMapping = newParentMapping;
 
-                        parentToChildren[relativeToParent] = newParentMapping;
-                    }
+        //                parentToChildren[relativeToParent] = newParentMapping;
+        //            }
 
-                    AssertNotNull(parentMapping);
-                    if (parentMapping.IndexOf(thisWin) == -1)
-                    {
-                        parentMapping.Add(thisWin);
-                    }
-                    else
-                    {
-                        // Window that is RelativeTo a window that is a sibling.
-                    }
-                }
-            }
-        }
+        //            AssertNotNull(parentMapping);
+        //            if (parentMapping.IndexOf(thisWin) == -1)
+        //            {
+        //                parentMapping.Add(thisWin);
+        //            }
+        //            else
+        //            {
+        //                // Window that is RelativeTo a window that is a sibling.
+        //            }
+        //        }
+        //    }
+        //}
 
-        // Stable sort children based on priority.
-        foreach (KeyValuePair<UIBaseWindow, List<UIBaseWindow>> pair in parentToChildren)
-        {
-            UIBaseWindow.SortChildren(pair.Value);
-        }
+        //// Stable sort children based on priority.
+        //foreach (KeyValuePair<UIBaseWindow, List<UIBaseWindow>> pair in parentToChildren)
+        //{
+        //    UIBaseWindow.SortChildren(pair.Value);
+        //}
     }
 
     public override List<UIBaseWindow> GetWindowChildren()
@@ -400,10 +401,10 @@ public partial class UIController : UIBaseWindow
             Children.Add(child);
         }
 
-        public override void RemoveChild(UIBaseWindow child, bool evict = true)
+        public override void RemoveChild(UIBaseWindow child)
         {
             if (Children == null) return;
-            if (evict) Children.Remove(child);
+            Children.Remove(child);
         }
     }
 

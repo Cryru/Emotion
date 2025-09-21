@@ -8,24 +8,6 @@ using Emotion.Game.Systems.UI;
 
 namespace Emotion.Game.Systems.UI2.Editor;
 
-public class O_TempWorkaround : O_UIBaseWindow
-{
-    public UIBaseWindow ViewportOldSystem = null!;
-
-    public O_TempWorkaround()
-    {
-        Layout.SizingX = UISizing.Fit();
-        Layout.SizingY = UISizing.Fit();
-    }
-
-    protected override Vector2 InternalGetWindowMinSize()
-    {
-        Visuals.Visible = ViewportOldSystem.Controller != null;
-        Layout.Offset = ViewportOldSystem.Position2;
-        return ViewportOldSystem.Size;
-    }
-}
-
 public class EditorTreeViewWindow<T> : UIBaseWindow
 {
     public T? SelectedObject;
@@ -129,13 +111,13 @@ public class EditorTreeViewWindow<T> : UIBaseWindow
 
 public class UITemplateEditor : TypeEditor
 {
-    private O_UIBaseWindow? _selectedWindow;
+    private UIBaseWindow? _selectedWindow;
 
     private O_UITemplate? _objectEditing = null;
     private ComplexObjectEditor<O_UITemplate> _objEditor;
     private ObjectPropertyWindow _windowEditor;
     private UISolidColor _viewPort;
-    private EditorTreeViewWindow<O_UIBaseWindow>? _treeView;
+    private EditorTreeViewWindow<UIBaseWindow>? _treeView;
 
     public UITemplateEditor()
     {
@@ -164,7 +146,7 @@ public class UITemplateEditor : TypeEditor
             var treeViewScrollContent = new EditorScrollArea();
             treeViewContainer.AddChild(treeViewScrollContent);
 
-            var treeView = new EditorTreeViewWindow<O_UIBaseWindow>((obj, list) => list.AddRange(obj.Children));
+            var treeView = new EditorTreeViewWindow<UIBaseWindow>((obj, list) => list.AddRange(obj.Children));
             if (_objectEditing != null)
                 treeView.SetObject(_objectEditing.Window);
             treeView.SelectObject(_selectedWindow, false);
@@ -225,27 +207,18 @@ public class UITemplateEditor : TypeEditor
 
             _objEditor.SetValue(_objectEditing);
             _treeView?.SetObject(_objectEditing.Window);
-            //EngineEditor.RegisterForObjectChanges(_objectEditing.Window, (ev) => _objectEditing.Window.InvalidateLayout());
-
-            // temp
-            EngineEditor.EditorUI.ClearChildren();
-
-            var t = new O_TempWorkaround();
-            t.Layout.LayoutMode = LayoutMode.HorizontalList;
-            t.ViewportOldSystem = _viewPort;
-            t.AddChild(_objectEditing.Window);
-            EngineEditor.EditorUI.AddChild(t);
-            // temp
+            _viewPort.ClearChildren();
+            _viewPort.AddChild(_objectEditing.Window);
         }
         else
         {
             _treeView?.SetObject(null);
             _objEditor.SetValue(null);
-            EngineEditor.EditorUI.ClearChildren(); // TEMP
+            _viewPort.ClearChildren();
         }
     }
 
-    public void SelectSubWindow(O_UIBaseWindow? win)
+    public void SelectSubWindow(UIBaseWindow? win)
     {
         _selectedWindow = win;
         _windowEditor.SetEditor(_selectedWindow);

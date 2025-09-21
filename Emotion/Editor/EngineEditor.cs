@@ -23,7 +23,6 @@ public static partial class EngineEditor
     public static bool IsOpen { get; private set; }
 
     public static UIBaseWindow EditorRoot = null!;
-    public static O_UIBaseWindow EditorUI = null!;
 
     private static UIRichText _perfText = null!;
 
@@ -34,11 +33,6 @@ public static partial class EngineEditor
         EditorRoot = new UIBaseWindow()
         {
             Id = "EditorRoot"
-        };
-
-        EditorUI = new O_UIBaseWindow()
-        {
-            Name = "EditorRoot"
         };
     }
 
@@ -62,7 +56,6 @@ public static partial class EngineEditor
         Engine.Host.OnKey.BlockListenersOfType(KeyListenerType.Game);
 
         Engine.UI.AddChild(EditorRoot);
-        Engine.NewUI.AddChild(EditorUI);
 
         UIBaseWindow barContainer = new()
         {
@@ -96,7 +89,6 @@ public static partial class EngineEditor
         Engine.Host.OnKey.BlockListenersOfType(null);
 
         Engine.UI.RemoveChild(EditorRoot);
-        Engine.NewUI.RemoveChild(EditorUI);
         EditorRoot.ClearChildren();
         SetMapEditorMode(MapEditorMode.Off);
 

@@ -30,9 +30,6 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
     #region Runtime State
 
     [DontSerialize]
-    public UIBaseWindow? Parent { get; protected set; }
-
-    [DontSerialize]
     public UIController? Controller { get; protected set; }
 
     #endregion
@@ -42,10 +39,10 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
     private Task _loadingTask = Task.CompletedTask;
     private bool _needsLoad = true;
 
-    public bool IsLoading()
-    {
-        return !_loadingTask.IsCompleted || _needsLoad;
-    }
+    //public bool IsLoading()
+    //{
+    //    return !_loadingTask.IsCompleted || _needsLoad;
+    //}
 
     public void CheckLoadContent(UILoadingContext ctx)
     {
@@ -80,287 +77,52 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
         return Task.CompletedTask;
     }
 
-    public void Update()
-    {
-        if (!Visible) return;
-        Assert(Controller != null || this is UIController);
+   
 
-        if (_updateColor)
-        {
-            CalculateColor();
-            _updateColor = false;
-        }
+   
 
-        bool updateChildren = UpdateInternal();
-        if (!updateChildren || Children == null) return;
 
-        for (var i = 0; i < Children.Count; i++)
-        {
-            UIBaseWindow child = Children[i];
-            child.Update();
-        }
-    }
-
-    protected virtual bool UpdateInternal()
-    {
-        // nop
-        return true;
-    }
-
-    public void Render(Renderer c)
-    {
-        if (!Visible || _calculatedColor.A == 0) return;
-        if (IsLoading()) return;
-
-        // Push displacements if any.
-        var matrixPushed = false;
-        if (_transformationStackBacking != null)
-        {
-            if (_transformationStackBacking.MatrixDirty)
-            {
-                // Mark children matrices as dirty.
-                MarkChildrenMatricesAsDirty();
-
-                Rectangle intermediateBounds;
-                if (IgnoreParentDisplacement)
-                {
-                    intermediateBounds = Bounds;
-                }
-                else
-                {
-                    intermediateBounds = Rectangle.Transform(Bounds, c.ModelMatrix);
-                    intermediateBounds.Position = intermediateBounds.Position.Floor();
-                    intermediateBounds.Size = intermediateBounds.Size.Ceiling();
-                }
-                _transformationStackBacking.RecalculateMatrix(GetScale(), intermediateBounds, Z);
-            }
-
-            bool noNeedToPush = _transformationStackBacking.CurrentMatrix.IsIdentity && !IgnoreParentDisplacement;
-            if (!noNeedToPush)
-            {
-                c.PushModelMatrix(_transformationStackBacking.CurrentMatrix, !IgnoreParentDisplacement);
-                matrixPushed = true;
-            }
-        }
-        else if (IgnoreParentDisplacement && !c.ModelMatrix.IsIdentity)
-        {
-            c.PushModelMatrix(Matrix4x4.Identity, false);
-            matrixPushed = true;
-        }
-
-        // Cache displaced position.
-        EnsureRenderBoundsCached(c);
-
-        if (RenderInternal(c))
-        {
-            RenderChildren(c);
-            // Pop displacements, if any were pushed.
-            if (matrixPushed) c.PopModelMatrix();
-            AfterRenderChildren(c);
-        }
-        else if (matrixPushed)
-        {
-            c.PopModelMatrix();
-        }
-
-        if (UIController.Debug_RenderLayoutEngine == this)
-            _layoutEngine.RenderDebug(this, c);
-    }
-
-    protected virtual bool RenderInternal(Renderer c)
-    {
-        return true;
-    }
-
-    protected virtual void RenderChildren(Renderer c)
-    {
-        List<UIBaseWindow> children = GetWindowChildren();
-        for (var i = 0; i < children.Count; i++)
-        {
-            UIBaseWindow child = children[i];
-            if (!child.Visible) continue;
-            if (child.OverlayWindow) continue;
-            child.Render(c);
-        }
-    }
-
-    protected virtual void AfterRenderChildren(Renderer c)
-    {
-    }
 
     #endregion
 
     #region Hierarchy
 
-    /// <summary>
-    /// Children of this window.
-    /// </summary>
-    [SerializeNonPublicGetSet]
-    public List<UIBaseWindow>? Children { get; protected set; }
+    //public virtual void AttachedToController(UIController controller)
+    //{
+    //    bool isPresent = controller.IsWindowPresentInHierarchy(this);
+    //    if (isPresent)
+    //    {
+    //        Assert(false, "Window is present in hierarchy twice!");
+    //        return;
+    //    }
 
-    public virtual void AddChild(UIBaseWindow? child)
-    {
-        Assert(child != null || child == this);
-        if (child == this || child == null) return;
+    //    controller.RegisterWindowInController(this);
 
-        if (Engine.Configuration.DebugMode && Children != null && !string.IsNullOrEmpty(child.Id))
-            for (var i = 0; i < Children.Count; i++)
-            {
-                UIBaseWindow c = Children[i];
-                if (c.Id == child.Id)
-                {
-                    Engine.Log.Warning($"Child with duplicate id was added - {child.Id}", "UI");
-                    break;
-                }
-            }
+    //    Controller = controller;
+    //    Controller?.InvalidatePreload();
 
-        Children ??= new List<UIBaseWindow>();
-        Children.Add(child);
+    //    if (Children == null) return;
+    //    for (var i = 0; i < Children.Count; i++)
+    //    {
+    //        UIBaseWindow child = Children[i];
+    //        child.AttachedToController(controller);
+    //    }
+    //}
 
-        child.Parent = this;
-        child.InvalidateLayout();
-        child.InvalidateColor();
-        child.EnsureParentLinks();
-        if (Controller != null) child.AttachedToController(Controller);
-        SortChildren();
-    }
+    //public virtual void DetachedFromController(UIController controller)
+    //{
+    //    controller.RemoveWindowFromController(this);
 
-    public static void SortChildren(List<UIBaseWindow> children)
-    {
-        // Custom insertion sort as Array.Sort is unstable
-        // Isn't too problematic performance wise since adding children shouldn't happen often.
-        for (var i = 1; i < children.Count; i++)
-        {
-            UIBaseWindow thisC = children[i];
-            for (int j = i - 1; j >= 0;)
-            {
-                UIBaseWindow otherC = children[j];
-                if (thisC.CompareTo(otherC) < 0)
-                {
-                    children[j + 1] = otherC;
-                    children[j] = thisC;
-                    j--;
-                }
-                else
-                {
-                    break;
-                }
-            }
-        }
-    }
+    //    Controller = null;
+    //    if (Children == null) return;
+    //    for (var i = 0; i < Children.Count; i++)
+    //    {
+    //        UIBaseWindow child = Children[i];
+    //        child.DetachedFromController(controller);
+    //    }
+    //}
 
-    public void SortChildren()
-    {
-        if (Children == null) return;
 
-        // Custom insertion sort as Array.Sort is unstable
-        // Isn't too problematic performance wise since adding children shouldn't happen often.
-        for (var i = 1; i < Children.Count; i++)
-        {
-            UIBaseWindow thisC = Children[i];
-            for (int j = i - 1; j >= 0;)
-            {
-                UIBaseWindow otherC = Children[j];
-                if (thisC.CompareTo(otherC) < 0)
-                {
-                    Children[j + 1] = otherC;
-                    Children[j] = thisC;
-                    j--;
-                }
-                else
-                {
-                    break;
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Parents aren't serialized so the links need to be reestablished once the UI is loaded.
-    /// </summary>
-    protected void EnsureParentLinks()
-    {
-        if (Children == null) return;
-        for (var i = 0; i < Children.Count; i++)
-        {
-            UIBaseWindow child = Children[i];
-            child.Parent = this;
-            child.EnsureParentLinks();
-        }
-    }
-
-    protected T? FindParentOfType<T>() where T : UIBaseWindow
-    {
-        UIBaseWindow? parent = Parent;
-        while (parent != null && parent is not T)
-        {
-            parent = parent.Parent;
-        }
-        return (T?) parent;
-    }
-
-    public virtual void RemoveChild(UIBaseWindow child, bool evict = true)
-    {
-        if (Children == null) return;
-        Assert(child.Parent == this);
-
-        if (evict) Children.Remove(child);
-        if (Controller != null) child.DetachedFromController(Controller);
-        InvalidateLayout();
-    }
-
-    public virtual void ClearChildren()
-    {
-        if (Children == null) return;
-        for (var i = 0; i < Children.Count; i++)
-        {
-            UIBaseWindow child = Children[i];
-            RemoveChild(child, false);
-        }
-
-        Children = null;
-    }
-
-    public virtual void AttachedToController(UIController controller)
-    {
-        bool isPresent = controller.IsWindowPresentInHierarchy(this);
-        if (isPresent)
-        {
-            Assert(false, "Window is present in hierarchy twice!");
-            return;
-        }
-
-        controller.RegisterWindowInController(this);
-
-        Controller = controller;
-        Controller?.InvalidatePreload();
-
-        if (Children == null) return;
-        for (var i = 0; i < Children.Count; i++)
-        {
-            UIBaseWindow child = Children[i];
-            child.AttachedToController(controller);
-        }
-    }
-
-    public virtual void DetachedFromController(UIController controller)
-    {
-        controller.RemoveWindowFromController(this);
-
-        Controller = null;
-        if (Children == null) return;
-        for (var i = 0; i < Children.Count; i++)
-        {
-            UIBaseWindow child = Children[i];
-            child.DetachedFromController(controller);
-        }
-    }
-
-    public void Close()
-    {
-        Assert(Parent != null);
-        Parent?.RemoveChild(this);
-    }
 
     public virtual List<UIBaseWindow> GetWindowChildren()
     {
@@ -371,46 +133,7 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
         return Controller.GetChildrenMapping(this);
     }
 
-    /// <summary>
-    /// Marks this window as generated by code. Such windows will not be serialized by the UI editor.
-    /// </summary>
-    [DontSerialize]
-    public bool CodeGenerated { get; set; }
-
-    public virtual void RemoveCodeGeneratedChildren()
-    {
-        if (Children == null) return;
-        for (int i = Children.Count - 1; i >= 0; i--)
-        {
-            UIBaseWindow child = Children[i];
-            if (child.CodeGenerated)
-                RemoveChild(child);
-            else
-                child.RemoveCodeGeneratedChildren();
-        }
-    }
-
-    public bool IsWithin(UIBaseWindow? within)
-    {
-        if (within == null) return false;
-        if (within == this) return true;
-
-        if (RelativeTo != null)
-        {
-            UIBaseWindow? relativeToWin = Controller?.GetWindowById(RelativeTo);
-            if (relativeToWin == null) return false;
-            return relativeToWin.IsWithin(within);
-        }
-
-        UIBaseWindow? parent = Parent;
-        while (parent != null)
-        {
-            if (parent == within) return true;
-            parent = parent.Parent;
-        }
-
-        return false;
-    }
+   
 
     #endregion
 
@@ -654,11 +377,6 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
     }
 
     private string? _relativeTo;
-
-    public virtual void InvalidateLayout()
-    {
-        Parent?.InvalidateLayout();
-    }
 
     protected virtual void AfterMeasure(Vector2 contentSize)
     {
@@ -1339,7 +1057,7 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
 
     public override string ToString()
     {
-        return $"{GetType().ToString().Replace("Emotion.UI.", "")} {Id}";
+        return $"{(string.IsNullOrEmpty(Name) ? "Window" : Name)}: {GetType().ToString().Replace("Emotion.UI.", "")}";
     }
 
     public static T? CreateFromAsset<T>(string assetPath) where T : UIBaseWindow

@@ -225,7 +225,7 @@ public partial class UIBaseWindow
                 childBound = DeflateRect(childBound, childWin.Margins * childWin.GetScale()); // Subtract the margins from the child size, since the child should be layouted inside.
                 childBound = ApplyLimits(childData, childBound);
 
-                childData.Child.Layout(childBound.Position, childBound.Size);
+                childData.Child.OLDLayout(childBound.Position, childBound.Size);
             }
         }
 

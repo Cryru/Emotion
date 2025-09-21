@@ -25,7 +25,7 @@ public class EditorDropDown : UIDropDown
         base.AddChild(child);
     }
 
-    protected override void Layout(Vector2 pos, Vector2 size)
+    protected override void OLDLayout(Vector2 pos, Vector2 size)
     {
         if (ClampToSpawningWindowWidth && size.X > SpawningWindow.Width)
             size.X = SpawningWindow.Width;
@@ -37,7 +37,7 @@ public class EditorDropDown : UIDropDown
             size.X += diff;
         }
 
-        base.Layout(pos, size);
+        base.OLDLayout(pos, size);
     }
 
     protected override bool RenderInternal(Renderer c)

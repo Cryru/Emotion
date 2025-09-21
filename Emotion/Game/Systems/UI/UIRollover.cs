@@ -16,7 +16,7 @@ public class UIRollover : UIBaseWindow
         OrderInParent = 99;
     }
 
-    protected override void Layout(Vector2 pos, Vector2 size)
+    protected override void OLDLayout(Vector2 pos, Vector2 size)
     {
         float paddingScaled = RolloverPadding * GetScale();
 
@@ -28,6 +28,6 @@ public class UIRollover : UIBaseWindow
 
         Rectangle myBounds = new Rectangle(pos, size);
         Vector2 snappedPos = controllerBox.SnapRectangleInside(myBounds);
-        base.Layout(snappedPos, size);
+        base.OLDLayout(snappedPos, size);
     }
 }
