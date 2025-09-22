@@ -46,12 +46,10 @@ public partial class UIController : UIBaseWindow
         HandleInput = true;
         Engine.Host.OnResize += Host_OnResize;
         Engine.Host.OnMouseMove += Host_MouseMove;
-        KeepTemplatePreloaded(this);
     }
 
     public virtual void Dispose()
     {
-        StopPreloadTemplate(this);
         Engine.Host.OnResize -= Host_OnResize;
         Engine.Host.OnMouseMove -= Host_MouseMove;
         if (InputFocus != null) Engine.Host.OnKey.RemoveListener(_keyboardFocusOnKeyDelegateCache);
@@ -62,7 +60,6 @@ public partial class UIController : UIBaseWindow
     private void Host_OnResize(Vector2 obj)
     {
         InvalidateLayout();
-        InvalidatePreload();
     }
 
     private void Host_MouseMove(Vector2 old, Vector2 nu)
@@ -76,11 +73,6 @@ public partial class UIController : UIBaseWindow
     //    _updateLayout = true;
     //    _updateInputFocus = true;
     //}
-
-    public void InvalidatePreload()
-    {
-        _updatePreload = true;
-    }
 
     protected override void AfterRenderChildren(Renderer c)
     {
@@ -96,8 +88,6 @@ public partial class UIController : UIBaseWindow
 
     protected override bool UpdateInternal()
     {
-        if (!_loadingThread.IsCompleted) return false;
-
         if (_updateInputFocus) UpdateInputFocus();
         if (!_mouseUpdatedThisTick) UpdateMouseFocus();
         _mouseUpdatedThisTick = false;
@@ -362,77 +352,6 @@ public partial class UIController : UIBaseWindow
     public override List<UIBaseWindow> GetWindowChildren()
     {
         return GetChildrenMapping(this);
-    }
-
-    #endregion
-
-    #region Loading
-
-    public Task PreloadUI()
-    {
-        if (!_loadingThread.IsCompleted) return _loadingThread;
-        UpdateLoading();
-        return _loadingThread;
-    }
-
-    private Task _loadingThread = Task.CompletedTask;
-    private UILoadingContext _loadingContext = new UILoadingContext();
-
-    protected void UpdateLoading()
-    {
-        if (!_loadingThread.IsCompleted) return;
-        CheckLoadContent(_loadingContext);
-        _loadingThread = Task.Run(_loadingContext.LoadWindows);
-        _updatePreload = false;
-
-        // If one controller is loading, check global.
-        GlobalLoadUI();
-    }
-
-    /// <summary>
-    /// You can keep windows globally loaded.
-    /// </summary>
-    private class PreloadWindowStorage : UIBaseWindow
-    {
-        public override void AddChild(UIBaseWindow? child)
-        {
-            if (child == null) return;
-            Children ??= new List<UIBaseWindow>();
-            Children.Add(child);
-        }
-
-        public override void RemoveChild(UIBaseWindow child)
-        {
-            if (Children == null) return;
-            Children.Remove(child);
-        }
-    }
-
-    private static object _globalLoadingLock = new object();
-    private static Task _globalLoadingThread = Task.CompletedTask;
-    private static PreloadWindowStorage _keepWindowsLoaded = new();
-    private static UILoadingContext _globalLoadingContext = new UILoadingContext();
-
-    public static Task GlobalLoadUI()
-    {
-        lock (_globalLoadingLock)
-        {
-            if (!_globalLoadingThread.IsCompleted) return _globalLoadingThread;
-            _keepWindowsLoaded.CheckLoadContent(_globalLoadingContext);
-            _globalLoadingThread = Task.Run(_globalLoadingContext.LoadWindows);
-        }
-
-        return _globalLoadingThread;
-    }
-
-    public static void KeepTemplatePreloaded(UIBaseWindow window)
-    {
-        _keepWindowsLoaded.AddChild(window);
-    }
-
-    public static void StopPreloadTemplate(UIBaseWindow window)
-    {
-        _keepWindowsLoaded.RemoveChild(window);
     }
 
     #endregion

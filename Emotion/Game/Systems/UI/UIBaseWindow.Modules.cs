@@ -38,12 +38,12 @@ public partial class UIBaseWindow
     public UIWindowState State = UIWindowState.Uninitialized;
 
     [SerializeNonPublicGetSet]
-    public O_UIWindowLayoutMetrics Layout { get; private set; } = new O_UIWindowLayoutMetrics();
+    public O_UIWindowLayoutMetrics Layout = new O_UIWindowLayoutMetrics();
 
     [SerializeNonPublicGetSet]
-    public O_UIWindowVisuals Visuals { get; private set; } = new O_UIWindowVisuals();
+    public O_UIWindowVisuals Visuals = new O_UIWindowVisuals();
 
-    public O_UIWindowCalculatedMetrics CalculatedMetrics { get; private set; } = new O_UIWindowCalculatedMetrics();
+    public O_UIWindowCalculatedMetrics CalculatedMetrics = new O_UIWindowCalculatedMetrics();
 
     #region Lifecycle
 
@@ -87,6 +87,12 @@ public partial class UIBaseWindow
 
     #region DeleteMe
 
+    public virtual UIBaseWindow? FindMouseInput(Vector2 pos)
+    {
+        return null;
+    }
+
+
     protected virtual bool RenderInternal(Renderer c)
     {
         return false;
@@ -94,6 +100,66 @@ public partial class UIBaseWindow
 
     protected virtual void AfterRenderChildren(Renderer c)
     {
+    }
+
+    protected Rectangle _renderBoundsCalculatedFrom; // .Bounds at time of caching.
+    private Matrix4x4? _renderBoundsCachedMatrix; // The matrix _renderBounds was generated from.
+    protected Rectangle _renderBounds; // Bounds but with any displacements active on the window applied 
+    protected Rectangle _renderBoundsWithChildren; // _inputBoundsWithChildren but with any displacements active on the window applied
+    private Rectangle _inputBoundsWithChildren; // Bounds unioned with all children bounds.
+
+    public Rectangle RenderBounds
+    {
+        get => _renderBoundsWithChildren;
+    }
+
+    public void EnsureRenderBoundsCached(Renderer c)
+    {
+        if (c.ModelMatrix == _renderBoundsCachedMatrix && _renderBoundsCalculatedFrom == _inputBoundsWithChildren) return;
+        _renderBoundsWithChildren = Rectangle.Transform(_inputBoundsWithChildren, c.ModelMatrix);
+        _renderBoundsWithChildren.Position = _renderBoundsWithChildren.Position.Floor();
+        _renderBoundsWithChildren.Size = _renderBoundsWithChildren.Size.Ceiling();
+
+        _renderBounds = Rectangle.Transform(Bounds, c.ModelMatrix);
+        _renderBounds.Position = _renderBounds.Position.Floor();
+        _renderBounds.Size = _renderBounds.Size.Ceiling();
+
+        _renderBoundsCachedMatrix = c.ModelMatrix;
+        _renderBoundsCalculatedFrom = _inputBoundsWithChildren;
+    }
+
+    public virtual bool IsPointInside(Vector2 pt)
+    {
+        return _renderBoundsCalculatedFrom != Rectangle.Empty ? _renderBoundsWithChildren.Contains(pt) : _inputBoundsWithChildren.Contains(pt);
+    }
+
+    public virtual bool IsInsideRect(Rectangle rect)
+    {
+        return _renderBoundsCalculatedFrom != Rectangle.Empty ? rect.ContainsInclusive(_renderBoundsWithChildren) : rect.ContainsInclusive(_inputBoundsWithChildren);
+    }
+
+    public virtual bool IsInsideOrIntersectRect(Rectangle rect, out bool inside)
+    {
+        Rectangle checkAgainst = _renderBoundsCalculatedFrom != Rectangle.Empty ? _renderBoundsWithChildren : _inputBoundsWithChildren;
+        if (rect.ContainsInclusive(checkAgainst))
+        {
+            inside = true;
+            return true;
+        }
+
+        if (rect.IntersectsInclusive(checkAgainst))
+        {
+            inside = false;
+            return true;
+        }
+
+        inside = false;
+        return false;
+    }
+
+    public virtual bool OnKey(Key key, KeyState status, Vector2 mousePos)
+    {
+        return true;
     }
 
     #endregion
@@ -351,6 +417,106 @@ public partial class UIBaseWindow
     {
         // nop
         return true;
+    }
+
+    #endregion
+
+    #region Input
+
+    public bool ChildrenHandleInput
+    {
+        get => _childrenHandleInput;
+        set
+        {
+            if (value == _childrenHandleInput) return;
+            _childrenHandleInput = value;
+            Engine.UI.InvalidateInputFocus();
+        }
+    }
+
+    private bool _childrenHandleInput = true;
+
+    public bool HandleInput
+    {
+        get => _handleInput;
+        set
+        {
+            if (value == _handleInput) return;
+            _handleInput = value;
+            Engine.UI.InvalidateInputFocus();
+        }
+    }
+
+    private bool _handleInput;
+
+    /// <summary>
+    /// Whether the mouse is currently inside this window.
+    /// </summary>
+    [DontSerialize]
+    public bool MouseInside { get; protected set; }
+
+    /// <summary>
+    /// Find the window under the mouse cursor in this parent.
+    /// This could be either a child window or the parent itself.
+    /// </summary>
+    public virtual UIBaseWindow? FindWindowUnderMouse(Vector2 pos, bool respectInputHandling = true)
+    {
+        if (!Visible) return null;
+
+        if (ChildrenHandleInput || !respectInputHandling)
+        {
+            for (int i = Children.Count - 1; i >= 0; i--) // Top to bottom
+            {
+                UIBaseWindow win = Children[i];
+                if (win.Visible && win.CalculatedMetrics.Bounds.Contains(pos))
+                {
+                    UIBaseWindow? inChild = win.FindWindowUnderMouse(pos, respectInputHandling);
+                    if (inChild != null)
+                        return inChild;
+                }
+            }
+        }
+
+        if ((!respectInputHandling || HandleInput) && CalculatedMetrics.Bounds.Contains(pos))
+            return this;
+
+        return null;
+    }
+
+    protected virtual bool InternalOnKey(Key key, KeyState status, Vector2 mousePos)
+    {
+        return true;
+    }
+
+    #endregion
+
+    #region Helpers
+
+    public bool VisibleAlongTree()
+    {
+        if (Controller == null) return false;
+
+        UIBaseWindow? parent = Parent;
+        while (parent != null)
+        {
+            if (!parent.Visible) return false;
+            parent = parent.Parent;
+        }
+
+        return Visible;
+    }
+
+    public T? GetParentOfKind<T>() where T : UIBaseWindow
+    {
+        var parent = Parent;
+        while (parent != null)
+        {
+            if (parent is T parentAsT)
+                return parentAsT;
+
+            parent = parent.Parent;
+        }
+        return null;
     }
 
     #endregion

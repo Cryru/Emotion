@@ -513,122 +513,13 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
 
     #region Input
 
-    public bool ChildrenHandleInput
-    {
-        get => _childrenHandleInput;
-        set
-        {
-            if (value == _childrenHandleInput) return;
-            _childrenHandleInput = value;
-            Controller?.InvalidateInputFocus();
-        }
-    }
+   
 
-    private bool _childrenHandleInput = true;
+   
 
-    public bool HandleInput
-    {
-        get => _handleInput;
-        set
-        {
-            if (value == _handleInput) return;
-            _handleInput = value;
-            Controller?.InvalidateInputFocus();
-        }
-    }
 
-    private bool _handleInput;
 
-    public virtual bool OnKey(Key key, KeyState status, Vector2 mousePos)
-    {
-        return true;
-    }
-
-    /// <summary>
-    /// Whether the mouse is currently inside this window.
-    /// </summary>
-    [DontSerialize]
-    public bool MouseInside { get; protected set; }
-
-    protected Rectangle _renderBoundsCalculatedFrom; // .Bounds at time of caching.
-    private Matrix4x4? _renderBoundsCachedMatrix; // The matrix _renderBounds was generated from.
-    protected Rectangle _renderBounds; // Bounds but with any displacements active on the window applied 
-    protected Rectangle _renderBoundsWithChildren; // _inputBoundsWithChildren but with any displacements active on the window applied
-    private Rectangle _inputBoundsWithChildren; // Bounds unioned with all children bounds.
-
-    public Rectangle RenderBounds
-    {
-        get => _renderBoundsWithChildren;
-    }
-
-    public void EnsureRenderBoundsCached(Renderer c)
-    {
-        if (c.ModelMatrix == _renderBoundsCachedMatrix && _renderBoundsCalculatedFrom == _inputBoundsWithChildren) return;
-        _renderBoundsWithChildren = Rectangle.Transform(_inputBoundsWithChildren, c.ModelMatrix);
-        _renderBoundsWithChildren.Position = _renderBoundsWithChildren.Position.Floor();
-        _renderBoundsWithChildren.Size = _renderBoundsWithChildren.Size.Ceiling();
-
-        _renderBounds = Rectangle.Transform(Bounds, c.ModelMatrix);
-        _renderBounds.Position = _renderBounds.Position.Floor();
-        _renderBounds.Size = _renderBounds.Size.Ceiling();
-
-        _renderBoundsCachedMatrix = c.ModelMatrix;
-        _renderBoundsCalculatedFrom = _inputBoundsWithChildren;
-    }
-
-    public virtual bool IsPointInside(Vector2 pt)
-    {
-        return _renderBoundsCalculatedFrom != Rectangle.Empty ? _renderBoundsWithChildren.Contains(pt) : _inputBoundsWithChildren.Contains(pt);
-    }
-
-    public virtual bool IsInsideRect(Rectangle rect)
-    {
-        return _renderBoundsCalculatedFrom != Rectangle.Empty ? rect.ContainsInclusive(_renderBoundsWithChildren) : rect.ContainsInclusive(_inputBoundsWithChildren);
-    }
-
-    public virtual bool IsInsideOrIntersectRect(Rectangle rect, out bool inside)
-    {
-        Rectangle checkAgainst = _renderBoundsCalculatedFrom != Rectangle.Empty ? _renderBoundsWithChildren : _inputBoundsWithChildren;
-        if (rect.ContainsInclusive(checkAgainst))
-        {
-            inside = true;
-            return true;
-        }
-
-        if (rect.IntersectsInclusive(checkAgainst))
-        {
-            inside = false;
-            return true;
-        }
-
-        inside = false;
-        return false;
-    }
-
-    /// <summary>
-    /// Find the window under the mouse cursor in this parent.
-    /// This could be either a child window or the parent itself.
-    /// </summary>
-    public virtual UIBaseWindow? FindMouseInput(Vector2 pos)
-    {
-        if (!Visible) return null;
-
-        if (Children != null && ChildrenHandleInput)
-            for (int i = Children.Count - 1; i >= 0; i--) // Top to bottom
-            {
-                UIBaseWindow win = Children[i];
-                if (win.Visible && win.IsPointInside(pos))
-                {
-                    UIBaseWindow? inChild = win.FindMouseInput(pos);
-                    if (inChild != null) return inChild;
-                }
-            }
-
-        if (HandleInput && (_renderBoundsCalculatedFrom != Rectangle.Empty ? _renderBounds.Contains(pos) : Bounds.Contains(pos)))
-            return this;
-
-        return null;
-    }
+   
 
     /// <summary>
     /// Find a window that handles input in this parent.
@@ -994,32 +885,7 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
         return win;
     }
 
-    public bool VisibleAlongTree()
-    {
-        if (Controller == null) return false;
 
-        UIBaseWindow? parent = Parent;
-        while (parent != null)
-        {
-            if (!parent.Visible) return false;
-            parent = parent.Parent;
-        }
-
-        return Visible;
-    }
-
-    public T? GetParentOfKind<T>() where T : UIBaseWindow
-    {
-        var parent = Parent;
-        while (parent != null)
-        {
-            if (parent is T parentAsT)
-                return parentAsT;
-
-            parent = parent.Parent;
-        }
-        return null;
-    }
 
     /// <summary>
     /// Clone the window. By default this performs a serialization clone.

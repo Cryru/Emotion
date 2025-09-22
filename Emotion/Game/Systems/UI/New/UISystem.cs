@@ -1,13 +1,10 @@
 ﻿#nullable enable
 
-using Emotion.Core.Systems.Input;
-using Emotion.Core.Systems.Logging;
-
 namespace Emotion.Game.Systems.UI.New;
 
-// todo: add to Scenes
 // todo: scenes - make current scene current even while loading, add loaded bool
-// todo: investigate loading exceptions for the 100th time
+// todo: make scene wait for UI loading - they will usually just queue assets so maybe one update is all thats needed.
+//      (which will also perform layout in the loading screen)
 
 public class UISystem : UIBaseWindow
 {
@@ -16,10 +13,21 @@ public class UISystem : UIBaseWindow
 
     public UISystem()
     {
+        InitInput();
+
         State = UIWindowState.Open;
         Engine.Host.OnResize += HostResized;
         HostResized(Engine.Renderer.ScreenBuffer.Size);
     }
+
+    protected override bool UpdateInternal()
+    {
+        TickInput();
+
+        return base.UpdateInternal();
+    }
+
+    #region Scaling
 
     private void HostResized(Vector2 size)
     {
@@ -28,6 +36,7 @@ public class UISystem : UIBaseWindow
 
         Layout.Scale = scaledCurrent / scaledTarget;
         Engine.Log.Info($"UI Scale is {Layout.Scale}", MessageSource.UI);
+        InvalidateLayout();
     }
 
     protected override Vector2 InternalGetWindowMinSize()
@@ -35,41 +44,160 @@ public class UISystem : UIBaseWindow
         return Engine.Renderer.ScreenBuffer.Size;
     }
 
-    protected override void RenderChildren(Renderer c)
-    {
-        //c.EnableSpriteBatcher(true);
-        base.RenderChildren(c);
-        //c.EnableSpriteBatcher(false);
-
-        if (_debugInspectMode && _debugWindowsUnderMouse!.Count > 0)
-        {
-            var windowUnderMouse = _debugWindowsUnderMouse[^1];
-            c.RenderRectOutline(windowUnderMouse.Position, windowUnderMouse.Size, Color.Red);
-        }
-    }
-
-    //protected override void UpdateMouseFocus()
-    //{
-    //    base.UpdateMouseFocus();
-
-    //    if (_debugInspectMode) DebugInspectModeUpdate();
-    //}
-
-    //protected override bool MouseFocusOnKey(Key key, KeyState status)
-    //{
-    //    if (_debugInspectMode && key == Key.MouseKeyLeft && status == KeyState.Down)
-    //    {
-    //        _debugInspectMode = false;
-    //        return false;
-    //    }
-    //    return base.MouseFocusOnKey(key, status);
-    //}
+    #endregion
 
     #region Input
+
+    /// <summary>
+    /// The window that will receive keyboard key events.
+    /// </summary>
+    public UIBaseWindow? InputFocus { get; protected set; }
+
+    private UIBaseWindow? _inputFocusManual;
+
+    /// <summary>
+    /// The window that will receive mouse events.
+    /// </summary>
+    public UIBaseWindow? MouseFocus { get; protected set; }
+
+    private Func<Key, KeyState, bool> _mouseFocusOnKeyDelegateCache = null!;
+    private Func<Key, KeyState, bool> _keyboardFocusOnKeyDelegateCache = null!;
+    private bool _needsFocusUpdate = true;
+    private bool _mouseMovedThisTick = false;
+
+    private bool[] _mouseFocusKeysHeld = new bool[Key.MouseKeyEnd - Key.MouseKeyStart];
+
+    private void InitInput()
+    {
+        HandleInput = true;
+        _mouseFocusOnKeyDelegateCache = MouseFocusOnKey;
+        _keyboardFocusOnKeyDelegateCache = KeyboardFocusOnKey;
+        Engine.Host.OnMouseMove += Host_MouseMove;
+    }
+
+    private void Host_MouseMove(Vector2 old, Vector2 nu)
+    {
+        UpdateMouseFocus();
+        _mouseMovedThisTick = true;
+    }
+
+    public void InvalidateInputFocus()
+    {
+        _needsFocusUpdate = true;
+    }
+
+    private void TickInput()
+    {
+        if (_needsFocusUpdate) UpdateFocus();
+        if (!_mouseMovedThisTick) UpdateMouseFocus();
+        _mouseMovedThisTick = false;
+    }
+
+    private void UpdateMouseFocus()
+    {
+        if (Engine.Host.HostPaused)
+        {
+            SetMouseFocus(null);
+            return;
+        }
+
+        UIBaseWindow? hasPriority = HasButtonHeldMouseFocus();
+        if (hasPriority != null)
+        {
+            SetMouseFocus(hasPriority);
+            return;
+        }
+
+        Vector2 mousePos = Engine.Input.MousePosition;
+        UIBaseWindow? focus = FindWindowUnderMouse(mousePos);
+        SetMouseFocus(focus);
+    }
+
+    private void SetMouseFocus(UIBaseWindow? window)
+    {
+
+    }
+
+    private void UpdateFocus()
+    {
+
+
+        _needsFocusUpdate = false;
+    }
+
+    private bool MouseFocusOnKey(Key key, KeyState status)
+    {
+        bool isMouse = key > Key.MouseKeyStart && key < Key.MouseKeyEnd;
+        if (!isMouse) return true;
+
+        if (MouseFocus == null) return true;
+
+        // It is possible to receive input with dirty focus.
+        if (status == KeyState.Down)
+            TickInput();
+
+        Vector2 mousePos = Engine.Input.MousePosition;
+
+        bool isLeftClick = key == Key.MouseKeyLeft && status == KeyState.Down;
+        if (isLeftClick)
+        {
+
+        }
+
+        return true;
+    }
+
+    private bool KeyboardFocusOnKey(Key key, KeyState status)
+    {
+        bool isMouse = key > Key.MouseKeyStart && key < Key.MouseKeyEnd;
+        if (isMouse) return true;
+
+        if (InputFocus == null) return true;
+
+        // It is possible to receive input with dirty focus.
+        if (status == KeyState.Down)
+            TickInput();
+
+
+        return true;
+    }
+
+    // API
+    // ----
 
     public void SetInputFocus(UIBaseWindow window)
     {
 
+    }
+
+    // Helpers
+    // ----
+
+    private UIBaseWindow? HasButtonHeldMouseFocus()
+    {
+        if (MouseFocus == null || !SupportsInputAlongTree(MouseFocus)) return null;
+
+        for (var i = 0; i < _mouseFocusKeysHeld.Length; i++)
+        {
+            if (_mouseFocusKeysHeld[i])
+                return MouseFocus;
+        }
+
+        return null;
+    }
+
+    private static bool SupportsInputAlongTree(UIBaseWindow window)
+    {
+        if (!window.HandleInput || !window.Visible) return false;
+
+        UIBaseWindow? parent = window.Parent;
+        while (parent != null)
+        {
+            if (!parent.ChildrenHandleInput || !parent.Visible) return false;
+            parent = parent.Parent;
+        }
+
+        return true;
     }
 
     #endregion

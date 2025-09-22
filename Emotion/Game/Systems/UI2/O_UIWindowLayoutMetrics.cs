@@ -4,7 +4,7 @@ using Emotion.Game.Systems.UI;
 
 namespace Emotion.Game.Systems.UI2;
 
-public class O_UIWindowLayoutMetrics
+public struct O_UIWindowLayoutMetrics
 {
     public const float DEFAULT_MAX_SIZE = 99999;
 
@@ -49,6 +49,10 @@ public class O_UIWindowLayoutMetrics
     public UILayoutMethod LayoutMethod = UILayoutMethod.Free(UIAnchor.TopLeft, UIAnchor.TopLeft);
     public UISizing SizingX = UISizing.Grow();
     public UISizing SizingY = UISizing.Grow();
+
+    public O_UIWindowLayoutMetrics()
+    {
+    }
 
     public override string ToString()
     {
