@@ -1,28 +1,22 @@
 ﻿#nullable enable
 
+using Emotion.Game.Systems.UI2;
+
 namespace Emotion.Game.Systems.UI;
 
 public class UIDropDown : UIBaseWindow
 {
-    public object? OwningObject = null;
-
-    public UIBaseWindow SpawningWindow { get; init; }
-
-    public UIDropDown(UIBaseWindow spawningWindow)
+    public UIDropDown()
     {
-        SpawningWindow = spawningWindow;
         HandleInput = true;
-        RelativeTo = SPECIAL_WIN_ID_DROPDOWN;
+        Layout.SizingX = UISizing.Fit();
+        Layout.SizingY = UISizing.Fit();
+        //RelativeTo = SPECIAL_WIN_ID_DROPDOWN;
         OrderInParent = 99;
-        OverlayWindow = true;
+        //OverlayWindow = true;
 
-        GrowX = false;
-        GrowY = false;
-    }
-
-    protected override bool RenderInternal(Renderer c)
-    {
-        return base.RenderInternal(c);
+        //GrowX = false;
+        //GrowY = false;
     }
 
     protected override void OnOpen()

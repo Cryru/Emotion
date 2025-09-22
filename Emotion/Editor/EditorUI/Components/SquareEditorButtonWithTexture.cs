@@ -24,11 +24,15 @@ public class SquareEditorButtonWithTexture : SquareEditorButton
         };
         AddChild(texture);
         Texture = texture;
+
+        RecalculateButtonColor();
     }
 
     protected override void RecalculateButtonColor()
     {
         base.RecalculateButtonColor();
+
+        if (Texture == null) return; // RecalculateButtonColor is called in the base constructor
         Texture.WindowColor = Enabled ? IconColor : IconColor * 0.5f;
     }
 }

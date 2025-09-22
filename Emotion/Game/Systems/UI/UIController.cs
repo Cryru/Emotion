@@ -23,11 +23,6 @@ public partial class UIController : UIBaseWindow
     /// </summary>
     protected UIBaseWindow? _inputFocusManual;
 
-    /// <summary>
-    /// The currently open dropdown.
-    /// </summary>
-    public UIDropDown? DropDown { get; set; }
-
     protected bool[] _mouseFocusKeysHeld = new bool[Key.MouseKeyEnd - Key.MouseKeyStart];
 
     protected bool _updatePreload = true;
@@ -45,13 +40,12 @@ public partial class UIController : UIBaseWindow
 
         HandleInput = true;
         Engine.Host.OnResize += Host_OnResize;
-        Engine.Host.OnMouseMove += Host_MouseMove;
     }
 
     public virtual void Dispose()
     {
         Engine.Host.OnResize -= Host_OnResize;
-        Engine.Host.OnMouseMove -= Host_MouseMove;
+        //Engine.Host.OnMouseMove -= Host_MouseMove;
         if (InputFocus != null) Engine.Host.OnKey.RemoveListener(_keyboardFocusOnKeyDelegateCache);
         if (_myMouseFocus != null) Engine.Host.OnKey.RemoveListener(_mouseFocusOnKeyDelegateCache);
         ClearChildren();
@@ -61,18 +55,6 @@ public partial class UIController : UIBaseWindow
     {
         InvalidateLayout();
     }
-
-    private void Host_MouseMove(Vector2 old, Vector2 nu)
-    {
-        UpdateMouseFocus();
-        _mouseUpdatedThisTick = true;
-    }
-
-    //public override void InvalidateLayout()
-    //{
-    //    _updateLayout = true;
-    //    _updateInputFocus = true;
-    //}
 
     protected override void AfterRenderChildren(Renderer c)
     {
@@ -89,8 +71,6 @@ public partial class UIController : UIBaseWindow
     protected override bool UpdateInternal()
     {
         if (_updateInputFocus) UpdateInputFocus();
-        if (!_mouseUpdatedThisTick) UpdateMouseFocus();
-        _mouseUpdatedThisTick = false;
 
         //if (_updatePreload) UpdateLoading();
         //if (_updateLayout) UpdateLayout();
@@ -364,7 +344,6 @@ public partial class UIController : UIBaseWindow
         if (_updateInputFocus && status == KeyState.Down)
         {
             UpdateInputFocus();
-            UpdateMouseFocus();
         }
 
         if (!Visible) return true;
@@ -386,60 +365,59 @@ public partial class UIController : UIBaseWindow
 
     protected virtual bool MouseFocusOnKey(Key key, KeyState status)
     {
-        if (_updateInputFocus && status == KeyState.Down)
-        {
-            UpdateInputFocus();
-            UpdateMouseFocus();
-        }
+        //if (_updateInputFocus && status == KeyState.Down)
+        //{
+        //    UpdateInputFocus();
+        //}
 
-        if (!Visible) return true;
+        //if (!Visible) return true;
 
-        if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd && _myMouseFocus != null)
-        {
-            bool isScroll = key == Key.MouseWheel;
-            if (!isScroll)
-            {
-                _mouseFocusKeysHeld[key - Key.MouseKeyStart] = status == KeyState.Down;
-            }
+        //if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd && _myMouseFocus != null)
+        //{
+        //    bool isScroll = key == Key.MouseWheel;
+        //    if (!isScroll)
+        //    {
+        //        _mouseFocusKeysHeld[key - Key.MouseKeyStart] = status == KeyState.Down;
+        //    }
 
-            if (key == Key.MouseKeyLeft && status == KeyState.Down)
-            {
-                // We dont want dropdowns closing if trying to debug them
-                bool newFocusIsDebugWindow = _debugTool != null && _myMouseFocus.IsWithin(_debugTool);
-                if (DropDown != null && !newFocusIsDebugWindow && !_myMouseFocus.IsWithin(DropDown))
-                {
-                    SetInputFocus(null);
-                    DropDown.Close();
-                    DropDown = null;
-                    return false;
-                }
+        //    if (key == Key.MouseKeyLeft && status == KeyState.Down)
+        //    {
+        //        // We dont want dropdowns closing if trying to debug them
+        //        bool newFocusIsDebugWindow = _debugTool != null && _myMouseFocus.IsWithin(_debugTool);
+        //        if (DropDown != null && !newFocusIsDebugWindow && !_myMouseFocus.IsWithin(DropDown))
+        //        {
+        //            SetInputFocus(null);
+        //            DropDown.Close();
+        //            DropDown = null;
+        //            return false;
+        //        }
 
-                // todo: there also must be a way to consume clicks inside yourself that cause you to focus
-                // as it is possible for another key handler to then change the focus due to propagation.
-                // careful - since we dont want buttons to have to be double clicked xd
-                if (_myMouseFocus.HandleInput)
-                    SetInputFocus(_myMouseFocus);
-            }
+        //        // todo: there also must be a way to consume clicks inside yourself that cause you to focus
+        //        // as it is possible for another key handler to then change the focus due to propagation.
+        //        // careful - since we dont want buttons to have to be double clicked xd
+        //        if (_myMouseFocus.HandleInput)
+        //            SetInputFocus(_myMouseFocus);
+        //    }
 
-            // Testing if this is fixed.
-            // Theoretically if two clicks occur within one tick the first one removing the window, this can happen.
-            // We don't want to call event handlers of destroyed windows, so lets return out.
-            // todo: do we want to build something in the input system that prevents the
-            // same button from being pressed twice in one tick? At least for mouse buttons?
-            // todo: wouldnt the removal of the window (which was in the focus order?) cause an update of focus
-            // (unless of course it was removed by a focus event sent from within this function)
-            if (status == KeyState.Down && _myMouseFocus is not UIController && _myMouseFocus.Controller == null)
-                return true;
+        //    // Testing if this is fixed.
+        //    // Theoretically if two clicks occur within one tick the first one removing the window, this can happen.
+        //    // We don't want to call event handlers of destroyed windows, so lets return out.
+        //    // todo: do we want to build something in the input system that prevents the
+        //    // same button from being pressed twice in one tick? At least for mouse buttons?
+        //    // todo: wouldnt the removal of the window (which was in the focus order?) cause an update of focus
+        //    // (unless of course it was removed by a focus event sent from within this function)
+        //    if (status == KeyState.Down && _myMouseFocus is not UIController && _myMouseFocus.Controller == null)
+        //        return true;
 
-            Vector2 mousePos = Engine.Host.MousePosition;
-            var current = _myMouseFocus;
-            while (current != null)
-            {
-                bool propagate = current.OnKey(key, status, mousePos);
-                if (!propagate) return false;
-                current = current.Parent;
-            }
-        }
+        //    Vector2 mousePos = Engine.Host.MousePosition;
+        //    var current = _myMouseFocus;
+        //    while (current != null)
+        //    {
+        //        bool propagate = current.OnKey(key, status, mousePos);
+        //        if (!propagate) return false;
+        //        current = current.Parent;
+        //    }
+        //}
 
         return true;
     }

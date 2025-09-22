@@ -11,7 +11,13 @@ public struct O_UIWindowLayoutMetrics
     public Vector2 Scale = new Vector2(1f);
     public bool ScaleWithResolution = true;
 
-    public Vector2 Offset = Vector2.Zero;
+    public Vector2 Offset
+    {
+        get => _offset;
+        set => _offset = value;
+    }
+
+    private Vector2 _offset = Vector2.Zero;
 
     /// <summary>
     /// The minimum size the window can be.

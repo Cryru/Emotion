@@ -6,6 +6,7 @@ namespace Emotion.Game.Systems.UI.New;
 // todo: make scene wait for UI loading - they will usually just queue assets so maybe one update is all thats needed.
 //      (which will also perform layout in the loading screen)
 
+[DontSerialize]
 public class UISystem : UIBaseWindow
 {
     public Vector2 TargetResolution = new Vector2(1920, 1080);
@@ -115,7 +116,34 @@ public class UISystem : UIBaseWindow
 
     private void SetMouseFocus(UIBaseWindow? window)
     {
+        Vector2 mousePos = Engine.Host.MousePosition;
+        if (MouseFocus != window)
+        {
+            if (MouseFocus != null)
+            {
+                MouseFocus.OnMouseLeft(mousePos);
+                Engine.Host.OnKey.RemoveListener(_mouseFocusOnKeyDelegateCache); // This will handle "down" keys receiving "ups"
+            }
+            MouseFocus = window;
+            if (MouseFocus != null)
+            {
+                Engine.Host.OnKey.AddListener(_mouseFocusOnKeyDelegateCache, KeyListenerType.UI);
+                MouseFocus.OnMouseEnter(mousePos);
+            }
 
+            //RemoveCurrentRollover();
+
+            //if (newMouseFocus != null && newMouseFocus is not UIController)
+            //{
+            //    UIRollover? newRollover = newMouseFocus.GetRollover();
+            //    newMouseFocus.Controller!.AddChild(newRollover);
+            //    CurrentRollover = newRollover;
+            //}
+        }
+        else
+        {
+            MouseFocus?.OnMouseMove(mousePos);
+        }
     }
 
     private void UpdateFocus()
@@ -136,12 +164,33 @@ public class UISystem : UIBaseWindow
         if (status == KeyState.Down)
             TickInput();
 
-        Vector2 mousePos = Engine.Input.MousePosition;
+        bool isScroll = key == Key.MouseWheel;
+        if (!isScroll)
+            _mouseFocusKeysHeld[key - Key.MouseKeyStart] = status == KeyState.Down;
 
         bool isLeftClick = key == Key.MouseKeyLeft && status == KeyState.Down;
         if (isLeftClick)
         {
+            // Clicked outside dropdown - close it
+            // note: should right click do this too?
+            if (DropDown != null && !MouseFocus.IsWithin(DropDown))
+            {
+                CloseDropdown();
+                SetInputFocus(null);
+                return false;
+            }
 
+            SetInputFocus(MouseFocus);
+        }
+
+        // Propagate input up from the window
+        Vector2 mousePos = Engine.Host.MousePosition;
+        UIBaseWindow current = MouseFocus;
+        while (current != null)
+        {
+            bool propagate = current.OnKey(key, status, mousePos);
+            if (!propagate) return false;
+            current = current.Parent;
         }
 
         return true;
@@ -165,9 +214,9 @@ public class UISystem : UIBaseWindow
     // API
     // ----
 
-    public void SetInputFocus(UIBaseWindow window)
+    public void SetInputFocus(UIBaseWindow? window)
     {
-
+        InputFocus = window;
     }
 
     // Helpers
@@ -198,6 +247,56 @@ public class UISystem : UIBaseWindow
         }
 
         return true;
+    }
+
+    #endregion
+
+    #region Dropdown Support
+
+    /// <summary>
+    /// The currently open dropdown.
+    /// </summary>
+    public UIDropDown? DropDown { get; private set; }
+
+    public UIBaseWindow? DropdownSpawningWindow { get; private set; }
+
+    public void OpenDropdown(UIBaseWindow window, UIDropDown dropdown)
+    {
+        CloseDropdown();
+
+        UIBaseWindow? closestHost = GetParentOfKind<UIOverlayWindowParent>();
+        if (closestHost == null) closestHost = this;
+
+        closestHost.AddChild(dropdown);
+
+        DropDown = dropdown;
+        DropdownSpawningWindow = window;
+        window.OnDropdownStateChanged(true);
+
+        SetInputFocus(dropdown);
+    }
+
+    public bool HasDropdown(UIBaseWindow window)
+    {
+        if (DropDown == null) return false;
+        return DropdownSpawningWindow == window;
+    }
+
+    public void CloseDropdown()
+    {
+        if (DropDown == null) return;
+
+        AssertNotNull(DropdownSpawningWindow);
+        DropDown.Close();
+        DropDown = null;
+
+        DropdownSpawningWindow.OnDropdownStateChanged(false);
+        DropdownSpawningWindow = null;
+    }
+
+    private void UpdateDropdown()
+    {
+
     }
 
     #endregion

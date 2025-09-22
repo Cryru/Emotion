@@ -69,6 +69,9 @@ public partial class UIBaseWindow
     {
         if (State != UIWindowState.Open) return;
 
+        if (Engine.UI.DropdownSpawningWindow == this)
+            Engine.UI.CloseDropdown();
+
         Assert(State != UIWindowState.Closed);
         State = UIWindowState.Closed;
         OnClose();
@@ -155,11 +158,6 @@ public partial class UIBaseWindow
 
         inside = false;
         return false;
-    }
-
-    public virtual bool OnKey(Key key, KeyState status, Vector2 mousePos)
-    {
-        return true;
     }
 
     #endregion
@@ -258,12 +256,12 @@ public partial class UIBaseWindow
         if (within == null) return false;
         if (within == this) return true;
 
-        if (RelativeTo != null)
-        {
-            UIBaseWindow? relativeToWin = Controller?.GetWindowById(RelativeTo);
-            if (relativeToWin == null) return false;
-            return relativeToWin.IsWithin(within);
-        }
+        //if (RelativeTo != null)
+        //{
+        //    UIBaseWindow? relativeToWin = Controller?.GetWindowById(RelativeTo);
+        //    if (relativeToWin == null) return false;
+        //    return relativeToWin.IsWithin(within);
+        //}
 
         UIBaseWindow? parent = Parent;
         while (parent != null)
@@ -366,8 +364,8 @@ public partial class UIBaseWindow
         if (Visuals.Color.A != 0)
             r.RenderSprite(CalculatedMetrics.Position, CalculatedMetrics.Size, Visuals.Color);
 
-        // todo: Draw border
-        r.RenderRectOutline(CalculatedMetrics.Position.ToVec3(), CalculatedMetrics.Size, Color.Red);
+        if (Visuals.Border != 0)
+            r.RenderRectOutline(CalculatedMetrics.Position.ToVec3(), CalculatedMetrics.Size, Visuals.BorderColor, Visuals.Border * CalculatedMetrics.ScaleF);
 
         InternalRender(r);
         RenderChildren(r);
@@ -430,7 +428,7 @@ public partial class UIBaseWindow
         {
             if (value == _childrenHandleInput) return;
             _childrenHandleInput = value;
-            Engine.UI.InvalidateInputFocus();
+            Engine.UI?.InvalidateInputFocus();
         }
     }
 
@@ -443,7 +441,7 @@ public partial class UIBaseWindow
         {
             if (value == _handleInput) return;
             _handleInput = value;
-            Engine.UI.InvalidateInputFocus();
+            Engine.UI?.InvalidateInputFocus(); // Needs null check since the system sets this for itself
         }
     }
 
@@ -483,9 +481,32 @@ public partial class UIBaseWindow
         return null;
     }
 
-    protected virtual bool InternalOnKey(Key key, KeyState status, Vector2 mousePos)
+    public virtual void OnMouseEnter(Vector2 mousePos)
+    {
+        MouseInside = true;
+    }
+
+    public virtual void OnMouseLeft(Vector2 mousePos)
+    {
+        MouseInside = false;
+    }
+
+    public virtual void OnMouseMove(Vector2 mousePos)
+    {
+    }
+
+    public virtual bool OnKey(Key key, KeyState status, Vector2 mousePos)
     {
         return true;
+    }
+
+    #endregion
+
+    #region Other
+
+    public virtual void OnDropdownStateChanged(bool opened)
+    {
+
     }
 
     #endregion

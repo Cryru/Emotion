@@ -99,7 +99,7 @@ public class EditorTopBar : UIBaseWindow
                     button.OnClickedProxy = (_) =>
                     {
                         EngineEditor.OpenToolWindowUnique(new GameDataEditor(typ));
-                        Controller?.DropDown?.Close();
+                        Engine.UI.CloseDropdown();
                     };
                     dropDown.AddChild(button);
                 }

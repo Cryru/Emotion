@@ -1,9 +1,5 @@
 ﻿#nullable enable
 
-
-
-#nullable enable
-
 namespace Emotion.Standard.Extensions;
 
 public static class RandomExtensions

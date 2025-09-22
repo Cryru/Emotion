@@ -93,7 +93,7 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
                 button.OnClickedProxy = (_) =>
                 {
                     NewFile();
-                    Controller?.DropDown?.Close();
+                    Engine.UI.CloseDropdown();
                 };
                 dropDown.AddChild(button);
             }
@@ -104,7 +104,7 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
                 button.OnClickedProxy = (_) =>
                 {
                     OpenFile();
-                    Controller?.DropDown?.Close();
+                    Engine.UI.CloseDropdown();
                 };
                 dropDown.AddChild(button);
             }
@@ -115,7 +115,7 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
                 button.OnClickedProxy = (_) =>
                 {
                     SaveFileClicked();
-                    Controller?.DropDown?.Close();
+                    Engine.UI.CloseDropdown();
                 };
                 //button.Enabled = _hasUnsavedChanges;
                 dropDown.AddChild(button);

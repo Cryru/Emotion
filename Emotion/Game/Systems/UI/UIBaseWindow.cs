@@ -543,20 +543,6 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
         return HandleInput ? this : null;
     }
 
-    public virtual void OnMouseEnter(Vector2 mousePos)
-    {
-        MouseInside = true;
-    }
-
-    public virtual void OnMouseLeft(Vector2 mousePos)
-    {
-        MouseInside = false;
-    }
-
-    public virtual void OnMouseMove(Vector2 mousePos)
-    {
-    }
-
     public virtual void InputFocusChanged(bool haveFocus)
     {
     }
@@ -843,8 +829,8 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
         if (id == SPECIAL_WIN_ID_MOUSE_FOCUS)
             return UIController.MouseFocus;
 
-        if (id == SPECIAL_WIN_ID_DROPDOWN && this is UIDropDown dropDown)
-            return dropDown.SpawningWindow;
+        //if (id == SPECIAL_WIN_ID_DROPDOWN && this is UIDropDown dropDown)
+        //    return dropDown.SpawningWindow;
 
         if (id == SPECIAL_WIN_ID_CONTROLLER)
             return Controller;

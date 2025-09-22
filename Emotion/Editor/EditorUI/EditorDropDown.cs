@@ -1,4 +1,5 @@
 ﻿using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI2;
 
 #nullable enable
 
@@ -10,9 +11,11 @@ public class EditorDropDown : UIDropDown
 
     private UIBaseWindow? _contentParent;
 
-    public EditorDropDown(UIBaseWindow spawningWindow) : base(spawningWindow)
+    public EditorDropDown() : base()
     {
-
+        Visuals.Color = EditorColorPalette.BarColor;
+        Visuals.Border = 3;
+        Visuals.BorderColor = EditorColorPalette.ActiveButtonColor;
     }
 
     public override void AddChild(UIBaseWindow? child)
@@ -27,36 +30,30 @@ public class EditorDropDown : UIDropDown
 
     protected override void OLDLayout(Vector2 pos, Vector2 size)
     {
-        if (ClampToSpawningWindowWidth && size.X > SpawningWindow.Width)
-            size.X = SpawningWindow.Width;
+        //if (ClampToSpawningWindowWidth && size.X > SpawningWindow.Width)
+        //    size.X = SpawningWindow.Width;
 
-        if (size.X < SpawningWindow.Width)
-        {
-            float diff = SpawningWindow.Width - Size.X;
-            if (Anchor == UIAnchor.TopRight) pos.X -= diff;
-            size.X += diff;
-        }
+        //if (size.X < SpawningWindow.Width)
+        //{
+        //    float diff = SpawningWindow.Width - Size.X;
+        //    if (Anchor == UIAnchor.TopRight) pos.X -= diff;
+        //    size.X += diff;
+        //}
 
         base.OLDLayout(pos, size);
     }
 
-    protected override bool RenderInternal(Renderer c)
-    {
-        c.RenderSprite(Position, Size, EditorColorPalette.BarColor);
-        c.RenderRectOutline(Position, Size, EditorColorPalette.ActiveButtonColor, 3 * GetScale());
-
-        return base.RenderInternal(c);
-    }
-
     public static EditorDropDown OpenListDropdown(UIBaseWindow spawningWindow)
     {
-        EditorDropDown dropDown = new(spawningWindow)
+        EditorDropDown dropDown = new()
         {
-            Paddings = new Rectangle(5, 5, 5, 5),
+            Layout =
+            {
+                Padding = new UISpacing(5, 5, 5, 5)
+            },
             Anchor = UIAnchor.TopLeft,
             ParentAnchor = UIAnchor.BottomLeft,
         };
-        spawningWindow.Controller?.AddChild(dropDown);
 
         var scrollArea = new UIScrollArea()
         {
@@ -69,12 +66,15 @@ public class EditorDropDown : UIDropDown
 
         var list = new UIBaseWindow()
         {
-            LayoutMode = LayoutMode.VerticalList,
-            ListSpacing = new Vector2(0, 3),
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.VerticalList(3)
+            }
         };
         scrollArea.AddChildInside(list);
 
         dropDown._contentParent = list;
+        Engine.UI.OpenDropdown(spawningWindow, dropDown);
 
         return dropDown;
     }
