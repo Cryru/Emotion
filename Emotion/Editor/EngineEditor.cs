@@ -24,7 +24,7 @@ public static partial class EngineEditor
 
     public static UIBaseWindow EditorRoot = null!;
 
-    private static UIRichText _perfText = null!;
+    private static NewUIText _perfText = null!;
 
     public static void Attach()
     {
@@ -71,14 +71,18 @@ public static partial class EngineEditor
         SetupDebugCameraUI(barContainer);
         SetupGameEditorVisualizations(barContainer);
 
-        _perfText = new UIRichText
+        _perfText = new NewUIText
         {
+            Layout =
+            {
+                AnchorAndParentAnchor = UIAnchor.TopRight,
+                Margins = new UISpacing(0, 50, 5, 0)
+            },
+
             FontSize = 25,
-            AnchorAndParentAnchor = UIAnchor.TopRight,
-            OutlineColor = Color.Black,
-            OutlineSize = 2,
-            Margins = new Primitives.Rectangle(0, 50, 5, 0),
-            AllowRenderBatch = false
+            //OutlineColor = Color.Black,
+            //OutlineSize = 2,
+            //AllowRenderBatch = false
         };
         EditorRoot.AddChild(_perfText);
 
@@ -163,10 +167,13 @@ public static partial class EngineEditor
     {
         var container = new ContainerVisibleInEditorMode
         {
-            Margins = new Primitives.Rectangle(10, 5, 0, 0),
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.VerticalList(5),
+                Margins = new UISpacing(10, 5, 0, 0)
+            },
+
             VisibleIn = MapEditorMode.TwoDee | MapEditorMode.ThreeDee,
-            LayoutMode = LayoutMode.VerticalList,
-            ListSpacing = new Vector2(0, 5)
         };
         barContainer.AddChild(container);
 

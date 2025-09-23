@@ -48,8 +48,6 @@ public class EditorTopBar : UIBaseWindow
             {
                 Color = EditorColorPalette.ActiveButtonColor
             },
-            Anchor = UIAnchor.BottomLeft,
-            ParentAnchor = UIAnchor.BottomLeft
         };
         AddChild(accent);
     }

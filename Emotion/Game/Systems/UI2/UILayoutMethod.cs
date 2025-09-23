@@ -28,13 +28,13 @@ public struct UILayoutMethod
         return mask == 0 ? 1 : 0;
     }
 
-    public bool GrowingAlongList(O_UIWindowLayoutMetrics layout)
+    public bool GrowingAlongList(UIWindowLayoutConfig layout)
     {
         int mask = GetListMask();
         return mask == 0 ? layout.SizingX.Mode == UISizing.UISizingMode.Grow : layout.SizingY.Mode == UISizing.UISizingMode.Grow;
     }
 
-    public bool GrowingAcrossList(O_UIWindowLayoutMetrics layout)
+    public bool GrowingAcrossList(UIWindowLayoutConfig layout)
     {
         int inverseMask = GetListInverseMask();
         return inverseMask == 0 ? layout.SizingX.Mode == UISizing.UISizingMode.Grow : layout.SizingY.Mode == UISizing.UISizingMode.Grow;

@@ -166,38 +166,6 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
     protected bool _overlayWindow;
 
     /// <summary>
-    /// The point in the parent to anchor the window to.
-    /// </summary>
-    public UIAnchor ParentAnchor
-    {
-        get => _parentAnchor;
-        set
-        {
-            if (value == _parentAnchor) return;
-            _parentAnchor = value;
-            InvalidateLayout();
-        }
-    }
-
-    private UIAnchor _parentAnchor { get; set; } = UIAnchor.TopLeft;
-
-    /// <summary>
-    /// Where the window should anchor to relative to the alignment in its parent.
-    /// </summary>
-    public UIAnchor Anchor
-    {
-        get => _anchor;
-        set
-        {
-            if (value == _anchor) return;
-            _anchor = value;
-            InvalidateLayout();
-        }
-    }
-
-    private UIAnchor _anchor { get; set; } = UIAnchor.TopLeft;
-
-    /// <summary>
     /// How to layout the children of this window.
     /// </summary>
     public LayoutMode LayoutMode { get; set; } = LayoutMode.Free;
@@ -513,14 +481,6 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
 
     #region Input
 
-   
-
-   
-
-
-
-   
-
     /// <summary>
     /// Find a window that handles input in this parent.
     /// Could be either a child window or the parent itself.
@@ -688,118 +648,9 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
         MaxSize = size;
     }
 
-    /// <summary>
-    /// A very simple check for whether the anchors will land the window inside or outside the parent.
-    /// This decides whether the window will layout within the parent or outside it.
-    /// </summary>
-    /// <returns></returns>
-    protected static bool AnchorsInsideParent(UIAnchor parentAnchor, UIAnchor anchor)
-    {
-        bool parentIsTop = parentAnchor is UIAnchor.TopLeft or UIAnchor.TopCenter or UIAnchor.TopRight;
-        bool parentIsVCenter = parentAnchor is UIAnchor.CenterLeft or UIAnchor.CenterCenter or UIAnchor.CenterRight;
-        bool parentIsBottom = parentAnchor is UIAnchor.BottomLeft or UIAnchor.BottomCenter or UIAnchor.BottomRight;
+    
 
-        bool parentIsLeft = parentAnchor is UIAnchor.TopLeft or UIAnchor.CenterLeft or UIAnchor.BottomLeft;
-        bool parentIsHCenter = parentAnchor is UIAnchor.TopCenter or UIAnchor.CenterCenter or UIAnchor.BottomCenter;
-        bool parentIsRight = parentAnchor is UIAnchor.TopRight or UIAnchor.CenterRight or UIAnchor.BottomRight;
-
-        if (parentIsTop)
-        {
-            if (parentIsLeft && anchor == UIAnchor.TopLeft) return true;
-
-            if (parentIsHCenter && anchor is UIAnchor.TopLeft or UIAnchor.TopCenter or UIAnchor.TopRight) return true;
-
-            if (parentIsRight && anchor == UIAnchor.TopRight) return true;
-        }
-        else if (parentIsVCenter)
-        {
-            if (parentIsLeft && anchor is UIAnchor.TopLeft or UIAnchor.CenterLeft or UIAnchor.BottomLeft) return true;
-            if (parentIsHCenter) return true;
-            if (parentIsRight && anchor is UIAnchor.TopRight or UIAnchor.CenterRight or UIAnchor.BottomRight) return true;
-        }
-        else if (parentIsBottom)
-        {
-            if (parentIsLeft && anchor == UIAnchor.BottomLeft) return true;
-            if (parentIsHCenter && anchor is UIAnchor.BottomLeft or UIAnchor.BottomCenter or UIAnchor.BottomRight) return true;
-            if (parentIsRight && anchor == UIAnchor.BottomRight) return true;
-        }
-
-        return false;
-    }
-
-    protected static Vector2 GetUIAnchorPosition(UIAnchor parentAnchor, Vector2 parentSize, Rectangle parentContentRect, UIAnchor anchor, Vector2 contentSize)
-    {
-        Vector2 offset = Vector2.Zero;
-
-        switch (parentAnchor)
-        {
-            case UIAnchor.TopLeft:
-            case UIAnchor.CenterLeft:
-            case UIAnchor.BottomLeft:
-                offset.X += parentContentRect.X;
-                break;
-            case UIAnchor.TopCenter:
-            case UIAnchor.CenterCenter:
-            case UIAnchor.BottomCenter:
-                offset.X += parentSize.X / 2;
-                break;
-            case UIAnchor.TopRight:
-            case UIAnchor.CenterRight:
-            case UIAnchor.BottomRight:
-                offset.X += parentContentRect.Width;
-                break;
-        }
-
-        switch (parentAnchor)
-        {
-            case UIAnchor.TopLeft:
-            case UIAnchor.TopCenter:
-            case UIAnchor.TopRight:
-                offset.Y += parentContentRect.Y;
-                break;
-            case UIAnchor.CenterLeft:
-            case UIAnchor.CenterCenter:
-            case UIAnchor.CenterRight:
-                offset.Y += parentSize.Y / 2;
-                break;
-            case UIAnchor.BottomLeft:
-            case UIAnchor.BottomCenter:
-            case UIAnchor.BottomRight:
-                offset.Y += parentContentRect.Height;
-                break;
-        }
-
-        switch (anchor)
-        {
-            case UIAnchor.TopCenter:
-            case UIAnchor.CenterCenter:
-            case UIAnchor.BottomCenter:
-                offset.X -= contentSize.X / 2;
-                break;
-            case UIAnchor.TopRight:
-            case UIAnchor.CenterRight:
-            case UIAnchor.BottomRight:
-                offset.X -= contentSize.X;
-                break;
-        }
-
-        switch (anchor)
-        {
-            case UIAnchor.CenterLeft:
-            case UIAnchor.CenterCenter:
-            case UIAnchor.CenterRight:
-                offset.Y -= contentSize.Y / 2;
-                break;
-            case UIAnchor.BottomLeft:
-            case UIAnchor.BottomCenter:
-            case UIAnchor.BottomRight:
-                offset.Y -= contentSize.Y;
-                break;
-        }
-
-        return offset;
-    }
-
+   
     /// <summary>
     /// The scale factor applied on the UI.
     /// </summary>

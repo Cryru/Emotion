@@ -38,12 +38,17 @@ public partial class UIBaseWindow
     public UIWindowState State = UIWindowState.Uninitialized;
 
     [SerializeNonPublicGetSet]
-    public O_UIWindowLayoutMetrics Layout = new O_UIWindowLayoutMetrics();
+    public UIWindowLayoutConfig Layout = new UIWindowLayoutConfig();
 
     [SerializeNonPublicGetSet]
     public O_UIWindowVisuals Visuals = new O_UIWindowVisuals();
 
     public O_UIWindowCalculatedMetrics CalculatedMetrics = new O_UIWindowCalculatedMetrics();
+
+    public UIBaseWindow()
+    {
+        Layout.SetWindowOwner(this);
+    }
 
     #region Lifecycle
 
@@ -158,6 +163,111 @@ public partial class UIBaseWindow
 
         inside = false;
         return false;
+    }
+
+    /// <summary>
+    /// The point in the parent to anchor the window to.
+    /// </summary>
+    public UIAnchor ParentAnchor
+    {
+        get => _parentAnchor;
+        set
+        {
+            if (value == _parentAnchor) return;
+            _parentAnchor = value;
+            InvalidateLayout();
+        }
+    }
+
+    private UIAnchor _parentAnchor { get; set; } = UIAnchor.TopLeft;
+
+    /// <summary>
+    /// Where the window should anchor to relative to the alignment in its parent.
+    /// </summary>
+    public UIAnchor Anchor
+    {
+        get => _anchor;
+        set
+        {
+            if (value == _anchor) return;
+            _anchor = value;
+            InvalidateLayout();
+        }
+    }
+
+    private UIAnchor _anchor { get; set; } = UIAnchor.TopLeft;
+
+    protected static Vector2 GetUIAnchorPosition(UIAnchor parentAnchor, Vector2 parentSize, Rectangle parentContentRect, UIAnchor anchor, Vector2 contentSize)
+    {
+        Vector2 offset = Vector2.Zero;
+
+        switch (parentAnchor)
+        {
+            case UIAnchor.TopLeft:
+            case UIAnchor.CenterLeft:
+            case UIAnchor.BottomLeft:
+                offset.X += parentContentRect.X;
+                break;
+            case UIAnchor.TopCenter:
+            case UIAnchor.CenterCenter:
+            case UIAnchor.BottomCenter:
+                offset.X += parentSize.X / 2;
+                break;
+            case UIAnchor.TopRight:
+            case UIAnchor.CenterRight:
+            case UIAnchor.BottomRight:
+                offset.X += parentContentRect.Width;
+                break;
+        }
+
+        switch (parentAnchor)
+        {
+            case UIAnchor.TopLeft:
+            case UIAnchor.TopCenter:
+            case UIAnchor.TopRight:
+                offset.Y += parentContentRect.Y;
+                break;
+            case UIAnchor.CenterLeft:
+            case UIAnchor.CenterCenter:
+            case UIAnchor.CenterRight:
+                offset.Y += parentSize.Y / 2;
+                break;
+            case UIAnchor.BottomLeft:
+            case UIAnchor.BottomCenter:
+            case UIAnchor.BottomRight:
+                offset.Y += parentContentRect.Height;
+                break;
+        }
+
+        switch (anchor)
+        {
+            case UIAnchor.TopCenter:
+            case UIAnchor.CenterCenter:
+            case UIAnchor.BottomCenter:
+                offset.X -= contentSize.X / 2;
+                break;
+            case UIAnchor.TopRight:
+            case UIAnchor.CenterRight:
+            case UIAnchor.BottomRight:
+                offset.X -= contentSize.X;
+                break;
+        }
+
+        switch (anchor)
+        {
+            case UIAnchor.CenterLeft:
+            case UIAnchor.CenterCenter:
+            case UIAnchor.CenterRight:
+                offset.Y -= contentSize.Y / 2;
+                break;
+            case UIAnchor.BottomLeft:
+            case UIAnchor.BottomCenter:
+            case UIAnchor.BottomRight:
+                offset.Y -= contentSize.Y;
+                break;
+        }
+
+        return offset;
     }
 
     #endregion
@@ -400,9 +510,17 @@ public partial class UIBaseWindow
         {
             // A layout can be started at any part of the tree,
             // and all UI below it will be handled.
-            CalculatedMetrics.Size = MeasureWindow();
-            GrowWindow();
-            LayoutWindow(CalculatedMetrics.Position);
+            if (_useCustomLayout)
+            {
+                InternalCustomLayout();
+                _needsLayout = false;
+            }
+            else
+            {
+                CalculatedMetrics.Size = MeasureWindow();
+                GrowWindow();
+                LayoutWindow(CalculatedMetrics.Position);
+            }
         }
 
         foreach (UIBaseWindow child in Children)
@@ -562,6 +680,8 @@ public partial class UIBaseWindow
             case UIMethodName.Free:
                 foreach (UIBaseWindow child in Children)
                 {
+                    if (child._useCustomLayout) continue;
+
                     Vector2 windowMinSize = child.MeasureWindow();
                     child.CalculatedMetrics.Size = windowMinSize;
                     childrenSize = Vector2.Max(childrenSize, windowMinSize);
@@ -573,17 +693,21 @@ public partial class UIBaseWindow
                 int listMask = Layout.LayoutMethod.GetListMask();
                 int inverseListMask = Layout.LayoutMethod.GetListInverseMask();
 
-                Vector2 pen = new Vector2();
+                int listChildrenCount = 0;
+                Vector2 pen = Vector2.Zero;
                 foreach (UIBaseWindow child in Children)
                 {
+                    if (child._useCustomLayout) continue;
+
                     Vector2 windowMinSize = child.MeasureWindow();
                     child.CalculatedMetrics.Size = windowMinSize;
 
                     pen[listMask] += windowMinSize[listMask];
                     pen[inverseListMask] = MathF.Max(pen[inverseListMask], windowMinSize[inverseListMask]);
+                    listChildrenCount++;
                 }
 
-                float totalSpacing = Layout.LayoutMethod.ListSpacing[listMask] * CalculatedMetrics.Scale[listMask] * (Children.Count - 1);
+                float totalSpacing = Layout.LayoutMethod.ListSpacing[listMask] * CalculatedMetrics.Scale[listMask] * (listChildrenCount - 1);
 
                 //bool fitAlongList = listMask == 0 ? Layout.SizingX.Mode == UISizing.UISizingMode.Fit : Layout.SizingY.Mode == UISizing.UISizingMode.Fit;
                 childrenSize[listMask] += pen[listMask] + totalSpacing;
@@ -632,6 +756,8 @@ public partial class UIBaseWindow
             case UIMethodName.Free:
                 foreach (UIBaseWindow child in Children)
                 {
+                    if (child._useCustomLayout) continue;
+
                     if (child.Layout.SizingX.Mode == UISizing.UISizingMode.Grow)
                         child.CalculatedMetrics.Size.X = MathF.Max(child.CalculatedMetrics.Size.X, myMeasuredSize.X);
 
@@ -647,30 +773,42 @@ public partial class UIBaseWindow
                 int listMask = Layout.LayoutMethod.GetListMask();
                 int inverseListMask = Layout.LayoutMethod.GetListInverseMask();
 
+                int listChildrenCount = 0;
                 float listRemainingSize = myMeasuredSize[listMask];
                 foreach (UIBaseWindow child in Children)
                 {
+                    if (child._useCustomLayout) continue;
+
                     float listSize = child.CalculatedMetrics.Size[listMask];
                     listRemainingSize -= listSize;
+                    listChildrenCount++;
                 }
-                listRemainingSize -= Layout.LayoutMethod.ListSpacing[listMask] * CalculatedMetrics.Scale[listMask] * (Children.Count - 1);
+                listRemainingSize -= Layout.LayoutMethod.ListSpacing[listMask] * CalculatedMetrics.Scale[listMask] * (listChildrenCount - 1);
 
                 // Grow across list
                 foreach (UIBaseWindow child in Children)
                 {
+                    if (child._useCustomLayout) continue;
+
                     bool growAcrossList = Layout.LayoutMethod.GrowingAcrossList(child.Layout);
                     if (growAcrossList)
                         child.CalculatedMetrics.Size[inverseListMask] = myMeasuredSize[inverseListMask];
                 }
 
                 // Grow along list
-                while (listRemainingSize > 0)
+                int infDetect = 0;
+                while (listRemainingSize < 1)
                 {
+                    infDetect++;
+                    if (infDetect > 50) break;
+
                     float smallest = float.PositiveInfinity;
                     float secondSmallest = float.PositiveInfinity;
                     int growingCount = 0;
                     foreach (UIBaseWindow child in Children)
                     {
+                        if (child._useCustomLayout) continue;
+
                         bool growAlongList = Layout.LayoutMethod.GrowingAlongList(child.Layout);
                         if (!growAlongList) continue;
 
@@ -703,6 +841,8 @@ public partial class UIBaseWindow
                     float widthToAdd = MathF.Min(secondSmallest - smallest, listRemainingSize / growingCount);
                     foreach (UIBaseWindow child in Children)
                     {
+                        if (child._useCustomLayout) continue;
+
                         bool growAlongList = Layout.LayoutMethod.GrowingAlongList(child.Layout);
                         if (!growAlongList) continue;
 
@@ -718,6 +858,8 @@ public partial class UIBaseWindow
                 // Now the children can grow their children
                 foreach (UIBaseWindow child in Children)
                 {
+                    if (child._useCustomLayout) continue;
+
                     child.GrowWindow();
                 }
 
@@ -731,7 +873,6 @@ public partial class UIBaseWindow
         CalculatedMetrics.Size = CalculatedMetrics.Size.Ceiling();
 
         Vector2 offsetScaled = (Layout.Offset * CalculatedMetrics.Scale).Round();
-
         Vector2 myPos = offsetScaled + pos;
         myPos += Layout.Margins.TopLeft * CalculatedMetrics.Scale;
         CalculatedMetrics.Position = myPos.Floor();
@@ -744,7 +885,26 @@ public partial class UIBaseWindow
             case UIMethodName.Free:
                 foreach (UIBaseWindow child in Children)
                 {
-                    child.LayoutWindow(pen);
+                    if (child._useCustomLayout)
+                    {
+                        child.InternalCustomLayout();
+                    }
+                    else
+                    {
+                        if (child.Layout.Anchor == UIAnchor.TopLeft && child.Layout.ParentAnchor == UIAnchor.TopLeft) // Shortcut for most common
+                        {
+                            child.CalculatedMetrics.InsideParent = true;
+                            child.LayoutWindow(pen);
+                        }
+                        else
+                        {
+                            child.CalculatedMetrics.InsideParent = AnchorsInsideParent(child.Layout.ParentAnchor, child.Layout.Anchor);
+
+                            Rectangle parentContentRect = Rectangle.FromMinMaxPoints(pen, (pen + CalculatedMetrics.Size) - Layout.Padding.BottomRight * CalculatedMetrics.Scale);
+                            Vector2 anchorPos = GetAnchorPosition(child.Layout.ParentAnchor, CalculatedMetrics.Size, parentContentRect, child.Layout.Anchor, child.CalculatedMetrics.Size);
+                            child.LayoutWindow(anchorPos);
+                        }
+                    }
                 }
                 break;
 
@@ -753,14 +913,148 @@ public partial class UIBaseWindow
                 int listMask = Layout.LayoutMethod.GetListMask();
                 foreach (UIBaseWindow child in Children)
                 {
-                    child.LayoutWindow(pen);
-                    pen[listMask] += child.CalculatedMetrics.Size[listMask] + Layout.LayoutMethod.ListSpacing[listMask] * CalculatedMetrics.Scale[listMask];
+                    if (child._useCustomLayout)
+                    {
+                        child.InternalCustomLayout();
+                    }
+                    else
+                    {
+                        child.CalculatedMetrics.InsideParent = true;
+                        child.LayoutWindow(pen);
+                        pen[listMask] += child.CalculatedMetrics.Size[listMask] + Layout.LayoutMethod.ListSpacing[listMask] * CalculatedMetrics.Scale[listMask];
+                    }
                 }
                 break;
         }
 
         _needsLayout = false;
     }
+
+    #region Custom
+
+    protected bool _useCustomLayout;
+
+    protected virtual void InternalCustomLayout()
+    {
+
+    }
+
+    #endregion
+
+    #region Anchor
+
+    protected static Vector2 GetAnchorPosition(UIAnchor parentAnchor, Vector2 parentSize, Rectangle parentContentRect, UIAnchor anchor, Vector2 contentSize)
+    {
+        Vector2 offset = Vector2.Zero;
+
+        switch (parentAnchor)
+        {
+            case UIAnchor.TopLeft:
+            case UIAnchor.CenterLeft:
+            case UIAnchor.BottomLeft:
+                offset.X += parentContentRect.X;
+                break;
+            case UIAnchor.TopCenter:
+            case UIAnchor.CenterCenter:
+            case UIAnchor.BottomCenter:
+                offset.X += parentSize.X / 2;
+                break;
+            case UIAnchor.TopRight:
+            case UIAnchor.CenterRight:
+            case UIAnchor.BottomRight:
+                offset.X += parentContentRect.Width;
+                break;
+        }
+
+        switch (parentAnchor)
+        {
+            case UIAnchor.TopLeft:
+            case UIAnchor.TopCenter:
+            case UIAnchor.TopRight:
+                offset.Y += parentContentRect.Y;
+                break;
+            case UIAnchor.CenterLeft:
+            case UIAnchor.CenterCenter:
+            case UIAnchor.CenterRight:
+                offset.Y += parentSize.Y / 2;
+                break;
+            case UIAnchor.BottomLeft:
+            case UIAnchor.BottomCenter:
+            case UIAnchor.BottomRight:
+                offset.Y += parentContentRect.Height;
+                break;
+        }
+
+        switch (anchor)
+        {
+            case UIAnchor.TopCenter:
+            case UIAnchor.CenterCenter:
+            case UIAnchor.BottomCenter:
+                offset.X -= contentSize.X / 2;
+                break;
+            case UIAnchor.TopRight:
+            case UIAnchor.CenterRight:
+            case UIAnchor.BottomRight:
+                offset.X -= contentSize.X;
+                break;
+        }
+
+        switch (anchor)
+        {
+            case UIAnchor.CenterLeft:
+            case UIAnchor.CenterCenter:
+            case UIAnchor.CenterRight:
+                offset.Y -= contentSize.Y / 2;
+                break;
+            case UIAnchor.BottomLeft:
+            case UIAnchor.BottomCenter:
+            case UIAnchor.BottomRight:
+                offset.Y -= contentSize.Y;
+                break;
+        }
+
+        return offset;
+    }
+
+    /// <summary>
+    /// A very simple check for whether the anchors will land the window inside or outside the parent.
+    /// </summary>
+    protected static bool AnchorsInsideParent(UIAnchor parentAnchor, UIAnchor anchor)
+    {
+        bool parentIsTop = parentAnchor is UIAnchor.TopLeft or UIAnchor.TopCenter or UIAnchor.TopRight;
+        bool parentIsVCenter = parentAnchor is UIAnchor.CenterLeft or UIAnchor.CenterCenter or UIAnchor.CenterRight;
+        bool parentIsBottom = parentAnchor is UIAnchor.BottomLeft or UIAnchor.BottomCenter or UIAnchor.BottomRight;
+
+        bool parentIsLeft = parentAnchor is UIAnchor.TopLeft or UIAnchor.CenterLeft or UIAnchor.BottomLeft;
+        bool parentIsHCenter = parentAnchor is UIAnchor.TopCenter or UIAnchor.CenterCenter or UIAnchor.BottomCenter;
+        bool parentIsRight = parentAnchor is UIAnchor.TopRight or UIAnchor.CenterRight or UIAnchor.BottomRight;
+
+        if (parentIsTop)
+        {
+            if (parentIsLeft && anchor == UIAnchor.TopLeft) return true;
+
+            if (parentIsHCenter && anchor is UIAnchor.TopLeft or UIAnchor.TopCenter or UIAnchor.TopRight) return true;
+
+            if (parentIsRight && anchor == UIAnchor.TopRight) return true;
+        }
+        else if (parentIsVCenter)
+        {
+            if (parentIsLeft && anchor is UIAnchor.TopLeft or UIAnchor.CenterLeft or UIAnchor.BottomLeft) return true;
+            if (parentIsHCenter) return true;
+            if (parentIsRight && anchor is UIAnchor.TopRight or UIAnchor.CenterRight or UIAnchor.BottomRight) return true;
+        }
+        else if (parentIsBottom)
+        {
+            if (parentIsLeft && anchor == UIAnchor.BottomLeft) return true;
+            if (parentIsHCenter && anchor is UIAnchor.BottomLeft or UIAnchor.BottomCenter or UIAnchor.BottomRight) return true;
+            if (parentIsRight && anchor == UIAnchor.BottomRight) return true;
+        }
+
+        return false;
+    }
+
+    #endregion
+
 
     #endregion
 }

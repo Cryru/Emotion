@@ -15,6 +15,8 @@ public struct O_UIWindowCalculatedMetrics
     public Vector2 Scale;
     public float ScaleF { get => MathF.Max(Scale.X, Scale.Y); }
 
+    public bool InsideParent;
+
     public override string ToString()
     {
         return $"{Position}:{Size}";

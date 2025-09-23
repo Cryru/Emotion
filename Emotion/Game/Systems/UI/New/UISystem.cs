@@ -173,7 +173,7 @@ public class UISystem : UIBaseWindow
         {
             // Clicked outside dropdown - close it
             // note: should right click do this too?
-            if (DropDown != null && !MouseFocus.IsWithin(DropDown))
+            if (Dropdown != null && !MouseFocus.IsWithin(Dropdown))
             {
                 CloseDropdown();
                 SetInputFocus(null);
@@ -256,8 +256,11 @@ public class UISystem : UIBaseWindow
     /// <summary>
     /// The currently open dropdown.
     /// </summary>
-    public UIDropDown? DropDown { get; private set; }
+    public UIDropDown? Dropdown { get; private set; }
 
+    /// <summary>
+    /// The window that spawned the currently open dropdown
+    /// </summary>
     public UIBaseWindow? DropdownSpawningWindow { get; private set; }
 
     public void OpenDropdown(UIBaseWindow window, UIDropDown dropdown)
@@ -265,11 +268,12 @@ public class UISystem : UIBaseWindow
         CloseDropdown();
 
         UIBaseWindow? closestHost = GetParentOfKind<UIOverlayWindowParent>();
-        if (closestHost == null) closestHost = this;
+        closestHost ??= this;
 
+        dropdown.AttachedTo = window;
+        Dropdown = dropdown;
         closestHost.AddChild(dropdown);
 
-        DropDown = dropdown;
         DropdownSpawningWindow = window;
         window.OnDropdownStateChanged(true);
 
@@ -278,25 +282,21 @@ public class UISystem : UIBaseWindow
 
     public bool HasDropdown(UIBaseWindow window)
     {
-        if (DropDown == null) return false;
+        if (Dropdown == null) return false;
         return DropdownSpawningWindow == window;
     }
 
     public void CloseDropdown()
     {
-        if (DropDown == null) return;
+        if (Dropdown == null) return;
 
         AssertNotNull(DropdownSpawningWindow);
-        DropDown.Close();
-        DropDown = null;
+        UIDropDown dropDown = Dropdown;
+        Dropdown = null; // We need to set this as dropdown will call CloseDropdown on its close.
+        dropDown.Close();
 
         DropdownSpawningWindow.OnDropdownStateChanged(false);
         DropdownSpawningWindow = null;
-    }
-
-    private void UpdateDropdown()
-    {
-
     }
 
     #endregion

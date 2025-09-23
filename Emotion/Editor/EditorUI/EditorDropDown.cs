@@ -49,10 +49,10 @@ public class EditorDropDown : UIDropDown
         {
             Layout =
             {
-                Padding = new UISpacing(5, 5, 5, 5)
+                Padding = new UISpacing(5, 5, 5, 5),
+                Anchor = UIAnchor.TopLeft,
+                ParentAnchor = UIAnchor.BottomLeft,
             },
-            Anchor = UIAnchor.TopLeft,
-            ParentAnchor = UIAnchor.BottomLeft,
         };
 
         var scrollArea = new UIScrollArea()

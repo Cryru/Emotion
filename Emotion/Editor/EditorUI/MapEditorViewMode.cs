@@ -3,6 +3,7 @@
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Editor.EditorUI.MapObjectEditor;
 using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI2;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Camera;
 
@@ -12,10 +13,10 @@ public class MapEditorViewMode : UIBaseWindow
 {
     public MapEditorViewMode()
     {
-        GrowY = false;
-        GrowX = false;
-        MinSizeY = 20;
-        Margins = new Rectangle(0, 5, 0, 0);
+        Layout.SizingX = UISizing.Fit();
+        Layout.SizingY = UISizing.Fit();
+        Layout.MinSizeY = 20;
+        Layout.Margins = new UISpacing(0, 5, 0, 0);
     }
 
     protected override void OnOpen()
@@ -24,22 +25,31 @@ public class MapEditorViewMode : UIBaseWindow
 
         UIBaseWindow overallContainer = new()
         {
-            LayoutMode = LayoutMode.VerticalList
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.VerticalList(0)
+            }
         };
         AddChild(overallContainer);
 
-        UISolidColor buttonContainer = new()
+        UIBaseWindow buttonContainer = new()
         {
             Name = "ButtonList",
-            LayoutMode = LayoutMode.HorizontalList,
-            ListSpacing = new Vector2(5, 0),
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalList(5),
+                Padding = new UISpacing(5, 5, 5, 5),
+            },
+            Visuals =
+            {
+                Color = EditorColorPalette.BarColor * 0.5f
+            },
             AnchorAndParentAnchor = UIAnchor.CenterLeft,
-            Paddings = new Rectangle(5, 5, 5, 5),
+
             IgnoreParentColor = true,
-            WindowColor = EditorColorPalette.BarColor * 0.5f,
             GrowX = false,
 
-            SetChildren = new List<UIBaseWindow>()
+            Children = new List<UIBaseWindow>()
             {
                 new MapEditorViewModeButton("Game")
                 {
@@ -64,9 +74,13 @@ public class MapEditorViewMode : UIBaseWindow
 
         UIBaseWindow locationContainer = new()
         {
-            LayoutMode = LayoutMode.VerticalList,
-            Paddings = new Rectangle(10, 10, 5, 5),
-            SetChildren = new List<UIBaseWindow>()
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.VerticalList(0),
+                Padding = new UISpacing(10, 10, 5, 5),
+            },
+
+            Children = new List<UIBaseWindow>()
             {
                 new EditorLabel()
                 {
@@ -151,7 +165,7 @@ public class MapEditorViewMode : UIBaseWindow
         protected override void RecalculateButtonColor()
         {
             if (_label != null)
-                _label.WindowColor = _activeMode ? Color.Black : Color.White;
+                _label.TextColor = _activeMode ? Color.Black : Color.White;
 
             base.RecalculateButtonColor();
         }
