@@ -16,9 +16,14 @@ public class UIAttachedWindow : UIBaseWindow
         Layout.SizingY = UISizing.Fit();
     }
 
+    protected virtual Vector2 InternalMeasureWindow()
+    {
+        return base.MeasureWindow();
+    }
+
     protected override void InternalCustomLayout()
     {
-        CalculatedMetrics.Size = base.MeasureWindow();
+        CalculatedMetrics.Size = InternalMeasureWindow();
         GrowWindow();
 
         if (AttachedTo == null)
@@ -44,7 +49,6 @@ public class UIDropDown : UIAttachedWindow
         HandleInput = true;
         Layout.SizingX = UISizing.Fit();
         Layout.SizingY = UISizing.Fit();
-        //RelativeTo = SPECIAL_WIN_ID_DROPDOWN;
         OrderInParent = 99;
         //OverlayWindow = true;
     }

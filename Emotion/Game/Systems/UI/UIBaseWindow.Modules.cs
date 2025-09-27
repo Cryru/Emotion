@@ -683,7 +683,7 @@ public partial class UIBaseWindow
                     if (child._useCustomLayout) continue;
 
                     Vector2 windowMinSize = child.MeasureWindow();
-                    child.CalculatedMetrics.Size = windowMinSize;
+                    child.CalculatedMetrics.Size = windowMinSize.Ceiling();
                     childrenSize = Vector2.Max(childrenSize, windowMinSize);
                 }
                 break;
@@ -700,14 +700,14 @@ public partial class UIBaseWindow
                     if (child._useCustomLayout) continue;
 
                     Vector2 windowMinSize = child.MeasureWindow();
-                    child.CalculatedMetrics.Size = windowMinSize;
+                    child.CalculatedMetrics.Size = windowMinSize.Ceiling();
 
                     pen[listMask] += windowMinSize[listMask];
                     pen[inverseListMask] = MathF.Max(pen[inverseListMask], windowMinSize[inverseListMask]);
                     listChildrenCount++;
                 }
 
-                float totalSpacing = Layout.LayoutMethod.ListSpacing[listMask] * CalculatedMetrics.Scale[listMask] * (listChildrenCount - 1);
+                float totalSpacing = GetListSpacing(listMask) * (listChildrenCount - 1);
 
                 //bool fitAlongList = listMask == 0 ? Layout.SizingX.Mode == UISizing.UISizingMode.Fit : Layout.SizingY.Mode == UISizing.UISizingMode.Fit;
                 childrenSize[listMask] += pen[listMask] + totalSpacing;
@@ -722,20 +722,28 @@ public partial class UIBaseWindow
 
         Vector2 mySize = Vector2.Zero;
 
+        // Fixed size (how does this interact with InternalGetWindowMinSize sizing?)
         if (Layout.SizingX.Mode == UISizing.UISizingMode.Fixed)
-            mySize.X = Layout.SizingX.Size * CalculatedMetrics.Scale.X;
+            mySize.X = MathF.Ceiling(Layout.SizingX.Size * CalculatedMetrics.Scale.X);
         if (Layout.SizingY.Mode == UISizing.UISizingMode.Fixed)
-            mySize.Y = Layout.SizingY.Size * CalculatedMetrics.Scale.Y;
+            mySize.Y = MathF.Ceiling(Layout.SizingY.Size * CalculatedMetrics.Scale.Y);
 
-        mySize += Layout.Padding.TopLeft * CalculatedMetrics.Scale;
-        mySize += Layout.Padding.BottomRight * CalculatedMetrics.Scale;
-        mySize += Layout.Margins.TopLeft * CalculatedMetrics.Scale;
-        mySize += Layout.Margins.BottomRight * CalculatedMetrics.Scale;
+        // Add margin and padding offsets
+        mySize += (Layout.Padding.TopLeft * CalculatedMetrics.Scale).Floor();
+        mySize += (Layout.Padding.BottomRight * CalculatedMetrics.Scale).Floor();
+        mySize += (Layout.Margins.TopLeft * CalculatedMetrics.Scale).Floor();
+        mySize += (Layout.Margins.BottomRight * CalculatedMetrics.Scale).Floor();
 
-        Vector2 contentSize = Vector2.Max(childrenSize, InternalGetWindowMinSize());
-        mySize += contentSize;
+        // Determine content size.
+        mySize += Vector2.Max(childrenSize, InternalGetWindowMinSize()).Ceiling();
 
-        return Vector2.Clamp(mySize, Layout.MinSize * CalculatedMetrics.Scale, Layout.MaxSize * CalculatedMetrics.Scale);
+        Vector2 resultSize = Vector2.Clamp(
+            mySize,
+            (Layout.MinSize * CalculatedMetrics.Scale).Ceiling(),
+            (Layout.MaxSize * CalculatedMetrics.Scale).Ceiling()
+        );
+        Assert(resultSize == resultSize.Floor());
+        return resultSize;
     }
 
     protected void GrowWindow()
@@ -750,6 +758,8 @@ public partial class UIBaseWindow
 
         myMeasuredSize -= Layout.Margins.TopLeft * CalculatedMetrics.Scale;
         myMeasuredSize -= Layout.Margins.BottomRight * CalculatedMetrics.Scale;
+
+        myMeasuredSize = myMeasuredSize.Ceiling();
 
         switch (Layout.LayoutMethod.Mode)
         {
@@ -783,7 +793,7 @@ public partial class UIBaseWindow
                     listRemainingSize -= listSize;
                     listChildrenCount++;
                 }
-                listRemainingSize -= Layout.LayoutMethod.ListSpacing[listMask] * CalculatedMetrics.Scale[listMask] * (listChildrenCount - 1);
+                listRemainingSize -= GetListSpacing(listMask) * (listChildrenCount - 1);
 
                 // Grow across list
                 foreach (UIBaseWindow child in Children)
@@ -799,8 +809,11 @@ public partial class UIBaseWindow
                 int infDetect = 0;
                 while (listRemainingSize < 1)
                 {
+                    // --- Dealing with floats :P
+                    Assert(MathF.Floor(listRemainingSize) == listRemainingSize);
                     infDetect++;
                     if (infDetect > 50) break;
+                    // ---
 
                     float smallest = float.PositiveInfinity;
                     float secondSmallest = float.PositiveInfinity;
@@ -869,16 +882,19 @@ public partial class UIBaseWindow
 
     protected void LayoutWindow(Vector2 pos)
     {
-        // Round size
-        CalculatedMetrics.Size = CalculatedMetrics.Size.Ceiling();
+        Assert(CalculatedMetrics.Size == CalculatedMetrics.Size.Ceiling());
 
-        Vector2 offsetScaled = (Layout.Offset * CalculatedMetrics.Scale).Round();
-        Vector2 myPos = offsetScaled + pos;
+        // Round size
+        //CalculatedMetrics.Size = CalculatedMetrics.Size.Ceiling();
+
+        Vector2 myPos = pos;
+        myPos += Layout.Offset * CalculatedMetrics.Scale;
         myPos += Layout.Margins.TopLeft * CalculatedMetrics.Scale;
         CalculatedMetrics.Position = myPos.Floor();
 
         Vector2 pen = myPos;
         pen += Layout.Padding.TopLeft * CalculatedMetrics.Scale;
+        pen = pen.Floor();
 
         switch (Layout.LayoutMethod.Mode)
         {
@@ -921,13 +937,18 @@ public partial class UIBaseWindow
                     {
                         child.CalculatedMetrics.InsideParent = true;
                         child.LayoutWindow(pen);
-                        pen[listMask] += child.CalculatedMetrics.Size[listMask] + Layout.LayoutMethod.ListSpacing[listMask] * CalculatedMetrics.Scale[listMask];
+                        pen[listMask] += child.CalculatedMetrics.Size[listMask] + GetListSpacing(listMask);
                     }
                 }
                 break;
         }
 
         _needsLayout = false;
+    }
+
+    private float GetListSpacing(int listMask)
+    {
+        return Maths.RoundAwayFromZero(Layout.LayoutMethod.ListSpacing[listMask] * CalculatedMetrics.Scale[listMask]);
     }
 
     #region Custom
@@ -962,7 +983,7 @@ public partial class UIBaseWindow
             case UIAnchor.TopRight:
             case UIAnchor.CenterRight:
             case UIAnchor.BottomRight:
-                offset.X += parentContentRect.Width;
+                offset.X += parentContentRect.Right;
                 break;
         }
 
@@ -981,7 +1002,7 @@ public partial class UIBaseWindow
             case UIAnchor.BottomLeft:
             case UIAnchor.BottomCenter:
             case UIAnchor.BottomRight:
-                offset.Y += parentContentRect.Height;
+                offset.Y += parentContentRect.Bottom;
                 break;
         }
 
@@ -1054,7 +1075,6 @@ public partial class UIBaseWindow
     }
 
     #endregion
-
 
     #endregion
 }

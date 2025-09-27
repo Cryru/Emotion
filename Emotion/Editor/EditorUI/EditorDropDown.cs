@@ -28,20 +28,21 @@ public class EditorDropDown : UIDropDown
         base.AddChild(child);
     }
 
-    protected override void OLDLayout(Vector2 pos, Vector2 size)
+    protected override Vector2 InternalMeasureWindow()
     {
-        //if (ClampToSpawningWindowWidth && size.X > SpawningWindow.Width)
-        //    size.X = SpawningWindow.Width;
-
-        //if (size.X < SpawningWindow.Width)
-        //{
-        //    float diff = SpawningWindow.Width - Size.X;
-        //    if (Anchor == UIAnchor.TopRight) pos.X -= diff;
-        //    size.X += diff;
-        //}
-
-        base.OLDLayout(pos, size);
+        Vector2 size = base.MeasureWindow();
+        Vector2 attachedWindowSize = AttachedTo == null ? Vector2.Zero : AttachedTo.CalculatedMetrics.Size;
+        if (ClampToSpawningWindowWidth && size.X > attachedWindowSize.X)
+            size.X = attachedWindowSize.X;
+        return size;
     }
+
+    //if (size.X < SpawningWindow.Width)
+    //{
+    //    float diff = SpawningWindow.Width - Size.X;
+    //    if (Anchor == UIAnchor.TopRight) pos.X -= diff;
+    //    size.X += diff;
+    //}
 
     public static EditorDropDown OpenListDropdown(UIBaseWindow spawningWindow)
     {

@@ -720,6 +720,11 @@ public static class Maths
         return MathF.Round(value / roundToNearest) * roundToNearest;
     }
 
+    public static float RoundAwayFromZero(float value)
+    {
+        return MathF.Round(value + 0.49f, MidpointRounding.AwayFromZero);
+    }
+
     /// <summary>
     /// returns sqrt( x * x + y * y )
     /// </summary>
