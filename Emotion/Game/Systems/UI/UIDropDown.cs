@@ -16,7 +16,7 @@ public class UIAttachedWindow : UIBaseWindow
         Layout.SizingY = UISizing.Fit();
     }
 
-    protected virtual Vector2 InternalMeasureWindow()
+    protected virtual IntVector2 InternalMeasureWindow()
     {
         return base.MeasureWindow();
     }
@@ -28,16 +28,16 @@ public class UIAttachedWindow : UIBaseWindow
 
         if (AttachedTo == null)
         {
-            CalculatedMetrics.Position = Vector2.Zero;
+            CalculatedMetrics.Position = IntVector2.Zero;
             return;
         }
 
         CalculatedMetrics.InsideParent = AnchorsInsideParent(Layout.ParentAnchor, Layout.Anchor);
 
-        Vector2 pen = AttachedTo.CalculatedMetrics.Position;
-        Vector2 parentSize = AttachedTo.CalculatedMetrics.Size;
-        Rectangle parentContentRect = Rectangle.FromMinMaxPoints(pen, pen + parentSize);
-        Vector2 anchorPos = GetAnchorPosition(Layout.ParentAnchor, CalculatedMetrics.Size, parentContentRect, Layout.Anchor, CalculatedMetrics.Size);
+        IntVector2 pen = AttachedTo.CalculatedMetrics.Position;
+        IntVector2 parentSize = AttachedTo.CalculatedMetrics.Size;
+        IntRectangle parentContentRect = IntRectangle.FromMinMaxPoints(pen, pen + parentSize);
+        IntVector2 anchorPos = GetAnchorPosition(Layout.ParentAnchor, CalculatedMetrics.Size, parentContentRect, Layout.Anchor, CalculatedMetrics.Size);
         LayoutWindow(anchorPos);
     }
 }

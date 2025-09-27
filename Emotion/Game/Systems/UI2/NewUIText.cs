@@ -94,11 +94,11 @@ public class NewUIText : UIBaseWindow
 
     #endregion
 
-    protected override Vector2 InternalGetWindowMinSize()
+    protected override IntVector2 InternalGetWindowMinSize()
     {
         if (string.IsNullOrEmpty(Text))
         {
-            return Vector2.Zero;
+            return IntVector2.Zero;
         }
 
         FontAsset font = Font.GetObject() ?? FontAsset.GetDefaultBuiltIn();
@@ -114,7 +114,7 @@ public class NewUIText : UIBaseWindow
             _layoutEngine.Run();
         }
 
-        return _layoutEngine.TextSize;
+        return IntVector2.FromVec2Ceiling(_layoutEngine.TextSize); // Is this TextSize IntVector2?
     }
 
     protected override void InternalRender(Renderer r)

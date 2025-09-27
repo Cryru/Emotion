@@ -43,8 +43,9 @@ public class EnumEditor<T, TNum> : TypeEditor
 
         var arrowIcon = new UITexture()
         {
-            Layout = {
-                Offset = new Vector2(0, 4)
+            Layout =
+            {
+                Offset = new IntVector2(0, 4)
             },
 
             Smooth = true,

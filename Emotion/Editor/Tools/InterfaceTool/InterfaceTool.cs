@@ -28,7 +28,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
             {
                 LayoutMethod = UILayoutMethod.HorizontalList(5),
 
-                MinSize = new Vector2(200, 100),
+                MinSize = new IntVector2(200, 100),
                 Padding = new UISpacing(5, 5, 5, 5)
             },
 
@@ -36,7 +36,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
                 new UIBaseWindow() {
                     Layout =
                     {
-                        MinSize = new Vector2(20, 20)
+                        MinSize = new IntVector2(20, 20)
                     },
 
                     Visuals = {
@@ -46,7 +46,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
                 new UIBaseWindow() {
                     Layout =
                     {
-                        MinSize = new Vector2(50, 20),
+                        MinSize = new IntVector2(50, 20),
                         SizingX = UISizing.Grow(),
                         SizingY = UISizing.Grow()
                     },
@@ -58,7 +58,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
                 new UIBaseWindow() {
                     Layout =
                     {
-                        MinSize = new Vector2(50, 20),
+                        MinSize = new IntVector2(50, 20),
                         SizingX = UISizing.Grow(),
                     },
 

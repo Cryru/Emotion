@@ -28,10 +28,10 @@ public class EditorDropDown : UIDropDown
         base.AddChild(child);
     }
 
-    protected override Vector2 InternalMeasureWindow()
+    protected override IntVector2 InternalMeasureWindow()
     {
-        Vector2 size = base.MeasureWindow();
-        Vector2 attachedWindowSize = AttachedTo == null ? Vector2.Zero : AttachedTo.CalculatedMetrics.Size;
+        IntVector2 size = base.MeasureWindow();
+        IntVector2 attachedWindowSize = AttachedTo == null ? IntVector2.Zero : AttachedTo.CalculatedMetrics.Size;
         if (ClampToSpawningWindowWidth && size.X > attachedWindowSize.X)
             size.X = attachedWindowSize.X;
         return size;

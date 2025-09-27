@@ -40,9 +40,9 @@ public class UISystem : UIBaseWindow
         InvalidateLayout();
     }
 
-    protected override Vector2 InternalGetWindowMinSize()
+    protected override IntVector2 InternalGetWindowMinSize()
     {
-        return Engine.Renderer.ScreenBuffer.Size;
+        return IntVector2.FromVec2Ceiling(Engine.Renderer.ScreenBuffer.Size);
     }
 
     #endregion

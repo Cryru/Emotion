@@ -472,10 +472,10 @@ public partial class UIBaseWindow
 
         // Draw background
         if (Visuals.Color.A != 0)
-            r.RenderSprite(CalculatedMetrics.Position, CalculatedMetrics.Size, Visuals.Color);
+            r.RenderSprite(CalculatedMetrics.Position.ToVec2(), CalculatedMetrics.Size.ToVec2(), Visuals.Color);
 
         if (Visuals.Border != 0)
-            r.RenderRectOutline(CalculatedMetrics.Position.ToVec3(), CalculatedMetrics.Size, Visuals.BorderColor, Visuals.Border * CalculatedMetrics.ScaleF);
+            r.RenderRectOutline(CalculatedMetrics.Position.ToVec3(), CalculatedMetrics.Size.ToVec2(), Visuals.BorderColor, Visuals.Border * CalculatedMetrics.ScaleF);
 
         InternalRender(r);
         RenderChildren(r);
@@ -662,19 +662,19 @@ public partial class UIBaseWindow
 
     #region Layout
 
-    protected virtual Vector2 InternalGetWindowMinSize()
+    protected virtual IntVector2 InternalGetWindowMinSize()
     {
-        return Vector2.Zero;
+        return IntVector2.Zero;
     }
 
-    protected Vector2 MeasureWindow()
+    protected IntVector2 MeasureWindow()
     {
         if (Layout.ScaleWithResolution)
             CalculatedMetrics.Scale = Layout.Scale * (Parent?.CalculatedMetrics.Scale ?? Vector2.One);
         else
             Layout.Scale = Vector2.One;
 
-        Vector2 childrenSize = Vector2.Zero;
+        IntVector2 childrenSize = IntVector2.Zero;
         switch (Layout.LayoutMethod.Mode)
         {
             case UIMethodName.Free:
@@ -682,9 +682,9 @@ public partial class UIBaseWindow
                 {
                     if (child._useCustomLayout) continue;
 
-                    Vector2 windowMinSize = child.MeasureWindow();
-                    child.CalculatedMetrics.Size = windowMinSize.Ceiling();
-                    childrenSize = Vector2.Max(childrenSize, windowMinSize);
+                    IntVector2 windowMinSize = child.MeasureWindow();
+                    child.CalculatedMetrics.Size = windowMinSize;
+                    childrenSize = IntVector2.Max(childrenSize, windowMinSize);
                 }
                 break;
 
@@ -694,20 +694,20 @@ public partial class UIBaseWindow
                 int inverseListMask = Layout.LayoutMethod.GetListInverseMask();
 
                 int listChildrenCount = 0;
-                Vector2 pen = Vector2.Zero;
+                IntVector2 pen = IntVector2.Zero;
                 foreach (UIBaseWindow child in Children)
                 {
                     if (child._useCustomLayout) continue;
 
-                    Vector2 windowMinSize = child.MeasureWindow();
-                    child.CalculatedMetrics.Size = windowMinSize.Ceiling();
+                    IntVector2 windowMinSize = child.MeasureWindow();
+                    child.CalculatedMetrics.Size = windowMinSize;
 
                     pen[listMask] += windowMinSize[listMask];
-                    pen[inverseListMask] = MathF.Max(pen[inverseListMask], windowMinSize[inverseListMask]);
+                    pen[inverseListMask] = Math.Max(pen[inverseListMask], windowMinSize[inverseListMask]);
                     listChildrenCount++;
                 }
 
-                float totalSpacing = GetListSpacing(listMask) * (listChildrenCount - 1);
+                int totalSpacing = GetListSpacing(listMask) * (listChildrenCount - 1);
 
                 //bool fitAlongList = listMask == 0 ? Layout.SizingX.Mode == UISizing.UISizingMode.Fit : Layout.SizingY.Mode == UISizing.UISizingMode.Fit;
                 childrenSize[listMask] += pen[listMask] + totalSpacing;
@@ -720,30 +720,32 @@ public partial class UIBaseWindow
                 break;
         }
 
-        Vector2 mySize = Vector2.Zero;
+        IntVector2 mySize = IntVector2.Zero;
 
         // Fixed size (how does this interact with InternalGetWindowMinSize sizing?)
         if (Layout.SizingX.Mode == UISizing.UISizingMode.Fixed)
-            mySize.X = MathF.Ceiling(Layout.SizingX.Size * CalculatedMetrics.Scale.X);
+            mySize.X = (int) MathF.Ceiling(Layout.SizingX.Size * CalculatedMetrics.Scale.X);
         if (Layout.SizingY.Mode == UISizing.UISizingMode.Fixed)
-            mySize.Y = MathF.Ceiling(Layout.SizingY.Size * CalculatedMetrics.Scale.Y);
+            mySize.Y = (int) MathF.Ceiling(Layout.SizingY.Size * CalculatedMetrics.Scale.Y);
 
         // Add margin and padding offsets
-        mySize += (Layout.Padding.TopLeft * CalculatedMetrics.Scale).Floor();
-        mySize += (Layout.Padding.BottomRight * CalculatedMetrics.Scale).Floor();
-        mySize += (Layout.Margins.TopLeft * CalculatedMetrics.Scale).Floor();
-        mySize += (Layout.Margins.BottomRight * CalculatedMetrics.Scale).Floor();
+        IntVector2 sizePaddingsAndMargins = IntVector2.Zero;
+        sizePaddingsAndMargins += Layout.Padding.TopLeft;
+        sizePaddingsAndMargins += Layout.Padding.BottomRight;
+        sizePaddingsAndMargins += Layout.Margins.TopLeft;
+        sizePaddingsAndMargins += Layout.Margins.BottomRight;
+        sizePaddingsAndMargins = sizePaddingsAndMargins.FloorMultiply(CalculatedMetrics.Scale);
+        CalculatedMetrics.PaddingsAndMarginsSize = sizePaddingsAndMargins;
+        mySize += sizePaddingsAndMargins;
 
         // Determine content size.
-        mySize += Vector2.Max(childrenSize, InternalGetWindowMinSize()).Ceiling();
+        mySize += IntVector2.Max(childrenSize, InternalGetWindowMinSize());
 
-        Vector2 resultSize = Vector2.Clamp(
+        return IntVector2.Clamp(
             mySize,
-            (Layout.MinSize * CalculatedMetrics.Scale).Ceiling(),
-            (Layout.MaxSize * CalculatedMetrics.Scale).Ceiling()
+            Layout.MinSize.CeilMultiply(CalculatedMetrics.Scale),
+            Layout.MaxSize.CeilMultiply(CalculatedMetrics.Scale)
         );
-        Assert(resultSize == resultSize.Floor());
-        return resultSize;
     }
 
     protected void GrowWindow()
@@ -752,15 +754,7 @@ public partial class UIBaseWindow
         if (Children.Count == 0)
             return;
 
-        Vector2 myMeasuredSize = CalculatedMetrics.Size;
-        myMeasuredSize -= Layout.Padding.TopLeft * CalculatedMetrics.Scale;
-        myMeasuredSize -= Layout.Padding.BottomRight * CalculatedMetrics.Scale;
-
-        myMeasuredSize -= Layout.Margins.TopLeft * CalculatedMetrics.Scale;
-        myMeasuredSize -= Layout.Margins.BottomRight * CalculatedMetrics.Scale;
-
-        myMeasuredSize = myMeasuredSize.Ceiling();
-
+        IntVector2 myMeasuredSize = CalculatedMetrics.Size - CalculatedMetrics.PaddingsAndMarginsSize;
         switch (Layout.LayoutMethod.Mode)
         {
             case UIMethodName.Free:
@@ -769,10 +763,10 @@ public partial class UIBaseWindow
                     if (child._useCustomLayout) continue;
 
                     if (child.Layout.SizingX.Mode == UISizing.UISizingMode.Grow)
-                        child.CalculatedMetrics.Size.X = MathF.Max(child.CalculatedMetrics.Size.X, myMeasuredSize.X);
+                        child.CalculatedMetrics.Size.X = Math.Max(child.CalculatedMetrics.Size.X, myMeasuredSize.X);
 
                     if (child.Layout.SizingY.Mode == UISizing.UISizingMode.Grow)
-                        child.CalculatedMetrics.Size.Y = MathF.Max(child.CalculatedMetrics.Size.Y, myMeasuredSize.Y);
+                        child.CalculatedMetrics.Size.Y = Math.Max(child.CalculatedMetrics.Size.Y, myMeasuredSize.Y);
 
                     child.GrowWindow();
                 }
@@ -807,16 +801,17 @@ public partial class UIBaseWindow
 
                 // Grow along list
                 int infDetect = 0;
-                while (listRemainingSize < 1)
+                while (listRemainingSize > 1)
                 {
-                    // --- Dealing with floats :P
-                    Assert(MathF.Floor(listRemainingSize) == listRemainingSize);
                     infDetect++;
-                    if (infDetect > 50) break;
-                    // ---
+                    if (infDetect > 50)
+                    {
+                        Assert(false, "Infinite loop in GrowWindow() :(");
+                        break;
+                    }
 
-                    float smallest = float.PositiveInfinity;
-                    float secondSmallest = float.PositiveInfinity;
+                    int smallest = int.MaxValue;
+                    int secondSmallest = int.MaxValue;
                     int growingCount = 0;
                     foreach (UIBaseWindow child in Children)
                     {
@@ -827,9 +822,9 @@ public partial class UIBaseWindow
 
                         growingCount++;
 
-                        float sizeListDirection = child.CalculatedMetrics.Size[listMask];
+                        int sizeListDirection = child.CalculatedMetrics.Size[listMask];
                         // Initialize smallest
-                        if (smallest == float.PositiveInfinity)
+                        if (smallest == int.MaxValue)
                         {
                             smallest = sizeListDirection;
                             continue;
@@ -851,7 +846,7 @@ public partial class UIBaseWindow
                     if (growingCount == 0)
                         break;
 
-                    float widthToAdd = MathF.Min(secondSmallest - smallest, listRemainingSize / growingCount);
+                    int widthToAdd = Math.Min(secondSmallest - smallest, (int) Math.Round(listRemainingSize / growingCount));
                     foreach (UIBaseWindow child in Children)
                     {
                         if (child._useCustomLayout) continue;
@@ -859,7 +854,7 @@ public partial class UIBaseWindow
                         bool growAlongList = Layout.LayoutMethod.GrowingAlongList(child.Layout);
                         if (!growAlongList) continue;
 
-                        float sizeListDirection = child.CalculatedMetrics.Size[listMask];
+                        int sizeListDirection = child.CalculatedMetrics.Size[listMask];
                         if (sizeListDirection == smallest)
                         {
                             child.CalculatedMetrics.Size[listMask] += widthToAdd;
@@ -880,21 +875,23 @@ public partial class UIBaseWindow
         }
     }
 
-    protected void LayoutWindow(Vector2 pos)
+    protected void LayoutWindow(IntVector2 pos)
     {
-        Assert(CalculatedMetrics.Size == CalculatedMetrics.Size.Ceiling());
+        IntVector2 offsets = IntVector2.Zero;
+        offsets += Layout.Offset;
+        offsets += Layout.Margins.TopLeft;
+        offsets = offsets.FloorMultiply(CalculatedMetrics.Scale);
 
-        // Round size
-        //CalculatedMetrics.Size = CalculatedMetrics.Size.Ceiling();
+        pos = pos + offsets;
+        CalculatedMetrics.Position = pos;
 
-        Vector2 myPos = pos;
-        myPos += Layout.Offset * CalculatedMetrics.Scale;
-        myPos += Layout.Margins.TopLeft * CalculatedMetrics.Scale;
-        CalculatedMetrics.Position = myPos.Floor();
+        IntVector2 pen = pos;
+        pen += Layout.Padding.TopLeft.FloorMultiply(CalculatedMetrics.Scale);
 
-        Vector2 pen = myPos;
-        pen += Layout.Padding.TopLeft * CalculatedMetrics.Scale;
-        pen = pen.Floor();
+        IntRectangle parentContentRect = new IntRectangle(
+           pen,
+           CalculatedMetrics.Size - Layout.Padding.BottomRight.FloorMultiply(CalculatedMetrics.Scale)
+        );
 
         switch (Layout.LayoutMethod.Mode)
         {
@@ -915,9 +912,11 @@ public partial class UIBaseWindow
                         else
                         {
                             child.CalculatedMetrics.InsideParent = AnchorsInsideParent(child.Layout.ParentAnchor, child.Layout.Anchor);
-
-                            Rectangle parentContentRect = Rectangle.FromMinMaxPoints(pen, (pen + CalculatedMetrics.Size) - Layout.Padding.BottomRight * CalculatedMetrics.Scale);
-                            Vector2 anchorPos = GetAnchorPosition(child.Layout.ParentAnchor, CalculatedMetrics.Size, parentContentRect, child.Layout.Anchor, child.CalculatedMetrics.Size);
+    
+                            IntVector2 anchorPos = GetAnchorPosition(
+                                child.Layout.ParentAnchor, CalculatedMetrics.Size, parentContentRect,
+                                child.Layout.Anchor, child.CalculatedMetrics.Size
+                            );
                             child.LayoutWindow(anchorPos);
                         }
                     }
@@ -927,6 +926,7 @@ public partial class UIBaseWindow
             case UIMethodName.HorizontalList:
             case UIMethodName.VerticalList:
                 int listMask = Layout.LayoutMethod.GetListMask();
+                int listSpacing = GetListSpacing(listMask);
                 foreach (UIBaseWindow child in Children)
                 {
                     if (child._useCustomLayout)
@@ -937,7 +937,7 @@ public partial class UIBaseWindow
                     {
                         child.CalculatedMetrics.InsideParent = true;
                         child.LayoutWindow(pen);
-                        pen[listMask] += child.CalculatedMetrics.Size[listMask] + GetListSpacing(listMask);
+                        pen[listMask] += child.CalculatedMetrics.Size[listMask] + listSpacing;
                     }
                 }
                 break;
@@ -946,9 +946,9 @@ public partial class UIBaseWindow
         _needsLayout = false;
     }
 
-    private float GetListSpacing(int listMask)
+    private int GetListSpacing(int listMask)
     {
-        return Maths.RoundAwayFromZero(Layout.LayoutMethod.ListSpacing[listMask] * CalculatedMetrics.Scale[listMask]);
+        return (int) Maths.RoundAwayFromZero(Layout.LayoutMethod.ListSpacing[listMask] * CalculatedMetrics.Scale[listMask]);
     }
 
     #region Custom
@@ -964,9 +964,9 @@ public partial class UIBaseWindow
 
     #region Anchor
 
-    protected static Vector2 GetAnchorPosition(UIAnchor parentAnchor, Vector2 parentSize, Rectangle parentContentRect, UIAnchor anchor, Vector2 contentSize)
+    protected static IntVector2 GetAnchorPosition(UIAnchor parentAnchor, IntVector2 parentSize, IntRectangle parentContentRect, UIAnchor anchor, IntVector2 contentSize)
     {
-        Vector2 offset = Vector2.Zero;
+        IntVector2 offset = IntVector2.Zero;
 
         switch (parentAnchor)
         {

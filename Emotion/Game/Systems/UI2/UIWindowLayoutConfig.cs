@@ -6,12 +6,12 @@ namespace Emotion.Game.Systems.UI2;
 
 public struct UIWindowLayoutConfig
 {
-    public const float DEFAULT_MAX_SIZE = 99999;
+    public const int DEFAULT_MAX_SIZE = 99999;
 
     public Vector2 Scale = new Vector2(1f);
     public bool ScaleWithResolution = true;
 
-    public Vector2 Offset
+    public IntVector2 Offset
     {
         readonly get => _offset;
         set
@@ -22,34 +22,34 @@ public struct UIWindowLayoutConfig
         }
     }
 
-    private Vector2 _offset = Vector2.Zero;
+    private IntVector2 _offset = IntVector2.Zero;
 
     /// <summary>
     /// The minimum size the window can be.
     /// </summary>
-    public Vector2 MinSize = Vector2.Zero;
+    public IntVector2 MinSize = IntVector2.Zero;
 
-    public float MinSizeX
+    public int MinSizeX
     {
         readonly get => MinSize.X;
         set => MinSize.X = value;
     }
 
-    public float MinSizeY
+    public int MinSizeY
     {
         readonly get => MinSize.Y;
         set => MinSize.Y = value;
     }
 
-    public Vector2 MaxSize = new Vector2(DEFAULT_MAX_SIZE);
+    public IntVector2 MaxSize = new IntVector2(DEFAULT_MAX_SIZE);
 
-    public float MaxSizeX
+    public int MaxSizeX
     {
         readonly get => MaxSize.X;
         set => MaxSize.X = value;
     }
 
-    public float MaxSizeY
+    public int MaxSizeY
     {
         readonly get => MaxSize.Y;
         set => MaxSize.Y = value;

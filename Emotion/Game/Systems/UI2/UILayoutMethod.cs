@@ -15,7 +15,7 @@ public struct UILayoutMethod
     public UIMethodName Mode;
     public UIAnchor Anchor;
     public UIAnchor ParentAnchor;
-    public Vector2 ListSpacing;
+    public IntVector2 ListSpacing;
 
     public int GetListMask()
     {
@@ -50,21 +50,21 @@ public struct UILayoutMethod
         };
     }
 
-    public static UILayoutMethod HorizontalList(float spacing)
+    public static UILayoutMethod HorizontalList(int spacing)
     {
         return new UILayoutMethod()
         {
             Mode = UIMethodName.HorizontalList,
-            ListSpacing = new Vector2(spacing, 0)
+            ListSpacing = new IntVector2(spacing, 0)
         };
     }
 
-    public static UILayoutMethod VerticalList(float spacing)
+    public static UILayoutMethod VerticalList(int spacing)
     {
         return new UILayoutMethod()
         {
             Mode = UIMethodName.VerticalList,
-            ListSpacing = new Vector2(0, spacing)
+            ListSpacing = new IntVector2(0, spacing)
         };
     }
 

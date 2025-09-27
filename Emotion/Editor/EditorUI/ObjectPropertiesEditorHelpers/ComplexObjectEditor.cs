@@ -207,8 +207,9 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
 
             var arrowIcon = new UITexture()
             {
-                Layout = {
-                    Offset = new Vector2(0, 4)
+                Layout =
+                {
+                    Offset = new IntVector2(0, 4)
                 },
 
                 Smooth = true,

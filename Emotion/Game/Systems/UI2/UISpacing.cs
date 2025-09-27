@@ -4,13 +4,13 @@ namespace Emotion.Game.Systems.UI2;
 
 public struct UISpacing
 {
-    public Vector2 TopLeft;
-    public Vector2 BottomRight;
+    public IntVector2 TopLeft;
+    public IntVector2 BottomRight;
 
-    public UISpacing(float left, float top, float right, float bottom)
+    public UISpacing(int left, int top, int right, int bottom)
     {
-        TopLeft = new Vector2(left, top);
-        BottomRight = new Vector2(right, bottom);
+        TopLeft = new IntVector2(left, top);
+        BottomRight = new IntVector2(right, bottom);
     }
 
     public override string ToString()
