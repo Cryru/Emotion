@@ -80,9 +80,9 @@ public static partial class EngineEditor
             },
 
             FontSize = 25,
-            //OutlineColor = Color.Black,
-            //OutlineSize = 2,
-            //AllowRenderBatch = false
+            OutlineColor = Color.Black,
+            OutlineSize = 2,
+            AllowRenderBatch = false
         };
         EditorRoot.AddChild(_perfText);
 

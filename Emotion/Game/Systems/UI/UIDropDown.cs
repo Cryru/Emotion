@@ -35,9 +35,9 @@ public class UIAttachedWindow : UIBaseWindow
         CalculatedMetrics.InsideParent = AnchorsInsideParent(Layout.ParentAnchor, Layout.Anchor);
 
         IntVector2 pen = AttachedTo.CalculatedMetrics.Position;
-        IntVector2 parentSize = AttachedTo.CalculatedMetrics.Size;
-        IntRectangle parentContentRect = IntRectangle.FromMinMaxPoints(pen, pen + parentSize);
-        IntVector2 anchorPos = GetAnchorPosition(Layout.ParentAnchor, CalculatedMetrics.Size, parentContentRect, Layout.Anchor, CalculatedMetrics.Size);
+        IntVector2 parentSize = AttachedTo.CalculatedMetrics.Size - AttachedTo.CalculatedMetrics.PaddingsAndMarginsSize;
+        IntRectangle parentContentRect = new IntRectangle(pen, parentSize);
+        IntVector2 anchorPos = GetAnchorPosition(Layout.ParentAnchor, parentContentRect, Layout.Anchor, CalculatedMetrics.Size);
         LayoutWindow(anchorPos);
     }
 }

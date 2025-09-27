@@ -1,7 +1,6 @@
 ﻿#nullable enable
 
 using Emotion.Game.Systems.UI;
-using Emotion.Game.Systems.UI.Text.TextUpdate;
 using Emotion.Game.Systems.UI2;
 
 namespace Emotion.Editor.EditorUI.Components;
@@ -14,19 +13,13 @@ public enum LabelStyle
 
 public class EditorLabel : NewUIText
 {
-    public bool AllowRenderBatch;
-    public Color TextShadow = Color.Black;
-    public Vector2 ShadowOffset = new Vector2(1f);
-    public Color OutlineColor = Color.Black;
-    public float OutlineSize = 2;
-
     public EditorLabel()
     {
         WindowColor = EditorColorPalette.TextColor;
         FontSize = EditorColorPalette.EditorButtonTextSize;
         IgnoreParentColor = true;
-        Anchor = UIAnchor.CenterLeft;
-        ParentAnchor = UIAnchor.CenterLeft;
+        Layout.Anchor = UIAnchor.CenterLeft;
+        Layout.ParentAnchor = UIAnchor.CenterLeft;
     }
 
     public EditorLabel(string txt) : this()
@@ -38,14 +31,14 @@ public class EditorLabel : NewUIText
     {
         var label = new EditorLabel(txt);
 
-        //switch (style)
-        //{
-        //    case LabelStyle.MapEditor:
-        //        label.OutlineColor = Color.Black;
-        //        label.OutlineSize = 2;
-        //        label.FontSize = 23;
-        //        break;
-        //}
+        switch (style)
+        {
+            case LabelStyle.MapEditor:
+                label.OutlineColor = Color.Black;
+                label.OutlineSize = 2;
+                label.FontSize = 23;
+                break;
+        }
 
         return label;
     }

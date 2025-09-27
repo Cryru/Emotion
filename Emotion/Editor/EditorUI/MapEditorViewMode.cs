@@ -39,15 +39,14 @@ public class MapEditorViewMode : UIBaseWindow
             {
                 LayoutMethod = UILayoutMethod.HorizontalList(5),
                 Padding = new UISpacing(5, 5, 5, 5),
+                SizingX = UISizing.Fit()
             },
             Visuals =
             {
                 Color = EditorColorPalette.BarColor * 0.5f
             },
-            AnchorAndParentAnchor = UIAnchor.CenterLeft,
 
             IgnoreParentColor = true,
-            GrowX = false,
 
             Children = new List<UIBaseWindow>()
             {
@@ -95,10 +94,12 @@ public class MapEditorViewMode : UIBaseWindow
                 },
                 new MapEditorViewModeOrientationGizmo()
                 {
-                    GrowX = false,
-                    GrowY = false,
-                    Margins = new Rectangle(0, 10, 0, 0),
-                    MinSize = new Vector2(128),
+                    Layout =
+                    {
+                        Margins = new UISpacing(0, 10, 0, 0),
+                        SizingX = UISizing.Fixed(128),
+                        SizingY = UISizing.Fixed(128),
+                    }
                 }
             }
         };
@@ -106,6 +107,13 @@ public class MapEditorViewMode : UIBaseWindow
 
         EngineEditor.OnMapEditorModeChanged += EngineEditor_OnMapEditorModeChanged;
         UpdateVisuals();
+    }
+
+    protected override void OnClose()
+    {
+        base.OnClose();
+
+        EngineEditor.OnMapEditorModeChanged -= EngineEditor_OnMapEditorModeChanged;
     }
 
     protected override bool UpdateInternal()
@@ -121,13 +129,6 @@ public class MapEditorViewMode : UIBaseWindow
         }
 
         return base.UpdateInternal();
-    }
-
-    protected override void OnClose()
-    {
-        base.OnClose();
-
-        EngineEditor.OnMapEditorModeChanged -= EngineEditor_OnMapEditorModeChanged;
     }
 
     private void EngineEditor_OnMapEditorModeChanged(MapEditorMode obj)
@@ -179,22 +180,22 @@ public class MapEditorViewMode : UIBaseWindow
         {
             _gizmoEntity ??= TranslationGizmo.GetTranslationGizmoEntity(15, 15, false)!;
         }
-
-        protected override void OnOpen()
+        protected override void InternalRender(Renderer r)
         {
-            base.OnOpen();
-        }
+            base.InternalRender(r);
 
-        protected override bool RenderInternal(Renderer c)
-        {
+            var pos = CalculatedMetrics.Position.ToVec2();
+            var size = CalculatedMetrics.Size.ToVec2();
+            var center = pos + size / 2;
+
             //c.SetUseViewMatrix(true);
             //c.RenderLine(new Vector3(0, 0, 0), new Vector3(short.MaxValue, 0, 0), Color.Red, snapToPixel: false);
             //c.RenderLine(new Vector3(0, 0, 0), new Vector3(0, short.MaxValue, 0), Color.Green, snapToPixel: false);
             //c.RenderLine(new Vector3(0, 0, 0), new Vector3(0, 0, short.MaxValue), Color.Blue, snapToPixel: false);
             //c.SetUseViewMatrix(false);
 
-            c.RenderCircle(Position, Size.X / 2f, Color.White * 0.5f);
-            c.SetDepthTest(true);
+            r.RenderCircle(pos.ToVec3(), size.X / 2f, Color.White * 0.5f);
+            r.SetDepthTest(true);
 
             // todo: weirdness
             // why is the scale inverted on the z axis
@@ -202,9 +203,9 @@ public class MapEditorViewMode : UIBaseWindow
             // wtf is going on here?
             // if the scale is before the rotate it doesnt need to be inverted if the default projection has the near and far swapped.
             // the mesh seems to be correct?
-            c.PushModelMatrix(c.Camera.GetRotationMatrix());
-            c.PushModelMatrix(Matrix4x4.CreateScale(2f * GetScale(), 2f * GetScale(), -2f * GetScale()));
-            c.PushModelMatrix(Matrix4x4.CreateTranslation((Center + new Vector2(0, 0)).ToVec3(100)));
+            r.PushModelMatrix(r.Camera.GetRotationMatrix());
+            r.PushModelMatrix(Matrix4x4.CreateScale(2f * GetScale(), 2f * GetScale(), -2f * GetScale()));
+            r.PushModelMatrix(Matrix4x4.CreateTranslation((center + new Vector2(0, 0)).ToVec3(100)));
 
             // todo: render 3d in UI
             if (_gizmoEntity.Meshes != null)
@@ -212,22 +213,15 @@ public class MapEditorViewMode : UIBaseWindow
                 for (int i = 0; i < _gizmoEntity.Meshes.Length; i++)
                 {
                     Mesh mesh = _gizmoEntity.Meshes[i];
-                    mesh.Render(c);
+                    mesh.Render(r);
                 }
             }
 
-            c.PopModelMatrix();
-            c.PopModelMatrix();
-            c.PopModelMatrix();
+            r.PopModelMatrix();
+            r.PopModelMatrix();
+            r.PopModelMatrix();
 
-            c.SetDepthTest(false);
-
-            return base.RenderInternal(c);
-        }
-
-        protected override bool UpdateInternal()
-        {
-            return base.UpdateInternal();
+            r.SetDepthTest(false);
         }
     }
 }

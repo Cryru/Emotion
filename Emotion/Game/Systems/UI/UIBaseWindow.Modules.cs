@@ -523,6 +523,7 @@ public partial class UIBaseWindow
             }
         }
 
+        UpdateInternal();
         foreach (UIBaseWindow child in Children)
         {
             child.Update();
@@ -669,10 +670,18 @@ public partial class UIBaseWindow
 
     protected IntVector2 MeasureWindow()
     {
+        // Layout init
+        // -----------
+        _needsLayout = false;
+        //foreach (UIBaseWindow child in Children)
+        //{
+        //}
+
         if (Layout.ScaleWithResolution)
             CalculatedMetrics.Scale = Layout.Scale * (Parent?.CalculatedMetrics.Scale ?? Vector2.One);
         else
             Layout.Scale = Vector2.One;
+        // -------------
 
         IntVector2 childrenSize = IntVector2.Zero;
         switch (Layout.LayoutMethod.Mode)
@@ -890,7 +899,7 @@ public partial class UIBaseWindow
 
         IntRectangle parentContentRect = new IntRectangle(
            pen,
-           CalculatedMetrics.Size - Layout.Padding.BottomRight.FloorMultiply(CalculatedMetrics.Scale)
+           CalculatedMetrics.Size - CalculatedMetrics.PaddingsAndMarginsSize
         );
 
         switch (Layout.LayoutMethod.Mode)
@@ -914,7 +923,7 @@ public partial class UIBaseWindow
                             child.CalculatedMetrics.InsideParent = AnchorsInsideParent(child.Layout.ParentAnchor, child.Layout.Anchor);
     
                             IntVector2 anchorPos = GetAnchorPosition(
-                                child.Layout.ParentAnchor, CalculatedMetrics.Size, parentContentRect,
+                                child.Layout.ParentAnchor, parentContentRect,
                                 child.Layout.Anchor, child.CalculatedMetrics.Size
                             );
                             child.LayoutWindow(anchorPos);
@@ -942,8 +951,6 @@ public partial class UIBaseWindow
                 }
                 break;
         }
-
-        _needsLayout = false;
     }
 
     private int GetListSpacing(int listMask)
@@ -964,7 +971,7 @@ public partial class UIBaseWindow
 
     #region Anchor
 
-    protected static IntVector2 GetAnchorPosition(UIAnchor parentAnchor, IntVector2 parentSize, IntRectangle parentContentRect, UIAnchor anchor, IntVector2 contentSize)
+    protected static IntVector2 GetAnchorPosition(UIAnchor parentAnchor, IntRectangle parentContentRect, UIAnchor anchor, IntVector2 contentSize)
     {
         IntVector2 offset = IntVector2.Zero;
 
@@ -978,7 +985,7 @@ public partial class UIBaseWindow
             case UIAnchor.TopCenter:
             case UIAnchor.CenterCenter:
             case UIAnchor.BottomCenter:
-                offset.X += parentSize.X / 2;
+                offset.X += parentContentRect.X + parentContentRect.Width / 2;
                 break;
             case UIAnchor.TopRight:
             case UIAnchor.CenterRight:
@@ -997,7 +1004,7 @@ public partial class UIBaseWindow
             case UIAnchor.CenterLeft:
             case UIAnchor.CenterCenter:
             case UIAnchor.CenterRight:
-                offset.Y += parentSize.Y / 2;
+                offset.Y += parentContentRect.Y + parentContentRect.Height / 2;
                 break;
             case UIAnchor.BottomLeft:
             case UIAnchor.BottomCenter:
