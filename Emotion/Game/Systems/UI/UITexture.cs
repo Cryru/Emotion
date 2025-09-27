@@ -194,12 +194,12 @@ public class UITexture : UISolidColor
         return size;
     }
 
-#if !NEW_UI
-    protected override Vector2 NEW_InternalMeasure(Vector2 space)
-    {
-        return InternalMeasure(space);
-    }
-#endif
+//#if !NEW_UI
+//    protected override Vector2 NEW_InternalMeasure(Vector2 space)
+//    {
+//        return InternalMeasure(space);
+//    }
+//#endif
 
     protected override bool RenderInternal(Renderer c)
     {

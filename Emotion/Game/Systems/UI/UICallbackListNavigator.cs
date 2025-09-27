@@ -75,54 +75,54 @@ public class UICallbackListNavigator : UIBaseWindow
         HandleInput = true;
     }
 
-#if NEW_UI
-    protected override Vector2 Measure(Vector2 space)
-    {
-        Vector2 measuredSize = base.Measure(space);
-#else
-    protected override Vector2 Measure(Vector2 space)
-    {
-        Vector2 measuredSize = base.Measure(space);
-#endif
+//#if NEW_UI
+//    protected override Vector2 Measure(Vector2 space)
+//    {
+//        Vector2 measuredSize = base.Measure(space);
+//#else
+//    protected override Vector2 Measure(Vector2 space)
+//    {
+//        Vector2 measuredSize = base.Measure(space);
+//#endif
 
-        Vector2 usedSpace = _measureChildrenUsedSpace;
+//        Vector2 usedSpace = _measureChildrenUsedSpace;
 
-        // Make area as big as the children shown. Might look weird if all children are not the same size.
-        // This will also tell us how big the page size is.
-        float pageSize = 0;
-        if (Children != null)
-        {
-            float lastChildSize = 0;
-            Vector2 scaledListSpacing = (ListSpacing * GetScale()).Round();
-            for (var i = 0; i < Children.Count; i++)
-            {
-                UIBaseWindow child = Children[i];
-                if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+//        // Make area as big as the children shown. Might look weird if all children are not the same size.
+//        // This will also tell us how big the page size is.
+//        float pageSize = 0;
+//        if (Children != null)
+//        {
+//            float lastChildSize = 0;
+//            Vector2 scaledListSpacing = (ListSpacing * GetScale()).Round();
+//            for (var i = 0; i < Children.Count; i++)
+//            {
+//                UIBaseWindow child = Children[i];
+//                if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
 
-                float childSize = child.Height;
-                if (pageSize != 0) childSize += scaledListSpacing.Y;
-                if (pageSize + childSize > measuredSize.Y) break;
-                pageSize += childSize;
-                lastChildSize = childSize;
-            }
+//                float childSize = child.Height;
+//                if (pageSize != 0) childSize += scaledListSpacing.Y;
+//                if (pageSize + childSize > measuredSize.Y) break;
+//                pageSize += childSize;
+//                lastChildSize = childSize;
+//            }
 
-            // If the scroll bar is to be smaller than the space available then grow it out with more
-            // children like the last (remember this list assumes all children are of the same size).
-            if (pageSize == usedSpace.Y)
-            {
-                float spaceLeft = measuredSize.Y - pageSize;
-                spaceLeft /= lastChildSize;
-                pageSize += MathF.Floor(spaceLeft) * lastChildSize;
-            }
-        }
+//            // If the scroll bar is to be smaller than the space available then grow it out with more
+//            // children like the last (remember this list assumes all children are of the same size).
+//            if (pageSize == usedSpace.Y)
+//            {
+//                float spaceLeft = measuredSize.Y - pageSize;
+//                spaceLeft /= lastChildSize;
+//                pageSize += MathF.Floor(spaceLeft) * lastChildSize;
+//            }
+//        }
 
-        pageSize = MathF.Max(pageSize, MathF.Ceiling(MinSize.Y * GetScale()));
-        _measuredSize.Y = pageSize;
-        _scrollArea.Position = Vector2.Zero;
-        _scrollArea.Size = usedSpace.Round();
+//        pageSize = MathF.Max(pageSize, MathF.Ceiling(MinSize.Y * GetScale()));
+//        _measuredSize.Y = pageSize;
+//        _scrollArea.Position = Vector2.Zero;
+//        _scrollArea.Size = usedSpace.Round();
 
-        return _measuredSize;
-    }
+//        return _measuredSize;
+//    }
 
 #if !NEW_UI
     protected override Vector2 GetChildrenLayoutSize(Vector2 space, Vector2 measuredSize, Vector2 paddingSize)

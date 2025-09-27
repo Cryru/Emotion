@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+
 namespace Emotion.Game.Systems.UI;
 
 // On Rounding In UI Layout:
@@ -7,7 +8,7 @@ namespace Emotion.Game.Systems.UI;
 // Positions should always be rounded down.
 // Offsets (spacings) should always be rounded to the closest.
 
-public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBaseWindow>
+public partial class UIBaseWindow : IComparable<UIBaseWindow>
 {
     // Legacy attributes
 #if NEW_UI

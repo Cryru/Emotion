@@ -26,7 +26,7 @@ public class UIContainer : UIBaseWindow
     }
 }
 
-public partial class UIBaseWindow
+public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 {
     /// <summary>
     /// Unique identifier for this window within its parent, to be used with GetWindowById.
@@ -1108,6 +1108,15 @@ public partial class UIBaseWindow
     }
 
     #endregion
+
+    #endregion
+
+    #region IEnumerable
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
 
     #endregion
 }

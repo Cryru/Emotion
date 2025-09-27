@@ -154,13 +154,13 @@ public class UISlider : UIBaseWindow
     }
 
     // Glue new UI and old UI
-    protected override Vector2 Measure(Vector2 space)
-    {
-        var size = base.Measure(space);
-        AfterMeasure(size);
-        Logic();
-        return size;
-    }
+    //protected override Vector2 Measure(Vector2 space)
+    //{
+    //    var size = base.Measure(space);
+    //    AfterMeasure(size);
+    //    Logic();
+    //    return size;
+    //}
 
     protected void Logic()
     {

@@ -136,12 +136,12 @@ public class UINineSlice : UITexture
         return space;
     }
 
-#if !NEW_UI
-    protected override Vector2 NEW_InternalMeasure(Vector2 space)
-    {
-        return Vector2.Zero;// base.InternalMeasure(space);
-    }
-#endif
+//#if !NEW_UI
+//    protected override Vector2 NEW_InternalMeasure(Vector2 space)
+//    {
+//        return Vector2.Zero;// base.InternalMeasure(space);
+//    }
+//#endif
 
     protected override bool RenderInternal(Renderer composer)
     {

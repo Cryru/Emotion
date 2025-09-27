@@ -17,11 +17,11 @@ public class EditorWindowContent : UIBaseWindow
 {
     public Vector2 SizeConstraint;
 
-    protected override Vector2 NEW_InternalMeasure(Vector2 space)
-    {
-        var scale = GetScale();
-        return SizeConstraint * scale;
-    }
+    //protected override Vector2 NEW_InternalMeasure(Vector2 space)
+    //{
+    //    var scale = GetScale();
+    //    return SizeConstraint * scale;
+    //}
 }
 
 public enum PanelMode
@@ -95,11 +95,11 @@ public class EditorWindow : UIBaseWindow
         return _contentParent;
     }
 
-    protected override Vector2 Measure(Vector2 space)
-    {
-        if (_hostWindow != null) space = _hostWindow.Size;
-        return base.Measure(space);
-    }
+    //protected override Vector2 Measure(Vector2 space)
+    //{
+    //    if (_hostWindow != null) space = _hostWindow.Size;
+    //    return base.Measure(space);
+    //}
 
     protected override void OnOpen()
     {
