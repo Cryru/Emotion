@@ -111,7 +111,7 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
     {
         yield return null;
 
-        while (ve.Controller != null)
+        while (ve.State == Systems.UI.UIWindowState.Open)
         {
             yield return null;
 

@@ -51,15 +51,15 @@ public class EditorWindow : UIBaseWindow
         get => _panelMode;
         set
         {
-            if ((value == PanelMode.Embedded || _panelMode == PanelMode.Embedded) && Controller != null)
+            if ((value == PanelMode.Embedded || _panelMode == PanelMode.Embedded) && State != UIWindowState.Open)
             {
-                Assert(false, "Embedded mode can only be set/unset prior to it attaching to a controller.");
+                Assert(false, "Embedded mode can only be set/unset prior the window opening.");
                 return;
             }
 
-            if ((value == PanelMode.Modal || _panelMode == PanelMode.Modal) && Controller != null)
+            if ((value == PanelMode.Modal || _panelMode == PanelMode.Modal) && State != UIWindowState.Open)
             {
-                Assert(false, "Modal mode can only be set/unset prior to it attaching to a controller.");
+                Assert(false, "Modal mode can only be set/unset prior the window opening.");
                 return;
             }
 
@@ -224,7 +224,7 @@ public class EditorWindow : UIBaseWindow
 
         if (_topBar != null)
         {
-            UIBaseWindow? focus = Controller!.InputFocus;
+            UIBaseWindow? focus = Engine.UI.InputFocus;
             if (focus != null && focus.IsWithin(this))
                 c.RenderSprite(_topBar.Position, _topBar.Size, _topBarMouseDown || _topBar.MouseInside ? EditorColorPalette.ActiveButtonColor : EditorColorPalette.ButtonColor);
             else
@@ -430,11 +430,11 @@ public class EditorWindow : UIBaseWindow
                 _panelItself.Size
             );
 
-            Rectangle snapArea = Controller!.Bounds;
+            Rectangle snapArea = Engine.UI.CalculatedMetrics.Bounds.GetRect();
             snapArea.Width += panelBounds.Width / 2f;
             snapArea.Height += panelBounds.Height / 2f;
 
-            UIBaseWindow? mapEditorTopBar = Controller.GetWindowById("EditorTopBar");
+            UIBaseWindow? mapEditorTopBar = Engine.UI.GetWindowById("EditorTopBar");
             if (mapEditorTopBar != null)
             {
                 float topBarPos = mapEditorTopBar.Bounds.Bottom;

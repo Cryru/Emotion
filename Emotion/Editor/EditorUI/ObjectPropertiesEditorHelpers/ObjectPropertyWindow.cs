@@ -52,7 +52,7 @@ public class ObjectPropertyWindow : UIBaseWindow
 
     private void SpawnEditors()
     {
-        if (Controller == null) return;
+        if (State != UIWindowState.Open) return;
 
         // todo: check if value type or array without a value changed - in that case we want to display an error since
         // the object changes have nowhere to be propagated to.

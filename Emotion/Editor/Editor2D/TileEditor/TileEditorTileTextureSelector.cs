@@ -175,10 +175,9 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
 
     protected override void RenderChildren(Renderer c)
     {
-        List<UIBaseWindow> children = GetWindowChildren();
-        for (var i = 0; i < children.Count; i++)
+        for (var i = 0; i < Children.Count; i++)
         {
-            UIBaseWindow child = children[i];
+            UIBaseWindow child = Children[i];
             if (!child.Visible) continue;
             if (child.OverlayWindow) continue;
 

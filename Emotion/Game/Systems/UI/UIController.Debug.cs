@@ -34,7 +34,7 @@ public partial class UIController
 
     private static bool Debug_GetWindowsUnderMouseInner(UIBaseWindow win, Vector2 mousePos, List<(UIBaseWindow, int)> output, int depth)
     {
-        List<UIBaseWindow> children = win.GetWindowChildren();
+        List<UIBaseWindow> children = win.Children;
 
         if (children.Count == 0)
         {

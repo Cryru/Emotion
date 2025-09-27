@@ -108,7 +108,7 @@ public class ListEditor<TItem> : ListEditor
 
     protected void RespawnItemsUI(IList<TItem?>? newItems)
     {
-        if (Controller == null) return;
+        if (State != UIWindowState.Open) return;
         _itemList.ClearChildren();
 
         if (newItems == null) goto end;
@@ -307,7 +307,7 @@ end:
         if (!_inlineEditor)
         {
             int idx = 0;
-            foreach (EditorListItem<TItem> listItem in _itemList.WindowChildren())
+            foreach (EditorListItem<TItem> listItem in _itemList.Children)
             {
                 UpdateListItemUI(idx, listItem);
                 idx++;

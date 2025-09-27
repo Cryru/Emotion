@@ -454,7 +454,7 @@ public partial class UIController : UIBaseWindow
         {
             newFocus = null;
         }
-        else if (_inputFocusManual != null && _inputFocusManual.VisibleAlongTree() && _inputFocusManual.HandleInput && _inputFocusManual.Controller == this)
+        else if (_inputFocusManual != null && _inputFocusManual.VisibleAlongTree() && _inputFocusManual.HandleInput && _inputFocusManual.State == UIWindowState.Open)
         {
             newFocus = _inputFocusManual;
         }

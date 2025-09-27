@@ -41,8 +41,7 @@ public class EditorTabbedContent : UIBaseWindow
 
     private void UnmarkAllButtons()
     {
-        List<UIBaseWindow> children = _tabButtons.GetWindowChildren();
-        foreach (UIBaseWindow child in children)
+        foreach (UIBaseWindow child in _tabButtons.Children)
         {
             if (child is EditorButton button)
                 button.SetActiveMode(false);

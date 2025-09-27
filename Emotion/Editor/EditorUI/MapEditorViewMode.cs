@@ -147,7 +147,7 @@ public class MapEditorViewMode : UIBaseWindow
         MapEditorMode mode = EngineEditor.MapEditorMode;
 
         UIBaseWindow buttonList = GetWindowByIdSafe("ButtonList");
-        foreach (UIBaseWindow button in buttonList.WindowChildren())
+        foreach (UIBaseWindow button in buttonList.Children)
         {
             if (button is MapEditorViewModeButton pickerButton)
                 pickerButton.SetActiveMode(mode.Equals(pickerButton.UserData));

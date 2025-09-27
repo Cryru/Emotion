@@ -359,7 +359,7 @@ public static partial class EngineEditor
 
     public static void OpenToolWindowUnique(UIBaseWindow tool)
     {
-        foreach (UIBaseWindow item in EditorRoot.WindowChildren())
+        foreach (UIBaseWindow item in EditorRoot.Children)
         {
             if (item.GetType() == tool.GetType())
             {

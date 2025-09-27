@@ -45,6 +45,65 @@ public partial class UIBaseWindow
 
     public O_UIWindowCalculatedMetrics CalculatedMetrics = new O_UIWindowCalculatedMetrics();
 
+    #region Main Properties
+
+    /// <summary>
+    /// Whether the window is visible.
+    /// If not, the RenderInternal function will not be called and
+    /// children will not be drawn either.
+    /// </summary>
+    public bool Visible
+    {
+        get => _visible;
+        set
+        {
+            if (value == _visible) return;
+            _visible = value;
+
+            Engine.UI.InvalidateInputFocus();
+            if (DontTakeSpaceWhenHidden)
+                InvalidateLayout();
+        }
+    }
+
+    private bool _visible = true;
+
+    /// <summary>
+    /// Whether to consider this window as part of the layout when invisible.
+    /// Matters only within lists.
+    /// </summary>
+    public bool DontTakeSpaceWhenHidden
+    {
+        get => _dontTakeSpaceWhenHidden;
+        set
+        {
+            if (value == _dontTakeSpaceWhenHidden) return;
+            _dontTakeSpaceWhenHidden = value;
+            InvalidateLayout();
+        }
+    }
+
+    private bool _dontTakeSpaceWhenHidden;
+
+    /// <summary>
+    /// The Z axis is combined with that of the parent, whose is combined with that of their parent, and so forth.
+    /// This is the Z offset for this window, added to this window and its children.
+    /// </summary>
+    public float OrderInParent
+    {
+        get => _priority;
+        set
+        {
+            if (_priority == value) return;
+            _priority = value;
+            InvalidateLayout();
+        }
+    }
+
+    protected float _priority;
+
+    #endregion
+
     public UIBaseWindow()
     {
         Layout.SetWindowOwner(this);
@@ -197,79 +256,6 @@ public partial class UIBaseWindow
 
     private UIAnchor _anchor { get; set; } = UIAnchor.TopLeft;
 
-    protected static Vector2 GetUIAnchorPosition(UIAnchor parentAnchor, Vector2 parentSize, Rectangle parentContentRect, UIAnchor anchor, Vector2 contentSize)
-    {
-        Vector2 offset = Vector2.Zero;
-
-        switch (parentAnchor)
-        {
-            case UIAnchor.TopLeft:
-            case UIAnchor.CenterLeft:
-            case UIAnchor.BottomLeft:
-                offset.X += parentContentRect.X;
-                break;
-            case UIAnchor.TopCenter:
-            case UIAnchor.CenterCenter:
-            case UIAnchor.BottomCenter:
-                offset.X += parentSize.X / 2;
-                break;
-            case UIAnchor.TopRight:
-            case UIAnchor.CenterRight:
-            case UIAnchor.BottomRight:
-                offset.X += parentContentRect.Width;
-                break;
-        }
-
-        switch (parentAnchor)
-        {
-            case UIAnchor.TopLeft:
-            case UIAnchor.TopCenter:
-            case UIAnchor.TopRight:
-                offset.Y += parentContentRect.Y;
-                break;
-            case UIAnchor.CenterLeft:
-            case UIAnchor.CenterCenter:
-            case UIAnchor.CenterRight:
-                offset.Y += parentSize.Y / 2;
-                break;
-            case UIAnchor.BottomLeft:
-            case UIAnchor.BottomCenter:
-            case UIAnchor.BottomRight:
-                offset.Y += parentContentRect.Height;
-                break;
-        }
-
-        switch (anchor)
-        {
-            case UIAnchor.TopCenter:
-            case UIAnchor.CenterCenter:
-            case UIAnchor.BottomCenter:
-                offset.X -= contentSize.X / 2;
-                break;
-            case UIAnchor.TopRight:
-            case UIAnchor.CenterRight:
-            case UIAnchor.BottomRight:
-                offset.X -= contentSize.X;
-                break;
-        }
-
-        switch (anchor)
-        {
-            case UIAnchor.CenterLeft:
-            case UIAnchor.CenterCenter:
-            case UIAnchor.CenterRight:
-                offset.Y -= contentSize.Y / 2;
-                break;
-            case UIAnchor.BottomLeft:
-            case UIAnchor.BottomCenter:
-            case UIAnchor.BottomRight:
-                offset.Y -= contentSize.Y;
-                break;
-        }
-
-        return offset;
-    }
-
     #endregion
 
     #region Hierarchy
@@ -365,13 +351,6 @@ public partial class UIBaseWindow
     {
         if (within == null) return false;
         if (within == this) return true;
-
-        //if (RelativeTo != null)
-        //{
-        //    UIBaseWindow? relativeToWin = Controller?.GetWindowById(RelativeTo);
-        //    if (relativeToWin == null) return false;
-        //    return relativeToWin.IsWithin(within);
-        //}
 
         UIBaseWindow? parent = Parent;
         while (parent != null)
@@ -632,9 +611,51 @@ public partial class UIBaseWindow
 
     #region Helpers
 
+    /// <summary>
+    /// Get a window with the specified id which is either a child of this window,
+    /// or below it on the tree.
+    /// </summary>
+    public virtual UIBaseWindow? GetWindowById(string id)
+    {
+        if (id == Name) return this;
+        for (var i = 0; i < Children.Count; i++)
+        {
+            if (Children[i].Name == id)
+                return Children[i];
+        }
+
+        for (var i = 0; i < Children.Count; i++)
+        {
+            UIBaseWindow? win = Children[i].GetWindowById(id);
+            if (win != null) return win;
+        }
+
+        return null;
+    }
+
+    public TWindow? GetWindowById<TWindow>(string id) where TWindow : UIBaseWindow
+    {
+        UIBaseWindow? win = GetWindowById(id);
+        TWindow? asType = win as TWindow;
+        if (asType == null && win != null)
+            Engine.Log.Warning($"Window with id {id} found of the {win.GetType().Name} type rather than the {typeof(TWindow).Name} type!", "UI", true);
+
+        return asType;
+    }
+
+    private static UIBaseWindow _invalidWindow = new UIBaseWindow() { Name = "Invalid Window" };
+
+    public UIBaseWindow GetWindowByIdSafe(string id)
+    {
+        UIBaseWindow? win = GetWindowById(id);
+        if (win == null) return _invalidWindow;
+        return win;
+    }
+
     public bool VisibleAlongTree()
     {
-        if (Controller == null) return false;
+        if (State != UIWindowState.Open)
+            return false;
 
         UIBaseWindow? parent = Parent;
         while (parent != null)
@@ -657,6 +678,11 @@ public partial class UIBaseWindow
             parent = parent.Parent;
         }
         return null;
+    }
+
+    public override string ToString()
+    {
+        return $"{(string.IsNullOrEmpty(Name) ? "Window" : Name)}: {GetType().ToString().Replace("Emotion.UI.", "")}";
     }
 
     #endregion

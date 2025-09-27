@@ -215,7 +215,7 @@ public class UITextInput : UIText
 
     private void TextInputEventHandler(char c)
     {
-        bool focused = Controller?.InputFocus == this;
+        bool focused = Engine.UI.InputFocus == this;
         if (!focused) return;
 
         if (c == '\r') c = '\n';
@@ -321,7 +321,7 @@ public class UITextInput : UIText
 
         // Maybe recalculate selection box only when text/selection changes?
         // On the other hand only one can be focused at a time soooo
-        bool focused = Controller?.InputFocus == this;
+        bool focused = Engine.UI.InputFocus == this;
         if (focused && _layouter != null)
         {
             _layouter.RestartPen();

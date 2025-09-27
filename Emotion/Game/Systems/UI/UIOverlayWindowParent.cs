@@ -20,13 +20,13 @@ public class UIOverlayWindowParent : UIBaseWindow
             Rectangle? clip = c.CurrentState.ClipRect;
             c.SetClipRect(null);
 
-            Controller.RenderOverlayChildren(this, c);
+            //Controller.RenderOverlayChildren(this, c);
 
             c.SetClipRect(clip);
         }
         else
         {
-            Controller.RenderOverlayChildren(this, c);
+            //Controller.RenderOverlayChildren(this, c);
         }
     }
 }

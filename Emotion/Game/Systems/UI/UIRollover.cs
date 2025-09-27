@@ -16,18 +16,18 @@ public class UIRollover : UIBaseWindow
         OrderInParent = 99;
     }
 
-    protected override void OLDLayout(Vector2 pos, Vector2 size)
-    {
-        float paddingScaled = RolloverPadding * GetScale();
+    //protected override void OLDLayout(Vector2 pos, Vector2 size)
+    //{
+    //    float paddingScaled = RolloverPadding * GetScale();
 
-        Rectangle controllerBox = Controller.Bounds;
-        controllerBox.X += paddingScaled;
-        controllerBox.Y += paddingScaled;
-        controllerBox.Width -= paddingScaled * 2;
-        controllerBox.Height -= paddingScaled * 2;
+    //    Rectangle controllerBox = Controller.Bounds;
+    //    controllerBox.X += paddingScaled;
+    //    controllerBox.Y += paddingScaled;
+    //    controllerBox.Width -= paddingScaled * 2;
+    //    controllerBox.Height -= paddingScaled * 2;
 
-        Rectangle myBounds = new Rectangle(pos, size);
-        Vector2 snappedPos = controllerBox.SnapRectangleInside(myBounds);
-        base.OLDLayout(snappedPos, size);
-    }
+    //    Rectangle myBounds = new Rectangle(pos, size);
+    //    Vector2 snappedPos = controllerBox.SnapRectangleInside(myBounds);
+    //    base.OLDLayout(snappedPos, size);
+    //}
 }

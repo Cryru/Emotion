@@ -79,7 +79,7 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
 
     protected void SpawnEditors()
     {
-        if (Controller == null) return;
+        if (State != UIWindowState.Open) return;
 
         EditorList.ClearChildren();
         _memberToEditor.Clear();

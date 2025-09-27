@@ -21,13 +21,6 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
     /// </summary>
     public static Vector2 DefaultMaxSize = new(DefaultMaxSizeF, DefaultMaxSizeF);
 
-    #region Runtime State
-
-    [DontSerialize]
-    public UIController? Controller { get; protected set; }
-
-    #endregion
-
     #region Loading, Update, Render
 
     private Task _loadingTask = Task.CompletedTask;
@@ -76,58 +69,6 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
    
 
 
-
-    #endregion
-
-    #region Hierarchy
-
-    //public virtual void AttachedToController(UIController controller)
-    //{
-    //    bool isPresent = controller.IsWindowPresentInHierarchy(this);
-    //    if (isPresent)
-    //    {
-    //        Assert(false, "Window is present in hierarchy twice!");
-    //        return;
-    //    }
-
-    //    controller.RegisterWindowInController(this);
-
-    //    Controller = controller;
-    //    Controller?.InvalidatePreload();
-
-    //    if (Children == null) return;
-    //    for (var i = 0; i < Children.Count; i++)
-    //    {
-    //        UIBaseWindow child = Children[i];
-    //        child.AttachedToController(controller);
-    //    }
-    //}
-
-    //public virtual void DetachedFromController(UIController controller)
-    //{
-    //    controller.RemoveWindowFromController(this);
-
-    //    Controller = null;
-    //    if (Children == null) return;
-    //    for (var i = 0; i < Children.Count; i++)
-    //    {
-    //        UIBaseWindow child = Children[i];
-    //        child.DetachedFromController(controller);
-    //    }
-    //}
-
-
-
-    public virtual List<UIBaseWindow> GetWindowChildren()
-    {
-        if (Controller == null)
-            return EMPTY_CHILDREN_LIST;
-
-        AssertNotNull(Controller);
-        return Controller.GetChildrenMapping(this);
-    }
-
-   
 
     #endregion
 
@@ -186,48 +127,10 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
 
     private Vector2 _listSpacing;
 
-    /// <summary>
-    /// Whether the window is visible.
-    /// If not, the RenderInternal function will not be called and
-    /// children will not be drawn either.
-    /// </summary>
-    public bool Visible
-    {
-        get => _visible;
-        set
-        {
-            if (value == _visible) return;
-            _visible = value;
-            Controller?.InvalidateInputFocus();
-            if (DontTakeSpaceWhenHidden)
-                Controller?.InvalidateLayout();
-        }
-    }
 
-    private bool _visible = true;
 
-    /// <summary>
-    /// Whether to consider this window as part of the layout when invisible.
-    /// Matters only within lists.
-    /// </summary>
-    public bool DontTakeSpaceWhenHidden { get; set; }
 
-    /// <summary>
-    /// The Z axis is combined with that of the parent, whose is combined with that of their parent, and so forth.
-    /// This is the Z offset for this window, added to this window and its children.
-    /// </summary>
-    public float OrderInParent
-    {
-        get => _priority;
-        set
-        {
-            if (_priority == value) return;
-            _priority = value;
-            InvalidateLayout();
-        }
-    }
 
-    protected float _priority;
 
     /// <summary>
     /// Margins push the window in one of the four directions, only if it is against another window.
@@ -665,64 +568,6 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
     #region Helpers
 
     public const string SPECIAL_WIN_ID_MOUSE_FOCUS = "MouseFocus";
-    public const string SPECIAL_WIN_ID_CONTROLLER = "Controller";
-    public const string SPECIAL_WIN_ID_DROPDOWN = "DropdownSpecial";
-
-
-    /// <summary>
-    /// Get a window with the specified id which is either a child of this window,
-    /// or below it on the tree.
-    /// </summary>
-    /// <param name="id">The id of the window to look for.</param>
-    /// <returns>The instance of the window.</returns>
-    public virtual UIBaseWindow? GetWindowById(string id)
-    {
-        if (id == SPECIAL_WIN_ID_MOUSE_FOCUS)
-            return UIController.MouseFocus;
-
-        //if (id == SPECIAL_WIN_ID_DROPDOWN && this is UIDropDown dropDown)
-        //    return dropDown.SpawningWindow;
-
-        if (id == SPECIAL_WIN_ID_CONTROLLER)
-            return Controller;
-
-        if (id == Name) return this;
-        if (Children == null) return null;
-
-        for (var i = 0; i < Children.Count; i++)
-        {
-            if (Children[i].Name == id) return Children[i];
-        }
-
-        for (var i = 0; i < Children.Count; i++)
-        {
-            UIBaseWindow? win = Children[i].GetWindowById(id);
-            if (win != null) return win;
-        }
-
-        return null;
-    }
-
-    public TWindow? GetWindowById<TWindow>(string id) where TWindow : UIBaseWindow
-    {
-        var win = GetWindowById(id);
-        var asType = win as TWindow;
-        if (asType == null && win != null)
-            Engine.Log.Warning($"Window with id {id} found of the {win.GetType().Name} type rather than the {typeof(TWindow).Name} type!", "UI", true);
-
-        return asType;
-    }
-
-    private static UIBaseWindow _invalidWindow = new UIBaseWindow() { Name = "Invalid Window" };
-
-    public UIBaseWindow GetWindowByIdSafe(string id)
-    {
-        UIBaseWindow? win = GetWindowById(id);
-        if (win == null) return _invalidWindow;
-        return win;
-    }
-
-
 
     /// <summary>
     /// Clone the window. By default this performs a serialization clone.
@@ -745,50 +590,9 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
         return MathF.Sign(OrderInParent - other.OrderInParent);
     }
 
-    public override string ToString()
-    {
-        return $"{(string.IsNullOrEmpty(Name) ? "Window" : Name)}: {GetType().ToString().Replace("Emotion.UI.", "")}";
-    }
-
-    public static T? CreateFromAsset<T>(string assetPath) where T : UIBaseWindow
-    {
-        var asset = Engine.AssetLoader.Get<XMLAsset<UIBaseWindow>>(assetPath);
-        if (asset == null) return null;
-        var content = asset.Content;
-        if (content == null) return null;
-        if (content is not T) return null;
-
-        // Clone as to prevent modifying the cached asset data.
-        // We could alternatively load the asset as non-cached but that
-        // will mean it is read from the disk every time this window is
-        // initialized.
-
-        string? xml = XMLFormat.To(content);
-        AssertNotNull(xml); // Serialization failed, how did it deserialize then?
-        return XMLFormat.From<T>(xml)!;
-    }
-
     #endregion
 
     #region Enum
-
-    public IEnumerable<UIBaseWindow> ForEachChildrenDeep()
-    {
-        var childrenLists = new Queue<UIBaseWindow>();
-        childrenLists.Enqueue(this);
-
-        while (childrenLists.TryDequeue(out UIBaseWindow? queueTop))
-        {
-            yield return queueTop;
-
-            List<UIBaseWindow> children = queueTop.Children ?? EMPTY_CHILDREN_LIST;
-            for (int i = 0; i < children.Count; i++)
-            {
-                UIBaseWindow child = children[i];
-                childrenLists.Enqueue(child);
-            }
-        }
-    }
 
     public IEnumerator<UIBaseWindow> GetEnumerator()
     {
@@ -813,25 +617,6 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
                 }
             }
         }
-    }
-
-    public IEnumerable<UIBaseWindow> WindowChildren()
-    {
-        for (var i = 0; i < Children?.Count; i++)
-        {
-            UIBaseWindow cur = Children[i];
-            yield return cur;
-        }
-    }
-
-    public IEnumerable<UIBaseWindow> EnumerateChildren()
-    {
-        return WindowChildren();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
     }
 
     #endregion

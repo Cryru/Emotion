@@ -182,26 +182,26 @@ public class UIScrollArea : UIBaseWindow
             _parent = parent;
         }
 
-        protected override Vector2 Measure_ExpandByChildren(Vector2 myMeasure, Vector2 childrenUsed)
-        {
-            // The scroll area is only expanded by its children if set to expand
-            Vector2 size = myMeasure;
-            if (_parent.ExpandX) size.X = MathF.Max(childrenUsed.X, size.X);
-            if (_parent.ExpandY) size.Y = MathF.Max(childrenUsed.Y, size.Y);
-            return size;
-        }
+        //protected override Vector2 Measure_ExpandByChildren(Vector2 myMeasure, Vector2 childrenUsed)
+        //{
+        //    // The scroll area is only expanded by its children if set to expand
+        //    Vector2 size = myMeasure;
+        //    if (_parent.ExpandX) size.X = MathF.Max(childrenUsed.X, size.X);
+        //    if (_parent.ExpandY) size.Y = MathF.Max(childrenUsed.Y, size.Y);
+        //    return size;
+        //}
 
-        protected override void Measure_SetLayoutEngineDimensions(UILayoutEngine layoutEngine, Vector2 space, float scale)
-        {
-            layoutEngine.SetLayoutDimensions(new Rectangle(Vector2.Zero, DefaultMaxSize), Margins * scale, DefaultMaxSize, Paddings * scale);
-        }
+        //protected override void Measure_SetLayoutEngineDimensions(UILayoutEngine layoutEngine, Vector2 space, float scale)
+        //{
+        //    layoutEngine.SetLayoutDimensions(new Rectangle(Vector2.Zero, DefaultMaxSize), Margins * scale, DefaultMaxSize, Paddings * scale);
+        //}
 
-        protected override void Layout_SetLayoutEngineDimensions(UILayoutEngine layoutEngine, Vector2 pos, Vector2 size, float scale)
-        {
-            // Layout in the content space - this allows fills to work properly.
-            size = Vector2.Max(size, _measureChildrenUsedSpace);
-            base.Layout_SetLayoutEngineDimensions(layoutEngine, pos, size, scale);
-        }
+        //protected override void Layout_SetLayoutEngineDimensions(UILayoutEngine layoutEngine, Vector2 pos, Vector2 size, float scale)
+        //{
+        //    // Layout in the content space - this allows fills to work properly.
+        //    size = Vector2.Max(size, _measureChildrenUsedSpace);
+        //    base.Layout_SetLayoutEngineDimensions(layoutEngine, pos, size, scale);
+        //}
 
         protected override void AfterLayout()
         {
@@ -227,7 +227,7 @@ public class UIScrollArea : UIBaseWindow
 
         protected override void RenderChildren(Renderer c)
         {
-            List<UIBaseWindow> children = GetWindowChildren();
+            List<UIBaseWindow> children = Children;
 
             Rectangle clipRect = Bounds.Offset(c.ModelMatrix.Translation.ToVec2());
             Rectangle? prevClip = c.CurrentState.ClipRect;

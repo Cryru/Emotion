@@ -46,6 +46,11 @@ public record struct IntRectangle
         Size = new IntVector2(w, h);
     }
 
+    public Rectangle GetRect()
+    {
+        return new Rectangle(X, Y, Width, Height);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Contains(Vector2 value)
     {
