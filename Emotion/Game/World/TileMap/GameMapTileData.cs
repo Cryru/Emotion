@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using Emotion.Core.Systems.IO;
+using Emotion.Core.Utility.Coroutines;
 using Emotion.Graphics.Assets;
 using Emotion.Primitives.Grids;
 
@@ -14,36 +16,40 @@ public class GameMapTileData
 
     public IEnumerator InitRuntimeDataRoutine()
     {
-        _tilesetTexturesLoaded = new Texture[Tilesets.Count];
+        var textures = new Texture[Tilesets.Count];
+        _tilesetTexturesLoaded = textures;
+
+        static Action<object> OnTileSetTextureLoaded(Texture[] textures, TextureReference asset, TileMapTileset tileset, int index)
+        {
+            return (_) =>
+            {
+                Texture? texture = asset.GetObject();
+                textures[index] = texture ?? Texture.EmptyWhiteTexture;
+                if (texture == null)
+                    return;
+                if (tileset.BilinearFilterTexture)
+                    texture.Smooth = true;
+            };
+        }
 
         // Cause loading of all tileset assets and add self as referencing
+        Coroutine[] routines = new Coroutine[_tilesetTexturesLoaded.Length];
         for (int i = 0; i < Tilesets.Count; i++)
         {
+            _tilesetTexturesLoaded[i] = Texture.EmptyWhiteTexture;
+
             TileMapTileset ts = Tilesets[i];
-            ts.Texture.Get(this);
+            TextureReference asset = ts.Texture;
+            routines[i] = Engine.CoroutineManager.StartCoroutine(
+                asset.PerformLoading(
+                    this,
+                    OnTileSetTextureLoaded(textures, asset, ts, i),
+                    true
+                )
+            );
         }
 
-        // Wait to load
-        for (int i = 0; i < Tilesets.Count; i++)
-        {
-            TileMapTileset ts = Tilesets[i];
-            TextureAsset asset = ts.Texture.Get();
-            yield return asset;
-
-            // todo: hot reload
-            if (asset.Loaded)
-            {
-                Texture texture = asset.Texture;
-                if (ts.BilinearFilterTexture)
-                    texture.Smooth = true;
-
-                _tilesetTexturesLoaded[i] = texture;
-            }
-            else
-            {
-                _tilesetTexturesLoaded[i] = Texture.EmptyWhiteTexture;
-            }
-        }
+        yield return Coroutine.WhenAll(routines);
     }
 
     public void UnloadRuntimeData()
@@ -51,8 +57,7 @@ public class GameMapTileData
         for (int i = 0; i < Tilesets.Count; i++)
         {
             TileMapTileset ts = Tilesets[i];
-            TextureAsset? asset = ts.Texture.Get();
-            Engine.AssetLoader.RemoveReferenceFromAsset(asset, this, true);
+            ts.Texture.Cleanup();
         }
     }
 

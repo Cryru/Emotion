@@ -4,6 +4,7 @@
 
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Core.Utility.Threading;
+using Emotion.Game.Systems.UI.New;
 using Emotion.Game.Systems.UI2;
 using static Emotion.Game.Systems.UI2.UILayoutMethod;
 
@@ -323,7 +324,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         Children.Add(child);
 
         // Start loading early, dont wait for next update
-        child.AttemptLoad();
+        child.UpdateLoading();
 
         // Custom insertion sort as Array.Sort is unstable
         // Isn't too problematic performance wise since adding children shouldn't happen often.
@@ -471,14 +472,23 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         return _needsLoading || !_loadingRoutine.Finished;
     }
 
-    private void AttemptLoad()
+    protected void UpdateLoading()
     {
-        // Already loading
-        if (!_loadingRoutine.Finished) return;
+        // Update loading only if not currently loading
+        if (_needsLoading && _loadingRoutine.Finished)
+        {
+            // Try to get the loading routine.
+            Coroutine? newLoading = InternalLoad();
+            if (newLoading != null)
+                _loadingRoutine = newLoading;
 
-        // Try to get the loading routine.
-        _loadingRoutine = InternalLoad() ?? Coroutine.CompletedRoutine;
-        _needsLoading = false;
+            _needsLoading = false;
+        }
+
+        foreach (UIBaseWindow child in Children)
+        {
+            child.UpdateLoading();
+        }
     }
 
     protected virtual Coroutine? InternalLoad()
@@ -531,18 +541,12 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         }
     }
 
-    private float _lastUpdateTime = 0;
-
     public void Update()
     {
         Assert(State == UIWindowState.Open);
 
-        if (Engine.TotalTime - _lastUpdateTime < 1000) return;
-        _lastUpdateTime = Engine.TotalTime;
-
-        // Check if needs to load...If loading we don't want to update or draw the UI
-        if (_needsLoading) AttemptLoad();
-        if (IsLoading()) return;
+        // If loading we don't want to update or draw the UI
+        if (this is not UISystem && IsLoading()) return;
 
         UpdateInternal();
         foreach (UIBaseWindow child in Children)
@@ -741,15 +745,15 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     }
 
-    protected void PerformDefaultLayout()
+    protected void DefaultLayout()
     {
-        PreLayout();
-        CalculatedMetrics.Size = MeasureWindow();
-        GrowWindow();
-        LayoutWindow(CalculatedMetrics.Position);
+        Step0_PreLayout();
+        CalculatedMetrics.Size = Step1_MeasureWindow();
+        Step2_GrowWindow();
+        Step3_LayoutWindow(CalculatedMetrics.Position);
     }
 
-    protected void PreLayout()
+    protected void Step0_PreLayout()
     {
         _needsLayout = false;
 
@@ -778,11 +782,11 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
         foreach (UIBaseWindow child in Children)
         {
-            child.PreLayout();
+            child.Step0_PreLayout();
         }
     }
 
-    private IntVector2 MeasureWindow()
+    private IntVector2 Step1_MeasureWindow()
     {
         IntVector2 childrenSize = IntVector2.Zero;
         switch (Layout.LayoutMethod.Mode)
@@ -793,7 +797,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                     if (SkipWindowLayout(child)) continue;
                     if (child.IsLoading()) continue;
 
-                    IntVector2 childSize = child.MeasureWindow();
+                    IntVector2 childSize = child.Step1_MeasureWindow();
                     child.CalculatedMetrics.Size = childSize;
                     childrenSize = IntVector2.Max(childrenSize, childSize + child.CalculatedMetrics.MarginsSize);
                 }
@@ -810,7 +814,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                 {
                     if (SkipWindowLayout(child)) continue;
 
-                    IntVector2 childSize = child.IsLoading() ? IntVector2.Zero : child.MeasureWindow();
+                    IntVector2 childSize = child.IsLoading() ? IntVector2.Zero : child.Step1_MeasureWindow();
                     child.CalculatedMetrics.Size = childSize;
 
                     pen[listMask] += childSize[listMask] + child.CalculatedMetrics.MarginsSize[listMask];
@@ -852,7 +856,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         );
     }
 
-    private void GrowWindow()
+    private void Step2_GrowWindow()
     {
         // Early out
         if (Children.Count == 0)
@@ -872,7 +876,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                     if (child.Layout.SizingY.Mode == UISizing.UISizingMode.Grow)
                         child.CalculatedMetrics.Size.Y = Math.Max(child.CalculatedMetrics.Size.Y, myMeasuredSize.Y - child.CalculatedMetrics.MarginsSize.Y);
 
-                    child.GrowWindow();
+                    child.Step2_GrowWindow();
                 }
                 break;
 
@@ -972,14 +976,14 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                 foreach (UIBaseWindow child in Children)
                 {
                     if (SkipWindowLayout(child)) continue;
-                    child.GrowWindow();
+                    child.Step2_GrowWindow();
                 }
 
                 break;
         }
     }
 
-    private void LayoutWindow(IntVector2 pos)
+    private void Step3_LayoutWindow(IntVector2 pos)
     {
         CalculatedMetrics.Position = pos;
 
@@ -1004,7 +1008,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                     if (child.Layout.Anchor == UIAnchor.TopLeft && child.Layout.ParentAnchor == UIAnchor.TopLeft) // Shortcut for most common
                     {
                         child.CalculatedMetrics.InsideParent = true;
-                        child.LayoutWindow(parentContentRect.Position + child.Layout.Margins.TopLeft.FloorMultiply(child.CalculatedMetrics.Scale) + child.CalculatedMetrics.Offsets);
+                        child.Step3_LayoutWindow(parentContentRect.Position + child.Layout.Margins.TopLeft.FloorMultiply(child.CalculatedMetrics.Scale) + child.CalculatedMetrics.Offsets);
                     }
                     else
                     {
@@ -1019,7 +1023,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                             child.Layout.ParentAnchor, contentRectForThisChild,
                             child.Layout.Anchor, child.CalculatedMetrics.Size
                         );
-                        child.LayoutWindow(anchorPos + child.CalculatedMetrics.Offsets);
+                        child.Step3_LayoutWindow(anchorPos + child.CalculatedMetrics.Offsets);
                     }
                 }
                 break;
@@ -1053,7 +1057,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                     IntVector2 childTopLeftMargin = child.Layout.Margins.TopLeft.FloorMultiply(child.CalculatedMetrics.Scale);
                     childPosition += childTopLeftMargin;
 
-                    child.LayoutWindow(childPosition + child.CalculatedMetrics.Offsets);
+                    child.Step3_LayoutWindow(childPosition + child.CalculatedMetrics.Offsets);
                     pen[listMask] += child.CalculatedMetrics.Size[listMask] + child.CalculatedMetrics.MarginsSize[listMask] + listSpacing;
                 }
                 break;

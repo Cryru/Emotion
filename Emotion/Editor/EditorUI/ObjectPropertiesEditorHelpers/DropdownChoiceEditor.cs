@@ -1,6 +1,7 @@
 ﻿using Emotion.Editor.EditorUI.Base;
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI2.Editor;
 
 #nullable enable
 
@@ -36,17 +37,17 @@ public class DropdownChoiceEditor<T> : ArrayEditorBase<T>
         };
         AddChild(arrowSquare);
 
-        var arrowIcon = new UITexture()
+        UIPicture arrowIcon = new()
         {
             Layout =
             {
-                Offset = new IntVector2(0, 4)
+                Offset = new IntVector2(0, 4),
+                AnchorAndParentAnchor = UIAnchor.CenterCenter
             },
 
             Smooth = true,
-            TextureFile = "Editor/LittleArrow.png",
+            Texture = "Editor/LittleArrow.png",
             ImageScale = new Vector2(0.6f),
-            AnchorAndParentAnchor = UIAnchor.CenterCenter
         };
         arrowSquare.AddChild(arrowIcon);
     }

@@ -1,4 +1,5 @@
 ﻿using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI2.Editor;
 
 #nullable enable
 
@@ -25,11 +26,10 @@ public class GridEditorToolButton : UICallbackButton
         AddChild(windowBackground);
         _windowBackground = windowBackground;
 
-        var iconUI = new UITexture
+        UIPicture iconUI = new()
         {
-            TextureFile = $"Editor/{Tool.Name}.png",
+            Texture = $"Editor/{Tool.Name}.png",
             Smooth = true,
-            ImageScale = new Vector2(1f)
         };
         AddChild(iconUI);
 

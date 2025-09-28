@@ -34,7 +34,7 @@ public class UIPicture : UIBaseWindow
         get => _textureBacking;
         set
         {
-            _textureBacking = value;
+            _textureBacking = value.CloneForSafety();
             InvalidateLoaded();
         }
     }
@@ -152,7 +152,6 @@ public class UIPicture : UIBaseWindow
 
     private IEnumerator LoadAsset()
     {
-        yield return 1000;
         yield return Texture.PerformLoading(this, ProxyInvalidateLayout);
         _loadedTexture = Texture;
         InvalidateLayout();

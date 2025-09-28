@@ -3,6 +3,7 @@
 using System.IO;
 using Emotion.Core.Systems.IO;
 using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI2.Editor;
 
 #endregion
 
@@ -131,15 +132,16 @@ public class FileExplorerButton : UICallbackButton
             //return obj3DPreview;
         }
 
-        if (_extension == ".png" || _extension  == ".bmp" || _extension == ".eib")
+        if (_extension == ".png" || _extension == ".bmp" || _extension == ".eib")
         {
-            var texturePreview = new UITexture
+            UIPicture texturePreview = new()
             {
-                TextureFile = _fileName,
-                //RenderSize = new Vector2(-200, -100),
-                ParentAnchor = UIAnchor.CenterCenter,
-                Anchor = UIAnchor.CenterCenter,
-                RenderSize = new Vector2(-100, -100)
+                Texture = _fileName,
+                //RenderSize = new Vector2(-100, -100)
+                Layout =
+                {
+                    AnchorAndParentAnchor = UIAnchor.CenterCenter
+                },
             };
 
             return texturePreview;

@@ -78,7 +78,7 @@ public class AssetOrObjectReference<TAsset, TObject>
         }
     }
 
-    public IEnumerator PerformLoading(object? owningObject, Action<object>? onChanged) // This is more of an owner-reference binding than loading
+    public IEnumerator PerformLoading(object? owningObject, Action<object>? onChanged, bool callChangedOnFirstLoad = false) // This is more of an owner-reference binding than loading
     {
         if (_type == AssetOrObjectReferenceType.AssetName)
         {
@@ -105,6 +105,9 @@ public class AssetOrObjectReference<TAsset, TObject>
             _assetObject = _asset.GetObject();
             _type = AssetOrObjectReferenceType.Object;
         }
+
+        if (callChangedOnFirstLoad && owningObject != null && onChanged != null)
+            onChanged.Invoke(owningObject);
     }
 
     private void AssetReloaded(Asset obj)
@@ -183,4 +186,22 @@ public class AssetOrObjectReference<TAsset, TObject>
     }
 
     #endregion
+
+    public AssetOrObjectReference<TAsset, TObject> CloneForSafety()
+    {
+        // If using assets then we need to clone the reference since
+        // a reference can only be held by a since owner.
+        if (_assetName != null)
+            return _assetName;
+
+        // if using an object reference it doesn't matter, we can use the same.
+        return this;
+    }
+
+    public override string? ToString()
+    {
+        if (_assetName != null) return _assetName;
+        if (_assetObject != null) return _assetObject.ToString();
+        return "Invalid Asset/Object Reference";
+    }
 }

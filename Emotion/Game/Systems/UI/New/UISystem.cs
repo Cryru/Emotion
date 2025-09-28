@@ -23,24 +23,22 @@ public class UISystem : UIBaseWindow
 
     protected override bool UpdateInternal()
     {
-        TickInput();
-
-        if (_needsLayout)
-            PerformLayout();
+        UpdateInput();
+        UpdateLoading();
+        UpdateLayout();
 
         return base.UpdateInternal();
     }
 
-    private void PerformLayout()
+    private void UpdateLayout()
     {
-        if (_useCustomLayout)
-        {
-            PreLayout();
-            InternalCustomLayout();
+        if (!_needsLayout)
             return;
-        }
 
-        PerformDefaultLayout();
+        if (_useCustomLayout)
+            InternalCustomLayout();
+        else
+            DefaultLayout();
     }
 
     #region Scaling
@@ -102,7 +100,7 @@ public class UISystem : UIBaseWindow
         _needsFocusUpdate = true;
     }
 
-    private void TickInput()
+    private void UpdateInput()
     {
         if (_needsFocusUpdate) UpdateFocus();
         if (!_mouseMovedThisTick) UpdateMouseFocus();
@@ -177,7 +175,7 @@ public class UISystem : UIBaseWindow
 
         // It is possible to receive input with dirty focus.
         if (status == KeyState.Down)
-            TickInput();
+            UpdateInput();
 
         bool isScroll = key == Key.MouseWheel;
         if (!isScroll)
@@ -220,7 +218,7 @@ public class UISystem : UIBaseWindow
 
         // It is possible to receive input with dirty focus.
         if (status == KeyState.Down)
-            TickInput();
+            UpdateInput();
 
 
         return true;

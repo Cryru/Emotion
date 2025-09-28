@@ -5,6 +5,8 @@
 using Emotion.Core.Systems.Input;
 using Emotion.Core.Utility.Threading;
 using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI2;
+using Emotion.Game.Systems.UI2.Editor;
 using OpenGL;
 using static Emotion.Core.Platform.PlatformBase;
 using static Emotion.Graphics.Renderer;
@@ -300,12 +302,17 @@ public class EditorWindow : UIBaseWindow
         var dragAreaColor = new Color(180, 180, 180);
         var dragAreaActive = new Color(240, 240, 240);
 
-        UITexture dragArea = new UITexture
+        UIPicture dragArea = new()
         {
-            TextureFile = "Editor/PanelDragArea.png",
-            RenderSize = new Vector2(25, 25),
+            Layout =
+            {
+                SizingX = UISizing.Fixed(25),
+                SizingY = UISizing.Fixed(25),
+            },
+            Texture = "Editor/PanelDragArea.png",
+            TextureFitMode = UIPicture.UIPictureMode.Stretch,
             Smooth = true,
-            WindowColor = dragAreaColor
+            ImageColor = dragAreaColor
         };
 
         var dragButton = new UICallbackButton

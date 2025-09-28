@@ -5,6 +5,7 @@
 using Emotion.Core.Systems.Input;
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI2.Editor;
 using Emotion.Game.World.TileMap;
 using System.Linq;
 
@@ -20,7 +21,7 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
         set
         {
             _tilesetScale = value;
-            UITexture? texture = GetWindowById("TilesetTexture") as UITexture;
+            UIPicture? texture = GetWindowById<UIPicture>("TilesetTexture");
             if (texture != null)
             {
                 texture.ImageScale = new Vector2(_tilesetScale);
@@ -235,10 +236,10 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
         if (_tileset == null) return;
 
         _tilesetScale = 32f / _tileset.TileSize.X;
-        var textureUI = new UITexture
+        var textureUI = new UIPicture
         {
             Name = "TilesetTexture",
-            TextureFile = _tileset.Texture,
+            Texture = _tileset.Texture,
             ImageScale = new Vector2(_tilesetScale),
             //ScaleMode = UIScaleMode.NoScale,
             Smooth = true

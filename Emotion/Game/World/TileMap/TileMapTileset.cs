@@ -1,14 +1,12 @@
 ﻿#nullable enable
 
-using Emotion.Core.Systems.IO;
-using Emotion.Graphics.Assets;
 using Emotion.Primitives.Grids;
 
 namespace Emotion.Game.World.TileMap;
 
 public class TileMapTileset
 {
-    public SerializableAsset<TextureAsset> Texture = new();
+    public TextureReference Texture = new();
     public Vector2 Spacing;
     public Vector2 Margin;
     public Vector2 TileSize = Vector2.One;
@@ -16,14 +14,14 @@ public class TileMapTileset
 
     public override string ToString()
     {
-        return Texture?.Name ?? "Textureless Tileset";
+        return $"Tileset {Texture}" ?? "Textureless Tileset";
     }
 
     public Vector2 GetTilesetTextureSize()
     {
-        TextureAsset asset = Texture.Get();
-        if (!asset.Loaded) return TileSize;
-        return Vector2.Max(asset.Texture.Size, TileSize);
+        Texture? asset = Texture.GetObject();
+        if (asset == null) return TileSize;
+        return Vector2.Max(asset.Size, TileSize);
     }
 
     public Vector2 GetCoordOfTId(TileTextureId tId)

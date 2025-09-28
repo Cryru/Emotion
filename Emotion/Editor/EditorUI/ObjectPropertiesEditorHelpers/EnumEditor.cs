@@ -2,6 +2,7 @@
 
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI2.Editor;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
 
@@ -41,17 +42,17 @@ public class EnumEditor<T, TNum> : TypeEditor
         };
         AddChild(arrowSquare);
 
-        var arrowIcon = new UITexture()
+        UIPicture arrowIcon = new()
         {
             Layout =
             {
-                Offset = new IntVector2(0, 4)
+                Offset = new IntVector2(0, 4),
+                AnchorAndParentAnchor = UIAnchor.CenterCenter
             },
 
             Smooth = true,
-            TextureFile = "Editor/LittleArrow.png",
+            Texture = "Editor/LittleArrow.png",
             ImageScale = new Vector2(0.6f),
-            AnchorAndParentAnchor = UIAnchor.CenterCenter
         };
         arrowSquare.AddChild(arrowIcon);
     }

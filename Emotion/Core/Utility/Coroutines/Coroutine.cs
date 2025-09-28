@@ -256,4 +256,12 @@ public sealed class Coroutine : IRoutineWaiter
         yield return a;
         yield return b;
     }
+
+    public static IEnumerator WhenAll(Coroutine[] routines)
+    {
+        for (int i = 0; i < routines.Length; i++)
+        {
+            yield return routines[i];
+        }
+    }
 }

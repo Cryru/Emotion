@@ -84,8 +84,7 @@ public class MapEditorViewMode : UIBaseWindow
                     OutlineColor = Color.Black,
                     OutlineSize = 2,
                     AllowRenderBatch = false,
-                    FontSize = 25,
-                    Text = "Position:\nLook At:"
+                    FontSize = 25
                 },
                 new MapEditorViewModeOrientationGizmo()
                 {
@@ -179,11 +178,6 @@ public class MapEditorViewMode : UIBaseWindow
         public MapEditorViewModeOrientationGizmo()
         {
             _gizmoEntity ??= TranslationGizmo.GetTranslationGizmoEntity(15, 15, false)!;
-        }
-
-        protected override void InternalOnLayoutComplete()
-        {
-            Console.WriteLine(CalculatedMetrics.Bounds);
         }
 
         protected override void InternalRender(Renderer r)

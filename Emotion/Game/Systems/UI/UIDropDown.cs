@@ -21,7 +21,7 @@ public class UIAttachedWindow : UIBaseWindow
         if (AttachedTo != null)
             CalculatedMetrics.Position = GetAnchorPosition(Layout.ParentAnchor, AttachedTo.CalculatedMetrics.Bounds, Layout.Anchor, CalculatedMetrics.Size);
 
-        PerformDefaultLayout();
+        DefaultLayout();
     }
 }
 

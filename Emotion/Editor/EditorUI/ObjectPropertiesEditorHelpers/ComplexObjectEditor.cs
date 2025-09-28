@@ -5,6 +5,7 @@ using Emotion.Editor.EditorUI.Components;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector;
+using Emotion.Game.Systems.UI2.Editor;
 
 namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 
@@ -205,17 +206,17 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
             };
             AddChild(arrowSquare);
 
-            var arrowIcon = new UITexture()
+            UIPicture arrowIcon = new()
             {
                 Layout =
                 {
+                    AnchorAndParentAnchor = UIAnchor.CenterCenter,
                     Offset = new IntVector2(0, 4)
                 },
 
                 Smooth = true,
-                TextureFile = "Editor/Edit.png",
+                Texture = "Editor/Edit.png",
                 ImageScale = new Vector2(0.6f),
-                AnchorAndParentAnchor = UIAnchor.CenterCenter
             };
             arrowSquare.AddChild(arrowIcon);
         }
