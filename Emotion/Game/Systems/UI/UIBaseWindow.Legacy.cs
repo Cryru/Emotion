@@ -44,8 +44,6 @@ public partial class UIBaseWindow
         return freeSpace;
     }
 
-    private List<UIBaseWindow> _simulateNewLayoutList = new List<UIBaseWindow>(1);
-
     protected void ChildrenAreAllAsWideAsWidest()
     {
         Assert(LayoutMode == LayoutMode.VerticalList);

@@ -17,11 +17,6 @@ public class MapEditorViewMode : UIBaseWindow
         Layout.SizingY = UISizing.Fit();
         Layout.MinSizeY = 20;
         Layout.Margins = new UISpacing(0, 5, 0, 0);
-    }
-
-    protected override void OnOpen()
-    {
-        base.OnOpen();
 
         UIBaseWindow overallContainer = new()
         {
@@ -43,7 +38,7 @@ public class MapEditorViewMode : UIBaseWindow
             },
             Visuals =
             {
-                Color = EditorColorPalette.BarColor * 0.5f
+                BackgroundColor = EditorColorPalette.BarColor * 0.5f
             },
 
             IgnoreParentColor = true,
@@ -104,9 +99,14 @@ public class MapEditorViewMode : UIBaseWindow
             }
         };
         overallContainer.AddChild(locationContainer);
+    }
+
+    protected override void OnOpen()
+    {
+        base.OnOpen();
 
         EngineEditor.OnMapEditorModeChanged += EngineEditor_OnMapEditorModeChanged;
-        UpdateVisuals();
+        UpdateActiveMapEditorMode();
     }
 
     protected override void OnClose()
@@ -133,7 +133,7 @@ public class MapEditorViewMode : UIBaseWindow
 
     private void EngineEditor_OnMapEditorModeChanged(MapEditorMode obj)
     {
-        UpdateVisuals();
+        UpdateActiveMapEditorMode();
     }
 
     private void PickerButtonPressed(UICallbackButton button)
@@ -142,7 +142,7 @@ public class MapEditorViewMode : UIBaseWindow
             EngineEditor.SetMapEditorMode(setToMode);
     }
 
-    private void UpdateVisuals()
+    private void UpdateActiveMapEditorMode()
     {
         MapEditorMode mode = EngineEditor.MapEditorMode;
 
@@ -180,13 +180,14 @@ public class MapEditorViewMode : UIBaseWindow
         {
             _gizmoEntity ??= TranslationGizmo.GetTranslationGizmoEntity(15, 15, false)!;
         }
+
         protected override void InternalRender(Renderer r)
         {
             base.InternalRender(r);
 
-            var pos = CalculatedMetrics.Position.ToVec2();
-            var size = CalculatedMetrics.Size.ToVec2();
-            var center = pos + size / 2;
+            Vector2 pos = CalculatedMetrics.Position.ToVec2();
+            Vector2 size = CalculatedMetrics.Size.ToVec2();
+            Vector2 center = pos + size / 2;
 
             //c.SetUseViewMatrix(true);
             //c.RenderLine(new Vector3(0, 0, 0), new Vector3(short.MaxValue, 0, 0), Color.Red, snapToPixel: false);

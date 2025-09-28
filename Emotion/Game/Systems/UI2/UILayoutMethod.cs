@@ -1,5 +1,6 @@
-﻿using Emotion.Game.Systems.UI;
-using System.Threading.Tasks;
+﻿#nullable enable
+
+using Emotion.Game.Systems.UI;
 
 namespace Emotion.Game.Systems.UI2;
 
@@ -12,10 +13,16 @@ public struct UILayoutMethod
         VerticalList
     }
 
+    public enum ListLayoutItemsAlign
+    {
+        Beginning,
+        Center,
+        End
+    }
+
     public UIMethodName Mode;
-    public UIAnchor Anchor;
-    public UIAnchor ParentAnchor;
     public IntVector2 ListSpacing;
+    public ListLayoutItemsAlign ListItemsAlign; // todo
 
     public int GetListMask()
     {
@@ -40,41 +47,38 @@ public struct UILayoutMethod
         return inverseMask == 0 ? layout.SizingX.Mode == UISizing.UISizingMode.Grow : layout.SizingY.Mode == UISizing.UISizingMode.Grow;
     }
 
-    public static UILayoutMethod Free(UIAnchor anchor, UIAnchor parentAnchor)
+    public static UILayoutMethod Free()
     {
         return new UILayoutMethod()
         {
             Mode = UIMethodName.Free,
-            Anchor = anchor,
-            ParentAnchor = parentAnchor
         };
     }
 
-    public static UILayoutMethod HorizontalList(int spacing)
+    public static UILayoutMethod HorizontalList(int spacing, ListLayoutItemsAlign alignItems = ListLayoutItemsAlign.Beginning)
     {
         return new UILayoutMethod()
         {
             Mode = UIMethodName.HorizontalList,
-            ListSpacing = new IntVector2(spacing, 0)
+            ListSpacing = new IntVector2(spacing, 0),
+            ListItemsAlign = alignItems
         };
     }
 
-    public static UILayoutMethod VerticalList(int spacing)
+    public static UILayoutMethod VerticalList(int spacing, ListLayoutItemsAlign alignItems = ListLayoutItemsAlign.Beginning)
     {
         return new UILayoutMethod()
         {
             Mode = UIMethodName.VerticalList,
-            ListSpacing = new IntVector2(0, spacing)
+            ListSpacing = new IntVector2(0, spacing),
+            ListItemsAlign = alignItems
         };
     }
 
     public override string ToString()
     {
         if (Mode == UIMethodName.HorizontalList || Mode == UIMethodName.VerticalList)
-            return $"{Mode} {ListSpacing}";
-
-        if (Mode == UIMethodName.Free)
-            return $"{Mode} {Anchor} {ParentAnchor}";
+            return $"{Mode} {ListSpacing} (Align {ListItemsAlign})";
 
         return $"{Mode}";
     }

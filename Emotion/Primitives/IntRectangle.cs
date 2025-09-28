@@ -11,28 +11,28 @@ public record struct IntRectangle
     public IntVector2 Size;
 
     [DontSerialize]
-    public int X { get => Position.X; set => Position.X = value; }
+    public int X { readonly get => Position.X; set => Position.X = value; }
 
     [DontSerialize]
-    public int Y { get => Position.Y; set => Position.Y = value; }
+    public int Y { readonly get => Position.Y; set => Position.Y = value; }
 
     [DontSerialize]
-    public int Width { get => Size.X; set => Size.X = value; }
+    public int Width { readonly get => Size.X; set => Size.X = value; }
 
     [DontSerialize]
-    public int Height { get => Size.Y; set => Size.Y = value; }
+    public int Height { readonly get => Size.Y; set => Size.Y = value; }
 
     [DontSerialize]
-    public int Left { get => X; set => X = value; }
+    public int Left { readonly get => X; set => X = value; }
 
     [DontSerialize]
-    public int Right { get => X + Width; set => X = value - Width; }
+    public int Right { readonly get => X + Width; set => X = value - Width; }
 
     [DontSerialize]
-    public int Top { get => Y; set => Y = value; }
+    public int Top { readonly get => Y; set => Y = value; }
 
     [DontSerialize]
-    public int Bottom { get => Y + Height; set => Y = value - Height; }
+    public int Bottom { readonly get => Y + Height; set => Y = value - Height; }
 
     public IntRectangle(IntVector2 pos, IntVector2 size)
     {
@@ -60,5 +60,10 @@ public record struct IntRectangle
     public static IntRectangle FromMinMaxPoints(IntVector2 min, IntVector2 max)
     {
         return new IntRectangle(min.X, min.Y, max.X - min.X, max.Y - min.Y);
+    }
+
+    public override readonly string ToString()
+    {
+        return $"{X} {Y}:{Width} {Height}";
     }
 }

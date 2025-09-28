@@ -21,7 +21,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
         {
             Visuals =
             {
-                Color = Color.Blue
+                BackgroundColor = Color.Blue
             },
 
             Layout =
@@ -40,7 +40,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
                     },
 
                     Visuals = {
-                        Color = Color.PrettyPink
+                        BackgroundColor = Color.PrettyPink
                     }
                 },
                 new UIBaseWindow() {
@@ -52,7 +52,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
                     },
 
                     Visuals = {
-                        Color = Color.PrettyYellow
+                        BackgroundColor = Color.PrettyYellow
                     }
                 },
                 new UIBaseWindow() {
@@ -63,7 +63,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
                     },
 
                     Visuals = {
-                        Color = Color.PrettyBlue
+                        BackgroundColor = Color.PrettyBlue
                     }
                 }
             ]

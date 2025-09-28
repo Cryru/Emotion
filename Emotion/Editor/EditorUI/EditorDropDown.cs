@@ -13,7 +13,7 @@ public class EditorDropDown : UIDropDown
 
     public EditorDropDown() : base()
     {
-        Visuals.Color = EditorColorPalette.BarColor;
+        Visuals.BackgroundColor = EditorColorPalette.BarColor;
         Visuals.Border = 3;
         Visuals.BorderColor = EditorColorPalette.ActiveButtonColor;
     }

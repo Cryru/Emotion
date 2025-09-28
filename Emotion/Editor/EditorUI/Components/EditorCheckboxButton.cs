@@ -1,10 +1,8 @@
 ﻿#nullable enable
 
-using Emotion.Game.Systems.UI;
-
 namespace Emotion.Editor.EditorUI.Components;
 
-public class EditorCheckboxButton : SquareEditorButton
+public class EditorCheckboxButton : SquareEditorButtonWithTexture
 {
     [DontSerialize]
     public Action<bool>? OnValueChanged;
@@ -16,7 +14,7 @@ public class EditorCheckboxButton : SquareEditorButton
         {
             if (_value == value && _valueSet) return;
             _value = value;
-            _checkIcon.Visible = value;
+            Texture.Visuals.Visible = value;
             _valueSet = true;
         }
     }
@@ -24,20 +22,8 @@ public class EditorCheckboxButton : SquareEditorButton
     private bool _value;
     private bool _valueSet = false;
 
-    private UITexture _checkIcon;
-
-    public EditorCheckboxButton() : base()
+    public EditorCheckboxButton() : base("Editor/Checkmark.png", 24, true)
     {
-        UITexture checkIcon = new UITexture()
-        {
-            TextureFile = "Editor/Checkmark.png",
-            ImageScale = new Vector2(0.75f),
-            Smooth = true,
-            AnchorAndParentAnchor = UIAnchor.CenterCenter,
-            IgnoreParentColor = true
-        };
-        AddChild(checkIcon);
-        _checkIcon = checkIcon;
     }
 
     protected override void OnClicked()

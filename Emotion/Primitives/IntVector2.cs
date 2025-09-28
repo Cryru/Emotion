@@ -119,6 +119,15 @@ public record struct IntVector2
         );
     }
 
+    public readonly IntVector2 RoundMultiply(Vector2 scale)
+    {
+        return new IntVector2(
+            (int)Math.Round(X * scale.X),
+            (int)Math.Round(Y * scale.Y)
+        );
+    }
+
+
     public static IntVector2 Max(IntVector2 a, IntVector2 b)
     {
         return new IntVector2(

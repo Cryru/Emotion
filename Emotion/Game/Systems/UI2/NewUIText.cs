@@ -167,15 +167,10 @@ public class NewUIText : UIBaseWindow
 
     private IEnumerator LoadAsset()
     {
+        yield return 5000;
         yield return Font.PerformLoading(this, ProxyInvalidateLayout);
         _loadedFont = Font;
         InvalidateLayout();
-    }
-
-    private static void ProxyInvalidateLayout(object? owner)
-    {
-        if (owner is UIBaseWindow win)
-            win.InvalidateLayout();
     }
 
     #endregion

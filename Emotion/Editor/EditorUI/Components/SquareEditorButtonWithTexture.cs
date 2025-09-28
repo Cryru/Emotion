@@ -1,26 +1,34 @@
 ﻿#nullable enable
 
 using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI2;
+using Emotion.Game.Systems.UI2.Editor;
 
 namespace Emotion.Editor.EditorUI.Components;
 
 public class SquareEditorButtonWithTexture : SquareEditorButton
 {
-    public UITexture Texture { get; private set; }
+    public UIPicture Texture { get; private set; }
 
     public Color IconColor = EditorColorPalette.TextColor;
 
-    public SquareEditorButtonWithTexture(string texturePath, int size = 24) : base()
+    public SquareEditorButtonWithTexture(string texturePath, int size = 24, bool showBorder = false) : base()
     {
-        ShowOutline = false;
+        if (!showBorder)
+            Visuals.Border = 0;
 
-        var texture = new UITexture()
+        var texture = new UIPicture()
         {
-            TextureFile = texturePath,
+            Texture = texturePath,
             Smooth = true,
-            RenderSize = new Vector2(size),
-            AnchorAndParentAnchor = UIAnchor.CenterCenter,
-            IgnoreParentColor = true
+            Layout =
+            {
+                SizingX = UISizing.Fixed(size),
+                SizingY = UISizing.Fixed(size),
+                AnchorAndParentAnchor = UIAnchor.CenterCenter,
+            },
+            TextureFitMode = UIPicture.UIPictureMode.Stretch,
+            IgnoreParentColor = true,
         };
         AddChild(texture);
         Texture = texture;
@@ -33,6 +41,6 @@ public class SquareEditorButtonWithTexture : SquareEditorButton
         base.RecalculateButtonColor();
 
         if (Texture == null) return; // RecalculateButtonColor is called in the base constructor
-        Texture.WindowColor = Enabled ? IconColor : IconColor * 0.5f;
+        Texture.ImageColor = Enabled ? IconColor : IconColor * 0.5f;
     }
 }

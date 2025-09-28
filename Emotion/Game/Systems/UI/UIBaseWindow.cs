@@ -542,56 +542,6 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
 
     #endregion
 
-    #region Layout Helpers
-
-    public void SetExactRequestedSize(Vector2 size)
-    {
-        size = size.Ceiling();
-        MinSize = size;
-        MaxSize = size;
-    }
-
-    
-
-   
-    /// <summary>
-    /// The scale factor applied on the UI.
-    /// </summary>
-    /// <returns></returns>
-    public float GetScale()
-    {
-        return CalculatedMetrics.ScaleF;
-    }
-
-    #endregion
-
-    #region Helpers
-
-    public const string SPECIAL_WIN_ID_MOUSE_FOCUS = "MouseFocus";
-
-    /// <summary>
-    /// Clone the window. By default this performs a serialization clone.
-    /// </summary>
-    /// <returns></returns>
-    public UIBaseWindow Clone()
-    {
-        string? xml = XMLFormat.To(this);
-        AssertNotNull(xml); // Serialization fail?
-        return XMLFormat.From<UIBaseWindow>(xml)!;
-    }
-
-    /// <summary>
-    /// Compares the windows based on their priority.
-    /// </summary>
-    public int CompareTo(UIBaseWindow? other)
-    {
-        if (other == null) return 1;
-        if (_backgroundWindow && !other._backgroundWindow) return -1;
-        return MathF.Sign(OrderInParent - other.OrderInParent);
-    }
-
-    #endregion
-
     #region Enum
 
     public IEnumerator<UIBaseWindow> GetEnumerator()

@@ -21,7 +21,7 @@ public class EditorTopBar : UIBaseWindow
     {
         Layout.SizingX = UISizing.Grow();
         Layout.SizingY = UISizing.Fit();
-        Visuals.Color = EditorColorPalette.BarColor;
+        Visuals.BackgroundColor = EditorColorPalette.BarColor;
         Layout.LayoutMethod = UILayoutMethod.VerticalList(0);
 
         UIBaseWindow buttonContainer = new()
@@ -31,8 +31,7 @@ public class EditorTopBar : UIBaseWindow
             {
                 LayoutMethod = UILayoutMethod.HorizontalList(5),
                 Margins = new UISpacing(5, 5, 5, 5)
-            },
-            AnchorAndParentAnchor = UIAnchor.CenterLeft,
+            }
         };
         AddChild(buttonContainer);
 
@@ -44,7 +43,7 @@ public class EditorTopBar : UIBaseWindow
             },
             Visuals =
             {
-                Color = EditorColorPalette.ActiveButtonColor
+                BackgroundColor = EditorColorPalette.ActiveButtonColor
             },
         };
         AddChild(accent);

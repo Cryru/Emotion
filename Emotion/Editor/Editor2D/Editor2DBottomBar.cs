@@ -5,37 +5,43 @@ using Emotion.Editor.Editor3D.TerrainEditor;
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Editor.EditorUI.MapObjectEditor;
 using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI2;
 
 namespace Emotion.Editor.Editor2D;
 
 [DontSerialize]
-public class Editor2DBottomBar : UISolidColor
+public class Editor2DBottomBar : UIBaseWindow
 {
     private UIBaseWindow? _currentEditor;
     private UIBaseWindow _barContent;
 
     public Editor2DBottomBar()
     {
-        GrowY = false;
-        WindowColor = EditorColorPalette.BarColor;
-        AnchorAndParentAnchor = UIAnchor.BottomLeft;
+        Layout.SizingY = UISizing.Fit();
+        Layout.AnchorAndParentAnchor = UIAnchor.BottomLeft;
+        Visuals.BackgroundColor = EditorColorPalette.BarColor;
+        Layout.LayoutMethod = UILayoutMethod.VerticalList(0);
 
-        var accent = new UISolidColor
+        var accent = new UIBaseWindow
         {
-            WindowColor = EditorColorPalette.ActiveButtonColor,
-            MinSizeY = 5,
-            MaxSizeY = 5,
-            Anchor = UIAnchor.TopLeft,
-            ParentAnchor = UIAnchor.TopLeft
+            Layout =
+            {
+                SizingY = UISizing.Fixed(5)
+            },
+            Visuals =
+            {
+                BackgroundColor =  EditorColorPalette.ActiveButtonColor
+            },
         };
         AddChild(accent);
 
         UIBaseWindow barContent = new()
         {
-            Paddings = new Primitives.Rectangle(5, 10, 5, 5),
-            AnchorAndParentAnchor = UIAnchor.BottomLeft,
-            Name = "Content",
-            HandleInput = true
+            Layout =
+            {
+                Margins = new UISpacing(5, 5, 5, 5),
+            },
+            Name = "Content"
         };
         AddChild(barContent);
         _barContent = barContent;

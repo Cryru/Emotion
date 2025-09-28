@@ -24,6 +24,7 @@ public class UISystem : UIBaseWindow
     protected override bool UpdateInternal()
     {
         TickInput();
+        UpdateLayout();
 
         return base.UpdateInternal();
     }

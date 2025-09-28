@@ -23,6 +23,7 @@ public class UIAttachedWindow : UIBaseWindow
 
     protected override void InternalCustomLayout()
     {
+        PreLayout();
         CalculatedMetrics.Size = InternalMeasureWindow();
         GrowWindow();
 
@@ -35,7 +36,7 @@ public class UIAttachedWindow : UIBaseWindow
         CalculatedMetrics.InsideParent = AnchorsInsideParent(Layout.ParentAnchor, Layout.Anchor);
 
         IntVector2 pen = AttachedTo.CalculatedMetrics.Position;
-        IntVector2 parentSize = AttachedTo.CalculatedMetrics.Size - AttachedTo.CalculatedMetrics.PaddingsAndMarginsSize;
+        IntVector2 parentSize = AttachedTo.CalculatedMetrics.Size;
         IntRectangle parentContentRect = new IntRectangle(pen, parentSize);
         IntVector2 anchorPos = GetAnchorPosition(Layout.ParentAnchor, parentContentRect, Layout.Anchor, CalculatedMetrics.Size);
         LayoutWindow(anchorPos);

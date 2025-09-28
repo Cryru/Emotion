@@ -18,7 +18,7 @@ public class Texture : TextureObjectBase
     /// <summary>
     /// The size of the texture in pixels.
     /// </summary>
-    public virtual Vector2 Size { get; protected set; }
+    public virtual Vector2 Size { get; protected set; } // This is actually IntVector2
 
     /// <summary>
     /// Whether the image was uploaded upside down.

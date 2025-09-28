@@ -58,7 +58,7 @@ public struct UIWindowLayoutConfig
     public UISpacing Padding;
     public UISpacing Margins;
 
-    public UILayoutMethod LayoutMethod = UILayoutMethod.Free(UIAnchor.TopLeft, UIAnchor.TopLeft);
+    public UILayoutMethod LayoutMethod = UILayoutMethod.Free();
     public UISizing SizingX = UISizing.Grow();
     public UISizing SizingY = UISizing.Grow();
 

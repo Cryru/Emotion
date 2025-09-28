@@ -12,7 +12,7 @@ namespace Emotion.Editor.EditorUI.Components;
 
 public class EditorButton : UICallbackButton
 {
-    public string? Text
+    public string Text
     {
         get => _text;
         set
@@ -28,7 +28,7 @@ public class EditorButton : UICallbackButton
         }
     }
 
-    private string? _text;
+    private string _text = string.Empty;
 
     #region Theme
 
@@ -112,17 +112,17 @@ public class EditorButton : UICallbackButton
 
         if (!Enabled)
         {
-            Visuals.Color = DisabledColor;
+            Visuals.BackgroundColor = DisabledColor;
             return;
         }
 
         if (_activeMode || Engine.UI.HasDropdown(this))
         {
-            Visuals.Color = ActiveColor;
+            Visuals.BackgroundColor = ActiveColor;
             return;
         }
 
-        Visuals.Color = MouseInside ? RolloverColor : NormalColor;
+        Visuals.BackgroundColor = MouseInside ? RolloverColor : NormalColor;
     }
 
     public override void OnDropdownStateChanged(bool opened)

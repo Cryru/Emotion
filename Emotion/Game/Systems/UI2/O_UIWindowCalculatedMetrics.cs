@@ -6,7 +6,8 @@ public struct O_UIWindowCalculatedMetrics
 {
     public IntVector2 Position;
     public IntVector2 Size;
-    public IntVector2 PaddingsAndMarginsSize;
+    public IntVector2 PaddingsSize;
+    public IntVector2 MarginsSize;
 
     public IntRectangle Bounds
     {

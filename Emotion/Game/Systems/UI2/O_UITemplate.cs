@@ -10,7 +10,7 @@ public class O_UITemplate : GameDataObject
     {
         Visuals =
         {
-            Color = Color.White
+            BackgroundColor = Color.White
         }
     };
 }

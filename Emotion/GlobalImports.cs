@@ -16,6 +16,7 @@ global using Emotion.Standard.Extensions;
 global using Emotion.Standard.Serialization;
 global using Emotion.Game.World;
 global using Emotion.Game.Systems.GameData;
+global using Emotion.Game.Systems.UI;
 global using Emotion.Primitives;
 global using Emotion.Testing;
 global using Debug = Emotion.Testing.AssertWrapper; // System.Diagnostics interface for Debug.Assert

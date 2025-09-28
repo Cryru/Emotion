@@ -1,6 +1,6 @@
 ﻿using Emotion.Core.Systems.IO;
 using Emotion.Editor.EditorUI.Components;
-using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI2;
 using Emotion.Standard.Parsers.XML;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
@@ -42,12 +42,18 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
         _mainContent = mainContent;
 
         {
-            UISolidColor changesBox = new UISolidColor()
+            UIBaseWindow changesBox = new()
             {
-                Paddings = new Rectangle(5, 5, 5, 5),
-                WindowColor = Color.PrettyRed * 0.5f,
-                Visible = false,
-                DontTakeSpaceWhenHidden = true,
+                Visuals =
+                {
+                    BackgroundColor = Color.PrettyRed * 0.5f,
+                    Visible = false,
+                    DontTakeSpaceWhenHidden = true
+                },
+                Layout =
+                {
+                    Padding = new UISpacing(5, 5, 5, 5)
+                },
                 OrderInParent = -10
             };
             mainContent.AddChild(changesBox);
