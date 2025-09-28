@@ -3,32 +3,12 @@
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Game.Systems.Animation.TwoDee;
-using Emotion.Game.Systems.UI;
 using Emotion.Graphics.Assets;
 
 namespace Emotion.Game.Systems.UI2.Editor;
 
 public class UIPicture : UIBaseWindow
 {
-    public enum UIPictureMode
-    {
-        Expand,
-        Stretch
-    }
-
-    public UIPictureMode TextureFitMode
-    {
-        get => _textureFitMode;
-        set
-        {
-            if (value == _textureFitMode) return;
-            _textureFitMode = value;
-            InvalidateLayout();
-        }
-    }
-
-    private UIPictureMode _textureFitMode = UIPictureMode.Expand;
-
     public AssetOrObjectReference<TextureAsset, Texture> Texture
     {
         get => _textureBacking;
@@ -198,15 +178,12 @@ public class UIPicture : UIBaseWindow
 
         textureSize *= CalculatedMetrics.Scale;
 
-        switch (TextureFitMode)
-        {
-            case UIPictureMode.Expand:
-                return IntVector2.FromVec2Ceiling(textureSize);
-            case UIPictureMode.Stretch:
-                return IntVector2.Zero;
-        }
+        if (Layout.SizingX.Mode == UISizing.UISizingMode.Fixed)
+            textureSize.X = 0;
+        if (Layout.SizingY.Mode == UISizing.UISizingMode.Fixed)
+            textureSize.Y = 0;
 
-        return IntVector2.Zero;
+        return IntVector2.FromVec2Ceiling(textureSize);
     }
 
     protected override void InternalRender(Renderer r)

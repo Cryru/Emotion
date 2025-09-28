@@ -310,7 +310,6 @@ public class EditorWindow : UIBaseWindow
                 SizingY = UISizing.Fixed(25),
             },
             Texture = "Editor/PanelDragArea.png",
-            TextureFitMode = UIPicture.UIPictureMode.Stretch,
             Smooth = true,
             ImageColor = dragAreaColor
         };

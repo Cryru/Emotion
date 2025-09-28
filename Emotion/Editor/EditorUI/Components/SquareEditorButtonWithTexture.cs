@@ -27,7 +27,6 @@ public class SquareEditorButtonWithTexture : SquareEditorButton
                 SizingY = UISizing.Fixed(size),
                 AnchorAndParentAnchor = UIAnchor.CenterCenter,
             },
-            TextureFitMode = UIPicture.UIPictureMode.Stretch,
             IgnoreParentColor = true,
         };
         AddChild(texture);
