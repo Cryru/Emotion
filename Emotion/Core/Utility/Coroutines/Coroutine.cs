@@ -209,10 +209,17 @@ public sealed class Coroutine : IRoutineWaiter
         while (routine.MoveNext())
         {
             object current = routine.Current;
-            if (current != null && current is IRoutineWaiter waiter)
+            if (current != null)
             {
-                while (!waiter.Finished)
-                    waiter.Update();
+                if (current is IEnumerator subRoutine)
+                {
+                    RunInline(subRoutine);
+                }
+                else if (current is IRoutineWaiter waiter)
+                {
+                    while (!waiter.Finished)
+                        waiter.Update();
+                }
             }
         }
     }
@@ -233,7 +240,7 @@ public sealed class Coroutine : IRoutineWaiter
 
         if (stateField == null) return -1;
 
-        return (int) (stateField.GetValue(_routine) ?? 1);
+        return (int)(stateField.GetValue(_routine) ?? 1);
     }
 #endif
 
