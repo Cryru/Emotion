@@ -2,12 +2,14 @@
 
 namespace Emotion.Game.Systems.UI2;
 
-public struct O_UIWindowCalculatedMetrics
+public struct UIWindowCalculatedMetrics
 {
     public IntVector2 Position;
     public IntVector2 Size;
+
     public IntVector2 PaddingsSize;
     public IntVector2 MarginsSize;
+    public IntVector2 Offsets;
 
     public IntRectangle Bounds
     {
@@ -22,6 +24,6 @@ public struct O_UIWindowCalculatedMetrics
 
     public override string ToString()
     {
-        return $"{Position}:{Size}";
+        return Bounds.ToString();
     }
 }

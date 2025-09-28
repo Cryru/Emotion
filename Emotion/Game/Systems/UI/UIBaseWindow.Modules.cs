@@ -47,7 +47,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     [SerializeNonPublicGetSet]
     public UIWindowVisualConfig Visuals = new UIWindowVisualConfig();
 
-    public O_UIWindowCalculatedMetrics CalculatedMetrics = new O_UIWindowCalculatedMetrics();
+    public UIWindowCalculatedMetrics CalculatedMetrics = new UIWindowCalculatedMetrics();
 
     #region Main Properties
 
@@ -452,18 +452,20 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         // Assert(GLThread.IsGLThread(), "Layout can only be invalidated from the main thread to prevent invalidates mid-update.");
 
         _needsLayout = true;
-        if (Parent != null)
-        {
-            if (
-                Parent.Layout.LayoutMethod.Mode == UIMethodName.Free &&
-                Parent.Layout.SizingX.Mode != UISizing.UISizingMode.Fit &&
-                Parent.Layout.SizingY.Mode != UISizing.UISizingMode.Fit
-            )
-                return;
+        //if (Parent != null)
+        //{
+        //    if (
+        //        Parent.Layout.LayoutMethod.Mode == UIMethodName.Free &&
+        //        Parent.Layout.SizingX.Mode != UISizing.UISizingMode.Fit &&
+        //        Parent.Layout.SizingY.Mode != UISizing.UISizingMode.Fit
+        //    )
+        //        return;
 
-            // Note: since this will reach all the way to the UISystem we need to check nullability of parent.
-            Parent?.InvalidateLayout();
-        }
+        //    // Note: since this will reach all the way to the UISystem we need to check nullability of parent.
+        //    Parent?.InvalidateLayout();
+        //}
+        // Note: since this will reach all the way to the UISystem we need to check nullability of parent.
+        Parent?.InvalidateLayout();
     }
 
     #endregion
@@ -793,6 +795,24 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         else
             Layout.Scale = Vector2.One;
 
+        // Precalculate metrics.
+        IntVector2 sizeMargins = IntVector2.Zero;
+        sizeMargins += Layout.Margins.TopLeft;
+        sizeMargins += Layout.Margins.BottomRight;
+        sizeMargins = sizeMargins.FloorMultiply(CalculatedMetrics.Scale);
+        CalculatedMetrics.MarginsSize = sizeMargins;
+
+        IntVector2 sizePaddings = IntVector2.Zero;
+        sizePaddings += Layout.Padding.TopLeft;
+        sizePaddings += Layout.Padding.BottomRight;
+        sizePaddings = sizePaddings.FloorMultiply(CalculatedMetrics.Scale);
+        CalculatedMetrics.PaddingsSize = sizePaddings;
+
+        IntVector2 offsets = IntVector2.Zero;
+        offsets += Layout.Offset;
+        offsets = offsets.FloorMultiply(CalculatedMetrics.Scale);
+        CalculatedMetrics.Offsets = offsets;
+
         foreach (UIBaseWindow child in Children)
         {
             child.PreLayout();
@@ -810,9 +830,9 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                     if (SkipWindowLayout(child)) continue;
                     if (child.IsLoading()) continue;
 
-                    IntVector2 windowMinSize = child.MeasureWindow();
-                    child.CalculatedMetrics.Size = windowMinSize;
-                    childrenSize = IntVector2.Max(childrenSize, windowMinSize);
+                    IntVector2 childSize = child.MeasureWindow();
+                    child.CalculatedMetrics.Size = childSize;
+                    childrenSize = IntVector2.Max(childrenSize, childSize + child.CalculatedMetrics.MarginsSize);
                 }
                 break;
 
@@ -827,11 +847,11 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                 {
                     if (SkipWindowLayout(child)) continue;
 
-                    IntVector2 windowMinSize = child.IsLoading() ? IntVector2.Zero : child.MeasureWindow();
-                    child.CalculatedMetrics.Size = windowMinSize;
+                    IntVector2 childSize = child.IsLoading() ? IntVector2.Zero : child.MeasureWindow();
+                    child.CalculatedMetrics.Size = childSize;
 
-                    pen[listMask] += windowMinSize[listMask];
-                    pen[inverseListMask] = Math.Max(pen[inverseListMask], windowMinSize[inverseListMask]);
+                    pen[listMask] += childSize[listMask] + child.CalculatedMetrics.MarginsSize[listMask];
+                    pen[inverseListMask] = Math.Max(pen[inverseListMask], childSize[inverseListMask]);
                     listChildrenCount++;
                 }
 
@@ -848,27 +868,6 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                 break;
         }
 
-        IntVector2 mySize = IntVector2.Zero;
-
-        // Add margin and padding offsets
-        IntVector2 sizePaddings = IntVector2.Zero;
-        sizePaddings += Layout.Padding.TopLeft;
-        sizePaddings += Layout.Padding.BottomRight;
-        sizePaddings = sizePaddings.FloorMultiply(CalculatedMetrics.Scale);
-        CalculatedMetrics.PaddingsSize = sizePaddings;
-
-        IntVector2 sizeMargins = IntVector2.Zero;
-        sizeMargins += Layout.Margins.TopLeft;
-        sizeMargins += Layout.Margins.BottomRight;
-        sizeMargins = sizeMargins.FloorMultiply(CalculatedMetrics.Scale);
-        CalculatedMetrics.MarginsSize = sizeMargins;
-
-        // We add both paddings (which is expected) AND margins to the size
-        // so that the parents don't have to handle margins. (although this is done in LayoutWindow for lists)
-        // We might change this in the future as it does require subtracting them later
-        mySize += sizePaddings + sizeMargins;
-
-        // Determine content size
         IntVector2 contentSize = IntVector2.Zero;
 
         // Fixed size
@@ -877,13 +876,11 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         if (Layout.SizingY.Mode == UISizing.UISizingMode.Fixed)
             contentSize.Y = (int)MathF.Ceiling(Layout.SizingY.Size * CalculatedMetrics.Scale.Y);
 
-        // Determine content size.
-        mySize += IntVector2.Max(IntVector2.Max(childrenSize, contentSize), InternalGetWindowMinSize());
+        // Content size is whichever is the largest between the children, internal measurements, and fixed sizing.
+        IntVector2 mySize = IntVector2.Max(IntVector2.Max(childrenSize, contentSize), InternalGetWindowMinSize());
 
-        if (this is MapEditorViewMode)
-        {
-            bool a = true;
-        }
+        // Paddings are added to the content size.
+        mySize += CalculatedMetrics.PaddingsSize;
 
         return IntVector2.Clamp(
             mySize,
@@ -898,7 +895,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         if (Children.Count == 0)
             return;
 
-        IntVector2 myMeasuredSize = CalculatedMetrics.Size - CalculatedMetrics.MarginsSize;
+        IntVector2 myMeasuredSize = CalculatedMetrics.Size;
         switch (Layout.LayoutMethod.Mode)
         {
             case UIMethodName.Free:
@@ -907,10 +904,10 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                     if (SkipWindowLayout(child)) continue;
 
                     if (child.Layout.SizingX.Mode == UISizing.UISizingMode.Grow)
-                        child.CalculatedMetrics.Size.X = Math.Max(child.CalculatedMetrics.Size.X, myMeasuredSize.X);
+                        child.CalculatedMetrics.Size.X = Math.Max(child.CalculatedMetrics.Size.X, myMeasuredSize.X - child.CalculatedMetrics.MarginsSize.X);
 
                     if (child.Layout.SizingY.Mode == UISizing.UISizingMode.Grow)
-                        child.CalculatedMetrics.Size.Y = Math.Max(child.CalculatedMetrics.Size.Y, myMeasuredSize.Y);
+                        child.CalculatedMetrics.Size.Y = Math.Max(child.CalculatedMetrics.Size.Y, myMeasuredSize.Y - child.CalculatedMetrics.MarginsSize.Y);
 
                     child.GrowWindow();
                 }
@@ -921,34 +918,35 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                 int listMask = Layout.LayoutMethod.GetListMask();
                 int inverseListMask = Layout.LayoutMethod.GetListInverseMask();
 
+                // Grow across list
+                foreach (UIBaseWindow child in Children)
+                {
+                    if (SkipWindowLayout(child)) continue;
+
+                    bool growingAcross = Layout.LayoutMethod.GrowingAcrossList(child.Layout);
+                    if (!growingAcross) continue;
+
+                    child.CalculatedMetrics.Size[inverseListMask] = myMeasuredSize[inverseListMask] - child.CalculatedMetrics.MarginsSize[inverseListMask];
+                }
+
+                // Grow along list
                 int listChildrenCount = 0;
                 float listRemainingSize = myMeasuredSize[listMask];
                 foreach (UIBaseWindow child in Children)
                 {
                     if (SkipWindowLayout(child)) continue;
 
-                    float listSize = child.CalculatedMetrics.Size[listMask];
-                    listRemainingSize -= listSize;
+                    float childSize = child.CalculatedMetrics.Size[listMask] + child.CalculatedMetrics.MarginsSize[listMask];
+                    listRemainingSize -= childSize;
                     listChildrenCount++;
                 }
                 listRemainingSize -= GetListSpacing(listMask) * (listChildrenCount - 1);
 
-                // Grow across list
-                foreach (UIBaseWindow child in Children)
-                {
-                    if (SkipWindowLayout(child)) continue;
-
-                    bool growAcrossList = Layout.LayoutMethod.GrowingAcrossList(child.Layout);
-                    if (growAcrossList)
-                        child.CalculatedMetrics.Size[inverseListMask] = myMeasuredSize[inverseListMask];
-                }
-
-                // Grow along list
-                int infDetect = 0;
+                int infinitePrevention = 0;
                 while (listRemainingSize > 1)
                 {
-                    infDetect++;
-                    if (infDetect > 50)
+                    infinitePrevention++;
+                    if (infinitePrevention > 50)
                     {
                         Assert(false, "Infinite loop in GrowWindow() :(");
                         break;
@@ -1011,7 +1009,6 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                 foreach (UIBaseWindow child in Children)
                 {
                     if (SkipWindowLayout(child)) continue;
-
                     child.GrowWindow();
                 }
 
@@ -1021,25 +1018,10 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     protected void LayoutWindow(IntVector2 pos)
     {
-        // Corrections
-        // ----
-        CalculatedMetrics.Size = CalculatedMetrics.Size - CalculatedMetrics.MarginsSize;
-        // ----
-
-        // Todo: these offsets should be handled by the parent in order for windows to be able to relayout with CalculatedMetrics.Position
-        IntVector2 offsets = IntVector2.Zero;
-        offsets += Layout.Offset;
-        offsets += Layout.Margins.TopLeft;
-        offsets = offsets.FloorMultiply(CalculatedMetrics.Scale);
-
-        pos += offsets;
         CalculatedMetrics.Position = pos;
 
-        IntVector2 pen = pos;
-        pen += Layout.Padding.TopLeft.FloorMultiply(CalculatedMetrics.Scale);
-
         IntRectangle parentContentRect = new IntRectangle(
-           pen,
+           pos + Layout.Padding.TopLeft.FloorMultiply(CalculatedMetrics.Scale),
            CalculatedMetrics.Size - CalculatedMetrics.PaddingsSize
         );
 
@@ -1051,29 +1033,28 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                     if (child._useCustomLayout)
                     {
                         child.InternalCustomLayout();
+                        continue;
+                    }
+
+                    if (child.Layout.Anchor == UIAnchor.TopLeft && child.Layout.ParentAnchor == UIAnchor.TopLeft) // Shortcut for most common
+                    {
+                        child.CalculatedMetrics.InsideParent = true;
+                        child.LayoutWindow(parentContentRect.Position + child.Layout.Margins.TopLeft.FloorMultiply(child.CalculatedMetrics.Scale) + child.CalculatedMetrics.Offsets);
                     }
                     else
                     {
-                        if (child.Layout.Anchor == UIAnchor.TopLeft && child.Layout.ParentAnchor == UIAnchor.TopLeft) // Shortcut for most common
-                        {
-                            child.CalculatedMetrics.InsideParent = true;
-                            child.LayoutWindow(pen);
-                        }
-                        else
-                        {
-                            child.CalculatedMetrics.InsideParent = AnchorsInsideParent(child.Layout.ParentAnchor, child.Layout.Anchor);
+                        child.CalculatedMetrics.InsideParent = AnchorsInsideParent(child.Layout.ParentAnchor, child.Layout.Anchor);
 
-                            // This will prevent left margins affecting us when the anchor is right
-                            //var contentRectForThisChild = parentContentRect;
-                            //contentRectForThisChild.Position += child.Layout.Margins.TopLeft.FloorMultiply(child.CalculatedMetrics.Scale);
-                            //contentRectForThisChild.Size -= child.CalculatedMetrics.MarginsSize;
+                        // This will prevent left margins affecting us when the anchor is right
+                        IntRectangle contentRectForThisChild = parentContentRect;
+                        contentRectForThisChild.Position += child.Layout.Margins.TopLeft.FloorMultiply(child.CalculatedMetrics.Scale);
+                        contentRectForThisChild.Size -= child.CalculatedMetrics.MarginsSize;
 
-                            IntVector2 anchorPos = GetAnchorPosition(
-                                child.Layout.ParentAnchor, parentContentRect,
-                                child.Layout.Anchor, child.CalculatedMetrics.Size
-                            );
-                            child.LayoutWindow(anchorPos);
-                        }
+                        IntVector2 anchorPos = GetAnchorPosition(
+                            child.Layout.ParentAnchor, contentRectForThisChild,
+                            child.Layout.Anchor, child.CalculatedMetrics.Size
+                        );
+                        child.LayoutWindow(anchorPos + child.CalculatedMetrics.Offsets);
                     }
                 }
                 break;
@@ -1083,34 +1064,36 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                 int listMask = Layout.LayoutMethod.GetListMask();
                 int inverseListMask = Layout.LayoutMethod.GetListInverseMask();
                 int listSpacing = GetListSpacing(listMask);
+                IntVector2 pen = parentContentRect.Position;
                 foreach (UIBaseWindow child in Children)
                 {
                     if (child._useCustomLayout)
                     {
                         child.InternalCustomLayout();
+                        continue;
                     }
-                    else
+
+                    child.CalculatedMetrics.InsideParent = true;
+
+                    IntVector2 childPosition = pen;
+                    ListLayoutItemsAlign alignAcrossList = GetItemsAlignAcrossFromList(Layout.LayoutMethod.Mode, child.Layout.Anchor);
+                    switch (alignAcrossList)
                     {
-                        child.CalculatedMetrics.InsideParent = true;
-
-                        IntVector2 childPosition = pen;
-                        ListLayoutItemsAlign alignAcrossList = GetItemsAlignAcrossFromList(Layout.LayoutMethod.Mode, child.Layout.Anchor);
-                        switch (alignAcrossList)
-                        {
-                            case ListLayoutItemsAlign.Center:
-                                childPosition[inverseListMask] += parentContentRect.Size[inverseListMask] / 2 - child.CalculatedMetrics.Size[inverseListMask] / 2;
-                                break;
-                            case ListLayoutItemsAlign.End:
-                                childPosition[inverseListMask] += parentContentRect.Size[inverseListMask] - child.CalculatedMetrics.Size[inverseListMask];
-                                break;
-                        }
-
-                        if (child.Layout.Anchor != UIAnchor.TopLeft && alignAcrossList == ListLayoutItemsAlign.Beginning)
-                            child.AddWarning(UILayoutWarning.AnchorInListDoesntDoAnything);
-
-                        child.LayoutWindow(childPosition);
-                        pen[listMask] += child.CalculatedMetrics.Size[listMask] + child.CalculatedMetrics.MarginsSize[listMask] + listSpacing;
+                        case ListLayoutItemsAlign.Center:
+                            childPosition[inverseListMask] += parentContentRect.Size[inverseListMask] / 2 - child.CalculatedMetrics.Size[inverseListMask] / 2;
+                            break;
+                        case ListLayoutItemsAlign.End:
+                            childPosition[inverseListMask] += parentContentRect.Size[inverseListMask] - child.CalculatedMetrics.Size[inverseListMask];
+                            break;
                     }
+                    child.AddWarning(child.Layout.Anchor != UIAnchor.TopLeft && alignAcrossList == ListLayoutItemsAlign.Beginning, UILayoutWarning.AnchorInListDoesntDoAnything);
+
+                    // Add margin (todo: this needs to be the right margin when items are aligned to end, none when centered (for the two outside ones) etc)
+                    IntVector2 childTopLeftMargin = child.Layout.Margins.TopLeft.FloorMultiply(child.CalculatedMetrics.Scale);
+                    childPosition += childTopLeftMargin;
+
+                    child.LayoutWindow(childPosition + child.CalculatedMetrics.Offsets);
+                    pen[listMask] += child.CalculatedMetrics.Size[listMask] + child.CalculatedMetrics.MarginsSize[listMask] + listSpacing;
                 }
                 break;
         }
@@ -1295,8 +1278,9 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     private HashSet<UILayoutWarning>? _warnings;
 
     [Conditional("DEBUG")]
-    private void AddWarning(UILayoutWarning warning)
+    private void AddWarning(bool condition, UILayoutWarning warning)
     {
+        if (!condition) return;
         _warnings ??= new HashSet<UILayoutWarning>();
         _warnings.Add(warning);
     }

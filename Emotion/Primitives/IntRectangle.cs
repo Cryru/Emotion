@@ -64,6 +64,6 @@ public record struct IntRectangle
 
     public override readonly string ToString()
     {
-        return $"{X} {Y}:{Width} {Height}";
+        return $"Pos [{X}x{Y}] Size [{Width}x{Height}]";
     }
 }
