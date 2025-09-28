@@ -16,30 +16,12 @@ public class UIAttachedWindow : UIBaseWindow
         Layout.SizingY = UISizing.Fit();
     }
 
-    protected virtual IntVector2 InternalMeasureWindow()
-    {
-        return base.MeasureWindow();
-    }
-
     protected override void InternalCustomLayout()
     {
-        PreLayout();
-        CalculatedMetrics.Size = InternalMeasureWindow();
-        GrowWindow();
+        if (AttachedTo != null)
+            CalculatedMetrics.Position = GetAnchorPosition(Layout.ParentAnchor, AttachedTo.CalculatedMetrics.Bounds, Layout.Anchor, CalculatedMetrics.Size);
 
-        if (AttachedTo == null)
-        {
-            CalculatedMetrics.Position = IntVector2.Zero;
-            return;
-        }
-
-        CalculatedMetrics.InsideParent = AnchorsInsideParent(Layout.ParentAnchor, Layout.Anchor);
-
-        IntVector2 pen = AttachedTo.CalculatedMetrics.Position;
-        IntVector2 parentSize = AttachedTo.CalculatedMetrics.Size;
-        IntRectangle parentContentRect = new IntRectangle(pen, parentSize);
-        IntVector2 anchorPos = GetAnchorPosition(Layout.ParentAnchor, parentContentRect, Layout.Anchor, CalculatedMetrics.Size);
-        LayoutWindow(anchorPos);
+        PerformDefaultLayout();
     }
 }
 
@@ -57,13 +39,13 @@ public class UIDropDown : UIAttachedWindow
     protected override void OnOpen()
     {
         base.OnOpen();
-        Assert(Engine.UI.Dropdown == this);
+        Assert(Engine.UI.Dropdown == this); // Dropdowns should always be opened by the system and managed.
     }
 
     protected override void OnClose()
     {
         base.OnClose();
-        Engine.UI.CloseDropdown();
+        Engine.UI.CloseDropdown(); // In case the dropdown was closed by the parent dying or something.
     }
 
     // Close on defocus logic is implemented in the UISystem

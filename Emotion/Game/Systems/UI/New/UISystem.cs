@@ -24,9 +24,23 @@ public class UISystem : UIBaseWindow
     protected override bool UpdateInternal()
     {
         TickInput();
-        UpdateLayout();
+
+        if (_needsLayout)
+            PerformLayout();
 
         return base.UpdateInternal();
+    }
+
+    private void PerformLayout()
+    {
+        if (_useCustomLayout)
+        {
+            PreLayout();
+            InternalCustomLayout();
+            return;
+        }
+
+        PerformDefaultLayout();
     }
 
     #region Scaling

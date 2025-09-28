@@ -1,7 +1,6 @@
-﻿using Emotion.Game.Systems.UI;
-using Emotion.Game.Systems.UI2;
+﻿#nullable enable
 
-#nullable enable
+using Emotion.Game.Systems.UI2;
 
 namespace Emotion.Editor.EditorUI;
 
@@ -28,21 +27,15 @@ public class EditorDropDown : UIDropDown
         base.AddChild(child);
     }
 
-    protected override IntVector2 InternalMeasureWindow()
+    protected override void InternalCustomLayout()
     {
-        IntVector2 size = base.MeasureWindow();
-        IntVector2 attachedWindowSize = AttachedTo == null ? IntVector2.Zero : AttachedTo.CalculatedMetrics.Size;
-        if (ClampToSpawningWindowWidth && size.X > attachedWindowSize.X)
-            size.X = attachedWindowSize.X;
-        return size;
-    }
+        if (ClampToSpawningWindowWidth && AttachedTo != null)
+            Layout.SizingX = UISizing.Fixed(AttachedTo.CalculatedMetrics.Size.X);
+        else
+            Layout.SizingX = UISizing.Fit();
 
-    //if (size.X < SpawningWindow.Width)
-    //{
-    //    float diff = SpawningWindow.Width - Size.X;
-    //    if (Anchor == UIAnchor.TopRight) pos.X -= diff;
-    //    size.X += diff;
-    //}
+        base.InternalCustomLayout();
+    }
 
     public static EditorDropDown OpenListDropdown(UIBaseWindow spawningWindow)
     {

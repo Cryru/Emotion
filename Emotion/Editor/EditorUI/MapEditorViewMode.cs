@@ -181,6 +181,11 @@ public class MapEditorViewMode : UIBaseWindow
             _gizmoEntity ??= TranslationGizmo.GetTranslationGizmoEntity(15, 15, false)!;
         }
 
+        protected override void InternalOnLayoutComplete()
+        {
+            Console.WriteLine(CalculatedMetrics.Bounds);
+        }
+
         protected override void InternalRender(Renderer r)
         {
             base.InternalRender(r);

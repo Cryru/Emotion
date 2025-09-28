@@ -4,9 +4,6 @@
 
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Core.Utility.Threading;
-using Emotion.Editor.EditorUI;
-using Emotion.Editor.EditorUI.Components;
-using Emotion.Game.Systems.UI.New;
 using Emotion.Game.Systems.UI2;
 using static Emotion.Game.Systems.UI2.UILayoutMethod;
 
@@ -452,20 +449,15 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         // Assert(GLThread.IsGLThread(), "Layout can only be invalidated from the main thread to prevent invalidates mid-update.");
 
         _needsLayout = true;
-        //if (Parent != null)
-        //{
-        //    if (
-        //        Parent.Layout.LayoutMethod.Mode == UIMethodName.Free &&
-        //        Parent.Layout.SizingX.Mode != UISizing.UISizingMode.Fit &&
-        //        Parent.Layout.SizingY.Mode != UISizing.UISizingMode.Fit
-        //    )
-        //        return;
 
-        //    // Note: since this will reach all the way to the UISystem we need to check nullability of parent.
-        //    Parent?.InvalidateLayout();
-        //}
-        // Note: since this will reach all the way to the UISystem we need to check nullability of parent.
-        Parent?.InvalidateLayout();
+        // todo: Layout functions should be rewritten in a way so they can be resumed at any point in the tree,
+        // to prevent all invalidations going all the way up.
+        // For instance this case doesn't make sense to propagate:
+        //  Parent.Layout.LayoutMethod.Mode == UIMethodName.Free &&
+        //  Parent.Layout.SizingX.Mode != UISizing.UISizingMode.Fit &&
+        //  Parent.Layout.SizingY.Mode != UISizing.UISizingMode.Fit
+
+        Parent?.InvalidateLayout(); // Note: since this will reach all the way to the UISystem we need to check nullability of parent.
     }
 
     #endregion
@@ -539,44 +531,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         }
     }
 
-    private float _lastUpdateTime;
-
-    public void UpdateLayout()
-    {
-        if (!_needsLayout)
-        {
-            foreach (UIBaseWindow child in Children)
-            {
-                child.UpdateLayout();
-            }
-            return;
-        }
-
-        // A layout can be started at any part of the tree,
-        // and all UI below it will be handled.
-        if (_useCustomLayout)
-        {
-            InternalCustomLayout();
-            _needsLayout = false;
-        }
-        else
-        {
-            PreLayout();
-            CalculatedMetrics.Size = MeasureWindow();
-            if (Parent != null)
-            {
-                Assert(Parent.Layout.LayoutMethod.Mode == UIMethodName.Free,
-                    "UI layout can only be resumed/initiated from a child of a parent with a layout method set to 'Free'"
-                );
-                Parent.GrowWindow();
-            }
-            else
-            {
-                GrowWindow();
-            }
-            LayoutWindow(CalculatedMetrics.Position);
-        }
-    }
+    private float _lastUpdateTime = 0;
 
     public void Update()
     {
@@ -786,6 +741,14 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     }
 
+    protected void PerformDefaultLayout()
+    {
+        PreLayout();
+        CalculatedMetrics.Size = MeasureWindow();
+        GrowWindow();
+        LayoutWindow(CalculatedMetrics.Position);
+    }
+
     protected void PreLayout()
     {
         _needsLayout = false;
@@ -795,7 +758,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         else
             Layout.Scale = Vector2.One;
 
-        // Precalculate metrics.
+        // Pre-calculate metrics.
         IntVector2 sizeMargins = IntVector2.Zero;
         sizeMargins += Layout.Margins.TopLeft;
         sizeMargins += Layout.Margins.BottomRight;
@@ -819,7 +782,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         }
     }
 
-    protected IntVector2 MeasureWindow()
+    private IntVector2 MeasureWindow()
     {
         IntVector2 childrenSize = IntVector2.Zero;
         switch (Layout.LayoutMethod.Mode)
@@ -889,7 +852,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         );
     }
 
-    protected void GrowWindow()
+    private void GrowWindow()
     {
         // Early out
         if (Children.Count == 0)
@@ -1016,7 +979,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         }
     }
 
-    protected void LayoutWindow(IntVector2 pos)
+    private void LayoutWindow(IntVector2 pos)
     {
         CalculatedMetrics.Position = pos;
 
@@ -1025,16 +988,18 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
            CalculatedMetrics.Size - CalculatedMetrics.PaddingsSize
         );
 
+        foreach (UIBaseWindow child in Children)
+        {
+            if (child._useCustomLayout)
+                child.InternalCustomLayout();
+        }
+
         switch (Layout.LayoutMethod.Mode)
         {
             case UIMethodName.Free:
                 foreach (UIBaseWindow child in Children)
                 {
-                    if (child._useCustomLayout)
-                    {
-                        child.InternalCustomLayout();
-                        continue;
-                    }
+                    if (SkipWindowLayout(child)) continue;
 
                     if (child.Layout.Anchor == UIAnchor.TopLeft && child.Layout.ParentAnchor == UIAnchor.TopLeft) // Shortcut for most common
                     {
@@ -1067,11 +1032,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                 IntVector2 pen = parentContentRect.Position;
                 foreach (UIBaseWindow child in Children)
                 {
-                    if (child._useCustomLayout)
-                    {
-                        child.InternalCustomLayout();
-                        continue;
-                    }
+                    if (SkipWindowLayout(child)) continue;
 
                     child.CalculatedMetrics.InsideParent = true;
 
