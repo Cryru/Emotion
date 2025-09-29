@@ -13,58 +13,67 @@ namespace Emotion.Editor.EditorUI.FilePickerHelpers;
 
 public class FileExplorerButton : UICallbackButton
 {
-    private UIText _label;
-    private UISolidColor _bg;
-    private UISolidColor _notch;
+    private NewUIText _label;
+    private UIBaseWindow _bg;
+    private UIBaseWindow _notch;
 
     private string _extension = "";
     private string _fileName = "";
 
     public FileExplorerButton()
     {
-        LayoutMode = LayoutMode.VerticalList;
+        Layout.LayoutMethod = UILayoutMethod.VerticalList(0);
 
-        var directoryNotch = new UISolidColor
+        UIBaseWindow directoryNotch = new()
         {
-            WindowColor = EditorColorPalette.ButtonColor,
-            MinSizeY = 10,
-            MinSizeX = 20,
-            Visible = false,
-            GrowY = false,
-            GrowX = false
+            Layout =
+            {
+                SizingX = UISizing.Fixed(20),
+                SizingY = UISizing.Fixed(10),
+            },
+            Visuals =
+            {
+                BackgroundColor = EditorColorPalette.ButtonColor,
+                Visible = false
+            }
         };
         _notch = directoryNotch;
         AddChild(directoryNotch);
 
-        var bg = new UISolidColor
+        UIBaseWindow bg = new()
         {
-            WindowColor = EditorColorPalette.ButtonColor,
             Name = "buttonBackground",
-            MinSizeY = 60,
-            MaxSizeY = 60
+            Layout =
+            {
+                SizingY = UISizing.Fixed(60)
+            },
+            Visuals =
+            {
+                BackgroundColor = EditorColorPalette.ButtonColor,
+            }
         };
         _bg = bg;
         AddChild(bg);
 
-        var txt = new UIText
+        NewUIText txt = new()
         {
-            ParentAnchor = UIAnchor.TopCenter,
-            Anchor = UIAnchor.TopCenter,
-            WindowColor = EditorColorPalette.TextColor,
             Name = "buttonText",
+
+            TextColor = EditorColorPalette.TextColor,
             FontSize = EditorColorPalette.EditorButtonTextSize - 2,
             IgnoreParentColor = true,
-            Margins = new Rectangle(0, 5, 0, 0),
-            MaxSizeX = 140
+
+            Layout =
+            {
+                Margins = new UISpacing(0, 5, 0, 0),
+                MaxSizeX = 140,
+                AnchorAndParentAnchor = UIAnchor.TopCenter
+            }
         };
         _label = txt;
         AddChild(txt);
 
-        MinSizeX = 150;
-        MaxSizeX = 150;
-
-        GrowX = false;
-        GrowY = false;
+        Layout.SizingX = UISizing.Fixed(150);
     }
 
     public void SetFileName(string fileName)

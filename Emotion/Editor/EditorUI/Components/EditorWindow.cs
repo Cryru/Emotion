@@ -335,18 +335,17 @@ public class EditorWindow : UIBaseWindow
     {
         if (_panelDragResize)
         {
-            Vector2 contentMinSize = _contentParent.MinSize;
-            if (_topBar != null) contentMinSize += new Vector2(0, _topBar.MaxSizeY);
-            contentMinSize.X += _contentParent.Margins.X + _contentParent.Margins.Width;
-            contentMinSize.Y += _contentParent.Margins.Y + _contentParent.Margins.Height;
+            //IntVector2 contentMinSize = IntVector2.Zero;// _contentParent.MinSize;
+            //if (_topBar != null) contentMinSize += new IntVector2(0, _topBar.Layout.SizingY.Size);
+            //contentMinSize += _contentParent.Layout.Margins.TopLeft + _contentParent.Layout.Margins.BottomRight;
 
-            Vector2 curMouse = Engine.Host.MousePosition;
-            Rectangle r = Rectangle.FromMinMaxPoints(_panelItself.Position2, curMouse);
-            r.Size /= GetScale(); // Unscale
-            r.Size = Vector2.Max(r.Size, contentMinSize);
-            r.Size = Vector2.Max(r.Size, _panelItself.MinSize);
-            _panelItself.SizeConstraint = r.Size;
-            _panelItself.InvalidateLayout();
+            //Vector2 curMouse = Engine.Host.MousePosition;
+            //Rectangle r = Rectangle.FromMinMaxPoints(_panelItself.CalculatedMetrics.Position, curMouse);
+            //r.Size /= GetScale(); // Unscale
+            //r.Size = IntVector2.Max(r.Size, contentMinSize);
+            //r.Size = IntVector2.Max(r.Size, _panelItself.MinSize);
+            //_panelItself.SizeConstraint = r.Size;
+            //_panelItself.InvalidateLayout();
         }
     }
 
@@ -365,10 +364,15 @@ public class EditorWindow : UIBaseWindow
     {
         UICallbackButton topBar = new UICallbackButton
         {
+            Name = "TopBar",
             OrderInParent = -1,
             HandleInput = true,
-            MaxSizeY = 40,
-            Name = "TopBar",
+
+            Layout =
+            {
+                SizingY = UISizing.Fixed(40),
+                LayoutMethod = UILayoutMethod.HorizontalList(0)
+            },
             OnClickedProxy = (_) =>
             {
                 _topBarMouseDown = true;
@@ -378,7 +382,6 @@ public class EditorWindow : UIBaseWindow
             {
                 _topBarMouseDown = false;
             },
-            LayoutMode = LayoutMode.HorizontalList
         };
         _topBar = topBar;
         parent.AddChild(topBar);

@@ -125,28 +125,28 @@ public class UICallbackListNavigator : UIBaseWindow
 //    }
 
 #if !NEW_UI
-    protected override Vector2 GetChildrenLayoutSize(Vector2 space, Vector2 measuredSize, Vector2 paddingSize)
-    {
-        if (UseNewLayoutSystem) return Vector2.Zero;
+    //protected override Vector2 GetChildrenLayoutSize(Vector2 space, Vector2 measuredSize, Vector2 paddingSize)
+    //{
+    //    if (UseNewLayoutSystem) return Vector2.Zero;
 
-        Vector2 baseChildSize = base.GetChildrenLayoutSize(space, measuredSize, paddingSize);
-        Vector2 scrollRange = baseChildSize;
-        switch (LayoutMode)
-        {
-            case LayoutMode.VerticalListWrap:
-            case LayoutMode.HorizontalList:
-                scrollRange.X = MaxSize.X;
-                break;
-            case LayoutMode.HorizontalListWrap:
-            case LayoutMode.VerticalList:
-                scrollRange.Y = MaxSize.Y;
-                break;
-        }
+    //    Vector2 baseChildSize = base.GetChildrenLayoutSize(space, measuredSize, paddingSize);
+    //    Vector2 scrollRange = baseChildSize;
+    //    switch (LayoutMode)
+    //    {
+    //        case LayoutMode.VerticalListWrap:
+    //        case LayoutMode.HorizontalList:
+    //            scrollRange.X = MaxSize.X;
+    //            break;
+    //        case LayoutMode.HorizontalListWrap:
+    //        case LayoutMode.VerticalList:
+    //            scrollRange.Y = MaxSize.Y;
+    //            break;
+    //    }
 
-        Rectangle parentPadding = Paddings * GetScale();
-        _scrollArea = new Rectangle(parentPadding.X, parentPadding.Y, -1, -1);
-        return scrollRange;
-    }
+    //    Rectangle parentPadding = Paddings * GetScale();
+    //    _scrollArea = new Rectangle(parentPadding.X, parentPadding.Y, -1, -1);
+    //    return scrollRange;
+    //}
 
     protected override void AfterMeasureChildren(Vector2 usedSpace)
     {

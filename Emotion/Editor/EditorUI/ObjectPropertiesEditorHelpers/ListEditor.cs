@@ -47,8 +47,10 @@ public class ListEditor<TItem> : ListEditor
 
         _itemList = new UIOverlayWindowParent()
         {
-            LayoutMode = LayoutMode.VerticalList,
-            ListSpacing = new Vector2(0, 3),
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.VerticalList(3)
+            },
             NoClip = true
         };
         scrollArea.AddChildInside(_itemList);

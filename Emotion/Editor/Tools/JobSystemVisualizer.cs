@@ -2,13 +2,12 @@
 
 using Emotion.Core.Systems.JobSystem;
 using Emotion.Editor.EditorUI.Components;
-using Emotion.Game.Systems.UI;
 
 namespace Emotion.Editor.Tools;
 
 public class JobSystemVisualizer : EditorWindow
 {
-    private UISolidColor[]? _threadBars;
+    private UIBaseWindow[]? _threadBars;
 
     public JobSystemVisualizer() : base("Job System")
     {
@@ -18,28 +17,32 @@ public class JobSystemVisualizer : EditorWindow
     {
         base.OnOpen();
 
-        var contentParent = GetContentParent();
-        contentParent.LayoutMode = LayoutMode.VerticalList;
+        UIBaseWindow contentParent = GetContentParent();
+        contentParent.Layout.LayoutMethod = UILayoutMethod.VerticalList(0);
 
         int threadCount = Engine.Jobs.ThreadCount;
-        _threadBars = new UISolidColor[threadCount];
+        _threadBars = new UIBaseWindow[threadCount];
         for (int i = 0; i < threadCount; i++)
         {
-            UIBaseWindow threadContainer = new UIBaseWindow();
-            threadContainer.GrowY = false;
-            threadContainer.GrowX = false;
-            threadContainer.MaxSizeX = 300;
-            threadContainer.LayoutMode = LayoutMode.HorizontalList;
-            //threadContainer.ListSpacing = new Vector2(10, 0); // nani the hell? why do I need this as a margin instead
+            UIBaseWindow threadContainer = new()
+            {
+                Layout =
+                {
+                    LayoutMethod = UILayoutMethod.HorizontalList(10),
+                    SizingX = UISizing.Fixed(300)
+                }
+            };
             contentParent.AddChild(threadContainer);
 
             threadContainer.AddChild(new EditorLabel($"JobThread {i}"));
 
-            UISolidColor threadBar = new UISolidColor
+            UIBaseWindow threadBar = new()
             {
-                MinSizeX = 200,
-                MaxSizeY = 20,
-                Margins = new Primitives.Rectangle(10, 0, 0, 0)
+                Layout =
+                {
+                    MinSizeX = 200,
+                    MaxSizeY = 20
+                }
             };
             _threadBars[i] = threadBar;
             threadContainer.AddChild(threadBar);
@@ -54,17 +57,17 @@ public class JobSystemVisualizer : EditorWindow
             int threadJobs = Engine.Jobs.DebugOnly_GetThreadJobAmount(i);
             float percentBusy = (float)threadJobs / AsyncJobManager.MANY_JOBS;
 
-            var bar = _threadBars[i];
+            UIBaseWindow bar = _threadBars[i];
 
-            bar.MinSizeX = 200 * percentBusy;
+            bar.Layout.SizingX = UISizing.Fixed((int) MathF.Round(200 * percentBusy));
             if (percentBusy > 1.0f)
-                bar.WindowColor = Color.PrettyPurple;
+                bar.Visuals.BackgroundColor = Color.PrettyPurple;
             else if (percentBusy > 0.8f)
-                bar.WindowColor = Color.PrettyRed;
+                bar.Visuals.BackgroundColor = Color.PrettyRed;
             else if (percentBusy > 0.4f)
-                bar.WindowColor = Color.PrettyYellow;
+                bar.Visuals.BackgroundColor = Color.PrettyYellow;
             else
-                bar.WindowColor = Color.PrettyGreen;
+                bar.Visuals.BackgroundColor = Color.PrettyGreen;
         }
         InvalidateLayout();
 

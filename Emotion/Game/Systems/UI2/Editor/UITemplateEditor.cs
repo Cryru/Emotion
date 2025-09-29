@@ -116,7 +116,7 @@ public class UITemplateEditor : TypeEditor
     private O_UITemplate? _objectEditing = null;
     private ComplexObjectEditor<O_UITemplate> _objEditor;
     private ObjectPropertyWindow _windowEditor;
-    private UISolidColor _viewPort;
+    private UIBaseWindow _viewPort;
     private EditorTreeViewWindow<UIBaseWindow>? _treeView;
 
     public UITemplateEditor()
@@ -127,9 +127,12 @@ public class UITemplateEditor : TypeEditor
         };
         AddChild(contentPanel);
 
-        var viewPort = new UISolidColor()
+        var viewPort = new UIBaseWindow()
         {
-            WindowColor = Color.CornflowerBlue
+            Visuals =
+            {
+                BackgroundColor = Color.CornflowerBlue
+            }
         };
         _viewPort = viewPort;
 
@@ -168,12 +171,15 @@ public class UITemplateEditor : TypeEditor
 
         var right = new UIBaseWindow()
         {
-            LayoutMode = LayoutMode.VerticalList
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.VerticalList(0)
+            }
         };
         contentPanel.AddChild(right);
 
         var meEditor = new ComplexObjectEditor<O_UITemplate>();
-        meEditor.MinSizeY = 150;
+        meEditor.Layout.SizingY = UISizing.Fixed(150);
         right.AddChild(meEditor);
         _objEditor = meEditor;
 

@@ -174,7 +174,7 @@ public class UIRichText : UIBaseWindow
         Assert(!StretchY);
 
         float scale = GetScale();
-        space = Vector2.Clamp(space, MinSize * scale, MaxSize * scale).Ceiling();
+        //space = Vector2.Clamp(space, MinSize * scale, MaxSize * scale).Ceiling();
 
         _scaledUnderlineOffset = UnderlineOffset * scale;
         _scaledUnderlineThickness = UnderlineThickness * scale;

@@ -184,11 +184,17 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
                         Margins = new Rectangle(5, 5, 0, 5)
                     };
 
-                    var color = new UISolidColor()
+                    var color = new UIBaseWindow()
                     {
-                        WindowColor = EditorColorPalette.BarColor * 0.75f,
-                        Paddings = new Rectangle(8, 5, 8, 5),
-                        MaxSizeX = 400
+                        Visuals =
+                        {
+                            BackgroundColor = EditorColorPalette.BarColor * 0.75f,
+                        },
+                        Layout =
+                        {
+                            MaxSizeX = 400,
+                            Padding = new UISpacing(8, 5, 8, 5)
+                        }
                     };
                     rollover.AddChild(color);
 

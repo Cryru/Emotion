@@ -10,10 +10,10 @@ public struct UISizing
         Fixed,
     }
 
-    public float Size;
+    public int Size;
     public UISizingMode Mode;
 
-    public static UISizing Fixed(float size)
+    public static UISizing Fixed(int size)
     {
         return new UISizing()
         {

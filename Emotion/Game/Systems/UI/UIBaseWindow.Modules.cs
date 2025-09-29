@@ -764,14 +764,14 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
         // Pre-calculate metrics.
         IntVector2 sizeMargins = IntVector2.Zero;
-        sizeMargins += Layout.Margins.TopLeft;
-        sizeMargins += Layout.Margins.BottomRight;
+        sizeMargins += Layout.Margins.LeftTop;
+        sizeMargins += Layout.Margins.RightBottom;
         sizeMargins = sizeMargins.FloorMultiply(CalculatedMetrics.Scale);
         CalculatedMetrics.MarginsSize = sizeMargins;
 
         IntVector2 sizePaddings = IntVector2.Zero;
-        sizePaddings += Layout.Padding.TopLeft;
-        sizePaddings += Layout.Padding.BottomRight;
+        sizePaddings += Layout.Padding.LeftTop;
+        sizePaddings += Layout.Padding.RightBottom;
         sizePaddings = sizePaddings.FloorMultiply(CalculatedMetrics.Scale);
         CalculatedMetrics.PaddingsSize = sizePaddings;
 
@@ -988,7 +988,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         CalculatedMetrics.Position = pos;
 
         IntRectangle parentContentRect = new IntRectangle(
-           pos + Layout.Padding.TopLeft.FloorMultiply(CalculatedMetrics.Scale),
+           pos + Layout.Padding.LeftTop.FloorMultiply(CalculatedMetrics.Scale),
            CalculatedMetrics.Size - CalculatedMetrics.PaddingsSize
         );
 
@@ -1008,7 +1008,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                     if (child.Layout.Anchor == UIAnchor.TopLeft && child.Layout.ParentAnchor == UIAnchor.TopLeft) // Shortcut for most common
                     {
                         child.CalculatedMetrics.InsideParent = true;
-                        child.Step3_LayoutWindow(parentContentRect.Position + child.Layout.Margins.TopLeft.FloorMultiply(child.CalculatedMetrics.Scale) + child.CalculatedMetrics.Offsets);
+                        child.Step3_LayoutWindow(parentContentRect.Position + child.Layout.Margins.LeftTop.FloorMultiply(child.CalculatedMetrics.Scale) + child.CalculatedMetrics.Offsets);
                     }
                     else
                     {
@@ -1016,7 +1016,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
                         // This will prevent left margins affecting us when the anchor is right
                         IntRectangle contentRectForThisChild = parentContentRect;
-                        contentRectForThisChild.Position += child.Layout.Margins.TopLeft.FloorMultiply(child.CalculatedMetrics.Scale);
+                        contentRectForThisChild.Position += child.Layout.Margins.LeftTop.FloorMultiply(child.CalculatedMetrics.Scale);
                         contentRectForThisChild.Size -= child.CalculatedMetrics.MarginsSize;
 
                         IntVector2 anchorPos = GetAnchorPosition(
@@ -1054,7 +1054,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                     child.AddWarning(child.Layout.Anchor != UIAnchor.TopLeft && alignAcrossList == ListLayoutItemsAlign.Beginning, UILayoutWarning.AnchorInListDoesntDoAnything);
 
                     // Add margin (todo: this needs to be the right margin when items are aligned to end, none when centered (for the two outside ones) etc)
-                    IntVector2 childTopLeftMargin = child.Layout.Margins.TopLeft.FloorMultiply(child.CalculatedMetrics.Scale);
+                    IntVector2 childTopLeftMargin = child.Layout.Margins.LeftTop.FloorMultiply(child.CalculatedMetrics.Scale);
                     childPosition += childTopLeftMargin;
 
                     child.Step3_LayoutWindow(childPosition + child.CalculatedMetrics.Offsets);

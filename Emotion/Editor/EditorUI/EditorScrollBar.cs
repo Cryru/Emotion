@@ -1,12 +1,6 @@
-﻿#region Using
-
-using Emotion.Game.Systems.UI;
-
-#endregion
+﻿#nullable enable
 
 namespace Emotion.Editor.EditorUI;
-
-#nullable enable
 
 public class EditorScrollBar : UIScrollbar
 {
@@ -14,15 +8,15 @@ public class EditorScrollBar : UIScrollbar
     {
         DefaultSelectorColor = EditorColorPalette.ButtonColor;
         SelectorMouseInColor = EditorColorPalette.ActiveButtonColor;
-        WindowColor = Color.Black * 0.5f;
-        AnchorAndParentAnchor = UIAnchor.TopRight;
-        MinSizeX = 15;
-        MaxSizeX = 15;
+        
+        Layout.SizingX = UISizing.Fixed(15);
+        Layout.AnchorAndParentAnchor = UIAnchor.TopRight;
+        Visuals.BackgroundColor = Color.Black * 0.5f;
     }
 
-    protected override bool RenderInternal(Renderer c)
+    protected override void InternalRender(Renderer r)
     {
-        base.RenderInternal(c);
+        base.RenderInternal(r);
 
         var grabLineColor = Color.White * 0.35f;
 
@@ -31,11 +25,9 @@ public class EditorScrollBar : UIScrollbar
         var lineWidth = 10 * scale;
         var lineHeight = 3 * scale;
 
-        c.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
-        c.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f) + new Vector2(0, lineHeight * 2f)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
-        c.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f) + new Vector2(0, lineHeight * 4f)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
-
-        return true;
+        r.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
+        r.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f) + new Vector2(0, lineHeight * 2f)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
+        r.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f) + new Vector2(0, lineHeight * 4f)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
     }
 }
 
@@ -45,16 +37,16 @@ public class EditorScrollBarHorizontal : UIScrollbar
     {
         DefaultSelectorColor = EditorColorPalette.ButtonColor;
         SelectorMouseInColor = EditorColorPalette.ActiveButtonColor;
-        WindowColor = Color.Black * 0.5f;
-        AnchorAndParentAnchor = UIAnchor.BottomLeft;
-        MinSizeY = 15;
-        MaxSizeY = 15;
         Horizontal = true;
+
+        Layout.SizingY = UISizing.Fixed(15);
+        Layout.AnchorAndParentAnchor = UIAnchor.BottomLeft;
+        Visuals.BackgroundColor = Color.Black * 0.5f;
     }
 
-    protected override bool RenderInternal(Renderer c)
+    protected override void InternalRender(Renderer r)
     {
-        base.RenderInternal(c);
+        base.RenderInternal(r);
 
         var grabLineColor = Color.White * 0.35f;
 
@@ -63,10 +55,8 @@ public class EditorScrollBarHorizontal : UIScrollbar
         var lineWidth = 3 * scale;
         var lineHeight = 10 * scale;
 
-        c.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
-        c.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f) + new Vector2(lineWidth * 2f, 0)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
-        c.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f) + new Vector2(lineWidth * 4f, 0)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
-
-        return true;
+        r.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
+        r.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f) + new Vector2(lineWidth * 2f, 0)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
+        r.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f) + new Vector2(lineWidth * 4f, 0)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
     }
 }

@@ -116,7 +116,7 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
                     else
                     {
                         member.SetValueInComplexObject(_value, newValue);
-                        if(_objEdit != null)
+                        if (_objEdit != null)
                             _objEdit.NotifyPropertyChangedThroughStack();
                         else
                             EngineEditor.ReportChange_ObjectProperty(_value, member.Name, _value, newValue, this);
@@ -127,7 +127,7 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
                 _editors.Add((member, editor));
 
                 bool verticalLabel = editor is ListEditor;
-                if (verticalLabel) editor.MinSizeY = 200;
+                if (verticalLabel) editor.Layout.SizingY = UISizing.Fixed(200);
 
                 var editorWithlabel = WrapWithLabel($"{member.Name}:", editor, verticalLabel);
                 EditorList.AddChild(editorWithlabel);
@@ -190,19 +190,20 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
                 GrowX = true,
                 OnClickedProxy = (_) => OpenEditor()
             };
-            var padding = editButton.Paddings;
-            padding.Width = 30;
-            editButton.Paddings = padding;
+            UISpacing padding = editButton.Layout.Padding;
+            padding.RightBottom.X = 30;
+            editButton.Layout.Padding = padding;
             AddChild(editButton);
             _button = editButton;
 
             var arrowSquare = new UIBaseWindow()
             {
-                GrowX = false,
-                GrowY = false,
-                MinSizeY = 23,
-                MinSizeX = 29,
-                AnchorAndParentAnchor = UIAnchor.TopRight,
+                Layout =
+                {
+                    SizingX = UISizing.Fixed(29),
+                    SizingY = UISizing.Fixed(23),
+                    AnchorAndParentAnchor = UIAnchor.TopRight,
+                }
             };
             AddChild(arrowSquare);
 

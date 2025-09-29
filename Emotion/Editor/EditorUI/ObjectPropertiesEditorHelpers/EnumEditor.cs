@@ -34,11 +34,12 @@ public class EnumEditor<T, TNum> : TypeEditor
 
         var arrowSquare = new UIBaseWindow()
         {
-            GrowX = false,
-            GrowY = false,
-            MinSizeY = 23,
-            MinSizeX = 29,
-            AnchorAndParentAnchor = UIAnchor.TopRight,
+            Layout =
+            {
+                SizingX = UISizing.Fixed(29),
+                SizingY = UISizing.Fixed(23),
+                AnchorAndParentAnchor = UIAnchor.TopRight,
+            }
         };
         AddChild(arrowSquare);
 
@@ -90,9 +91,9 @@ public class EnumEditor<T, TNum> : TypeEditor
         if (_items == null) return;
 
         var dropDown = EditorDropDown.OpenListDropdown(this);
-        dropDown.MaxSizeY = 300;
-        dropDown.ParentAnchor = UIAnchor.BottomRight;
-        dropDown.Anchor = UIAnchor.TopRight;
+        dropDown.Layout.SizingY = UISizing.Fixed(300);
+        dropDown.Layout.ParentAnchor = UIAnchor.BottomRight;
+        dropDown.Layout.Anchor = UIAnchor.TopRight;
 
         int idx = 0;
         foreach (T item in _items)

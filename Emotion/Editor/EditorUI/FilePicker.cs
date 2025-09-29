@@ -139,9 +139,11 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
         UIBaseWindow container = new UIBaseWindow
         {
             Name = "MainContainer",
-            LayoutMode = LayoutMode.VerticalList,
-            Paddings = new Rectangle(10, 10, 10, 10),
-            ListSpacing = new Vector2(0, 10)
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.VerticalList(10),
+                Padding = new UISpacing(10, 10, 10, 10)
+            }
         };
         contentParent.AddChild(container);
 
@@ -156,14 +158,12 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
             Name = "ContainerList",
             LayoutMode = LayoutMode.HorizontalListWrap,
             ListSpacing = new Vector2(10, 10),
-            GrowX = false,
-            GrowY = false,
 
-            MinSizeX = 1250,
-            MaxSizeX = 1250,
-
-            MinSizeY = 500,
-            MaxSizeY = 500,
+            Layout =
+            {
+                SizingX = UISizing.Fixed(1250),
+                SizingY = UISizing.Fixed(500)
+            }
         };
         container.AddChild(containerList);
 

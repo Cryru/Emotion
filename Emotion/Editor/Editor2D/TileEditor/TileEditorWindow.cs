@@ -148,10 +148,11 @@ public sealed class TileEditorWindow : GridEditorWindow
             var tilesetTileSelector = new TileEditorTileTextureSelector(this)
             {
                 Name = "TileSelector",
-
+                Layout =
+                {
+                    SizingY = UISizing.Fixed(450)
+                },
                 //MaxSizeX = 400, // temp
-                MinSizeY = 450,
-                MaxSizeY = 450
             };
             TileTextureSelector = tilesetTileSelector;
             sidePanel.AddChild(tilesetTileSelector);

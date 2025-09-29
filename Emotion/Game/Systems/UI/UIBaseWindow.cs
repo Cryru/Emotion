@@ -184,22 +184,6 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
     [DontSerialize] //
     public float MinSizeY;
 
-    /// <summary>
-    /// The maximum size the window can be.
-    /// </summary>
-    public Vector2 MaxSize
-    {
-        get => new(MaxSizeX, MaxSizeY);
-        set
-        {
-            MaxSizeX = value.X;
-            MaxSizeY = value.Y;
-        }
-    }
-
-    [DontSerialize] // will be saved via the Vector2 prop
-    public float MaxSizeX = DefaultMaxSizeF;
-
     [DontSerialize] //
     public float MaxSizeY = DefaultMaxSizeF;
 

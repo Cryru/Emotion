@@ -140,18 +140,18 @@ public class UISlider : UIBaseWindow
         base.OnMouseMove(mousePos);
     }
 
-    protected override void AfterMeasure(Vector2 mySize)
-    {
-        mySize /= GetScale();
-        int range = 1 + (MaxValue - MinValue);
-        Vector2 selectorSize;
-        if (Horizontal)
-            selectorSize = new Vector2(mySize.X / range * SelectorRatio, DefaultMaxSize.Y);
-        else
-            selectorSize = new Vector2(DefaultMaxSize.X, mySize.Y / range * SelectorRatio);
+    //protected override void AfterMeasure(Vector2 mySize)
+    //{
+    //    mySize /= GetScale();
+    //    int range = 1 + (MaxValue - MinValue);
+    //    Vector2 selectorSize;
+    //    if (Horizontal)
+    //        selectorSize = new Vector2(mySize.X / range * SelectorRatio, DefaultMaxSize.Y);
+    //    else
+    //        selectorSize = new Vector2(DefaultMaxSize.X, mySize.Y / range * SelectorRatio);
 
-        _selector.MaxSize = selectorSize;
-    }
+    //    _selector.MaxSize = selectorSize;
+    //}
 
     // Glue new UI and old UI
     //protected override Vector2 Measure(Vector2 space)
@@ -162,44 +162,44 @@ public class UISlider : UIBaseWindow
     //    return size;
     //}
 
-    protected void Logic()
-    {
-        Vector2 size = Size / GetScale();
-        int range = MaxValue - MinValue;
+    //protected void Logic()
+    //{
+    //    Vector2 size = Size / GetScale();
+    //    int range = MaxValue - MinValue;
 
-        if (Horizontal)
-        {
-            float selectorSize = _selector.MaxSize.X;
-            float offset;
-            if (!KeepSelectorInside)
-            {
-                offset = size.X / range * (Value - MinValue);
-                offset -= selectorSize / 2;
-            }
-            else
-            {
-                offset = (size.X - selectorSize) / range * (Value - MinValue);
-            }
+    //    if (Horizontal)
+    //    {
+    //        float selectorSize = _selector.MaxSize.X;
+    //        float offset;
+    //        if (!KeepSelectorInside)
+    //        {
+    //            offset = size.X / range * (Value - MinValue);
+    //            offset -= selectorSize / 2;
+    //        }
+    //        else
+    //        {
+    //            offset = (size.X - selectorSize) / range * (Value - MinValue);
+    //        }
 
-            _selector.Layout.Offset = new IntVector2((int) Math.Floor(offset), 0);
-        }
-        else
-        {
-            float selectorSize = _selector.MaxSize.Y;
-            float offset;
-            if (!KeepSelectorInside)
-            {
-                offset = size.Y / range * (Value - MinValue);
-                offset -= selectorSize / 2;
-            }
-            else
-            {
-                offset = (size.Y - selectorSize) / range * (Value - MinValue);
-            }
+    //        _selector.Layout.Offset = new IntVector2((int) Math.Floor(offset), 0);
+    //    }
+    //    else
+    //    {
+    //        float selectorSize = _selector.MaxSize.Y;
+    //        float offset;
+    //        if (!KeepSelectorInside)
+    //        {
+    //            offset = size.Y / range * (Value - MinValue);
+    //            offset -= selectorSize / 2;
+    //        }
+    //        else
+    //        {
+    //            offset = (size.Y - selectorSize) / range * (Value - MinValue);
+    //        }
 
-            _selector.Layout.Offset = new IntVector2(0, (int) Math.Floor(float.IsNaN(offset) ? 0 : offset));
-        }
-    }
+    //        _selector.Layout.Offset = new IntVector2(0, (int) Math.Floor(float.IsNaN(offset) ? 0 : offset));
+    //    }
+    //}
 
     protected override bool RenderInternal(Renderer c)
     {
