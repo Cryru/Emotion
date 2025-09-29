@@ -23,6 +23,11 @@ public class GlyphSoftwareRasterizerTests : TestingScene
 {
     private List<IntPtr> _pinnedFonts = new();
 
+    protected override IEnumerator InternalLoadSceneRoutineAsync()
+    {
+        yield break;
+    }
+
     public override IEnumerator UnloadSceneRoutineAsync()
     {
         for (var i = 0; i < _pinnedFonts.Count; i++)

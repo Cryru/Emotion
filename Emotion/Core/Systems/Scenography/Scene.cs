@@ -52,7 +52,7 @@ public abstract class SceneWithMap : Scene
     {
         get
         {
-            if (_map == null) _map = InitDefaultMap();
+            _map ??= InitDefaultMap();
             return _map;
         }
         protected set
@@ -68,9 +68,7 @@ public abstract class SceneWithMap : Scene
         Status = SceneStatus.Loading;
         yield return InternalLoadSceneRoutineAsync();
         yield return Map.InitRoutine();
-
-        // todo: preload ui assets or something
-        //yield return new TaskRoutineWaiter(Engine.UI.PreloadUI());
+        yield return SceneUI.WaitLoadingRoutine();
 
         Status = SceneStatus.Loaded;
     }

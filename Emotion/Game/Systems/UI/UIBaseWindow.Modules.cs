@@ -502,6 +502,11 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
             win.InvalidateLayout();
     }
 
+    public IEnumerator WaitLoadingRoutine()
+    {
+        yield return null;
+    }
+
     #endregion
 
     #region Per-Frame Methods

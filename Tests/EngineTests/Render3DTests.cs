@@ -14,28 +14,22 @@ namespace Tests.EngineTests;
 
 public class Render3DTests : TestingScene
 {
-    private GameMap _gameMap = null!;
-
-    public override IEnumerator LoadSceneRoutineAsync()
+    protected override IEnumerator InternalLoadSceneRoutineAsync()
     {
         GameObject obj = GameObject.NewMeshObject("WoWModels/rabbit2/rabbit2_rabbitskin2_white.gltf");
         obj.Scale3D = new Vector3(100);
-
-        _gameMap = new GameMap();
-        _gameMap.AddObject(obj);
-        yield return _gameMap.InitRoutine();
-
-        yield return base.LoadSceneRoutineAsync();
+        Map.AddObject(obj);
+        yield break;
     }
 
     protected override void TestDraw(Renderer c)
     {
-        _gameMap.Render(c);
+        Map.Render(c);
     }
 
     protected override void TestUpdate()
     {
-        _gameMap.Update(16);
+        Map.Update(16);
     }
 
     public IEnumerator ScreenshotPointFromAllSides(Vector3 point, string funcName)

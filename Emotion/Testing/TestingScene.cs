@@ -13,7 +13,7 @@ using OpenGL;
 
 namespace Emotion.Testing;
 
-public abstract class TestingScene : Scene
+public abstract class TestingScene : SceneWithMap
 {
     protected static FrameBuffer? _screenShotBuffer;
     protected static byte[]? _lastFrameScreenShot;
