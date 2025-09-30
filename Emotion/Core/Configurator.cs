@@ -201,6 +201,18 @@ public sealed class Configurator
 
     #endregion
 
+    #region Other
+
+#if DEBUG || AUTOBUILD
+    /// <summary>
+    /// Whether the engine should update (and render) the UI automatically.
+    /// This is used by tests.
+    /// </summary>
+    public bool UpdateUIAutomatically = true;
+#endif
+
+    #endregion
+
     /// <summary>
     /// Get all execution arguments. This includes the ones passed to the execution and ones
     /// passed by the configuration's ExtraArgs property.

@@ -303,8 +303,6 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         Assert(child.State != UIWindowState.Open, "Adding a child that is already attached to the UI system.");
         if (child.State == UIWindowState.Open) return;
 
-        Assert(State != UIWindowState.Open || GLThread.IsGLThread(), "UI children can only be added from the main thread.");
-
         // Check for duplicate ids
         if (Engine.Configuration.DebugMode && !string.IsNullOrEmpty(child.Name))
         {
@@ -319,11 +317,13 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
             }
         }
 
+        Assert(State != UIWindowState.Open || GLThread.IsGLThread(), "UI children can only be added from the main thread.");
+
         child.EnsureParentLinks();
         child.Parent = this;
         Children.Add(child);
 
-        // Start loading early, dont wait for next update
+        // Start loading early, don't wait for next update
         child.UpdateLoading();
 
         // Custom insertion sort as Array.Sort is unstable
@@ -350,6 +350,15 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         if (State == UIWindowState.Open)
             child.SetStateOpened();
 
+        InvalidateLayout();
+    }
+
+    private Queue<UIBaseWindow> _childrenToAdd = new Queue<UIBaseWindow>(0);
+
+    public void AddChildAsync(UIBaseWindow child)
+    {
+        child.UpdateLoading();
+        _childrenToAdd.Enqueue(child);
         InvalidateLayout();
     }
 
@@ -472,23 +481,31 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         return _needsLoading || !_loadingRoutine.Finished;
     }
 
-    protected void UpdateLoading()
+    protected Coroutine? UpdateLoading()
     {
+        Coroutine? firstLoading = null;
+
         // Update loading only if not currently loading
         if (_needsLoading && _loadingRoutine.Finished)
         {
             // Try to get the loading routine.
             Coroutine? newLoading = InternalLoad();
             if (newLoading != null)
+            {
                 _loadingRoutine = newLoading;
+                firstLoading = newLoading;
+            }
 
             _needsLoading = false;
         }
 
         foreach (UIBaseWindow child in Children)
         {
-            child.UpdateLoading();
+            Coroutine? childLoadRoutine = child.UpdateLoading();
+            firstLoading ??= childLoadRoutine;
         }
+
+        return firstLoading;
     }
 
     protected virtual Coroutine? InternalLoad()
@@ -504,7 +521,14 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     public IEnumerator WaitLoadingRoutine()
     {
-        yield return null;
+        Coroutine? routine = null;
+        do
+        {
+            routine = UpdateLoading();
+            if (routine != null)
+                yield return routine;
+        }
+        while (routine != null);
     }
 
     #endregion
@@ -752,10 +776,24 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     protected void DefaultLayout()
     {
+        Step00_AddQueuedChildren();
         Step0_PreLayout();
         CalculatedMetrics.Size = Step1_MeasureWindow();
         Step2_GrowWindow();
         Step3_LayoutWindow(CalculatedMetrics.Position);
+    }
+
+    protected void Step00_AddQueuedChildren()
+    {
+        while (_childrenToAdd.TryDequeue(out UIBaseWindow? newChild))
+        {
+            AddChild(newChild);
+        }
+
+        foreach (UIBaseWindow child in Children)
+        {
+            child.Step00_AddQueuedChildren();
+        }
     }
 
     protected void Step0_PreLayout()
@@ -1113,6 +1151,12 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     #region Custom
 
     protected bool _useCustomLayout;
+
+    protected void CustomLayout()
+    {
+        Step00_AddQueuedChildren();
+        InternalCustomLayout();
+    }
 
     protected virtual void InternalCustomLayout()
     {

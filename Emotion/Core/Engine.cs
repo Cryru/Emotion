@@ -492,7 +492,12 @@ public static class Engine
         CoroutineManager.Update(DeltaTime);
         CoroutineManagerGameTime.Update(DeltaTime);
 
+#if DEBUG || AUTOBUILD
+        if (Configuration.UpdateUIAutomatically)
+            UI.Update();
+#else
         UI.Update();
+#endif
         SceneManager.Update();
         EngineEditor.UpdateEditor();
         Renderer.UpdateCamera(); // Done after game logic to apply the new movement.
@@ -557,7 +562,12 @@ public static class Engine
         Renderer.SetUseViewMatrix(false);
         Renderer.SetDepthTest(false);
         Renderer.ClearDepth();
+#if DEBUG || AUTOBUILD
+        if (Configuration.UpdateUIAutomatically)
+            UI.Render(Renderer);
+#else
         UI.Render(Renderer);
+#endif
         PerfProfiler.FrameEventEnd("Render UI");
 
         PerfProfiler.FrameEventStart("EndFrame");
@@ -573,7 +583,7 @@ public static class Engine
         PerformanceMetrics.RegisterFrame();
     }
 
-    #endregion
+#endregion
 
     /// <summary>
     /// Stop running the engine.

@@ -25,12 +25,19 @@ public class NewUITests : TestingScene
 {
     protected override IEnumerator InternalLoadSceneRoutineAsync()
     {
+        Engine.Configuration.UpdateUIAutomatically = false;
         yield break;
+    }
+
+    public override IEnumerator UnloadSceneRoutineAsync()
+    {
+        Engine.Configuration.UpdateUIAutomatically = true;
+        return base.UnloadSceneRoutineAsync();
     }
 
     protected override void TestUpdate()
     {
-        //Engine.UI.Update();
+        Engine.UI.Update();
     }
 
     protected override void TestDraw(Renderer c)
@@ -64,7 +71,7 @@ public class NewUITests : TestingScene
                 BackgroundColor = Color.PrettyOrange
             }
         };
-        SceneUI.AddChild(win);
+        SceneUI.AddChildAsync(win);
 
         yield return WaitUILayout();
         yield return VerifyScreenshot(nameof(NewUITests), nameof(Fill));

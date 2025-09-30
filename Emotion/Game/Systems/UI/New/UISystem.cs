@@ -36,7 +36,7 @@ public class UISystem : UIBaseWindow
             return;
 
         if (_useCustomLayout)
-            InternalCustomLayout();
+            CustomLayout();
         else
             DefaultLayout();
     }

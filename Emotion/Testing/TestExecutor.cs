@@ -91,7 +91,7 @@ public static class TestExecutor
 
         // todo: read args and start running split processes, different configs etc.
 
-        string resultFolder = CommandLineParser.FindArgument(args, "folder=", out string folderPassed) ? folderPassed : $"{DateTime.Now:MM-dd-yyyy(HH.mm.ss)}";
+        string resultFolder = CommandLineParser.FindArgument(args, "folder=", out string? folderPassed) ? folderPassed : $"{DateTime.Now:MM-dd-yyyy(HH.mm.ss)}";
         TestRunFolder = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "TestResults", resultFolder);
 
         config ??= new Configurator();

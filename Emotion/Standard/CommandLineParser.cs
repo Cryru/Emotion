@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Emotion.Standard;
 
 public static class CommandLineParser
@@ -12,7 +14,7 @@ public static class CommandLineParser
     /// <param name="arg">The found argument.</param>
     /// <param name="offset">Number of occurrences to skip. Allows for multiple of the same arg.</param>
     /// <returns>Whether the argument was found,</returns>
-    public static bool FindArgument(IEnumerable<string> args, string identifier, out string? arg, int offset = 0)
+    public static bool FindArgument(IEnumerable<string> args, string identifier, [NotNullWhen(true)] out string? arg, int offset = 0)
     {
         identifier = identifier.ToLower();
 
