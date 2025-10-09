@@ -21,6 +21,7 @@ using Emotion.Testing;
 
 namespace Tests.EngineTests;
 
+[DebugTest]
 public class NewUITests : TestingScene
 {
     protected override IEnumerator InternalLoadSceneRoutineAsync()
@@ -77,50 +78,73 @@ public class NewUITests : TestingScene
         yield return VerifyScreenshot(nameof(NewUITests), nameof(Fill));
     }
 
-    //[Test]
-    //public IEnumerator FillXAxisWithChild()
-    //{
-    //    {
-    //        var win = new UISolidColor();
-    //        win.WindowColor = Color.PrettyOrange;
-    //        win.GrowY = false;
-    //        win.Id = "test";
+    [Test]
+    public IEnumerator FillXAxisWithChild()
+    {
+        var win = new UIBaseWindow
+        {
+            Visuals =
+            {
+                BackgroundColor = Color.PrettyOrange,
+            },
+            Layout =
+            {
+                SizingY = UISizing.Fit()
+            }
+        };
 
-    //        {
-    //            var a = new UISolidColor();
-    //            a.WindowColor = Color.White;
-    //            win.AddChild(a);
-    //        }
+        {
+            var child = new UIBaseWindow
+            {
+                Visuals =
+                {
+                    BackgroundColor = Color.White
+                }
+            };
+            win.AddChild(child);
+        }
 
-    //        UI.AddChild(win);
-    //    }
+        SceneUI.AddChildAsync(win);
 
-    //    yield return WaitUILayout();
-    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(FillXAxisWithChild));
-    //}
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(FillXAxisWithChild));
+    }
 
-    //[Test]
-    //public IEnumerator FillXAxisMinHeight()
-    //{
-    //    {
-    //        var win = new UISolidColor();
-    //        win.WindowColor = Color.PrettyOrange;
-    //        win.GrowY = false;
-    //        win.Id = "test";
+    [Test]
+    public IEnumerator FillXAxisMinHeight()
+    {
+        var win = new UIBaseWindow
+        {
+            Visuals =
+            {
+                BackgroundColor = Color.PrettyOrange,
+            },
+            Layout =
+            {
+                SizingY = UISizing.Fit()
+            }
+        };
 
-    //        {
-    //            var a = new UISolidColor();
-    //            a.WindowColor = Color.White;
-    //            a.MinSizeY = 20;
-    //            win.AddChild(a);
-    //        }
+        {
+            var child = new UIBaseWindow
+            {
+                Visuals =
+                {
+                    BackgroundColor = Color.White
+                },
+                Layout =
+                {
+                    SizingY = UISizing.Fixed(20)
+                }
+            };
+            win.AddChild(child);
+        }
 
-    //        UI.AddChild(win);
-    //    }
+        SceneUI.AddChildAsync(win);
 
-    //    yield return WaitUILayout();
-    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(FillXAxisMinHeight));
-    //}
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(FillXAxisMinHeight));
+    }
 
     //[Test]
     //public IEnumerator FillXAxisMinHeightAndWidth()
