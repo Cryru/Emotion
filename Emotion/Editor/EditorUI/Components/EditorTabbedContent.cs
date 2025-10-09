@@ -12,12 +12,14 @@ public class EditorTabbedContent : UIBaseWindow
 
     public EditorTabbedContent()
     {
-        LayoutMode = LayoutMode.VerticalList;
+        Layout.LayoutMethod = UILayoutMethod.VerticalList(0);
 
         var tabButtonsContainer = new UIBaseWindow()
         {
-            LayoutMode = LayoutMode.HorizontalList,
-            ListSpacing = new Vector2(5, 0)
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalList(5)
+            }
         };
         AddChild(tabButtonsContainer);
         _tabButtons = tabButtonsContainer;

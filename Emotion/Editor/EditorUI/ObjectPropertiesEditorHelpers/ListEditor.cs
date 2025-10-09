@@ -37,7 +37,7 @@ public class ListEditor<TItem> : ListEditor
         _itemTypeHandler = ReflectorEngine.GetTypeHandler(typ);
         _inlineEditor = _itemTypeHandler != null && _itemTypeHandler is not IGenericReflectorComplexTypeHandler;
 
-        LayoutMode = LayoutMode.VerticalList;
+        Layout.LayoutMethod = UILayoutMethod.VerticalList(0);
         SpawnEditButtons();
         AssertNotNull(_addButton);
         AssertNotNull(_deleteButton);
@@ -190,11 +190,14 @@ end:
     {
         UIBaseWindow buttonsContainer = new UIBaseWindow()
         {
-            LayoutMode = LayoutMode.HorizontalList,
-            ListSpacing = new Vector2(5, 0),
-            GrowY = false,
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalList(5),
+                SizingY = UISizing.Fit(),
+                Margins = new UISpacing(0, 0, 0, 5)
+            },
+
             OrderInParent = -1,
-            Margins = new Rectangle(0, 0, 0, 5)
         };
         AddChild(buttonsContainer);
 

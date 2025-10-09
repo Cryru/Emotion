@@ -28,7 +28,10 @@ public class VectorEditor : TypeEditor
 
         UIBaseWindow editorContainer = new()
         {
-            LayoutMode = LayoutMode.HorizontalList,
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalList(0)
+            }
         };
         AddChild(editorContainer);
 
@@ -55,8 +58,11 @@ public class VectorEditor : TypeEditor
                 Name = "TextInput",
 
                 FontSize = EditorColorPalette.EditorButtonTextSize,
-                MinSizeX = 50,
-                AnchorAndParentAnchor = UIAnchor.CenterLeft,
+                Layout =
+                {
+                    MinSizeX = 100,
+                    AnchorAndParentAnchor = UIAnchor.CenterLeft
+                },
                 IgnoreParentColor = true,
 
                 SubmitOnEnter = true,

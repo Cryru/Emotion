@@ -8,6 +8,6 @@ public class HorizontalPanelSeparator : UIBaseWindow
 
     public HorizontalPanelSeparator()
     {
-        MinSizeX = 10;
+        Layout.SizingX = UISizing.Fixed(10);
     }
 }

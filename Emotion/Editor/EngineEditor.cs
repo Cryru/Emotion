@@ -319,9 +319,11 @@ public static partial class EngineEditor
         var container = new UIBaseWindow
         {
             Name = "GameEditorVisualizations",
-            Margins = new Primitives.Rectangle(10, 15, 0, 0),
-            LayoutMode = LayoutMode.VerticalList,
-            ListSpacing = new Vector2(0, 5)
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.VerticalList(5),
+                Margins = new UISpacing(10, 15, 0, 0)
+            }
         };
         barContainer.AddChild(container);
 

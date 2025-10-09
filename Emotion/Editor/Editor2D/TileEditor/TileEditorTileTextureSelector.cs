@@ -92,11 +92,7 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
         base.OnMouseMove(mousePos);
         if (_tileset == null) return;
 
-        Vector3 tileSetImageOrigin = new Vector3(0);
-        tileSetImageOrigin = Vector3.Transform(tileSetImageOrigin, _content.ScrollTranslationMatrix);
-        tileSetImageOrigin += _content.Position;
-
-        Vector2 tileSetImageOrigin2 = tileSetImageOrigin.ToVec2();
+        Vector2 tileSetImageOrigin2 = AbsolutePositionToScreenPosition(Vector2.Zero);
 
         if (_mouseDragStartPos != null)
         {
@@ -174,77 +170,77 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
         return pos;
     }
 
-    protected override void RenderChildren(Renderer c)
-    {
-        for (var i = 0; i < Children.Count; i++)
-        {
-            UIBaseWindow child = Children[i];
-            if (!child.Visible) continue;
-            if (child.OverlayWindow) continue;
+    //protected override void RenderChildren(Renderer c)
+    //{
+    //    for (var i = 0; i < Children.Count; i++)
+    //    {
+    //        UIBaseWindow child = Children[i];
+    //        if (!child.Visible) continue;
+    //        if (child.OverlayWindow) continue;
 
-            child.Render(c);
+    //        child.Render(c);
 
-            if (i == 0)
-                AfterContentRendered(c);
-        }
-    }
+    //        if (i == 0)
+    //            AfterContentRendered(c);
+    //    }
+    //}
 
-    private void AfterContentRendered(Renderer c)
-    {
-        c.PushModelMatrix(_content.ScrollTranslationMatrix);
-        Rectangle? clip = c.CurrentState.ClipRect;
-        c.SetClipRect(_content.Bounds);
+    //private void AfterContentRendered(Renderer c)
+    //{
+    //    c.PushModelMatrix(_content.ScrollTranslationMatrix);
+    //    Rectangle? clip = c.CurrentState.ClipRect;
+    //    c.SetClipRect(_content.Bounds);
 
-        if (_tileset != null)
-        {
-            Vector3 contentPos = _content.Position;
+    //    if (_tileset != null)
+    //    {
+    //        Vector3 contentPos = _content.Position;
 
-            foreach (TileTextureId rolloverTileCoord in _rolloverTiles)
-            {
-                Vector2 rolloverCoord = _tileset.GetCoordOfTId(rolloverTileCoord);
-                Vector2 uiSpace = TilesetCoordToUISpace(rolloverCoord, out Vector2 tileSize);
-                tileSize = tileSize.Ceiling();
+    //        foreach (TileTextureId rolloverTileCoord in _rolloverTiles)
+    //        {
+    //            Vector2 rolloverCoord = _tileset.GetCoordOfTId(rolloverTileCoord);
+    //            Vector2 uiSpace = TilesetCoordToUISpace(rolloverCoord, out Vector2 tileSize);
+    //            tileSize = tileSize.Ceiling();
 
-                c.RenderSprite(contentPos + uiSpace.ToVec3(), tileSize, Color.PrettyPurple * 0.4f);
-                c.RenderRectOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.Black * 0.4f, 2f);
-                c.RenderRectOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.White * 0.4f, 1f);
-            }
+    //            c.RenderSprite(contentPos + uiSpace.ToVec3(), tileSize, Color.PrettyPurple * 0.4f);
+    //            c.RenderRectOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.Black * 0.4f, 2f);
+    //            c.RenderRectOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.White * 0.4f, 1f);
+    //        }
 
-            foreach (TileTextureId selectedTileCoord in _selectedTiles)
-            {
-                Vector2 selectedCoord = _tileset.GetCoordOfTId(selectedTileCoord);
-                Vector2 uiSpace = TilesetCoordToUISpace(selectedCoord, out Vector2 tileSize);
-                tileSize = tileSize.Ceiling();
+    //        foreach (TileTextureId selectedTileCoord in _selectedTiles)
+    //        {
+    //            Vector2 selectedCoord = _tileset.GetCoordOfTId(selectedTileCoord);
+    //            Vector2 uiSpace = TilesetCoordToUISpace(selectedCoord, out Vector2 tileSize);
+    //            tileSize = tileSize.Ceiling();
 
-                c.RenderRectOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.Black, 2f);
-                c.RenderRectOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.White, 1f);
-            }
-        }
+    //            c.RenderRectOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.Black, 2f);
+    //            c.RenderRectOutline(contentPos + uiSpace.ToVec3(), tileSize, Color.White, 1f);
+    //        }
+    //    }
 
-        c.SetClipRect(clip);
-        c.PopModelMatrix();
-    }
+    //    c.SetClipRect(clip);
+    //    c.PopModelMatrix();
+    //}
 
     public void SetTileset(TileMapTileset? tileset)
     {
-        _rolloverTiles.Clear();
-        _selectedTiles.Clear();
-        _tileset = tileset;
+        //_rolloverTiles.Clear();
+        //_selectedTiles.Clear();
+        //_tileset = tileset;
 
-        ClearChildrenInside();
-        _content.ScrollToPos(Vector2.Zero);
-        if (_tileset == null) return;
+        //ClearChildrenInside();
+        //_content.ScrollToPos(Vector2.Zero);
+        //if (_tileset == null) return;
 
-        _tilesetScale = 32f / _tileset.TileSize.X;
-        var textureUI = new UIPicture
-        {
-            Name = "TilesetTexture",
-            Texture = _tileset.Texture,
-            ImageScale = new Vector2(_tilesetScale),
-            //ScaleMode = UIScaleMode.NoScale,
-            Smooth = true
-        };
-        AddChildInside(textureUI);
+        //_tilesetScale = 32f / _tileset.TileSize.X;
+        //var textureUI = new UIPicture
+        //{
+        //    Name = "TilesetTexture",
+        //    Texture = _tileset.Texture,
+        //    ImageScale = new Vector2(_tilesetScale),
+        //    //ScaleMode = UIScaleMode.NoScale,
+        //    Smooth = true
+        //};
+        //AddChildInside(textureUI);
     }
 
     public void AddTileToSelection(TileTextureId tId)

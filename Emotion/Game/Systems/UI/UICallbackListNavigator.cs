@@ -148,169 +148,169 @@ public class UICallbackListNavigator : UIBaseWindow
     //    return scrollRange;
     //}
 
-    protected override void AfterMeasureChildren(Vector2 usedSpace)
-    {
-        if (UseNewLayoutSystem) return;
+    //protected override void AfterMeasureChildren(Vector2 usedSpace)
+    //{
+    //    if (UseNewLayoutSystem) return;
 
-        Vector2 measuredSize = _measuredSize;
+    //    Vector2 measuredSize = _measuredSize;
 
-        // Make area as big as the children shown. Might look weird if all children are not the same size.
-        // This will also tell us how big the page size is.
-        float pageSize = 0;
-        if (Children != null)
-        {
-            float lastChildSize = 0;
-            Vector2 scaledListSpacing = (ListSpacing * GetScale()).Round();
-            for (var i = 0; i < Children.Count; i++)
-            {
-                UIBaseWindow child = Children[i];
-                if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+    //    // Make area as big as the children shown. Might look weird if all children are not the same size.
+    //    // This will also tell us how big the page size is.
+    //    float pageSize = 0;
+    //    if (Children != null)
+    //    {
+    //        float lastChildSize = 0;
+    //        Vector2 scaledListSpacing = (ListSpacing * GetScale()).Round();
+    //        for (var i = 0; i < Children.Count; i++)
+    //        {
+    //            UIBaseWindow child = Children[i];
+    //            if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
 
-                float childSize = child.Height;
-                if (pageSize != 0) childSize += scaledListSpacing.Y;
-                if (pageSize + childSize > measuredSize.Y) break;
-                pageSize += childSize;
-                lastChildSize = childSize;
-            }
+    //            float childSize = child.Height;
+    //            if (pageSize != 0) childSize += scaledListSpacing.Y;
+    //            if (pageSize + childSize > measuredSize.Y) break;
+    //            pageSize += childSize;
+    //            lastChildSize = childSize;
+    //        }
 
-            // If the scroll bar is to be smaller than the space available then grow it out with more
-            // children like the last (remember this list assumes all children are of the same size).
-            if (pageSize == usedSpace.Y)
-            {
-                float spaceLeft = measuredSize.Y - pageSize;
-                spaceLeft /= lastChildSize;
-                pageSize += MathF.Floor(spaceLeft) * lastChildSize;
-            }
-        }
+    //        // If the scroll bar is to be smaller than the space available then grow it out with more
+    //        // children like the last (remember this list assumes all children are of the same size).
+    //        if (pageSize == usedSpace.Y)
+    //        {
+    //            float spaceLeft = measuredSize.Y - pageSize;
+    //            spaceLeft /= lastChildSize;
+    //            pageSize += MathF.Floor(spaceLeft) * lastChildSize;
+    //        }
+    //    }
 
-        pageSize = MathF.Max(pageSize, MathF.Ceiling(MinSize.Y * GetScale()));
-        _measuredSize.Y = pageSize;
-        _scrollArea.Size = usedSpace.Round();
+    //    pageSize = MathF.Max(pageSize, MathF.Ceiling(MinSize.Y * GetScale()));
+    //    _measuredSize.Y = pageSize;
+    //    _scrollArea.Size = usedSpace.Round();
 
-        base.AfterMeasureChildren(usedSpace);
-    }
+    //    base.AfterMeasureChildren(usedSpace);
+    //}
 #endif
 
-    protected override void AfterLayout()
-    {
-        _gridPosToChild.Clear();
-        _gridStart = Vector2.Zero;
-        _gridSize = Vector2.Zero;
+    //protected override void AfterLayout()
+    //{
+    //    _gridPosToChild.Clear();
+    //    _gridStart = Vector2.Zero;
+    //    _gridSize = Vector2.Zero;
 
-        var pen = new Vector2();
-        for (var i = 0; i < Children?.Count; i++)
-        {
-            UIBaseWindow child = Children[i];
-            if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+    //    var pen = new Vector2();
+    //    for (var i = 0; i < Children?.Count; i++)
+    //    {
+    //        UIBaseWindow child = Children[i];
+    //        if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
 
-            _gridPosToChild.Add(pen, child);
+    //        _gridPosToChild.Add(pen, child);
 
-            _gridStart.X = MathF.Min(pen.X, _gridStart.X);
-            _gridStart.Y = MathF.Min(pen.Y, _gridStart.Y);
+    //        _gridStart.X = MathF.Min(pen.X, _gridStart.X);
+    //        _gridStart.Y = MathF.Min(pen.Y, _gridStart.Y);
 
-            _gridSize.X = MathF.Max(pen.X, _gridSize.X);
-            _gridSize.Y = MathF.Max(pen.Y, _gridSize.Y);
+    //        _gridSize.X = MathF.Max(pen.X, _gridSize.X);
+    //        _gridSize.Y = MathF.Max(pen.Y, _gridSize.Y);
 
-            switch (LayoutMode)
-            {
-                case LayoutMode.Free:
-                    pen.X++;
-                    pen.Y++;
-                    break;
-                case LayoutMode.HorizontalListWrap:
-                    pen.X++;
-                    if (i != Children.Count - 1 && Children[i + 1].Y > child.Y)
-                    {
-                        pen.X = 0;
-                        pen.Y++;
-                    }
+    //        switch (LayoutMode)
+    //        {
+    //            case LayoutMode.Free:
+    //                pen.X++;
+    //                pen.Y++;
+    //                break;
+    //            case LayoutMode.HorizontalListWrap:
+    //                pen.X++;
+    //                if (i != Children.Count - 1 && Children[i + 1].Y > child.Y)
+    //                {
+    //                    pen.X = 0;
+    //                    pen.Y++;
+    //                }
 
-                    break;
-                case LayoutMode.HorizontalList:
-                    pen.X++;
-                    break;
-                case LayoutMode.VerticalListWrap:
-                    pen.Y++;
-                    if (i != Children.Count - 1 && Children[i + 1].X > child.X)
-                    {
-                        pen.Y = 0;
-                        pen.X++;
-                    }
+    //                break;
+    //            case LayoutMode.HorizontalList:
+    //                pen.X++;
+    //                break;
+    //            case LayoutMode.VerticalListWrap:
+    //                pen.Y++;
+    //                if (i != Children.Count - 1 && Children[i + 1].X > child.X)
+    //                {
+    //                    pen.Y = 0;
+    //                    pen.X++;
+    //                }
 
-                    break;
-                case LayoutMode.VerticalList:
-                    pen.Y++;
-                    break;
-            }
-        }
+    //                break;
+    //            case LayoutMode.VerticalList:
+    //                pen.Y++;
+    //                break;
+    //        }
+    //    }
 
-        _lastRowColumn = (int) pen.X - 1;
+    //    _lastRowColumn = (int) pen.X - 1;
 
-        // Add position to scroll rect.
-        _scrollArea.X += X;
-        _scrollArea.Y += Y;
+    //    // Add position to scroll rect.
+    //    _scrollArea.X += X;
+    //    _scrollArea.Y += Y;
 
-        // Calculate last child that can be scrolled to.
-        // This is the highest/leftmost child that allows the last child to be visible.
-        float diff = 0, visibleAtOnce = 0;
-        _lastScrollChildPos = Vector2.Zero;
-        var isHorizontal = false;
-        if (Children != null)
-            for (int i = Children.Count - 1; i >= 0; i--)
-            {
-                UIBaseWindow child = Children[i];
-                if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
+    //    // Calculate last child that can be scrolled to.
+    //    // This is the highest/leftmost child that allows the last child to be visible.
+    //    float diff = 0, visibleAtOnce = 0;
+    //    _lastScrollChildPos = Vector2.Zero;
+    //    var isHorizontal = false;
+    //    if (Children != null)
+    //        for (int i = Children.Count - 1; i >= 0; i--)
+    //        {
+    //            UIBaseWindow child = Children[i];
+    //            if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
 
-                switch (LayoutMode)
-                {
-                    case LayoutMode.VerticalListWrap:
-                    case LayoutMode.HorizontalList:
-                        visibleAtOnce = Width;
-                        diff = _scrollArea.X + _scrollArea.Width - child.X;
-                        isHorizontal = true;
-                        break;
-                    case LayoutMode.HorizontalListWrap:
-                    case LayoutMode.VerticalList:
-                        visibleAtOnce = Height;
-                        diff = _scrollArea.Y + _scrollArea.Height - child.Y;
-                        break;
-                }
+    //            switch (LayoutMode)
+    //            {
+    //                case LayoutMode.VerticalListWrap:
+    //                case LayoutMode.HorizontalList:
+    //                    visibleAtOnce = Width;
+    //                    diff = _scrollArea.X + _scrollArea.Width - child.X;
+    //                    isHorizontal = true;
+    //                    break;
+    //                case LayoutMode.HorizontalListWrap:
+    //                case LayoutMode.VerticalList:
+    //                    visibleAtOnce = Height;
+    //                    diff = _scrollArea.Y + _scrollArea.Height - child.Y;
+    //                    break;
+    //            }
 
-                if (diff > visibleAtOnce && i != Children.Count - 1)
-                {
-                    UIBaseWindow lastVisChild = Children[i + 1];
-                    _lastScrollChildPos = GetGridLikePosFromChild(lastVisChild);
+    //            if (diff > visibleAtOnce && i != Children.Count - 1)
+    //            {
+    //                UIBaseWindow lastVisChild = Children[i + 1];
+    //                _lastScrollChildPos = GetGridLikePosFromChild(lastVisChild);
 
-                    // Sometimes when children are different sizes there will be a small margin at
-                    // the end of the scrollbar due to having to scroll an entire child to display<1 child.
-                    // We want this value to be a part of the _scrollArea size in order to guarantee its accuracy.
-                    if (isHorizontal)
-                    {
-                        float chX = lastVisChild.X;
-                        float lastChildScrolledOffset = -(_scrollArea.X - chX) + Width;
-                        _scrollArea.Width = lastChildScrolledOffset;
-                    }
-                    else
-                    {
-                        float chY = lastVisChild.Y;
-                        float lastChildScrolledOffset = -(_scrollArea.Y - chY) + Height;
-                        _scrollArea.Height = lastChildScrolledOffset;
-                    }
+    //                // Sometimes when children are different sizes there will be a small margin at
+    //                // the end of the scrollbar due to having to scroll an entire child to display<1 child.
+    //                // We want this value to be a part of the _scrollArea size in order to guarantee its accuracy.
+    //                if (isHorizontal)
+    //                {
+    //                    float chX = lastVisChild.X;
+    //                    float lastChildScrolledOffset = -(_scrollArea.X - chX) + Width;
+    //                    _scrollArea.Width = lastChildScrolledOffset;
+    //                }
+    //                else
+    //                {
+    //                    float chY = lastVisChild.Y;
+    //                    float lastChildScrolledOffset = -(_scrollArea.Y - chY) + Height;
+    //                    _scrollArea.Height = lastChildScrolledOffset;
+    //                }
 
-                    break;
-                }
-            }
+    //                break;
+    //            }
+    //        }
 
-        // Restore or reset scroll.
-        if (!ScrollToPos(_scrollPos) && !ScrollToPos(Vector2.Zero))
-        {
-            // No children
-            _scrollDisplacement = Matrix4x4.Identity;
-            SyncScrollbar();
-        }
+    //    // Restore or reset scroll.
+    //    if (!ScrollToPos(_scrollPos) && !ScrollToPos(Vector2.Zero))
+    //    {
+    //        // No children
+    //        _scrollDisplacement = Matrix4x4.Identity;
+    //        SyncScrollbar();
+    //    }
 
-        base.AfterLayout();
-    }
+    //    base.AfterLayout();
+    //}
 
     protected override void RenderChildren(Renderer c)
     {

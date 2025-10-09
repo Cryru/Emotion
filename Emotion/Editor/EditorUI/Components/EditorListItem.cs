@@ -71,16 +71,17 @@ public class EditorListItem<T> : EditorButton
         {
             _buttonList = new UIBaseWindow()
             {
-                LayoutMode = LayoutMode.HorizontalList,
-                ListSpacing = new Vector2(3, 0)
+                Layout =
+                {
+                    LayoutMethod = UILayoutMethod.HorizontalList(3)
+                },
             };
             AddChild(_buttonList);
 
-            _label.Margins = new Primitives.Rectangle(0, 0, 35, 0);
+            _label.Layout.Margins = new UISpacing(0, 0, 35, 0);
         }
 
-        button.ParentAnchor = UIAnchor.CenterRight;
-        button.Anchor = UIAnchor.CenterRight;
+        button.Layout.AnchorAndParentAnchor = UIAnchor.CenterRight;
         _buttonList.AddChild(button);
     }
 

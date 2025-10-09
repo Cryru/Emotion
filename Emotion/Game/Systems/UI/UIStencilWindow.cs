@@ -9,7 +9,7 @@ namespace Emotion.Game.Systems.UI;
 /// </summary>
 public class UIStencilWindow : UIBaseWindow
 {
-    protected override bool RenderInternal(Renderer c)
+    protected override void InternalRender(Renderer c)
     {
         c.SetStencilTest(true);
         c.ToggleRenderColor(false);
@@ -17,11 +17,9 @@ public class UIStencilWindow : UIBaseWindow
         c.RenderSprite(Position, Size, Color.White);
         c.ToggleRenderColor(true);
         c.StencilFillIn();
-
-        return base.RenderInternal(c);
     }
 
-    protected override void AfterRenderChildren(Renderer c)
+    protected override void InternalAfterRenderChildren(Renderer c)
     {
         c.SetStencilTest(false);
     }

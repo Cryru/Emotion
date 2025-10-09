@@ -13,9 +13,9 @@ public class UISolidColor : UIBaseWindow
 
 public class UISolidOutline : UIBaseWindow
 {
-    protected override void AfterRenderChildren(Renderer c)
-    {
-        base.AfterRenderChildren(c);
-        c.RenderRectOutline(Bounds, _calculatedColor, 1 * GetScale());
-    }
+    //protected override void AfterRenderChildren(Renderer c)
+    //{
+    //    base.AfterRenderChildren(c);
+    //    c.RenderRectOutline(Bounds, _calculatedColor, 1 * GetScale());
+    //}
 }

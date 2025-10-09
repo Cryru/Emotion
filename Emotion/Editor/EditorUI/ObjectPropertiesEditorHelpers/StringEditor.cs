@@ -23,8 +23,11 @@ public class StringEditor : TypeEditor
             Name = "TextInput",
 
             FontSize = EditorColorPalette.EditorButtonTextSize,
-            MinSizeX = 100,
-            AnchorAndParentAnchor = UIAnchor.CenterLeft,
+            Layout =
+            {
+                MinSizeX = 100,
+                AnchorAndParentAnchor = UIAnchor.CenterLeft
+            },
             IgnoreParentColor = true,
 
             SubmitOnEnter = true,

@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Editor.EditorUI.Components;
 using Emotion.Game.Systems.UI2;
 
 namespace Emotion.Editor.EditorUI;
@@ -43,18 +44,24 @@ public class EditorDropDown : UIDropDown
         {
             Layout =
             {
-                Padding = new UISpacing(5, 5, 5, 5),
                 Anchor = UIAnchor.TopLeft,
                 ParentAnchor = UIAnchor.BottomLeft,
             },
         };
 
-        var scrollArea = new UIScrollArea()
+        var scrollArea = new EditorScrollArea()
         {
+            Visuals =
+            {
+                Border = 0
+            },
+            Layout =
+            {
+                ChildrenCanExpand = true,
+                MaxSizeY = 500,
+            },
+
             AutoHideScrollY = true,
-            ExpandX = true,
-            ExpandY = true,
-            // todo: there should probably be a max height here
         };
         dropDown.AddChild(scrollArea);
 

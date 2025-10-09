@@ -22,6 +22,8 @@ public struct UIWindowCalculatedMetrics
 
     public bool InsideParent;
 
+    public IntVector2 ChildrenSize;
+
     public override string ToString()
     {
         return Bounds.ToString();

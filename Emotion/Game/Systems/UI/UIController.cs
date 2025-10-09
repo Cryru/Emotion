@@ -56,17 +56,17 @@ public partial class UIController : UIBaseWindow
         InvalidateLayout();
     }
 
-    protected override void AfterRenderChildren(Renderer c)
-    {
-#if false
-        {
-            if(_myMouseFocus != null) c.RenderOutline(_myMouseFocus.RenderBounds, Color.Red);
-            c.RenderSprite(new Rectangle(Engine.Host.MousePosition.X, Engine.Host.MousePosition.Y, 1, 1), Color.Pink);
-        }
-#endif
+//    protected override void AfterRenderChildren(Renderer c)
+//    {
+//#if false
+//        {
+//            if(_myMouseFocus != null) c.RenderOutline(_myMouseFocus.RenderBounds, Color.Red);
+//            c.RenderSprite(new Rectangle(Engine.Host.MousePosition.X, Engine.Host.MousePosition.Y, 1, 1), Color.Pink);
+//        }
+//#endif
 
-        base.AfterRenderChildren(c);
-    }
+//        base.AfterRenderChildren(c);
+//    }
 
     protected override bool UpdateInternal()
     {

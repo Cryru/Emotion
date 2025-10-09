@@ -27,8 +27,10 @@ public class EditorTreeViewWindow<T> : UIBaseWindow
 
         var container = new UIBaseWindow()
         {
-            LayoutMode = LayoutMode.VerticalList,
-            ListSpacing = new Vector2(0, 5)
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.VerticalList(5)
+            }
         };
         AddChild(container);
         _container = container;
@@ -79,14 +81,19 @@ public class EditorTreeViewWindow<T> : UIBaseWindow
     {
         var currentButtonContainer = new UIBaseWindow()
         {
-            LayoutMode = LayoutMode.VerticalList,
-            ListSpacing = new Vector2(0, 3)
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.VerticalList(3)
+            }
         };
         parent.AddChild(currentButtonContainer);
 
         var currentButton = new EditorButton($"{obj}")
         {
-            Margins = new Primitives.Rectangle(indent, 0, 0, 0),
+            Layout =
+            {
+                Margins = new UISpacing(indent, 0, 0, 0)
+            },
             OnClickedProxy = (_) => SelectObject(obj)
         };
         currentButtonContainer.AddChild(currentButton);
@@ -94,8 +101,10 @@ public class EditorTreeViewWindow<T> : UIBaseWindow
 
         var currentButtonChildren = new UIBaseWindow()
         {
-            LayoutMode = LayoutMode.VerticalList,
-            ListSpacing = new Vector2(0, 5)
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.VerticalList(5)
+            }
         };
         currentButtonContainer.AddChild(currentButtonChildren);
 
@@ -123,7 +132,10 @@ public class UITemplateEditor : TypeEditor
     {
         var contentPanel = new UIBaseWindow
         {
-            LayoutMode = LayoutMode.HorizontalEditorPanel
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalList(0) //  LayoutMode.HorizontalEditorPanel
+            }
         };
         AddChild(contentPanel);
 

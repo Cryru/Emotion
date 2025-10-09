@@ -40,10 +40,12 @@ public abstract class GridEditorWindow : UIBaseWindow
         {
             var textList = new UIBaseWindow()
             {
-                LayoutMode = LayoutMode.HorizontalList,
-                ListSpacing = new Vector2(10, 0),
-                AnchorAndParentAnchor = UIAnchor.CenterLeft,
-                GrowY = false,
+                Layout =
+                {
+                    LayoutMethod = UILayoutMethod.HorizontalList(10),
+                    AnchorAndParentAnchor = UIAnchor.CenterLeft,
+                    SizingY = UISizing.Fit()
+                }
             };
             barContent.AddChild(textList);
 
@@ -65,10 +67,12 @@ public abstract class GridEditorWindow : UIBaseWindow
         {
             var buttonList = new UIBaseWindow()
             {
-                LayoutMode = LayoutMode.HorizontalList,
-                ListSpacing = new Vector2(5, 0),
-                AnchorAndParentAnchor = UIAnchor.CenterRight,
-                Margins = new Rectangle(5, 5, 5, 5),
+                Layout =
+                {
+                    LayoutMethod = UILayoutMethod.HorizontalList(5),
+                    AnchorAndParentAnchor = UIAnchor.CenterRight,
+                    Margins = new UISpacing(5, 5, 5, 5)
+                }
             };
             barContent.AddChild(buttonList);
             _bottomBarToolButtons = buttonList;

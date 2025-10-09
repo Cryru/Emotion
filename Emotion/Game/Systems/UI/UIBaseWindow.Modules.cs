@@ -4,8 +4,10 @@
 
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Core.Utility.Threading;
+using Emotion.Editor.EditorUI.Components;
 using Emotion.Game.Systems.UI.New;
 using Emotion.Game.Systems.UI2;
+using System.Diagnostics.CodeAnalysis;
 using static Emotion.Game.Systems.UI2.UILayoutMethod;
 
 #endregion
@@ -156,6 +158,12 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     #region DeleteMe
 
+    protected virtual void InvalidateLoaded()
+    {
+        //_needsLoad = true;
+        //Controller?.InvalidatePreload();
+    }
+
     public const string SPECIAL_WIN_ID_MOUSE_FOCUS = "MouseFocus";
 
     /// <summary>
@@ -176,10 +184,6 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     protected virtual bool RenderInternal(Renderer c)
     {
         return false;
-    }
-
-    protected virtual void AfterRenderChildren(Renderer c)
-    {
     }
 
     protected Rectangle _renderBoundsCalculatedFrom; // .Bounds at time of caching.
@@ -460,6 +464,26 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
         _needsLayout = true;
 
+        UIBaseWindow parent = Parent;
+        while (parent != null) // Note: since this will reach all the way to the UISystem we need to check nullability of parent.
+        {
+            if (parent._needsLayout) break;
+            if (parent.State != UIWindowState.Open) break;
+
+            //if (Parent.Layout.LayoutMethod.Mode == UIMethodName.Free &&
+            //    Parent.Layout.SizingX.Mode != UISizing.UISizingMode.Fit &&
+            //    Parent.Layout.SizingY.Mode != UISizing.UISizingMode.Fit)
+            //{
+            //    break;
+            //}
+
+            parent._needsLayout = true;
+            parent = parent.Parent;
+        }
+
+
+       
+
         // todo: Layout functions should be rewritten in a way so they can be resumed at any point in the tree,
         // to prevent all invalidations going all the way up.
         // For instance this case doesn't make sense to propagate:
@@ -467,7 +491,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         //  Parent.Layout.SizingX.Mode != UISizing.UISizingMode.Fit &&
         //  Parent.Layout.SizingY.Mode != UISizing.UISizingMode.Fit
 
-        Parent?.InvalidateLayout(); // Note: since this will reach all the way to the UISystem we need to check nullability of parent.
+        //Parent?.InvalidateLayout(); 
     }
 
     #endregion
@@ -552,12 +576,22 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
             );
 
         InternalRender(r);
+
+        InternalBeforeRenderChildren(r);
         RenderChildren(r);
+        InternalAfterRenderChildren(r);
     }
 
     protected virtual void InternalRender(Renderer r)
     {
+    }
 
+    protected virtual void InternalBeforeRenderChildren(Renderer r)
+    {
+    }
+
+    protected virtual void InternalAfterRenderChildren(Renderer r)
+    {
     }
 
     protected virtual void RenderChildren(Renderer r)
@@ -578,8 +612,12 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         if (this is not UISystem && IsLoading()) return;
 
         UpdateInternal();
-        foreach (UIBaseWindow child in Children)
+        if (State == UIWindowState.Closed) return; // Closed self in update.
+
+        // This is in reverse since children could close themselves in their UpdateInternal
+        for (int i = Children.Count - 1; i >= 0; i--)
         {
+            UIBaseWindow child = Children[i];
             child.Update();
         }
     }
@@ -693,15 +731,15 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     public virtual UIBaseWindow? GetWindowById(string id)
     {
         if (id == Name) return this;
-        for (var i = 0; i < Children.Count; i++)
+        foreach (UIBaseWindow child in Children)
         {
-            if (Children[i].Name == id)
-                return Children[i];
+            if (child.Name == id)
+                return child;
         }
 
-        for (var i = 0; i < Children.Count; i++)
+        foreach (UIBaseWindow child in Children)
         {
-            UIBaseWindow? win = Children[i].GetWindowById(id);
+            UIBaseWindow? win = child.GetWindowById(id);
             if (win != null) return win;
         }
 
@@ -716,6 +754,12 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
             Engine.Log.Warning($"Window with id {id} found of the {win.GetType().Name} type rather than the {typeof(TWindow).Name} type!", "UI", true);
 
         return asType;
+    }
+
+    public bool GetWindowById<TWindow>(string id, [NotNullWhen(true)] out TWindow? window) where TWindow : UIBaseWindow
+    {
+        window = GetWindowById<TWindow>(id);
+        return window != null;
     }
 
     private static UIBaseWindow _invalidWindow = new UIBaseWindow() { Name = "Invalid Window" };
@@ -776,14 +820,14 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     protected void DefaultLayout()
     {
-        Step00_AddQueuedChildren();
-        Step0_PreLayout();
-        CalculatedMetrics.Size = Step1_MeasureWindow();
-        Step2_GrowWindow();
-        Step3_LayoutWindow(CalculatedMetrics.Position);
+        PreLayout_Step1_AddQueuedChildren();
+        PreLayout_Step2_PreCalculateMetrics();
+        Layout_Step1_Measure();
+        Layout_Step2_Grow();
+        Layout_Step3_Position(CalculatedMetrics.Position);
     }
 
-    protected void Step00_AddQueuedChildren()
+    private void PreLayout_Step1_AddQueuedChildren()
     {
         while (_childrenToAdd.TryDequeue(out UIBaseWindow? newChild))
         {
@@ -792,11 +836,11 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
         foreach (UIBaseWindow child in Children)
         {
-            child.Step00_AddQueuedChildren();
+            child.PreLayout_Step1_AddQueuedChildren();
         }
     }
 
-    protected void Step0_PreLayout()
+    private void PreLayout_Step2_PreCalculateMetrics()
     {
         _needsLayout = false;
 
@@ -825,11 +869,11 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
         foreach (UIBaseWindow child in Children)
         {
-            child.Step0_PreLayout();
+            child.PreLayout_Step2_PreCalculateMetrics();
         }
     }
 
-    private IntVector2 Step1_MeasureWindow()
+    private void Layout_Step1_Measure()
     {
         IntVector2 childrenSize = IntVector2.Zero;
         switch (Layout.LayoutMethod.Mode)
@@ -840,8 +884,8 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                     if (SkipWindowLayout(child)) continue;
                     if (child.IsLoading()) continue;
 
-                    IntVector2 childSize = child.Step1_MeasureWindow();
-                    child.CalculatedMetrics.Size = childSize;
+                    child.Layout_Step1_Measure();
+                    IntVector2 childSize = child.CalculatedMetrics.Size;
                     childrenSize = IntVector2.Max(childrenSize, childSize + child.CalculatedMetrics.MarginsSize);
                 }
                 break;
@@ -857,11 +901,18 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                 {
                     if (SkipWindowLayout(child)) continue;
 
-                    IntVector2 childSize = child.IsLoading() ? IntVector2.Zero : child.Step1_MeasureWindow();
-                    child.CalculatedMetrics.Size = childSize;
-
+                    IntVector2 childSize;
+                    if (child.IsLoading())
+                    {
+                        childSize = IntVector2.Zero;
+                    }
+                    else
+                    {
+                        child.Layout_Step1_Measure();
+                        childSize = child.CalculatedMetrics.Size;
+                    }
                     pen[listMask] += childSize[listMask] + child.CalculatedMetrics.MarginsSize[listMask];
-                    pen[inverseListMask] = Math.Max(pen[inverseListMask], childSize[inverseListMask]);
+                    pen[inverseListMask] = Math.Max(pen[inverseListMask], childSize[inverseListMask] + child.CalculatedMetrics.MarginsSize[inverseListMask]);
                     listChildrenCount++;
                 }
 
@@ -878,28 +929,36 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                 break;
         }
 
-        IntVector2 contentSize = IntVector2.Zero;
-
         // Fixed size
+        IntVector2 fixedSize = IntVector2.Zero;
         if (Layout.SizingX.Mode == UISizing.UISizingMode.Fixed)
-            contentSize.X = (int)MathF.Ceiling(Layout.SizingX.Size * CalculatedMetrics.Scale.X);
+            fixedSize.X = (int)MathF.Ceiling(Layout.SizingX.Size * CalculatedMetrics.Scale.X);
         if (Layout.SizingY.Mode == UISizing.UISizingMode.Fixed)
-            contentSize.Y = (int)MathF.Ceiling(Layout.SizingY.Size * CalculatedMetrics.Scale.Y);
+            fixedSize.Y = (int)MathF.Ceiling(Layout.SizingY.Size * CalculatedMetrics.Scale.Y);
 
-        // Content size is whichever is the largest between the children, internal measurements, and fixed sizing.
-        IntVector2 mySize = IntVector2.Max(IntVector2.Max(childrenSize, contentSize), InternalGetWindowMinSize());
+        // Window size is whichever is the largest between the children, internal measurements, and fixed sizing.
+        IntVector2 mySize = IntVector2.Max(IntVector2.Max(childrenSize, fixedSize), InternalGetWindowMinSize());
+
+        if(this is EditorScrollArea)
+        {
+            bool a = true;
+        }
 
         // Paddings are added to the content size.
         mySize += CalculatedMetrics.PaddingsSize;
 
-        return IntVector2.Clamp(
+        // Clamp to limits
+        mySize = IntVector2.Clamp(
             mySize,
             Layout.MinSize.CeilMultiply(CalculatedMetrics.Scale),
             Layout.MaxSize.CeilMultiply(CalculatedMetrics.Scale)
         );
+
+        CalculatedMetrics.Size = mySize;
+        CalculatedMetrics.ChildrenSize = childrenSize + CalculatedMetrics.PaddingsSize;
     }
 
-    private void Step2_GrowWindow()
+    private void Layout_Step2_Grow()
     {
         // Early out
         if (Children.Count == 0)
@@ -919,7 +978,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                     if (child.Layout.SizingY.Mode == UISizing.UISizingMode.Grow)
                         child.CalculatedMetrics.Size.Y = Math.Max(child.CalculatedMetrics.Size.Y, myMeasuredSize.Y - child.CalculatedMetrics.MarginsSize.Y);
 
-                    child.Step2_GrowWindow();
+                    child.Layout_Step2_Grow();
                 }
                 break;
 
@@ -1019,27 +1078,26 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                 foreach (UIBaseWindow child in Children)
                 {
                     if (SkipWindowLayout(child)) continue;
-                    child.Step2_GrowWindow();
+                    child.Layout_Step2_Grow();
                 }
 
                 break;
         }
     }
 
-    private void Step3_LayoutWindow(IntVector2 pos)
+    private void Layout_Step3_Position(IntVector2 pos)
     {
+        if (this is EditorScrollArea)
+        {
+            bool a = true;
+        }
+
         CalculatedMetrics.Position = pos;
 
         IntRectangle parentContentRect = new IntRectangle(
            pos + Layout.Padding.LeftTop.FloorMultiply(CalculatedMetrics.Scale),
            CalculatedMetrics.Size - CalculatedMetrics.PaddingsSize
         );
-
-        foreach (UIBaseWindow child in Children)
-        {
-            if (child._useCustomLayout)
-                child.InternalCustomLayout();
-        }
 
         switch (Layout.LayoutMethod.Mode)
         {
@@ -1051,7 +1109,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                     if (child.Layout.Anchor == UIAnchor.TopLeft && child.Layout.ParentAnchor == UIAnchor.TopLeft) // Shortcut for most common
                     {
                         child.CalculatedMetrics.InsideParent = true;
-                        child.Step3_LayoutWindow(parentContentRect.Position + child.Layout.Margins.LeftTop.FloorMultiply(child.CalculatedMetrics.Scale) + child.CalculatedMetrics.Offsets);
+                        child.Layout_Step3_Position(parentContentRect.Position + child.Layout.Margins.LeftTop.FloorMultiply(child.CalculatedMetrics.Scale) + child.CalculatedMetrics.Offsets);
                     }
                     else
                     {
@@ -1066,7 +1124,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                             child.Layout.ParentAnchor, contentRectForThisChild,
                             child.Layout.Anchor, child.CalculatedMetrics.Size
                         );
-                        child.Step3_LayoutWindow(anchorPos + child.CalculatedMetrics.Offsets);
+                        child.Layout_Step3_Position(anchorPos + child.CalculatedMetrics.Offsets);
                     }
                 }
                 break;
@@ -1098,12 +1156,19 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
                     // Add margin (todo: this needs to be the right margin when items are aligned to end, none when centered (for the two outside ones) etc)
                     IntVector2 childTopLeftMargin = child.Layout.Margins.LeftTop.FloorMultiply(child.CalculatedMetrics.Scale);
-                    childPosition += childTopLeftMargin;
+                    childPosition[listMask] += childTopLeftMargin[listMask];
 
-                    child.Step3_LayoutWindow(childPosition + child.CalculatedMetrics.Offsets);
+                    child.Layout_Step3_Position(childPosition + child.CalculatedMetrics.Offsets);
                     pen[listMask] += child.CalculatedMetrics.Size[listMask] + child.CalculatedMetrics.MarginsSize[listMask] + listSpacing;
                 }
                 break;
+        }
+
+        // Custom layout is last so it can react to other window's layouts (UIAttachedWindow)
+        foreach (UIBaseWindow child in Children)
+        {
+            if (child._useCustomLayout)
+                child.InternalCustomLayout();
         }
 
         InternalOnLayoutComplete();
@@ -1154,7 +1219,8 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     protected void CustomLayout()
     {
-        Step00_AddQueuedChildren();
+        PreLayout_Step1_AddQueuedChildren();
+        PreLayout_Step2_PreCalculateMetrics();
         InternalCustomLayout();
     }
 

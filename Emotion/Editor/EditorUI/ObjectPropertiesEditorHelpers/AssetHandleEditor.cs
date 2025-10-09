@@ -1,9 +1,8 @@
-﻿using Emotion.Core.Systems.IO;
-using Emotion.Editor.EditorUI.Components;
-using Emotion.Game.Systems.UI;
-using Emotion.Game.Systems.UI.Text.TextUpdate;
+﻿#nullable enable
 
-#nullable enable
+using Emotion.Core.Systems.IO;
+using Emotion.Editor.EditorUI.Components;
+using Emotion.Game.Systems.UI.Text.TextUpdate;
 
 namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 
@@ -17,7 +16,10 @@ public class AssetHandleEditor<T> : TypeEditor where T : Asset, new()
 
         UIBaseWindow container = new UIBaseWindow
         {
-            LayoutMode = LayoutMode.HorizontalList
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalList(0)
+            }
         };
         AddChild(container);
 
@@ -38,10 +40,12 @@ public class AssetHandleEditor<T> : TypeEditor where T : Asset, new()
         UITextInput2 input = new UITextInput2
         {
             Name = "TextInput",
-
+            Layout =
+            {
+                MinSizeX = 100,
+                AnchorAndParentAnchor = UIAnchor.CenterLeft
+            },
             FontSize = EditorColorPalette.EditorButtonTextSize,
-            MinSizeX = 100,
-            AnchorAndParentAnchor = UIAnchor.CenterLeft,
             IgnoreParentColor = true
         };
         inputBackground.AddChild(input);

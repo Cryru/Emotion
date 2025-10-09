@@ -15,11 +15,10 @@ public class EditorLabel : NewUIText
 {
     public EditorLabel()
     {
-        WindowColor = EditorColorPalette.TextColor;
+        TextColor = EditorColorPalette.TextColor;
         FontSize = EditorColorPalette.EditorButtonTextSize;
         IgnoreParentColor = true;
-        Layout.Anchor = UIAnchor.CenterLeft;
-        Layout.ParentAnchor = UIAnchor.CenterLeft;
+        Layout.AnchorAndParentAnchor = UIAnchor.CenterLeft;
     }
 
     public EditorLabel(string txt) : this()

@@ -67,9 +67,11 @@ public class Editor2DBottomBar : UIBaseWindow
 
         UIBaseWindow toolButtonList = new UIBaseWindow()
         {
-            LayoutMode = LayoutMode.HorizontalList,
-            ListSpacing = new Vector2(5, 0),
-            Margins = new Rectangle(5, 5, 5, 5),
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalList(5),
+                Margins = new UISpacing(5, 5, 5, 5)
+            },
         };
         barContent.AddChild(toolButtonList);
 

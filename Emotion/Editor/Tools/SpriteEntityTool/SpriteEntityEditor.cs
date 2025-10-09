@@ -35,9 +35,11 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UIViewport, Ob
 
         var animationControlButtons = new UIBaseWindow()
         {
-            LayoutMode = LayoutMode.HorizontalList,
-            ListSpacing = new Vector2(5, 0),
-            GrowY = false,
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalList(5),
+                SizingY = UISizing.Fit()
+            },
             OrderInParent = -1
         };
         contentParent.AddChild(animationControlButtons);
@@ -74,7 +76,11 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UIViewport, Ob
         {
             Name = "EntityData",
             IgnoreParentColor = true,
-            MinSize = new Vector2(50)
+            Layout =
+            {
+                SizingX = UISizing.Fixed(50),
+                SizingY = UISizing.Fixed(50),
+            }
         };
         return objProps;
     }

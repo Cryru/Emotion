@@ -11,7 +11,7 @@ using Emotion.Core.Utility.Time;
 
 namespace Emotion.Game.Systems.UI.Text.TextUpdate;
 
-public class UITextInput2 : UIRichText
+public class UITextInput2 : NewUIText
 {
     public bool MultiLine = false;
     public int MaxCharacters = -1;

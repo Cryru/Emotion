@@ -11,22 +11,22 @@ public class UIOverlayWindowParent : UIBaseWindow
         OrderInParent = 99;
     }
 
-    protected override void AfterRenderChildren(Renderer c)
-    {
-        base.AfterRenderChildren(c);
+    //protected override void AfterRenderChildren(Renderer c)
+    //{
+    //    base.AfterRenderChildren(c);
 
-        if (NoClip)
-        {
-            Rectangle? clip = c.CurrentState.ClipRect;
-            c.SetClipRect(null);
+    //    if (NoClip)
+    //    {
+    //        Rectangle? clip = c.CurrentState.ClipRect;
+    //        c.SetClipRect(null);
 
-            //Controller.RenderOverlayChildren(this, c);
+    //        //Controller.RenderOverlayChildren(this, c);
 
-            c.SetClipRect(clip);
-        }
-        else
-        {
-            //Controller.RenderOverlayChildren(this, c);
-        }
-    }
+    //        c.SetClipRect(clip);
+    //    }
+    //    else
+    //    {
+    //        //Controller.RenderOverlayChildren(this, c);
+    //    }
+    //}
 }

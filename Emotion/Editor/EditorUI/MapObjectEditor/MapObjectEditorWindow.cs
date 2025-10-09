@@ -54,10 +54,12 @@ public class MapObjectEditorWindow : UIBaseWindow
         {
             var textList = new UIBaseWindow()
             {
-                LayoutMode = LayoutMode.HorizontalList,
-                ListSpacing = new Vector2(10, 0),
-                AnchorAndParentAnchor = UIAnchor.CenterLeft,
-                GrowY = false,
+                Layout =
+                {
+                    LayoutMethod = UILayoutMethod.HorizontalList(10),
+                    AnchorAndParentAnchor = UIAnchor.CenterLeft,
+                    SizingY = UISizing.Fit()
+                }
             };
             barContent.AddChild(textList);
 

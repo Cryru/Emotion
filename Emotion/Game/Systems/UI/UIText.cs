@@ -118,31 +118,31 @@ public class UIText : UIBaseWindow
         GrowY = false;
     }
 
-    protected override async Task LoadContent()
-    {
-        // Load font if not loaded.
-        if (_fontFile == null || _fontFile.Name != FontFile || _fontFile.Disposed) _fontFile = await Engine.AssetLoader.GetAsync<FontAsset>(FontFile);
-        if (_fontFile == null) return;
+    //protected override async Task LoadContent()
+    //{
+    //    // Load font if not loaded.
+    //    if (_fontFile == null || _fontFile.Name != FontFile || _fontFile.Disposed) _fontFile = await Engine.AssetLoader.GetAsync<FontAsset>(FontFile);
+    //    if (_fontFile == null) return;
 
-        if (FontSize == 0)
-        {
-            _atlas = null;
-            return;
-        }
+    //    if (FontSize == 0)
+    //    {
+    //        _atlas = null;
+    //        return;
+    //    }
 
-        // Load atlas as well. This one will change based on UI scale.
-        // Todo: Split scaled atlas from drawing so that metrics don't need the full thing.
-        float scale = Engine.UI.GetScale();// GetScale();
-        _atlas = _fontFile.GetAtlas((int) MathF.Ceiling(FontSize * scale), FontSizePixelPerfect);
+    //    // Load atlas as well. This one will change based on UI scale.
+    //    // Todo: Split scaled atlas from drawing so that metrics don't need the full thing.
+    //    float scale = Engine.UI.GetScale();// GetScale();
+    //    _atlas = _fontFile.GetAtlas((int) MathF.Ceiling(FontSize * scale), FontSizePixelPerfect);
 
-        // Reload the layouter if needed. Changing this means the text needs to be relayouted.
-        if (_layouterAtlas != _atlas)
-        {
-            _layouter = new TextLayouterWrap(_atlas);
-            _layouterAtlas = _atlas;
-            InvalidateLayout();
-        }
-    }
+    //    // Reload the layouter if needed. Changing this means the text needs to be relayouted.
+    //    if (_layouterAtlas != _atlas)
+    //    {
+    //        _layouter = new TextLayouterWrap(_atlas);
+    //        _layouterAtlas = _atlas;
+    //        InvalidateLayout();
+    //    }
+    //}
 
     protected override Vector2 InternalMeasure(Vector2 space)
     {

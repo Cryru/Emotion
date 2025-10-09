@@ -8,10 +8,8 @@ using Emotion.Editor.Tools.ChunkStreamVisualizer;
 using Emotion.Editor.Tools.GameDataTool;
 using Emotion.Editor.Tools.InterfaceTool;
 using Emotion.Editor.Tools.SpriteEntityTool;
-using Emotion.Game.Systems.UI;
 using Emotion.Core.Platform.Implementation.Win32;
 using Emotion.Standard.Reflector;
-using Emotion.Game.Systems.UI2;
 
 namespace Emotion.Editor.EditorUI;
 
@@ -19,6 +17,7 @@ public class EditorTopBar : UIBaseWindow
 {
     public EditorTopBar()
     {
+        Name = "EditorTopBar";
         Layout.SizingX = UISizing.Grow();
         Layout.SizingY = UISizing.Fit();
         Visuals.BackgroundColor = EditorColorPalette.BarColor;
@@ -90,7 +89,7 @@ public class EditorTopBar : UIBaseWindow
                 foreach (Type typ in gameDataObjectTypes)
                 {
                     EditorButton button = new EditorButton(typ.Name);
-                    button.GrowX = true;
+                    button.Layout.SizingX = UISizing.Grow();
                     button.OnClickedProxy = (_) =>
                     {
                         EngineEditor.OpenToolWindowUnique(new GameDataEditor(typ));

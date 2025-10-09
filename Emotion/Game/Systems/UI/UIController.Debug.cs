@@ -7,59 +7,7 @@ namespace Emotion.Game.Systems.UI;
 
 public partial class UIController
 {
-    public static void Debug_GetWindowsUnderMouse(List<UIBaseWindow> output)
-    {
-        output.Clear();
-        var mousePos = Engine.Host.MousePosition;
-
-        List<(UIBaseWindow, int)> outputWithDepth = new List<(UIBaseWindow, int)>();
-
-        var children = Engine.UI.Children;
-        for (int i = children.Count - 1; i >= 0; i--) // Top to bottom
-        {
-            UIBaseWindow win = children[i];
-            if (win.Visible && win.IsPointInside(mousePos))
-            {
-                Debug_GetWindowsUnderMouseInner(win, mousePos, outputWithDepth, 0);
-            }
-        }
-
-        outputWithDepth.Sort((x, y) => MathF.Sign(x.Item2 - y.Item2));
-        for (int i = 0; i < outputWithDepth.Count; i++)
-        {
-            var window = outputWithDepth[i].Item1;
-            output.Add(window);
-        }
-    }
-
-    private static bool Debug_GetWindowsUnderMouseInner(UIBaseWindow win, Vector2 mousePos, List<(UIBaseWindow, int)> output, int depth)
-    {
-        List<UIBaseWindow> children = win.Children;
-
-        if (children.Count == 0)
-        {
-            output.Add((win, depth));
-            return true;
-        }
-
-        bool anyHandled = false;
-        for (int i = children.Count - 1; i >= 0; i--)
-        {
-            var child = children[i];
-            if (child.Visible && child.IsPointInside(mousePos))
-            {
-                anyHandled = true;
-                Debug_GetWindowsUnderMouseInner(child, mousePos, output, depth + 1);
-            }
-        }
-
-        if (!anyHandled)
-        {
-            output.Add((win, depth));
-            return true;
-        }
-        return false;
-    }
+    
 
     private static UIBaseWindow? _debugBPMeasure;
     private static bool _bpMeasureOnce = false;

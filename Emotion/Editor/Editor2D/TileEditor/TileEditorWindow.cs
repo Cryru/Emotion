@@ -81,19 +81,24 @@ public sealed class TileEditorWindow : GridEditorWindow
         var sidePanel = new UIBaseWindow()
         {
             Name = "TileEditorSidePanel",
-            Anchor = UIAnchor.BottomRight,
-            ParentAnchor = UIAnchor.TopRight,
-            MinSizeX = 400,
-            Paddings = new Primitives.Rectangle(5, 5, 5, 5),
             HandleInput = true,
-            LayoutMode = LayoutMode.VerticalList,
-            ListSpacing = new Vector2(0, 5)
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.VerticalList(5),
+                Padding = new UISpacing(5, 5, 5, 5),
+                Anchor = UIAnchor.BottomRight,
+                ParentAnchor = UIAnchor.TopRight,
+                SizingX = UISizing.Fixed(400),
+            },
         };
         barContent.AddChild(sidePanel);
 
-        var sidePanelBg = new UISolidColor
+        var sidePanelBg = new UIBaseWindow
         {
-            WindowColor = EditorColorPalette.BarColor,
+            Visuals =
+            {
+                BackgroundColor = EditorColorPalette.BarColor
+            },
             BackgroundWindow = true
         };
         sidePanel.AddChild(sidePanelBg);

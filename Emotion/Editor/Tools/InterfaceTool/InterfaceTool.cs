@@ -86,7 +86,11 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
         {
             Name = "EntityData",
             IgnoreParentColor = true,
-            MinSize = new Vector2(50)
+            Layout =
+            {
+                SizingX = UISizing.Fixed(50),
+                SizingY = UISizing.Fixed(50),
+            }
         };
         return objProps;
     }

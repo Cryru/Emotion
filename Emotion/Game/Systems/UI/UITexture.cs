@@ -145,39 +145,39 @@ public class UITexture : UISolidColor
         GrowY = false;
     }
 
-    protected override async Task LoadContent()
-    {
-        var loadedNew = false;
-        if (TextureFile == null) return;
+    //protected override async Task LoadContent()
+    //{
+    //    var loadedNew = false;
+    //    if (TextureFile == null) return;
 
-        string fileEngineName = AssetLoader.NameToEngineName(TextureFile);
-        if (TextureAsset == null || TextureAsset.Name != fileEngineName || TextureAsset.Disposed)
-        {
-            TextureAsset = await Engine.AssetLoader.GetAsync<TextureAsset>(fileEngineName);
-            loadedNew = true;
-        }
+    //    string fileEngineName = AssetLoader.NameToEngineName(TextureFile);
+    //    if (TextureAsset == null || TextureAsset.Name != fileEngineName || TextureAsset.Disposed)
+    //    {
+    //        TextureAsset = await Engine.AssetLoader.GetAsync<TextureAsset>(fileEngineName);
+    //        loadedNew = true;
+    //    }
 
-        if (ShaderFilePath == null)
-        {
-            ShaderAsset = null;
-        }
-        else
-        {
-            string shaderPathEngineName = AssetLoader.NameToEngineName(ShaderFilePath);
-            if (ShaderAsset == null || ShaderAsset.Name != shaderPathEngineName || ShaderAsset.Disposed)
-            {
-                ShaderAsset = await Engine.AssetLoader.GetAsync<ShaderAsset>(ShaderFilePath);
-            }
-        }
+    //    if (ShaderFilePath == null)
+    //    {
+    //        ShaderAsset = null;
+    //    }
+    //    else
+    //    {
+    //        string shaderPathEngineName = AssetLoader.NameToEngineName(ShaderFilePath);
+    //        if (ShaderAsset == null || ShaderAsset.Name != shaderPathEngineName || ShaderAsset.Disposed)
+    //        {
+    //            ShaderAsset = await Engine.AssetLoader.GetAsync<ShaderAsset>(ShaderFilePath);
+    //        }
+    //    }
 
-        if (TextureAsset == null) return;
+    //    if (TextureAsset == null) return;
 
-        if (loadedNew)
-        {
-            if (Smooth != TextureAsset.Texture.Smooth) TextureAsset.Texture.Smooth = Smooth;
-            InvalidateLayout();
-        }
-    }
+    //    if (loadedNew)
+    //    {
+    //        if (Smooth != TextureAsset.Texture.Smooth) TextureAsset.Texture.Smooth = Smooth;
+    //        InvalidateLayout();
+    //    }
+    //}
 
     protected override Vector2 InternalMeasure(Vector2 space)
     {

@@ -23,8 +23,10 @@ public class CoroutineViewerTool : EditorWindow
 
         _list = new UIList()
         {
-            LayoutMode = LayoutMode.VerticalList,
-            ListSpacing = new Vector2(0, 5)
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.VerticalList(5)
+            }
         };
         contentParent.AddChild(_list);
 

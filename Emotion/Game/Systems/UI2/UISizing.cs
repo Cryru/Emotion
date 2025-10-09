@@ -1,6 +1,6 @@
 ﻿namespace Emotion.Game.Systems.UI2;
 
-public struct UISizing
+public record struct UISizing
 {
     public enum UISizingMode
     {
@@ -38,7 +38,7 @@ public struct UISizing
         };
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         if (Mode == UISizingMode.Fixed)
             return $"Fixed {Size}";

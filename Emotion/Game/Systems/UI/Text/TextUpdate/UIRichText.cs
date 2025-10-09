@@ -149,21 +149,21 @@ public class UIRichText : UIBaseWindow
         StringContext = new StringContext(InvalidateLayout);
     }
 
-    protected override async Task LoadContent()
-    {
-        // Load font if not loaded.
-        if (FontNeedsUpdate())
-        {
-            Task<FontAsset?> loadTask = Engine.AssetLoader.GetAsync<FontAsset>(FontFile);
-            _fontFile = await loadTask;
-            _atlas = null; // Update atlas
-        }
+    //protected override async Task LoadContent()
+    //{
+    //    // Load font if not loaded.
+    //    if (FontNeedsUpdate())
+    //    {
+    //        Task<FontAsset?> loadTask = Engine.AssetLoader.GetAsync<FontAsset>(FontFile);
+    //        _fontFile = await loadTask;
+    //        _atlas = null; // Update atlas
+    //    }
 
-        // todo: the current loading scheme cannot reliably access GetScale in LoadContent
-        float scale = Engine.UI.GetScale();//GetScale();
-        if (UpdateAtlasIfNeeded(scale, FontSize))
-            InvalidateLayout();
-    }
+    //    // todo: the current loading scheme cannot reliably access GetScale in LoadContent
+    //    float scale = Engine.UI.GetScale();//GetScale();
+    //    if (UpdateAtlasIfNeeded(scale, FontSize))
+    //        InvalidateLayout();
+    //}
 
     protected override Vector2 InternalMeasure(Vector2 space)
     {

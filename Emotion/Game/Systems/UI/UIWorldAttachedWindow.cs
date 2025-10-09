@@ -37,9 +37,9 @@ namespace Emotion.Game.Systems.UI
             return pos;
         }
 
-        protected override bool RenderInternal(Renderer c)
+        protected override void InternalRender(Renderer c)
         {
-            if (Children == null || _awaitingLayout) return false;
+            if (Children == null || _awaitingLayout) return;
 
             // We update this in the renderer rather than through the transformation matrix to ensure it is always up to date.
             Vector3 pos = c.Camera.WorldToScreen(_worldPos).ToVec3(
@@ -51,13 +51,12 @@ namespace Emotion.Game.Systems.UI
             _renderBoundsWithChildren = new Rectangle(pos + Position, Size);
 
             c.PushModelMatrix(Matrix4x4.CreateTranslation(pos));
-            return base.RenderInternal(c);
         }
 
-        protected override void AfterRenderChildren(Renderer c)
+        protected override void InternalAfterRenderChildren(Renderer r)
         {
-            base.AfterRenderChildren(c);
-            c.PopModelMatrix();
+            base.InternalAfterRenderChildren(r);
+            r.PopModelMatrix();
         }
     }
 }

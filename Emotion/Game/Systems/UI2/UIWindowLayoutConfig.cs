@@ -1,16 +1,45 @@
 ﻿#nullable enable
 
-using Emotion.Game.Systems.UI;
-
 namespace Emotion.Game.Systems.UI2;
 
 public struct UIWindowLayoutConfig
 {
     public const int DEFAULT_MAX_SIZE = 99999;
 
-    public Vector2 Scale = new Vector2(1f);
-    public bool ScaleWithResolution = true;
+    /// <summary>
+    /// Scale of the window. Note this includes the children of the window as well.
+    /// </summary>
+    public Vector2 Scale
+    {
+        readonly get => _scale;
+        set
+        {
+            if (value == _scale) return;
+            _scale = value;
+            InvalidateLayout();
+        }
+    }
+    private Vector2 _scale = Vector2.One;
 
+    /// <summary>
+    /// Whether this window scales with the resolution of the UISystem (meaning the Host's screen)
+    /// </summary>
+    public bool ScaleWithResolution
+    {
+        readonly get => _scaleWithResolution;
+        set
+        {
+            if (value == _scaleWithResolution) return;
+            _scaleWithResolution = value;
+            InvalidateLayout();
+        }
+    }
+
+    private bool _scaleWithResolution = true;
+
+    /// <summary>
+    /// Final offset to the position of the window, applied at the final layout step.
+    /// </summary>
     public IntVector2 Offset
     {
         readonly get => _offset;
@@ -27,40 +56,132 @@ public struct UIWindowLayoutConfig
     /// <summary>
     /// The minimum size the window can be.
     /// </summary>
-    public IntVector2 MinSize = IntVector2.Zero;
+    public IntVector2 MinSize
+    {
+        readonly get => _minSize;
+        set
+        {
+            if (_minSize == value) return;
+            _minSize = value;
+            InvalidateLayout();
+        }
+    }
+
+    private IntVector2 _minSize = IntVector2.Zero;
 
     public int MinSizeX
     {
         readonly get => MinSize.X;
-        set => MinSize.X = value;
+        set => MinSize = MinSize with { X = value };
     }
 
     public int MinSizeY
     {
         readonly get => MinSize.Y;
-        set => MinSize.Y = value;
+        set => MinSize = MinSize with { Y = value };
     }
 
-    public IntVector2 MaxSize = new IntVector2(DEFAULT_MAX_SIZE);
+    /// <summary>
+    /// The maximum size this window can be.
+    /// </summary>
+    public IntVector2 MaxSize
+    {
+        readonly get => _maxSize;
+        set
+        {
+            if (_maxSize == value) return;
+            _maxSize = value;
+            InvalidateLayout();
+        }
+    }
+
+    private IntVector2 _maxSize = new IntVector2(DEFAULT_MAX_SIZE);
 
     public int MaxSizeX
     {
         readonly get => MaxSize.X;
-        set => MaxSize.X = value;
+        set => MaxSize = MaxSize with { X = value };
     }
 
     public int MaxSizeY
     {
         readonly get => MaxSize.Y;
-        set => MaxSize.Y = value;
+        set => MaxSize = MaxSize with { Y = value };
     }
 
-    public UISpacing Padding;
-    public UISpacing Margins;
+    /// <summary>
+    /// Space between the window's box and its children
+    /// </summary>
+    public UISpacing Padding
+    {
+        readonly get => _padding;
+        set
+        {
+            if (_padding == value) return;
+            _padding = value;
+            InvalidateLayout();
+        }
+    }
 
-    public UILayoutMethod LayoutMethod = UILayoutMethod.Free();
-    public UISizing SizingX = UISizing.Grow();
-    public UISizing SizingY = UISizing.Grow();
+    private UISpacing _padding;
+
+    /// <summary>
+    /// Space outside the window's content
+    /// </summary>
+    public UISpacing Margins
+    {
+        readonly get => _margins;
+        set
+        {
+            if (_margins == value) return;
+            _margins = value;
+            InvalidateLayout();
+        }
+    }
+
+    private UISpacing _margins;
+
+    /// <summary>
+    /// How to layout children of this window.
+    /// </summary>
+    public UILayoutMethod LayoutMethod
+    {
+        readonly get => _layoutMethod;
+        set
+        {
+            if (_layoutMethod == value) return;
+            _layoutMethod = value;
+            InvalidateLayout();
+        }
+    }
+
+    private UILayoutMethod _layoutMethod = UILayoutMethod.Free();
+
+    public UISizing SizingX
+    {
+        readonly get => _sizingX;
+        set
+        {
+            if (_sizingX == value) return;
+            _sizingX = value;
+            InvalidateLayout();
+        }
+    }
+
+    private UISizing _sizingX = UISizing.Grow();
+
+    public UISizing SizingY
+    {
+        readonly get => _sizingY;
+        set
+        {
+            if (_sizingY == value) return;
+            _sizingY = value;
+            InvalidateLayout();
+        }
+    }
+
+    private UISizing _sizingY = UISizing.Grow();
 
     /// <summary>
     /// The point in the parent to anchor the window to, if the parent window is of the "Free" layout type.
@@ -103,6 +224,8 @@ public struct UIWindowLayoutConfig
             Anchor = value;
         }
     }
+
+    public bool ChildrenCanExpand = true;
 
     public UIWindowLayoutConfig()
     {

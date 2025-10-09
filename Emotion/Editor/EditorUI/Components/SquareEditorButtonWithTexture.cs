@@ -1,7 +1,5 @@
 ﻿#nullable enable
 
-using Emotion.Game.Systems.UI;
-using Emotion.Game.Systems.UI2;
 using Emotion.Game.Systems.UI2.Editor;
 
 namespace Emotion.Editor.EditorUI.Components;
@@ -23,6 +21,7 @@ public class SquareEditorButtonWithTexture : SquareEditorButton
             Smooth = true,
             Layout =
             {
+                // todo: it would be nice if we can let the parent be grow and have this be a square in the grow layout step
                 SizingX = UISizing.Fixed(size),
                 SizingY = UISizing.Fixed(size),
                 AnchorAndParentAnchor = UIAnchor.CenterCenter,

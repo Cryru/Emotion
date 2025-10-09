@@ -44,28 +44,6 @@ public partial class UIBaseWindow
         return freeSpace;
     }
 
-    protected void ChildrenAreAllAsWideAsWidest()
-    {
-        Assert(LayoutMode == LayoutMode.VerticalList);
-        if (Children != null)
-        {
-            float width = 0;
-            for (var i = 0; i < Children.Count; i++)
-            {
-                UIBaseWindow child = Children[i];
-                if (!child.Visible && child.DontTakeSpaceWhenHidden) continue;
-                width = MathF.Max(width, child.Size.X);
-            }
-
-            for (var i = 0; i < Children.Count; i++)
-            {
-                UIBaseWindow child = Children[i];
-                child.Size = new Vector2(width, child.Height);
-                child._measuredSize = new Vector2(width, child.Height);
-            }
-        }
-    }
-
     protected virtual void AfterMeasureChildren(Vector2 usedSpace)
     {
     }

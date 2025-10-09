@@ -14,64 +14,6 @@ namespace Emotion.Game.Systems.UI;
 [DontSerializeMembers("Position", "Size")]
 public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBaseWindow>
 {
-    public static float DefaultMaxSizeF = 9999;
-
-    /// <summary>
-    /// By default windows greedily take up all the size they can.
-    /// </summary>
-    public static Vector2 DefaultMaxSize = new(DefaultMaxSizeF, DefaultMaxSizeF);
-
-    #region Loading, Update, Render
-
-    private Task _loadingTask = Task.CompletedTask;
-    private bool _needsLoad = true;
-
-    //public bool IsLoading()
-    //{
-    //    return !_loadingTask.IsCompleted || _needsLoad;
-    //}
-
-    public void CheckLoadContent(UILoadingContext ctx)
-    {
-        // Add to loading only if not currently loading.
-        lock (this)
-        {
-            if (_loadingTask.IsCompleted)
-            {
-                _loadingTask = LoadContent();
-                // if (!_loadingTask.IsCompleted) Engine.Log.Trace(ToString(), "UI Loading");
-                ctx.AddLoadingTask(_loadingTask);
-                _needsLoad = false;
-            }
-        }
-
-        if (Children == null) return;
-        for (var i = 0; i < Children.Count; i++)
-        {
-            UIBaseWindow child = Children[i];
-            child.CheckLoadContent(ctx);
-        }
-    }
-
-    protected virtual void InvalidateLoaded()
-    {
-        //_needsLoad = true;
-        //Controller?.InvalidatePreload();
-    }
-
-    protected virtual Task LoadContent()
-    {
-        return Task.CompletedTask;
-    }
-
-   
-
-   
-
-
-
-    #endregion
-
     #region Layout
 
     /// <summary>
@@ -107,32 +49,6 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
     protected bool _overlayWindow;
 
     /// <summary>
-    /// How to layout the children of this window.
-    /// </summary>
-    public LayoutMode LayoutMode { get; set; } = LayoutMode.Free;
-
-    /// <summary>
-    /// Spacing if the LayoutMode is a list.
-    /// </summary>
-    public Vector2 ListSpacing
-    {
-        get => _listSpacing;
-        set
-        {
-            if (value == _listSpacing) return;
-            _listSpacing = value;
-            InvalidateLayout();
-        }
-    }
-
-    private Vector2 _listSpacing;
-
-
-
-
-
-
-    /// <summary>
     /// Margins push the window in one of the four directions, only if it is against another window.
     /// This is applied after alignment, but before the anchor.
     /// </summary>
@@ -166,45 +82,6 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
     private Rectangle _paddings;
 
     /// <summary>
-    /// The minimum size the window can be.
-    /// </summary>
-    public Vector2 MinSize
-    {
-        get => new(MinSizeX, MinSizeY);
-        set
-        {
-            MinSizeX = value.X;
-            MinSizeY = value.Y;
-        }
-    }
-
-    [DontSerialize] // will be saved via the Vector2 prop
-    public float MinSizeX;
-
-    [DontSerialize] //
-    public float MinSizeY;
-
-    [DontSerialize] //
-    public float MaxSizeY = DefaultMaxSizeF;
-
-    /// <summary>
-    /// Always added to the position after all other checks.
-    /// Mostly used to offset from an anchor position.
-    /// </summary>
-    public Vector2 Offset
-    {
-        get => _offsetBacking;
-        set
-        {
-            if (value == _offsetBacking) return;
-            _offsetBacking = value;
-            InvalidateLayout();
-        }
-    }
-
-    private Vector2 _offsetBacking;
-
-    /// <summary>
     /// Position relative to another window in the same controller.
     /// </summary>
     public string? RelativeTo
@@ -219,10 +96,6 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
     }
 
     private string? _relativeTo;
-
-    protected virtual void AfterMeasure(Vector2 contentSize)
-    {
-    }
 
     protected virtual void AfterLayout()
     {

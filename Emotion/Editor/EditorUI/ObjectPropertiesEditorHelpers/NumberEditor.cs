@@ -22,8 +22,11 @@ public class NumberEditor<TNumber> : TypeEditor where TNumber : INumber<TNumber>
             Name = "TextInput",
 
             FontSize = EditorColorPalette.EditorButtonTextSize,
-            MinSizeX = 100,
-            AnchorAndParentAnchor = UIAnchor.CenterLeft,
+            Layout =
+            {
+                MinSizeX = 100,
+                AnchorAndParentAnchor = UIAnchor.CenterLeft
+            },
             IgnoreParentColor = true,
 
             SubmitOnEnter = true,

@@ -35,22 +35,27 @@ public class UIDebugTool : EditorWindow
 
         var container = new UIBaseWindow
         {
-            LayoutMode = LayoutMode.VerticalList
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.VerticalList(0)
+            }
         };
         contentParent.AddChild(container);
 
         var buttonContainer = new UIBaseWindow
         {
-            LayoutMode = LayoutMode.HorizontalList,
-            ListSpacing = new Vector2(5, 0)
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalList(5)
+            }
         };
         container.AddChild(buttonContainer);
 
-        var inspectButton = new EditorButton("Select Window")
-        {
-            OnClickedProxy = (_) => Engine.UI.EnterInspectMode()
-        };
-        buttonContainer.AddChild(inspectButton);
+        //var inspectButton = new EditorButton("Select Window")
+        //{
+        //    OnClickedProxy = (_) => Engine.UI.EnterInspectMode()
+        //};
+        //buttonContainer.AddChild(inspectButton);
 
         var selectParent = new EditorButton("Select Parent")
         {
@@ -79,8 +84,10 @@ public class UIDebugTool : EditorWindow
 
         var breakpointContainer = new UIBaseWindow
         {
-            LayoutMode = LayoutMode.HorizontalList,
-            ListSpacing = new Vector2(5, 0)
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalList(5)
+            }
         };
         container.AddChild(breakpointContainer);
 
@@ -197,14 +204,14 @@ public class UIDebugTool : EditorWindow
 
     private void DebugWindow(UIBaseWindow dbgWindow)
     {
-        _debuggingWindow = dbgWindow;
-        _debugInfo.Path = GetWindowPath(dbgWindow);
-        _debugInfo.Id = dbgWindow.Name;
-        _debugInfo.WindowType = dbgWindow.GetType().Name;
-        _debugInfo.LayoutMode = dbgWindow.LayoutMode;
-        _debugInfo.Bounds = dbgWindow.Bounds;
-        _debugInfo.ScaledPadding = dbgWindow.Paddings * dbgWindow.GetScale();
-        EngineEditor.ReportChange_NoInfo(_debugInfo);
+        //_debuggingWindow = dbgWindow;
+        //_debugInfo.Path = GetWindowPath(dbgWindow);
+        //_debugInfo.Id = dbgWindow.Name;
+        //_debugInfo.WindowType = dbgWindow.GetType().Name;
+        //_debugInfo.LayoutMode = dbgWindow.LayoutMode;
+        //_debugInfo.Bounds = dbgWindow.Bounds;
+        //_debugInfo.ScaledPadding = dbgWindow.Paddings * dbgWindow.GetScale();
+        //EngineEditor.ReportChange_NoInfo(_debugInfo);
     }
 
     private string GetWindowPath(UIBaseWindow win)

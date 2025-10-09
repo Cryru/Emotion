@@ -37,9 +37,13 @@ public abstract class TwoSplitEditorWindowFileSupport<TLeft, TRight, TEditType> 
 
         var contentPanel = new UIBaseWindow
         {
-            MinSize = new Vector2(100),
-            Paddings = new Rectangle(5, 5, 5, 5),
-            LayoutMode = LayoutMode.HorizontalEditorPanel
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalList(0), //  LayoutMode.HorizontalEditorPanel
+                Padding = new UISpacing(5, 5, 5, 5),
+                SizingX = UISizing.Fixed(100),
+                SizingY = UISizing.Fixed(100),
+            }
         };
         content.AddChild(contentPanel);
 

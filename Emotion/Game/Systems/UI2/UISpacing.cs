@@ -2,7 +2,7 @@
 
 namespace Emotion.Game.Systems.UI2;
 
-public struct UISpacing
+public record struct UISpacing
 {
     public IntVector2 LeftTop;
     public IntVector2 RightBottom;
@@ -13,7 +13,7 @@ public struct UISpacing
         RightBottom = new IntVector2(right, bottom);
     }
 
-    public override string ToString()
+    public readonly override string ToString()
     {
         return $"{LeftTop}:{RightBottom}";
     }

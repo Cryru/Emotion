@@ -35,17 +35,19 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
     {
         _scroll = new EditorScrollArea()
         {
-            AutoHideScrollY = true,
             Name = "EditorScrollArea",
+            AutoHideScrollY = true,
         };
         AddChild(_scroll);
 
         EditorList = new UIBaseWindow()
         {
-            LayoutMode = LayoutMode.VerticalList,
-            ListSpacing = new Vector2(0, 5),
-            Paddings = new Rectangle(10, 5, 10, 5),
-            Name = "EditorListParent"
+            Name = "EditorListParent",
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.VerticalList(5),
+                Padding = new UISpacing(10, 5, 10, 5)
+            }
         };
         _scroll.AddChildInside(EditorList);
     }

@@ -36,7 +36,10 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
 
         UIBaseWindow mainContent = new()
         {
-            LayoutMode = LayoutMode.VerticalList
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.VerticalList(0)
+            }
         };
         contentParent.AddChild(mainContent);
         _mainContent = mainContent;
@@ -71,9 +74,11 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
 
         UIBaseWindow buttonList = new()
         {
-            LayoutMode = LayoutMode.HorizontalList,
-            Paddings = new Rectangle(5, 5, 5, 5),
-            ListSpacing = new Vector2(5, 0),
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalList(5),
+                Padding = new UISpacing(5, 5, 5, 5),
+            },
             OrderInParent = -5
         };
         mainContent.AddChild(buttonList);

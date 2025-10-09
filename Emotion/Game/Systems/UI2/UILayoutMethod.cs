@@ -1,16 +1,16 @@
 ﻿#nullable enable
 
-using Emotion.Game.Systems.UI;
-
 namespace Emotion.Game.Systems.UI2;
 
-public struct UILayoutMethod
+public record struct UILayoutMethod
 {
     public enum UIMethodName
     {
         Free,
         HorizontalList,
-        VerticalList
+        VerticalList,
+        HorizontalListWrap,
+        VerticalListWrap,
     }
 
     public enum ListLayoutItemsAlign
@@ -24,7 +24,7 @@ public struct UILayoutMethod
     public IntVector2 ListSpacing;
     public ListLayoutItemsAlign ListItemsAlign; // todo
 
-    public int GetListMask()
+    public readonly int GetListMask()
     {
         return Mode == UIMethodName.HorizontalList ? 0 : 1;
     }
@@ -75,7 +75,27 @@ public struct UILayoutMethod
         };
     }
 
-    public override string ToString()
+    public static UILayoutMethod HorizontalListWrap(int spacingX, int spacingY, ListLayoutItemsAlign alignItems = ListLayoutItemsAlign.Beginning)
+    {
+        return new UILayoutMethod()
+        {
+            Mode = UIMethodName.HorizontalListWrap,
+            ListSpacing = new IntVector2(spacingX, spacingY),
+            ListItemsAlign = alignItems
+        };
+    }
+
+    public static UILayoutMethod VerticalListWrap(int spacingX, int spacingY, ListLayoutItemsAlign alignItems = ListLayoutItemsAlign.Beginning)
+    {
+        return new UILayoutMethod()
+        {
+            Mode = UIMethodName.VerticalListWrap,
+            ListSpacing = new IntVector2(spacingX, spacingY),
+            ListItemsAlign = alignItems
+        };
+    }
+
+    public override readonly string ToString()
     {
         if (Mode == UIMethodName.HorizontalList || Mode == UIMethodName.VerticalList)
             return $"{Mode} {ListSpacing} (Align {ListItemsAlign})";

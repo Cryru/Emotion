@@ -1,4 +1,5 @@
-﻿using Emotion.Editor.EditorUI.Components;
+﻿using Emotion.Core.Utility.Threading;
+using Emotion.Editor.EditorUI.Components;
 using Emotion.Game.Systems.UI;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers.Base;
@@ -17,7 +18,7 @@ public class ObjectPropertyWindow : UIBaseWindow
 
     public ObjectPropertyWindow()
     {
-        LayoutMode = LayoutMode.VerticalList;
+        Layout.LayoutMethod = UILayoutMethod.VerticalList(0);
     }
 
     protected override void OnOpen()
@@ -39,7 +40,7 @@ public class ObjectPropertyWindow : UIBaseWindow
     private void OnHotReload(Type t)
     {
         if (ObjectBeingEdited != null)
-            SetEditor(ObjectBeingEdited);
+            GLThread.ExecuteOnGLThreadAsync(SetEditor, ObjectBeingEdited);
     }
 
     public void SetEditor(object? obj)
@@ -66,7 +67,7 @@ public class ObjectPropertyWindow : UIBaseWindow
         IGenericReflectorTypeHandler? typeHandler = currentObject == null ? null : ReflectorEngine.GetTypeHandler(currentObject.GetType());
         if (typeHandler == null)
         {
-            EditorLabel label = new EditorLabel();
+            EditorLabel label = new();
             label.Text = $"The object attempting to be edited is non-editable,\nor no object was provided..";
             AddChild(label);
             _pagingContainer.Visible = false;
@@ -230,9 +231,14 @@ public class ObjectPropertyWindow : UIBaseWindow
     {
         var pagingContainer = new UIBaseWindow()
         {
-            LayoutMode = LayoutMode.HorizontalListWrap,
-            ListSpacing = new Vector2(5, 5),
-            DontTakeSpaceWhenHidden = true
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalListWrap(5, 5)
+            },
+            Visuals =
+            {
+                DontTakeSpaceWhenHidden = true
+            }
         };
         AddChild(pagingContainer);
         _pagingContainer = pagingContainer;

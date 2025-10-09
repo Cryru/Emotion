@@ -46,7 +46,7 @@ public record struct IntRectangle
         Size = new IntVector2(w, h);
     }
 
-    public Rectangle GetRect()
+    public Rectangle ToRect()
     {
         return new Rectangle(X, Y, Width, Height);
     }
@@ -60,6 +60,11 @@ public record struct IntRectangle
     public static IntRectangle FromMinMaxPoints(IntVector2 min, IntVector2 max)
     {
         return new IntRectangle(min.X, min.Y, max.X - min.X, max.Y - min.Y);
+    }
+
+    public static IntRectangle FromRectFloor(Rectangle rect)
+    {
+        return new IntRectangle(IntVector2.FromVec2Floor(rect.Position), IntVector2.FromVec2Floor(rect.Size));
     }
 
     public override readonly string ToString()

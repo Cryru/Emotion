@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using Emotion.Core.Systems.IO;
+
 namespace Emotion.Game.Systems.UI.New;
 
 // todo: scenes - make current scene current even while loading, add loaded bool
@@ -16,6 +18,9 @@ public class UISystem : UIBaseWindow
     {
         InitInput();
 
+        if (Engine.Configuration.DebugMode)
+            SetupDebugger();
+
         State = UIWindowState.Open;
         Engine.Host.OnResize += HostResized;
         HostResized(Engine.Renderer.ScreenBuffer.Size);
@@ -23,11 +28,20 @@ public class UISystem : UIBaseWindow
 
     protected override bool UpdateInternal()
     {
+        if (_debugInspectMode)
+            InspectModeUpdate();
+
         UpdateInput();
         UpdateLoading();
         UpdateLayout();
 
         return base.UpdateInternal();
+    }
+
+    protected override void InternalAfterRenderChildren(Renderer r)
+    {
+        base.InternalAfterRenderChildren(r);
+        InspectModeRender(r);
     }
 
     private void UpdateLayout()
@@ -86,7 +100,7 @@ public class UISystem : UIBaseWindow
         HandleInput = true;
         _mouseFocusOnKeyDelegateCache = MouseFocusOnKey;
         _keyboardFocusOnKeyDelegateCache = KeyboardFocusOnKey;
-        Engine.Host.OnMouseMove += Host_MouseMove;
+        Engine.Input.OnMouseMove += Host_MouseMove;
     }
 
     private void Host_MouseMove(Vector2 old, Vector2 nu)
@@ -129,18 +143,18 @@ public class UISystem : UIBaseWindow
 
     private void SetMouseFocus(UIBaseWindow? window)
     {
-        Vector2 mousePos = Engine.Host.MousePosition;
+        Vector2 mousePos = Engine.Input.MousePosition;
         if (MouseFocus != window)
         {
             if (MouseFocus != null)
             {
                 MouseFocus.OnMouseLeft(mousePos);
-                Engine.Host.OnKey.RemoveListener(_mouseFocusOnKeyDelegateCache); // This will handle "down" keys receiving "ups"
+                Engine.Input.OnKey.RemoveListener(_mouseFocusOnKeyDelegateCache); // This will handle "down" keys receiving "ups"
             }
             MouseFocus = window;
             if (MouseFocus != null)
             {
-                Engine.Host.OnKey.AddListener(_mouseFocusOnKeyDelegateCache, KeyListenerType.UI);
+                Engine.Input.OnKey.AddListener(_mouseFocusOnKeyDelegateCache, KeyListenerType.UI);
                 MouseFocus.OnMouseEnter(mousePos);
             }
 
@@ -197,7 +211,7 @@ public class UISystem : UIBaseWindow
         }
 
         // Propagate input up from the window
-        Vector2 mousePos = Engine.Host.MousePosition;
+        Vector2 mousePos = Engine.Input.MousePosition;
         UIBaseWindow current = MouseFocus;
         while (current != null)
         {
@@ -280,7 +294,7 @@ public class UISystem : UIBaseWindow
     {
         CloseDropdown();
 
-        UIBaseWindow? closestHost = GetParentOfKind<UIOverlayWindowParent>();
+        UIBaseWindow? closestHost = window.GetParentOfKind<UIOverlayWindowParent>();
         closestHost ??= this;
 
         dropdown.AttachedTo = window;
@@ -316,18 +330,112 @@ public class UISystem : UIBaseWindow
 
     #region Debugger
 
+    private void SetupDebugger()
+    {
+        Engine.Input.OnKey.AddListener(DebuggerOnKey, KeyListenerType.System);
+    }
+
+    private bool DebuggerOnKey(Key key, KeyState state)
+    {
+        if (_debugInspectMode && key == Key.MouseKeyLeft && state == KeyState.Down)
+        {
+            InspectModeClick();
+            return false;
+        }
+
+        if (key == Key.X && Engine.Host.IsAltModifierHeld() && state == KeyState.Down)
+        {
+            if (!_debugInspectMode)
+                EnterInspectMode();
+            else
+                LeaveInspectMode();
+
+            return false;
+        }
+        return true;
+    }
+
     private bool _debugInspectMode = false;
+    private float _debugInspectModeFadeText = 0;
     private List<UIBaseWindow>? _debugWindowsUnderMouse;
 
     public void EnterInspectMode()
     {
         _debugInspectMode = true;
+        _debugInspectModeFadeText = 0;
         _debugWindowsUnderMouse = new List<UIBaseWindow>();
     }
 
-    private void DebugInspectModeUpdate()
+    private void LeaveInspectMode()
     {
-        //Debug_GetWindowsUnderMouse(_debugWindowsUnderMouse);
+        _debugInspectMode = false;
+    }
+
+    private static void Debug_GetWindowsUnderMouseInner(UIBaseWindow win, Vector2 mousePos, List<(UIBaseWindow, int)> output, int depth)
+    {
+        List<UIBaseWindow> children = win.Children;
+        output.Add((win, depth));
+
+        for (int i = children.Count - 1; i >= 0; i--)
+        {
+            UIBaseWindow child = children[i];
+            if (child.Visible && child.CalculatedMetrics.Bounds.Contains(mousePos))
+            {
+                Debug_GetWindowsUnderMouseInner(child, mousePos, output, depth + 1);
+            }
+        }
+    }
+
+    private void InspectModeUpdate()
+    {
+        AssertNotNull(_debugWindowsUnderMouse);
+
+        _debugWindowsUnderMouse.Clear();
+        Vector2 mousePos = Engine.Input.MousePosition;
+
+        List<(UIBaseWindow, int)> outputWithDepth = new List<(UIBaseWindow, int)>();
+        Debug_GetWindowsUnderMouseInner(this, mousePos, outputWithDepth, 0);
+        outputWithDepth.Sort((x, y) => MathF.Sign(x.Item2 - y.Item2));
+        for (int i = 0; i < outputWithDepth.Count; i++)
+        {
+            UIBaseWindow window = outputWithDepth[i].Item1;
+            _debugWindowsUnderMouse.Add(window);
+        }
+    }
+
+    private void InspectModeRender(Renderer r)
+    {
+        if (_debugInspectMode)
+        {
+            _debugInspectModeFadeText += Engine.DeltaTime;
+            if (_debugInspectModeFadeText < 1000)
+            {
+                float fade = (_debugInspectModeFadeText - 800) / 200f;
+                fade = 1.0f - fade;
+                if (_debugInspectModeFadeText < 800) fade = 1f;
+
+                r.RenderSprite(Vector3.Zero, new Vector2(400, 20), Color.Black * fade);
+                r.RenderString(Vector3.Zero, Color.Red * fade, $"UI INSPECT MODE ACTIVE!", FontAsset.GetDefaultBuiltIn().GetAtlas(20));
+            }
+
+            foreach (UIBaseWindow win in _debugWindowsUnderMouse!)
+            {
+                Rectangle bounds = win.CalculatedMetrics.Bounds.ToRect();
+                r.RenderRectOutline(bounds, Color.Red, 2);
+                r.RenderSprite(bounds.BottomLeft.ToVec3() + new Vector3(0, 100, 0), new Vector2(450, 20), Color.Black);
+                r.RenderString(bounds.BottomLeft.ToVec3() + new Vector3(0, 100, 0), Color.Red, $"{win} {win.Layout.LayoutMethod.Mode}", FontAsset.GetDefaultBuiltIn().GetAtlas(15));
+            }
+        }
+    }
+
+    private void InspectModeClick()
+    {
+        Console.WriteLine($"Selected windows:");
+        foreach (UIBaseWindow win in _debugWindowsUnderMouse!)
+        {
+            Console.WriteLine($"    {win} - {win.CalculatedMetrics.Bounds}");
+
+        }
     }
 
     public List<UIBaseWindow>? GetInspectModeSelectedWindow()

@@ -156,11 +156,9 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
         UIBaseWindow containerList = new()
         {
             Name = "ContainerList",
-            LayoutMode = LayoutMode.HorizontalListWrap,
-            ListSpacing = new Vector2(10, 10),
-
             Layout =
             {
+                LayoutMethod = UILayoutMethod.HorizontalListWrap(10, 10),
                 SizingX = UISizing.Fixed(1250),
                 SizingY = UISizing.Fixed(500)
             }
