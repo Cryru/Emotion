@@ -21,7 +21,6 @@ using Emotion.Testing;
 
 namespace Tests.EngineTests;
 
-[DebugTest]
 public class NewUITests : TestingScene
 {
     protected override IEnumerator InternalLoadSceneRoutineAsync()
@@ -72,7 +71,7 @@ public class NewUITests : TestingScene
                 BackgroundColor = Color.PrettyOrange
             }
         };
-        SceneUI.AddChildAsync(win);
+        SceneUI.AddChild(win);
 
         yield return WaitUILayout();
         yield return VerifyScreenshot(nameof(NewUITests), nameof(Fill));
@@ -104,7 +103,7 @@ public class NewUITests : TestingScene
             win.AddChild(child);
         }
 
-        SceneUI.AddChildAsync(win);
+        SceneUI.AddChild(win);
 
         yield return WaitUILayout();
         yield return VerifyScreenshot(nameof(NewUITests), nameof(FillXAxisWithChild));
@@ -140,10 +139,80 @@ public class NewUITests : TestingScene
             win.AddChild(child);
         }
 
-        SceneUI.AddChildAsync(win);
+        SceneUI.AddChild(win);
 
         yield return WaitUILayout();
         yield return VerifyScreenshot(nameof(NewUITests), nameof(FillXAxisMinHeight));
+    }
+
+    [Test]
+    public IEnumerator TestPaddings()
+    {
+        var winParent = new UIBaseWindow()
+        {
+            Layout =
+            {
+                SizingX = UISizing.Fit()
+            }
+        };
+        SceneUI.AddChild(winParent);
+
+        var win = new UIBaseWindow
+        {
+            Visuals =
+            {
+                BackgroundColor = Color.PrettyOrange,
+            },
+            Layout =
+            {
+                SizingX = UISizing.Grow(),
+                SizingY = UISizing.Grow(),
+                Padding = new UISpacing(5, 5, 5, 5)
+            }
+        };
+        winParent.AddChild(win);
+
+        var winChildList = new UIBaseWindow
+        {
+            Visuals =
+            {
+                BackgroundColor = Color.White
+            },
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.VerticalList(5)
+            }
+        };
+        win.AddChild(winChildList);
+
+        for (int i = 0; i < 5; i++)
+        {
+            winChildList.AddChild(new UIBaseWindow()
+            {
+                Visuals =
+                {
+                    BackgroundColor = Color.Blue,
+                },
+                Layout =
+                {
+                    SizingX = UISizing.Grow(),
+                    SizingY = UISizing.Grow(),
+                },
+                Children =
+                {
+                    new UIBaseWindow()
+                    {
+                        Layout =
+                        {
+                            SizingX = UISizing.Fixed(10 + 20 * i)
+                        }
+                    }
+                }
+            });
+        }
+
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(TestPaddings));
     }
 
     //[Test]

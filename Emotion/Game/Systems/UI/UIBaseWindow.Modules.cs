@@ -321,14 +321,28 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
             }
         }
 
-        Assert(State != UIWindowState.Open || GLThread.IsGLThread(), "UI children can only be added from the main thread.");
+        //Assert(State != UIWindowState.Open || GLThread.IsGLThread(), "UI children can only be added from the main thread.");
 
         child.EnsureParentLinks();
         child.Parent = this;
-        Children.Add(child);
+        if (Engine.UI.InUpdate)
+            _childrenToAdd.Enqueue(child);
+        else
+            Inner_AddChildToList(child);
 
         // Start loading early, don't wait for next update
         child.UpdateLoading();
+
+        if (State == UIWindowState.Open)
+            child.SetStateOpened();
+        InvalidateLayout();
+    }
+
+    private Queue<UIBaseWindow> _childrenToAdd = new Queue<UIBaseWindow>(0);
+
+    private void Inner_AddChildToList(UIBaseWindow child)
+    {
+        Children.Add(child);
 
         // Custom insertion sort as Array.Sort is unstable
         // Isn't too problematic performance wise since adding children shouldn't happen often.
@@ -350,20 +364,6 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                 }
             }
         }
-
-        if (State == UIWindowState.Open)
-            child.SetStateOpened();
-
-        InvalidateLayout();
-    }
-
-    private Queue<UIBaseWindow> _childrenToAdd = new Queue<UIBaseWindow>(0);
-
-    public void AddChildAsync(UIBaseWindow child)
-    {
-        child.UpdateLoading();
-        _childrenToAdd.Enqueue(child);
-        InvalidateLayout();
     }
 
     /// <summary>
@@ -482,7 +482,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         }
 
 
-       
+
 
         // todo: Layout functions should be rewritten in a way so they can be resumed at any point in the tree,
         // to prevent all invalidations going all the way up.
@@ -831,7 +831,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     {
         while (_childrenToAdd.TryDequeue(out UIBaseWindow? newChild))
         {
-            AddChild(newChild);
+            Inner_AddChildToList(newChild);
         }
 
         foreach (UIBaseWindow child in Children)
@@ -851,15 +851,13 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
         // Pre-calculate metrics.
         IntVector2 sizeMargins = IntVector2.Zero;
-        sizeMargins += Layout.Margins.LeftTop;
-        sizeMargins += Layout.Margins.RightBottom;
-        sizeMargins = sizeMargins.FloorMultiply(CalculatedMetrics.Scale);
+        sizeMargins += Layout.Margins.LeftTop.FloorMultiply(CalculatedMetrics.Scale);
+        sizeMargins += Layout.Margins.RightBottom.FloorMultiply(CalculatedMetrics.Scale);
         CalculatedMetrics.MarginsSize = sizeMargins;
 
         IntVector2 sizePaddings = IntVector2.Zero;
-        sizePaddings += Layout.Padding.LeftTop;
-        sizePaddings += Layout.Padding.RightBottom;
-        sizePaddings = sizePaddings.FloorMultiply(CalculatedMetrics.Scale);
+        sizePaddings += Layout.Padding.LeftTop.FloorMultiply(CalculatedMetrics.Scale);
+        sizePaddings += Layout.Padding.RightBottom.FloorMultiply(CalculatedMetrics.Scale);
         CalculatedMetrics.PaddingsSize = sizePaddings;
 
         IntVector2 offsets = IntVector2.Zero;
@@ -939,11 +937,6 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         // Window size is whichever is the largest between the children, internal measurements, and fixed sizing.
         IntVector2 mySize = IntVector2.Max(IntVector2.Max(childrenSize, fixedSize), InternalGetWindowMinSize());
 
-        if(this is EditorScrollArea)
-        {
-            bool a = true;
-        }
-
         // Paddings are added to the content size.
         mySize += CalculatedMetrics.PaddingsSize;
 
@@ -964,7 +957,12 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         if (Children.Count == 0)
             return;
 
-        IntVector2 myMeasuredSize = CalculatedMetrics.Size;
+        if (Name == "pepe")
+        {
+            bool a = true;
+        }
+
+        IntVector2 myMeasuredSize = CalculatedMetrics.GetContentSize();
         switch (Layout.LayoutMethod.Mode)
         {
             case UIMethodName.Free:
@@ -1012,7 +1010,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                 listRemainingSize -= GetListSpacing(listMask) * (listChildrenCount - 1);
 
                 int infinitePrevention = 0;
-                while (listRemainingSize > 1)
+                while (listRemainingSize > Children.Count - 1) // Until list remaining size cannot be split
                 {
                     infinitePrevention++;
                     if (infinitePrevention > 50)

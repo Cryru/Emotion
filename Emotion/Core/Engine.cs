@@ -13,14 +13,12 @@ using Emotion.Core.Systems.Audio;
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Systems.JobSystem;
 using Emotion.Core.Systems.Localization;
-using Emotion.Core.Systems.Logging;
 using Emotion.Core.Systems.Scenography;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Core.Utility.Profiling;
 using Emotion.Core.Utility.Threading;
 using Emotion.Editor;
 using Emotion.Game.Systems.UI.New;
-using Emotion.Game.Systems.UI2;
 using Emotion.Graphics.Shading;
 using Emotion.Standard.Reflector;
 using OpenGL;
@@ -494,9 +492,9 @@ public static class Engine
 
 #if DEBUG || AUTOBUILD
         if (Configuration.UpdateUIAutomatically)
-            UI.Update();
+            UI.UpdateSystem();
 #else
-        UI.Update();
+        UI.UpdateSystem();
 #endif
         SceneManager.Update();
         EngineEditor.UpdateEditor();
@@ -564,9 +562,9 @@ public static class Engine
         Renderer.ClearDepth();
 #if DEBUG || AUTOBUILD
         if (Configuration.UpdateUIAutomatically)
-            UI.Render(Renderer);
+            UI.RenderSystem(Renderer);
 #else
-        UI.Render(Renderer);
+        UI.RenderSystem(Renderer);
 #endif
         PerfProfiler.FrameEventEnd("Render UI");
 

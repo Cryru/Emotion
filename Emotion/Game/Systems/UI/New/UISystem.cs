@@ -11,6 +11,8 @@ namespace Emotion.Game.Systems.UI.New;
 [DontSerialize]
 public class UISystem : UIBaseWindow
 {
+    public bool InUpdate { get; private set; }
+
     public Vector2 TargetResolution = new Vector2(1920, 1080);
     public Vector2 TargetDPI = new Vector2(96);
 
@@ -24,6 +26,20 @@ public class UISystem : UIBaseWindow
         State = UIWindowState.Open;
         Engine.Host.OnResize += HostResized;
         HostResized(Engine.Renderer.ScreenBuffer.Size);
+    }
+
+    public void UpdateSystem()
+    {
+        InUpdate = true;
+        Update();
+        InUpdate = false;
+    }
+
+    public void RenderSystem(Renderer r)
+    {
+        InUpdate = true;
+        Render(r);
+        InUpdate = false;
     }
 
     protected override bool UpdateInternal()

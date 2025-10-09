@@ -37,7 +37,7 @@ public class NewUIText : UIBaseWindow
         }
     }
 
-    private int _fontSize = 10;
+    private int _fontSize = 20;
 
     #region Text Set
 

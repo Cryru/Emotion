@@ -11,6 +11,8 @@ public struct UIWindowCalculatedMetrics
     public IntVector2 MarginsSize;
     public IntVector2 Offsets;
 
+    public IntVector2 GetContentSize() => Size - PaddingsSize;
+
     public IntRectangle Bounds
     {
         get => new IntRectangle(Position, Size);
