@@ -84,7 +84,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
         }
     }
 
-    private IEnumerator StartStreamRoutineAsync()
+    private void ChunkStreamStateUpdate()
     {
         _currentChunksTouched.Clear();
         _currentChunkStateRequest.Clear();
@@ -114,8 +114,6 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
             if (!_currentChunksTouched.Contains(chunkCoord))
                 _currentChunkStateRequestUntouched.Add(chunkCoord);
         }
-
-        yield break;
     }
 
     private void PromoteChunksAround(Vector2 pos, int simRange, int renderRange)
@@ -202,47 +200,37 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
 
     #region Chunk State Update
 
-    private Coroutine _chunkStreamingRoutine = Coroutine.CompletedRoutine;
     private After _chunkStreamUpdate = new After(150);
     private bool _swapped = true;
     private int _currentRequestOffset = 0;
-    private int _requestsPerTickLimit = 0;
-
     private int _currentDemoteRequestOffset = 0;
-    private int _currentDemotePerTickLimit = 0;
 
-    private const int PERCENT_CHUNK_REQUEST_PER_TICK = 10;
-    private const int MAX_CHUNK_REQUEST_PER_TICK = 20;
+    private const int REQUEST_PER_TICK_LIMIT = 32;
 
     private void TickChunkStateUpdates(float dt)
     {
-        if (_chunkStreamingRoutine.Finished)
+        if (!_swapped)
         {
-            if (!_swapped)
-            {
-                SwapDataFromLastRequest();
-                _swapped = true;
+            SwapDataFromLastRequest();
+            _swapped = true;
 
-                int requestsGotten = _finishedChunkRequest.Count;
-                _requestsPerTickLimit = (int)Math.Min(MAX_CHUNK_REQUEST_PER_TICK, (requestsGotten * PERCENT_CHUNK_REQUEST_PER_TICK) / 100f);
-                _currentRequestOffset = 0;
+            int requestsGotten = _finishedChunkRequest.Count;
+            _currentRequestOffset = 0;
 
-                int requestsDemote = _finishedChunkRequestUntouched.Count;
-                _currentDemotePerTickLimit = (int)Math.Min(MAX_CHUNK_REQUEST_PER_TICK, (requestsDemote * PERCENT_CHUNK_REQUEST_PER_TICK) / 100f);
-                _currentDemoteRequestOffset = 0;
-            }
-
-            _chunkStreamUpdate.Update(dt);
-            if (_chunkStreamUpdate.Finished)
-            {
-                ProcessGeneratedChunksAddToList();
-
-                _chunkStreamingRoutine = Engine.Jobs.Add(StartStreamRoutineAsync());
-                _chunkStreamUpdate.Restart();
-                _swapped = false;
-            }
+            int requestsDemote = _finishedChunkRequestUntouched.Count;
+            _currentDemoteRequestOffset = 0;
         }
 
+        bool doneWithAllRequests = _currentRequestOffset == _finishedChunkRequest.Count - 1 && _currentDemoteRequestOffset == _finishedChunkRequestUntouched.Count - 1;
+        _chunkStreamUpdate.Update(dt);
+        if (_chunkStreamUpdate.Finished || doneWithAllRequests)
+        {
+            ChunkStreamStateUpdate();
+            _chunkStreamUpdate.Restart();
+            _swapped = false;
+        }
+
+        // Promote chunks the streaming system wants us to see.
         int requestsPerformed = 0;
         for (int i = _currentRequestOffset; i < _finishedChunkRequest.Count; i++)
         {
@@ -250,43 +238,61 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
 
             Vector2 chunkCoord = request.ChunkCoord;
             ChunkT? chunk = GetChunk(chunkCoord);
-            AttemptChunkStateChange(chunkCoord, chunk, request.State);
+            TryChunkStateChange(chunkCoord, chunk, request.State);
 
             _currentRequestOffset = i + 1;
 
             requestsPerformed++;
-            if (requestsPerformed >= _requestsPerTickLimit)
+            if (requestsPerformed >= REQUEST_PER_TICK_LIMIT)
                 break;
         }
 
+        // Demote chunks that were untouched.
         int demotePerformed = 0;
         for (int i = _currentDemoteRequestOffset; i < _finishedChunkRequestUntouched.Count; i++)
         {
             Vector2 chunkCoord = _finishedChunkRequestUntouched[i];
             ChunkT? chunk = GetChunk(chunkCoord);
-            AttemptChunkStateChange(chunkCoord, chunk, ChunkState.DataOnly);
+            TryChunkStateChange(chunkCoord, chunk, ChunkState.DataOnly);
 
             _currentDemoteRequestOffset = i + 1;
 
             demotePerformed++;
-            if (demotePerformed >= _currentDemotePerTickLimit)
+            if (demotePerformed >= REQUEST_PER_TICK_LIMIT)
                 break;
         }
     }
 
-    private void AttemptChunkStateChange(Vector2 chunkCoord, ChunkT? chunk, ChunkState newState)
+    private void TryChunkStateChange(Vector2 chunkCoord, ChunkT? chunk, ChunkState newState)
     {
         if (chunk == null)
         {
+            // Chunk didn't exist - now we want it as DataOnly.
+            // Todo: if the chunk was written to a file and unloaded, this is where we would load it too.
             Assert(CanGenerateChunks);
             if (newState == ChunkState.DataOnly)
-                AttempQueueChunkGeneration(chunkCoord);
+            {
+                // Try to generate a new chunk if there are free job slots
+                if (Engine.Jobs.NotManyJobsWithTag("ChunkGeneration"))
+                {
+                    ChunkT newChunk = InitializeNewChunk();
+                    newChunk.State = ChunkState.Loading;
+                    bool success = newChunk.TryLockChunkData(ChunkDataLockReason.Generation);
+                    Assert(success); // I mean...we just created it...
+                    _chunks.Add(chunkCoord, newChunk);
+
+                    Engine.Jobs.Add(GenerateChunkRoutineAsync(chunkCoord, newChunk), false, "ChunkGeneration");
+                }
+            }
             return;
         }
 
-        if (chunk.Busy) return;
-        chunk.Busy = true;
+        // If the chunk is currently calculating something,
+        // wait for that to finish before we promote or demote it.
+        if (!chunk.TryLockChunkData(ChunkDataLockReason.PromotionDemotion)) return;
+        chunk.UnlockChunkData();
 
+        bool updateMesh = false;
         ChunkState chunkState = chunk.State;
         int diff = Math.Abs(chunkState - newState);
         bool isPromotion = chunkState < newState;
@@ -297,6 +303,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
 
             if (isPromotion)
             {
+                updateMesh = true;
                 if (nextState == ChunkState.HasMesh)
                     PromoteChunkToHasMesh(chunkCoord, chunk);
                 else if (nextState == ChunkState.HasGPUData)
@@ -314,7 +321,8 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
             diff = Math.Abs(chunkState - newState);
         }
 
-        chunk.Busy = false;
+        if (updateMesh)
+            RequestChunkMeshUpdate(chunkCoord, chunk);
     }
 
     #endregion
@@ -323,34 +331,15 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
 
     public bool CanGenerateChunks { get; protected set; }
 
-    private HashSet<Vector2> _chunksBeingGenerated = new HashSet<Vector2>();
-    private ConcurrentQueue<(Vector2, ChunkT)> _chunksAddToList = new ConcurrentQueue<(Vector2, ChunkT)>();
-
-    private void AttempQueueChunkGeneration(Vector2 chunkCoord)
-    {
-        if (_chunksBeingGenerated.Contains(chunkCoord)) return;
-        if (_chunkGenerationRoutines == null) return; // Not initialized.
-
-        for (int i = 0; i < _chunkGenerationRoutines.Length; i++)
-        {
-            Coroutine? routine = _chunkGenerationRoutines[i];
-            if (routine != null && !routine.Finished) continue;
-
-            ChunkT newChunk = InitializeNewChunk();
-            newChunk.Busy = true;
-            _chunksBeingGenerated.Add(chunkCoord);
-            routine = Engine.Jobs.Add(GenerateChunkRoutineAsync(chunkCoord, newChunk));
-            break;
-        }
-    }
-
     private IEnumerator GenerateChunkRoutineAsync(Vector2 chunkCoord, ChunkT chunk)
     {
+        Assert(chunk.IsChunkDataLocked(ChunkDataLockReason.Generation));
         GenerateChunkInternal(chunkCoord, chunk);
 
         chunk.State = ChunkState.DataOnly;
-        chunk.Busy = false;
-        _chunksAddToList.Enqueue((chunkCoord, chunk));
+        chunk.UnlockChunkData();
+        // Lets execute the OnCreated in the main thread...just in case.
+        GLThread.ExecuteOnGLThreadAsync(OnChunkCreated, chunkCoord, chunk);
 
         yield return null;
     }
@@ -360,36 +349,14 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
 
     }
 
-    private void ProcessGeneratedChunksAddToList()
-    {
-        while (_chunksAddToList.TryDequeue(out (Vector2, ChunkT) newChunkData))
-        {
-            Vector2 chunkCoord = newChunkData.Item1;
-            ChunkT newChunk = newChunkData.Item2;
-
-            _chunks.Add(chunkCoord, newChunk);
-            _chunksBeingGenerated.Remove(chunkCoord);
-            OnChunkCreated(chunkCoord, newChunk);
-        }
-    }
-
     #endregion
 
     #region Chunk Mesh Update
 
-    private HashSet<Vector2> _updateChunks = new HashSet<Vector2>(64);
-    private Queue<Vector2> _queuedUpdateChunks = new Queue<Vector2>(64);
-    private Queue<Vector2> _queuedUpdateChunksBB = new Queue<Vector2>(64);
-
-    private HashSet<Vector2> _updateChunksHighPriority = new HashSet<Vector2>(64);
-    private Queue<Vector2> _queuedUpdateChunksPriority = new Queue<Vector2>(64);
-    private Queue<Vector2> _queuedUpdateChunksPriorityBB = new Queue<Vector2>(64);
-    private Lock _chunkUpdateLock = new();
-
-    private Coroutine?[]? _chunkGenerationRoutines;
-    private Coroutine?[]? _chunkMeshUpdateRoutines;
-    private Coroutine?[]? _chunkMeshUpdatePriorityRoutines;
-    private bool _chunkUpdateInit;
+    private LinkedList<Vector2> _chunkUpdateQueue = new LinkedList<Vector2>();
+    private LinkedList<Vector2> _chunkUpdatePriorityQueue = new LinkedList<Vector2>();
+    private Lock _chunkUpdateLock = new Lock();
+    private const int MESH_UPDATE_THREAD_FACTOR = 3;
 
     protected override void OnChunkChanged(Vector2 chunkCoord, ChunkT newChunk)
     {
@@ -397,113 +364,121 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
         RequestChunkMeshUpdate(chunkCoord, newChunk, true);
     }
 
-    public void RequestChunkMeshUpdate(Vector2 chunkCoord, ChunkT newChunk, bool highPriority = false)
+    public void RequestChunkMeshUpdate(Vector2 chunkCoord, ChunkT chunk, bool highPriority = false)
     {
-        lock (_chunkUpdateLock)
+        // If important or got free slots, directly add the job
+        if (GLThread.IsGLThread() &&
+            (highPriority || Engine.Jobs.NotManyJobsWithTag("ChunkMeshUpdate", MESH_UPDATE_THREAD_FACTOR)) &&
+            chunk.TryLockChunkData(ChunkDataLockReason.MeshUpdate)
+           )
         {
-            if (highPriority)
+            chunk.MeshUpdateRequested = false;
+            chunk.MeshUpdatePriorityUpdateRequested = false;
+            Engine.Jobs.Add(ChunkMeshUpdateRoutineAsync(chunkCoord, chunk), highPriority, "ChunkMeshUpdate");
+        }
+        else // Chunk is busy :/
+        {
+            bool wasRequested = chunk.MeshUpdateRequested;
+
+            chunk.MeshUpdateRequested = true;
+            chunk.MeshUpdatePriorityUpdateRequested = chunk.MeshUpdatePriorityUpdateRequested || highPriority;
+
+            if (!wasRequested)
             {
-                if (_updateChunksHighPriority.Add(chunkCoord))
+                lock (_chunkUpdateLock)
                 {
-                    _queuedUpdateChunksPriority.Enqueue(chunkCoord);
-                    _updateChunks.Remove(chunkCoord);
+                    if (highPriority)
+                        _chunkUpdatePriorityQueue.AddLast(chunkCoord);
+                    else
+                        _chunkUpdateQueue.AddLast(chunkCoord);
                 }
-            }
-            else
-            {
-                if (_updateChunksHighPriority.Contains(chunkCoord)) return;
-                if (_updateChunks.Add(chunkCoord)) _queuedUpdateChunks.Enqueue(chunkCoord);
             }
         }
     }
 
     private void TickChunkMeshUpdates()
     {
-        if (!_chunkUpdateInit)
-        {
-            if (CanGenerateChunks)
-            {
-                int maximumChunkGenerations = Math.Max(1, Engine.Jobs.ThreadCount / 2);
-                _chunkGenerationRoutines = new Coroutine[maximumChunkGenerations];
-            }
-
-            int maximumChunkMeshUpdates = Math.Max(4, Engine.Jobs.ThreadCount);
-            _chunkMeshUpdateRoutines = new Coroutine[maximumChunkMeshUpdates];  // Medium priority
-            _chunkMeshUpdatePriorityRoutines = new Coroutine[maximumChunkMeshUpdates];  // Highest priority
-
-            _chunkUpdateInit = true;
-        }
-
-        AssertNotNull(_chunkMeshUpdateRoutines);
-        AssertNotNull(_chunkMeshUpdatePriorityRoutines);
-
-        // Check if any free routines for updating meshes.
         lock (_chunkUpdateLock)
         {
-            Assert(_queuedUpdateChunksPriorityBB.Count == 0);
-            (_queuedUpdateChunksPriority, _queuedUpdateChunksPriorityBB) = (_queuedUpdateChunksPriorityBB, _queuedUpdateChunksPriority);
-            Assert(_queuedUpdateChunksPriority.Count == 0);
-            TickMeshUpdatesFromList(_chunkMeshUpdatePriorityRoutines!, _queuedUpdateChunksPriorityBB, _queuedUpdateChunksPriority);
-            while (_queuedUpdateChunksPriorityBB.TryDequeue(out Vector2 chunkCoord))
-            {
-                _queuedUpdateChunksPriority.Enqueue(chunkCoord);
-            }
-            Assert(_queuedUpdateChunksPriorityBB.Count == 0);
-
-            Assert(_queuedUpdateChunksBB.Count == 0);
-            (_queuedUpdateChunks, _queuedUpdateChunksBB) = (_queuedUpdateChunksBB, _queuedUpdateChunks);
-            Assert(_queuedUpdateChunks.Count == 0);
-            TickMeshUpdatesFromList(_chunkMeshUpdateRoutines!, _queuedUpdateChunksBB, _queuedUpdateChunks);
-            while (_queuedUpdateChunksBB.TryDequeue(out Vector2 chunkCoord))
-            {
-                _queuedUpdateChunks.Enqueue(chunkCoord);
-            }
-            Assert(_queuedUpdateChunksBB.Count == 0);
+            Inner_TickChunkMeshUpdates();
         }
     }
 
-    private void TickMeshUpdatesFromList(Coroutine[] updateRoutines, Queue<Vector2> updateChunkQueue, Queue<Vector2> failedAttemptQueue)
+    private void Inner_TickChunkMeshUpdates()
     {
-        for (int i = 0; i < updateRoutines.Length; i++)
+        LinkedListNode<Vector2>? currentNode = _chunkUpdatePriorityQueue.First;
+        while (currentNode != null)
         {
-            Coroutine? routine = updateRoutines[i];
-            if (routine != null && !routine.Finished) continue;
-
-            while (updateChunkQueue.TryDequeue(out Vector2 chunkCoord))
+            bool remove = false;
+            Vector2 chunkCoord = currentNode.Value;
+            ChunkT? chunk = GetChunk(chunkCoord);
+            if (chunk == null || !chunk.MeshUpdateRequested)
             {
-                ChunkT? chunk = GetChunk(chunkCoord);
-                if (chunk == null || chunk.State == ChunkState.DataOnly)
+                remove = true;
+            }
+            else
+            {
+                if (chunk.TryLockChunkData(ChunkDataLockReason.MeshUpdate))
                 {
-                    _updateChunks.Remove(chunkCoord);
-                    _updateChunksHighPriority.Remove(chunkCoord);
-                    continue; // huh?
-                }
+                    remove = true;
 
-                Coroutine? newRoutine = AttemptChunkMeshUpdate(chunkCoord, chunk);
-                if (newRoutine != null)
-                {
-                    _updateChunks.Remove(chunkCoord);
-                    _updateChunksHighPriority.Remove(chunkCoord);
-                    updateRoutines[i] = newRoutine;
-                    break;
-                }
-                else
-                {
-                    failedAttemptQueue.Enqueue(chunkCoord);
+                    chunk.MeshUpdateRequested = false;
+                    chunk.MeshUpdatePriorityUpdateRequested = false;
+                    Engine.Jobs.Add(ChunkMeshUpdateRoutineAsync(chunkCoord, chunk), true, "ChunkMeshUpdate");
                 }
             }
+
+            LinkedListNode<Vector2>? nextNode = currentNode.Next;
+            if (remove)
+                _chunkUpdatePriorityQueue.Remove(currentNode);
+            currentNode = nextNode;
+        }
+
+        currentNode = _chunkUpdateQueue.First;
+        while (currentNode != null)
+        {
+            if (!Engine.Jobs.NotManyJobsWithTag("ChunkMeshUpdate", MESH_UPDATE_THREAD_FACTOR)) break;
+
+            bool remove = false;
+            Vector2 chunkCoord = currentNode.Value;
+            ChunkT? chunk = GetChunk(chunkCoord);
+            if (chunk == null || !chunk.MeshUpdateRequested)
+            {
+                remove = true;
+            }
+            else
+            {
+                if (chunk.TryLockChunkData(ChunkDataLockReason.MeshUpdate))
+                {
+                    remove = true;
+
+                    chunk.MeshUpdateRequested = false;
+                    chunk.MeshUpdatePriorityUpdateRequested = false;
+                    Engine.Jobs.Add(ChunkMeshUpdateRoutineAsync(chunkCoord, chunk), false, "ChunkMeshUpdate");
+                }
+            }
+
+            LinkedListNode<Vector2>? nextNode = currentNode.Next;
+            if (remove)
+                _chunkUpdateQueue.Remove(currentNode);
+            currentNode = nextNode;
         }
     }
 
-    private Coroutine? AttemptChunkMeshUpdate(Vector2 chunkCoord, ChunkT chunk)
+    public IEnumerator InlinePerformMeshUpdateRoutineAsync(Vector2 chunkCoord, ChunkT chunk)
     {
-        if (chunk.Busy) return null;
-        chunk.Busy = true;
-        return Engine.Jobs.Add(ChunkMeshUpdateRoutineAsync(chunkCoord, chunk));
+        // The chunk must already be locked, since only the main thread can lock!
+        chunk.TransferLockReason(ChunkDataLockReason.MeshUpdate);
+
+        chunk.MeshUpdateRequested = false;
+        chunk.MeshUpdatePriorityUpdateRequested = false;
+        yield return ChunkMeshUpdateRoutineAsync(chunkCoord, chunk);
     }
 
     private IEnumerator ChunkMeshUpdateRoutineAsync(Vector2 chunkCoord, ChunkT chunk)
     {
+        Assert(chunk.IsChunkDataLocked(ChunkDataLockReason.MeshUpdate));
+
         if (chunk.State >= ChunkState.HasMesh)
         {
             UpdateChunkVertices(chunkCoord, chunk);
@@ -524,7 +499,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
                 chunk.GPUUploadedVersion = chunk.VerticesGeneratedForVersion;
             }, chunk);
         }
-        chunk.Busy = false;
+        chunk.UnlockChunkData();
     }
 
     #endregion
@@ -590,8 +565,6 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
         Dictionary<Vector2, ChunkT> listForNewState = GetChunksInState(ChunkState.HasMesh);
         listForNewState.Add(chunkCoord, chunk);
         chunk.State = ChunkState.HasMesh;
-
-        RequestChunkMeshUpdate(chunkCoord, chunk);
     }
 
     private void PromoteChunkToHasGPU(Vector2 chunkCoord, ChunkT chunk)
@@ -621,8 +594,6 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
         Dictionary<Vector2, ChunkT> listForNewState = GetChunksInState(ChunkState.HasGPUData);
         listForNewState.Add(chunkCoord, chunk);
         chunk.State = ChunkState.HasGPUData;
-
-        RequestChunkMeshUpdate(chunkCoord, chunk);
     }
 
     protected Span<VertexData_Pos_UV_Normal_Color> ResizeVertexMemoryAndGetSpan(ref VertexDataAllocation vertexMemory, Vector2 chunkCoord, int vertexCount)

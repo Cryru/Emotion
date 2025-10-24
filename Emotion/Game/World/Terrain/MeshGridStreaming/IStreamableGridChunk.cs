@@ -6,9 +6,7 @@ public interface IStreamableGridChunk
 {
     public ChunkState State { get; }
 
-    public bool Busy { get; }
-
-    public bool AwaitingUpdate { get; }
+    public bool VisualsArentLatestVersion { get; }
 
     public ChunkState DebugOnly_CalculatedState { get; }
 }

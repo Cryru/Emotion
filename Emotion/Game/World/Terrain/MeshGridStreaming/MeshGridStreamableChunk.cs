@@ -1,4 +1,5 @@
 ﻿using Emotion.Core.Utility.Coroutines;
+using Emotion.Core.Utility.Threading;
 using Emotion.Game.World.Terrain.GridStreaming;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Memory;
@@ -19,14 +20,8 @@ public class MeshGridStreamableChunk<T, IndexT> : VersionedGridChunk<T>, IStream
 
     #endregion
 
-    /// <summary>
-    /// Used by the streaming logic, dont set manually.
-    /// </summary>
     [DontSerialize]
-    public bool Busy { get; set; }
-
-    [DontSerialize]
-    public bool AwaitingUpdate
+    public bool VisualsArentLatestVersion
     {
         get
         {
@@ -123,4 +118,55 @@ public class MeshGridStreamableChunk<T, IndexT> : VersionedGridChunk<T>, IStream
         IndexBuffer = gpuIndices;
         IndicesUsed = indexCount;
     }
+
+    #region Processing
+
+    public bool MeshUpdateRequested { get; set; }
+
+    public bool MeshUpdatePriorityUpdateRequested { get; set; }
+
+    // used to lock the chunk in order to manipulate its data in another thread safely
+    [DontSerialize]
+    private bool _busy;
+
+    // used for debugging
+    [DontSerialize]
+    private ChunkDataLockReason _busyReason;
+
+    public bool TryLockChunkData(ChunkDataLockReason reason = ChunkDataLockReason.Generic)
+    {
+        Assert(GLThread.IsGLThread()); // Only the main thread can lock chunks
+        if (_busy) return false;
+        _busy = true;
+        _busyReason = reason;
+        return true;
+    }
+
+    public void UnlockChunkData()
+    {
+        _busy = false;
+    }
+
+    public bool IsChunkDataLocked(ChunkDataLockReason? reason = null)
+    {
+        if (reason != null)
+            return _busy && _busyReason == reason;
+        return _busy;
+    }
+
+    public void TransferLockReason(ChunkDataLockReason toReason)
+    {
+        Assert(_busy);
+        _busyReason = toReason;
+    }
+
+    #endregion
+}
+
+public enum ChunkDataLockReason
+{
+    Generic,
+    MeshUpdate,
+    Generation,
+    PromotionDemotion
 }
