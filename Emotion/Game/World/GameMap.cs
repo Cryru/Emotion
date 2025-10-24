@@ -150,13 +150,13 @@ public partial class GameMap : IDisposable
 
     #endregion
 
-    private Coroutine _loadNewObjectsRoutine = Coroutine.CompletedRoutine;
+    private IRoutineWaiter _loadNewObjectsRoutine = Coroutine.CompletedRoutine;
 
     public void Update(float dt)
     {
         TerrainGrid?.Update(dt);
 
-        if (_loadNewObjectsRoutine.Finished)
+        if (_loadNewObjectsRoutine.Finished && _objectsToLoad.Count > 0)
         {
             _loadNewObjectsRoutine = Engine.Jobs.Add(LoadPendingObjectsRoutine());
         }
