@@ -13,6 +13,7 @@ using Emotion.Game.Systems.UI;
 using Emotion.Game.Systems.UI.Text;
 using Emotion.Game.Systems.UI.Text.TextUpdate;
 using Emotion.Game.Systems.UI2;
+using Emotion.Game.Systems.UI2.Editor;
 using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.Testing;
@@ -48,9 +49,7 @@ public class NewUITests : TestingScene
 
     private IEnumerator WaitUILayout()
     {
-        //UI.Update();
-        //yield return new TaskRoutineWaiter(UI.PreloadUI());
-        //UI.Update();
+        Engine.UI.Update();
         yield return new TestWaiterRunLoops(1);
     }
 
@@ -213,6 +212,86 @@ public class NewUITests : TestingScene
 
         yield return WaitUILayout();
         yield return VerifyScreenshot(nameof(NewUITests), nameof(TestPaddings));
+    }
+
+    private class UIWindowForTestingCentering : UIBaseWindow
+    {
+        protected override void InternalRender(Renderer r)
+        {
+            var bounds = CalculatedMetrics.Bounds.ToRect();
+
+            r.RenderLine(bounds.Position + new Vector2(0, bounds.Height / 2), bounds.Position + new Vector2(bounds.Width, bounds.Height / 2), Color.White, 3);
+            r.RenderLine(bounds.Position + new Vector2(bounds.Width / 2, 0), bounds.Position + new Vector2(bounds.Width / 2, bounds.Height), Color.White, 3);
+            base.InternalRender(r);
+        }
+    }
+
+    [DebugTest]
+    [Test]
+    public IEnumerator ComplicatedLayoutTest()
+    {
+        UIContainer container = new()
+        {
+            Visuals =
+            {
+                BackgroundColor = Color.PrettyPurple
+            },
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.VerticalList(16),
+                Padding = new UISpacing(16, 16, 16, 16),
+                MinSizeX = 430,
+                MaxSizeX = 630,
+            }
+        };
+        SceneUI.AddChild(container);
+
+        string[] items = ["Copy", "Paste", "Delete", "Layer", "Comment", "Look up in dictionary"];
+        for (int i = 0; i < items.Length; i++)
+        {
+            UIBaseWindow item = new()
+            {
+                Layout =
+                {
+                    LayoutMethod = UILayoutMethod.HorizontalList(32),
+                   
+                    Padding = new UISpacing(32, 16, 32, 16),
+                    MinSizeY = 80
+                },
+                Visuals =
+                {
+                    BackgroundColor = Color.PrettyPink
+                },
+                Children =
+                {
+                    new NewUIText()
+                    {
+                        Text = items[i],
+                        FontSize = 50,
+                        Layout =
+                        {
+                            AnchorAndParentAnchor = UIAnchor.CenterLeft,
+                            SizingX = UISizing.Grow()
+                        }
+                    },
+                    new UIPicture()
+                    {
+                        Texture = "Editor/Checkmark.png",
+                        Layout =
+                        {
+                            AnchorAndParentAnchor = UIAnchor.CenterLeft,
+                            SizingX = UISizing.Fixed(60),
+                            SizingY = UISizing.Fixed(60),
+                        },
+                        Smooth = true
+                    }
+                }
+            };
+            container.AddChild(item);
+        }
+
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(ComplicatedLayoutTest));
     }
 
     //[Test]

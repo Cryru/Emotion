@@ -1,12 +1,13 @@
 ﻿#region Using
 
+using Emotion.Core;
+using Emotion.Core.Systems.Audio;
+using Emotion.Standard;
+using Emotion.Testing;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
-using Emotion.Core;
-using Emotion.Core.Systems.Audio;
-using Emotion.Testing;
 
 #endregion
 
