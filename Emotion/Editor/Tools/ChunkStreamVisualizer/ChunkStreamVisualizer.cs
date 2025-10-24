@@ -3,7 +3,6 @@
 using Emotion.Core.Systems.IO;
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Editor.Tools.InterfaceTool;
-using Emotion.Game.Systems.UI;
 using Emotion.Game.World.Terrain;
 using Emotion.Game.World.Terrain.GridStreaming;
 using Emotion.Game.World.Terrain.MeshGridStreaming;
@@ -72,9 +71,7 @@ public class ChunkStreamVisualizer : EditorWindow
             Color colorIs = GetChunkColorFromState(stateItThinksItsIn);
             c.RenderSprite(chunkPosWorld.ToVec3(0) + new Vector3(chunkSize.X / 2f, 0, 0), new Vector2(chunkSize.X / 2f, chunkSize.Y), colorIs);
 
-            if (chunk.AwaitingUpdate)
-                c.RenderSprite(chunkPosWorld, chunkSize, Color.Blue * 0.5f);
-            if (chunk.Busy)
+            if (chunk.VisualsArentLatestVersion)
                 c.RenderSprite(chunkPosWorld, chunkSize, Color.Blue * 0.5f);
 
             if (chunkState == ChunkState.HasGPUData)

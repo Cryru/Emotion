@@ -70,13 +70,13 @@ public class SceneManager
 
     #endregion
 
-    public Coroutine SetScene(Scene scene)
+    public IRoutineWaiter SetScene(Scene scene)
     {
         Engine.Log.Info($"Set scene: [{scene}]", MessageSource.SceneManager);
         return Engine.Jobs.Add(InternalLoadSceneRoutineAsync(scene));
     }
 
-    public Coroutine SetLoadingScreen(Scene loadingScene)
+    public IRoutineWaiter SetLoadingScreen(Scene loadingScene)
     {
         return Engine.Jobs.Add(InternalLoadLoadingScreenRoutineAsync(loadingScene));
     }

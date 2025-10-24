@@ -54,7 +54,7 @@ public sealed class Coroutine : IRoutineWaiter
     /// The manager the routine is running on. Subroutines do not run on a
     /// manager but are considered an extension of the parent routine.
     /// </summary>
-    public CoroutineManager Parent { get; }
+    public CoroutineManager Parent { get; set; }
 
     /// <summary>
     /// Actual C# iterator that is the routine.

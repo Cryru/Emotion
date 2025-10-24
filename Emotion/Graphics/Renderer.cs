@@ -291,7 +291,7 @@ public sealed partial class Renderer
         Texture.InitializeEmptyTexture();
 
         // Load base assets.
-        Coroutine loadingRoutine = Engine.Jobs.Add(InitializeSystemAssetsRoutineAsync());
+        IRoutineWaiter loadingRoutine = Engine.Jobs.Add(InitializeSystemAssetsRoutineAsync());
 
         // Create default render states (depends on shaders)
         CurrentState = new RenderState();
@@ -325,7 +325,7 @@ public sealed partial class Renderer
     /// </summary>
     public bool ReadyToRender { get => _systemAssetsLoading != null && _systemAssetsLoading.Finished; }
 
-    private Coroutine? _systemAssetsLoading;
+    private IRoutineWaiter? _systemAssetsLoading;
 
     private IEnumerator InitializeSystemAssetsRoutineAsync()
     {

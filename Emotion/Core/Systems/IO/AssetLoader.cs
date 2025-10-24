@@ -609,7 +609,7 @@ public class AssetLoader
     private ConcurrentDictionary<int, Asset> _createdAssets = new ConcurrentDictionary<int, Asset>();
     private ConcurrentQueue<Asset> _assetsToLoad = new ConcurrentQueue<Asset>();
     private ConcurrentQueue<string> _assetsToReload = new ConcurrentQueue<string>();
-    private List<Coroutine> _loadingAssetRoutines = new List<Coroutine>(16);
+    private List<IRoutineWaiter> _loadingAssetRoutines = new(16);
 
     public T ONE_Get<T>(string? name, object? addRefenceToObject = null, bool loadInline = false, bool loadedAsDependency = false, bool noCache = false) where T : Asset, new()
     {
@@ -695,7 +695,7 @@ public class AssetLoader
             {
                 if (asset.Name == assetNameToReload)
                 {
-                    Coroutine loadRoutine = Engine.Jobs.Add(asset.AssetLoader_LoadAsset());
+                    IRoutineWaiter loadRoutine = Engine.Jobs.Add(asset.AssetLoader_LoadAsset());
                     _loadingAssetRoutines.Add(loadRoutine);
                 }
             }
@@ -704,7 +704,7 @@ public class AssetLoader
         // Add new assets
         while (_assetsToLoad.TryDequeue(out Asset? asset))
         {
-            Coroutine loadRoutine = Engine.Jobs.Add(asset.AssetLoader_LoadAsset());
+            IRoutineWaiter loadRoutine = Engine.Jobs.Add(asset.AssetLoader_LoadAsset());
             _loadingAssetRoutines.Add(loadRoutine);
         }
     }

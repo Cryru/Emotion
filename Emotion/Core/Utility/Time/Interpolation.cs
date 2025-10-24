@@ -1,15 +1,5 @@
 ﻿#nullable enable
 
-
-
-
-
-
-
-#nullable enable
-
-using Emotion;
-
 namespace Emotion.Core.Utility.Time;
 
 public static class Interpolation

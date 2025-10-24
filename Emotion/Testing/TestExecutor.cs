@@ -106,7 +106,7 @@ public static class TestExecutor
 
     private static IEnumerator TestSystemInitRoutineAsync()
     {
-        Coroutine testRoutine = Engine.Jobs.Add(RunTestsRoutineAsync());
+        IRoutineWaiter testRoutine = Engine.Jobs.Add(RunTestsRoutineAsync());
         yield return testRoutine;
         Engine.Quit();
     }
