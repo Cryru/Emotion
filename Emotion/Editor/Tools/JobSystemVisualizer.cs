@@ -1,13 +1,14 @@
 ﻿#nullable enable
 
-using Emotion.Core.Systems.JobSystem;
 using Emotion.Editor.EditorUI.Components;
 
 namespace Emotion.Editor.Tools;
 
 public class JobSystemVisualizer : EditorWindow
 {
-    private UIBaseWindow[]? _threadBars;
+    public const int MANY_JOBS = 20;
+
+    private UIProgressBar[]? _threadBars;
 
     public JobSystemVisualizer() : base("Job System")
     {
@@ -18,34 +19,45 @@ public class JobSystemVisualizer : EditorWindow
         base.OnOpen();
 
         UIBaseWindow contentParent = GetContentParent();
-        contentParent.Layout.LayoutMethod = UILayoutMethod.VerticalList(0);
+        contentParent.Layout.LayoutMethod = UILayoutMethod.VerticalList(5);
+        contentParent.Layout.SizingY = UISizing.Fit();
+        contentParent.Layout.SizingX = UISizing.Fit();
 
         int threadCount = Engine.Jobs.ThreadCount;
-        _threadBars = new UIBaseWindow[threadCount];
-        for (int i = 0; i < threadCount; i++)
+        _threadBars = new UIProgressBar[threadCount + 1];
+        for (int i = 0; i < threadCount + 1; i++)
         {
             UIBaseWindow threadContainer = new()
             {
                 Layout =
                 {
-                    LayoutMethod = UILayoutMethod.HorizontalList(10),
-                    SizingX = UISizing.Fixed(300)
+                    LayoutMethod = UILayoutMethod.HorizontalList(10)
                 }
             };
             contentParent.AddChild(threadContainer);
 
-            threadContainer.AddChild(new EditorLabel($"JobThread {i}"));
-
-            UIBaseWindow threadBar = new()
+            threadContainer.AddChild(new EditorLabel(i == 0 ? "Queued" : $"JobThread {i}")
             {
                 Layout =
                 {
-                    MinSizeX = 200,
-                    MaxSizeY = 20
+                    SizingX = UISizing.Grow()
+                }
+            });
+
+            UIProgressBar threadBar = new()
+            {
+                Layout =
+                {
+                    SizingX = UISizing.Fixed(200)
+                },
+                Visuals =
+                {
+                    Border = 1,
+                    BorderColor = Color.White * 0.5f
                 }
             };
-            _threadBars[i] = threadBar;
             threadContainer.AddChild(threadBar);
+            _threadBars[i] = threadBar;
         }
     }
 
@@ -54,22 +66,26 @@ public class JobSystemVisualizer : EditorWindow
         AssertNotNull(_threadBars);
         for (int i = 0; i < _threadBars.Length; i++)
         {
-            int threadJobs = Engine.Jobs.DebugOnly_GetThreadJobAmount(i);
-            float percentBusy = (float)threadJobs / AsyncJobManager.MANY_JOBS;
-
-            UIBaseWindow bar = _threadBars[i];
-
-            bar.Layout.SizingX = UISizing.Fixed((int) MathF.Round(200 * percentBusy));
-            if (percentBusy > 1.0f)
-                bar.Visuals.BackgroundColor = Color.PrettyPurple;
-            else if (percentBusy > 0.8f)
-                bar.Visuals.BackgroundColor = Color.PrettyRed;
-            else if (percentBusy > 0.4f)
-                bar.Visuals.BackgroundColor = Color.PrettyYellow;
+            int threadJobs;
+            if (i == 0)
+                threadJobs = Engine.Jobs.DebugOnly_GetQueuedJobCount();
             else
-                bar.Visuals.BackgroundColor = Color.PrettyGreen;
+                threadJobs = Engine.Jobs.DebugOnly_GetThreadJobAmount(i - 1);
+
+            float percentBusy = (float)threadJobs / MANY_JOBS;
+            if (percentBusy > 1.0f) percentBusy = 1.0f;
+            UIProgressBar bar = _threadBars[i];
+
+            bar.Progress = percentBusy;
+            if (percentBusy >= 1.0f)
+                bar.ProgressColor = Color.PrettyPurple;
+            else if (percentBusy > 0.8f)
+                bar.ProgressColor = Color.PrettyRed;
+            else if (percentBusy > 0.4f)
+                bar.ProgressColor = Color.PrettyYellow;
+            else
+                bar.ProgressColor = Color.PrettyGreen;
         }
-        InvalidateLayout();
 
         return base.UpdateInternal();
     }
