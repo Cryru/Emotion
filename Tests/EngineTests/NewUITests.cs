@@ -226,7 +226,6 @@ public class NewUITests : TestingScene
         }
     }
 
-    [DebugTest]
     [Test]
     public IEnumerator ComplicatedLayoutTest()
     {

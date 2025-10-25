@@ -145,8 +145,8 @@ public class MapObjectEditorWindow : UIBaseWindow
             _bottomText.Text = $"No object under mouse";
         else if (hit.GetComponent<MeshComponent>(out MeshComponent? component))
             _bottomText.Text = $"Mouseover: {hit.Name} - {component.Entity.Name}";
-        else if (hit is MapObjectSprite spriteObj)
-            _bottomText.Text = $"Mouseover: {nameof(MapObjectSprite)} - {spriteObj.Entity.Name}";
+        else if (hit.GetComponent<SpriteComponent>(out SpriteComponent? spriteComponent))
+            _bottomText.Text = $"Mouseover: {hit.Name} - {spriteComponent.Entity.Name}";
         else
             _bottomText.Text = $"Mouseover: {hit.Name}";
     }

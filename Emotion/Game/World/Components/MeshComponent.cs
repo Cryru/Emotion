@@ -7,11 +7,8 @@ using Emotion.Standard.MeshGenerators;
 
 namespace Emotion.Game.World.Components;
 
-public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider
+public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider, IRenderableComponent, IUpdateableComponent
 {
-    // todo: flags
-    public bool AlwaysRender;
-
     public GameObject Object { get; private set; } = null!;
     private bool _componentInitialized = false;
 
@@ -170,6 +167,7 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider
     {
         return _entity.Forward;
     }
+
     public void OnModelMatrixInvalidated()
     {
         _dirtyBoundingSphere = true;

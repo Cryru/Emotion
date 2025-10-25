@@ -16,6 +16,8 @@ public enum GameObjectState
 
 public partial class GameObject
 {
+    public bool AlwaysRender;
+
     public const string DEFAULT_OBJECT_NAME = "Unnamed Object";
 
     /// <summary>
@@ -65,7 +67,13 @@ public partial class GameObject
             ArrayPool<Coroutine?>.Shared.Return(componentRoutines);
         }
 
+        InternalOnInit();
         State = GameObjectState.Initialized;
+    }
+
+    protected virtual void InternalOnInit()
+    {
+
     }
 
     /// <summary>
@@ -78,11 +86,6 @@ public partial class GameObject
     }
 
     public virtual void Update(float dt)
-    {
-
-    }
-
-    public virtual void Render(Renderer c)
     {
 
     }
@@ -161,6 +164,16 @@ public partial class GameObject
         return false;
     }
 
+    public void ForEachComponentOfType<TComponent, TArg>(Action<TComponent, TArg> func, TArg arg1)
+    {
+        foreach (KeyValuePair<Type, IGameObjectComponent> component in _components)
+        {
+            IGameObjectComponent componentInstance = component.Value;
+            if (componentInstance is TComponent asTComponent)
+                func(asTComponent, arg1);
+        }
+    }
+
     #endregion
 
     #region Helper Constructors
@@ -173,10 +186,19 @@ public partial class GameObject
         return gameObject;
     }
 
+    public static GameObject NewSpriteObject(string entityFile)
+    {
+        var gameObject = new GameObject();
+        gameObject.Name = entityFile;
+        gameObject.AddComponent<SpriteComponent>(new SpriteComponent(entityFile));
+        return gameObject;
+    }
+
     public static GameObject CreateSkyBox(string textureFile)
     {
         var gameObject = new GameObject();
         gameObject.Name = "Skybox";
+        gameObject.AlwaysRender = true;
         gameObject.AddComponent<SkyBoxComponent>(new SkyBoxComponent(textureFile));
         return gameObject;
     }

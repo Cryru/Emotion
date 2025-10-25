@@ -5,6 +5,7 @@ using Emotion.Game.World.Components;
 using Emotion.Game.World.Terrain;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Game.World.TileMap;
+using Emotion.Game.World.TwoDee;
 using Emotion.Graphics.Camera;
 using Emotion.Primitives;
 
@@ -167,14 +168,7 @@ public partial class GameMap : IDisposable
             {
                 var obj = _objects[i];
                 obj.Update(dt);
-            }
-
-            for (int i = 0; i < _objects.Count; i++)
-            {
-                GameObject obj = _objects[i];
-                MeshComponent? meshComponent = obj.GetComponent<MeshComponent>();
-                if (meshComponent != null)
-                    meshComponent.Update(dt);
+                obj.ForEachComponentOfType<IUpdateableComponent, float>(static (component, dt) => component.Update(dt), dt);
             }
         }
     }
@@ -187,37 +181,26 @@ public partial class GameMap : IDisposable
         Frustum frustum = r.Camera.GetCameraView3D();
         TerrainGrid?.Render(r, frustum);
 
-        // todo: octree
-        bool cameraIs2D = r.Camera is Camera2D;
-        if (cameraIs2D)
+        // todo: quadtree/octree query
+        lock (_objects)
         {
-            lock (_objects)
+            bool cameraIs2D = r.Camera is Camera2D;
+            if (cameraIs2D)
             {
                 for (int i = 0; i < _objects.Count; i++)
                 {
                     GameObject obj = _objects[i];
-                    MeshComponent? meshComponent = obj.GetComponent<MeshComponent>();
-                    if (meshComponent != null)
-                    {
-                        if (!meshComponent.AlwaysRender && !obj.GetBoundingRect().Intersects(clipArea)) continue;
-                        meshComponent.Render(r);
-                    }
+                    if (!obj.AlwaysRender && !obj.GetBoundingRect().Intersects(clipArea)) continue;
+                    obj.ForEachComponentOfType<IRenderableComponent, Renderer>(static (component, r) => component.Render(r), r);
                 }
             }
-        }
-        else
-        {
-            lock (_objects)
+            else
             {
                 for (int i = 0; i < _objects.Count; i++)
                 {
                     GameObject obj = _objects[i];
-                    MeshComponent? meshComponent = obj.GetComponent<MeshComponent>() ?? obj.GetComponent<SkyBoxComponent>();
-                    if (meshComponent != null)
-                    {
-                        if (!meshComponent.AlwaysRender && !frustum.IntersectsOrContainsCube(obj.GetBoundingCube())) continue;
-                        meshComponent.Render(r);
-                    }
+                    if (!obj.AlwaysRender && !frustum.IntersectsOrContainsCube(obj.GetBoundingCube())) continue;
+                    obj.ForEachComponentOfType<IRenderableComponent, Renderer>(static (component, r) => component.Render(r), r);
                 }
             }
         }

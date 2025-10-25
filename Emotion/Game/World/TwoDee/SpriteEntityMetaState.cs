@@ -10,6 +10,8 @@ public class SpriteEntityMetaState
 {
     public SpriteEntity Entity { get; init; }
 
+    public Matrix4x4 ModelMatrix = Matrix4x4.Identity;
+
     public SpriteEntityMetaState(SpriteEntity entity)
     {
         Entity = entity;
@@ -28,6 +30,14 @@ public class SpriteEntityMetaState
 
     public void UpdateAnimation(SpriteAnimation? animation, float currentTime, bool forceRecalculate = false)
     {
+        if (_animation == null)
+        {
+            if (Entity.Animations.Count > 0)
+                _animation = Entity.Animations[0];
+            else
+                return;
+        }
+
         // Check if changing animation
         if (_animation != animation || forceRecalculate)
         {
@@ -58,9 +68,6 @@ public class SpriteEntityMetaState
                     _totalAnimDuration = _totalAnimDuration * 2f - _animation.TimeBetweenFrames * 2f;
             }
         }
-
-        if (_animation == null)
-            return;
 
         float currentAnimTime = currentTime % _totalAnimDuration;
 

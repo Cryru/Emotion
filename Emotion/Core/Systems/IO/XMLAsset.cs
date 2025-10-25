@@ -32,7 +32,7 @@ public abstract class XMLAssetMarkerClass : Asset
 /// <summary>
 /// An asset containg a xml serialized type.
 /// </summary>
-public class XMLAsset<T> : XMLAssetMarkerClass
+public class XMLAsset<T> : XMLAssetMarkerClass, IAssetContainingObject<T>
 {
     /// <summary>
     /// The file deserialized as its type.
@@ -129,5 +129,10 @@ public class XMLAsset<T> : XMLAssetMarkerClass
         XMLAsset<T> newFile = CreateFromContent(Activator.CreateInstance<T>(), name);
         newFile.Save();
         return newFile;
+    }
+
+    public T? GetObject()
+    {
+        return Content;
     }
 }

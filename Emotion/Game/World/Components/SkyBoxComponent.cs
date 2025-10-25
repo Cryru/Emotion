@@ -14,7 +14,6 @@ public class SkyBoxComponent : MeshComponent
 
     public SkyBoxComponent(CubeMapTextureReference cubeMapTexture)
     {
-        AlwaysRender = true;
         _cubeMap = new AssetOrObjectReferenceLifecycleSupport<TextureCubemapAsset, TextureCubemap>(cubeMapTexture, OnTextureChanged);
     }
 

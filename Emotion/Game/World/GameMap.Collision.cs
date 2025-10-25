@@ -12,7 +12,7 @@ public partial class GameMap
     private OctTree<GameObject> _octTree = new();
 
     public bool CollideWithRayFirst<T>(Ray2D ray, GameObject? exclude, out GameObject? hit, out Vector2 collisionPoint)
-       where T : MapObject2D
+       where T : GameObject
     {
         foreach (GameObject obj in ForEachObject())
         {
@@ -33,24 +33,24 @@ public partial class GameMap
     }
 
     public bool CollideWithRayFirst<T>(Ray2D ray, out GameObject? hit, out Vector2 collisionPoint)
-        where T : MapObject2D
+        where T : GameObject
     {
         return CollideWithRayFirst<T>(ray, null, out hit, out collisionPoint);
     }
 
     public bool CollideWithRayFirst(Ray2D ray, out GameObject? hit, out Vector2 collisionPoint)
     {
-        return CollideWithRayFirst<MapObject2D>(ray, null, out hit, out collisionPoint);
+        return CollideWithRayFirst<GameObject>(ray, null, out hit, out collisionPoint);
     }
 
     public bool CollideWithRayFirst(Ray2D ray, GameObject? exclude, out GameObject? hit, out Vector2 collisionPoint)
     {
-        return CollideWithRayFirst<MapObject2D>(ray, exclude, out hit, out collisionPoint);
+        return CollideWithRayFirst<GameObject>(ray, exclude, out hit, out collisionPoint);
     }
 
     public bool CollideWithRayFirst(Ray2D ray, out GameObject? hit)
     {
-        return CollideWithRayFirst<MapObject2D>(ray, null, out hit, out _);
+        return CollideWithRayFirst<GameObject>(ray, null, out hit, out _);
     }
 
     public bool CollideWithRayFirst(Ray3D ray, GameObject? exclude, out GameObject? hit, out Vector3 collisionPoint)
@@ -120,13 +120,22 @@ public partial class GameMap
         return _objects;
     }
 
-    public IEnumerable<T> ForEachObject<T>() where T : GameObject
+    public IEnumerable<T> ForEachObject<T>(bool includeNonLoaded = false) where T : GameObject
     {
         // todo: convert to Ienumerable struct with lazy eval
         foreach (GameObject obj in _objects)
         {
             if (obj is T objT)
                 yield return objT;
+        }
+
+        if (includeNonLoaded)
+        {
+            foreach (GameObject obj in _objectsToLoad)
+            {
+                if (obj is T objT)
+                    yield return objT;
+            }
         }
     }
 }

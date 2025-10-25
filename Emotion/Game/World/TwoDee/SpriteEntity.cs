@@ -17,7 +17,14 @@ public class SpriteEntity
     public void GetBounds(SpriteAnimation? animation, out Rectangle baseRect)
     {
         baseRect = new Rectangle(0, 0, 1, 1);
-        if (animation == null) return;
+
+        if (animation == null)
+        {
+            if (Animations.Count > 0)
+                animation = Animations[0];
+            else
+                return;
+        }
 
         foreach (SpriteAnimationBodyPart part in animation.ForEachPart())
         {
