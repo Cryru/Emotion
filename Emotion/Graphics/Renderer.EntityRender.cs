@@ -21,7 +21,8 @@ public partial class Renderer
         int partCount = state.GetPartCount();
         for (int i = 0; i < partCount; i++)
         {
-            state.GetRenderData(i, out Texture texture, out Rectangle uv, out Vector2 anchor);
+            if (!state.GetRenderData(i, out Texture texture, out Rectangle uv, out Vector2 anchor))
+                continue;
             RenderSprite(anchor.ToVec3(), uv.Size, Color.White, texture, uv);
         }
         PopModelMatrix();

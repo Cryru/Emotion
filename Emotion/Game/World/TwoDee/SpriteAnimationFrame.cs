@@ -23,28 +23,28 @@ public class SpriteAnimationFramePoint
 
 public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAnimationFrame>
 {
-    public SerializableAsset<TextureAsset> Texture = new();
+    public TextureReference Texture = new();
     public List<SpriteAnimationFramePoint> Points = new();
 
     public Vector2 AttachOffset;
 
     public Rectangle UV;
 
+    private Vector2 GetPartTextureSize()
+    {
+        Texture? texture = Texture.GetObject();
+        if (texture != null)
+            return texture.Size;
+        return Vector2.One;
+    }
+
     public Vector2 GetCalculatedOrigin(SpriteAnimationBodyPart part)
     {
         Rectangle uv;
         if (UV.IsEmpty)
-        {
-            TextureAsset texture = Texture.Get();
-            if (texture.Loaded)
-                uv = new Rectangle(0, 0, texture.Texture.Size);
-            else
-                uv = Rectangle.Empty;
-        }
+            uv = new Primitives.Rectangle(0, 0, GetPartTextureSize());
         else
-        {
             uv = UV;
-        }
 
         Vector2 spot = new Rectangle(0, 0, uv.Size).GetRectangleAnchorSpot(part.AttachSpot);
         //if (flipX) attachOffset.X = -attachOffset.X;
@@ -55,17 +55,9 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
     {
         Vector2 size;
         if (UV.IsEmpty)
-        {
-            TextureAsset texture = Texture.Get();
-            if (texture.Loaded)
-                size = texture.Texture.Size;
-            else
-                size = Vector2.One;
-        }
+            size = GetPartTextureSize();
         else
-        {
             size = UV.Size;
-        }
 
         Vector2 origin = new Rectangle(0, 0, size).GetRectangleAnchorSpot(part.AttachSpot);
         origin = -origin + AttachOffset;
@@ -77,7 +69,7 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
 
     public override string ToString()
     {
-        return $"Frame {Texture.Name}";
+        return $"Frame {Texture}";
     }
 
     #region Editor Functionality
@@ -113,15 +105,13 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
 
         while (ve.State == Systems.UI.UIWindowState.Open)
         {
-            yield return null;
+            yield return Texture.PerformLoading(null, null);
 
-            TextureAsset textureAsset = Texture.Get();
-            if (!textureAsset.Loaded) continue;
+            Texture? texture = Texture.GetObject();
+            if (texture == null) continue;
 
             ve.SetValue(GetCalculatedOrigin(part));
         }
-
-        yield return null;
     }
 
     #endregion

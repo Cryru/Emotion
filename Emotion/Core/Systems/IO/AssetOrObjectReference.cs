@@ -20,10 +20,29 @@ public interface IAssetContainingObject<TObject>
     public TObject? GetObject();
 }
 
-public class AssetOrObjectReference<TAsset, TObject>
+public partial class AssetOrObjectReferenceSerialization
+{
+    [SerializeNonPublicGetSet]
+    public virtual string? Name { get; protected set; }
+}
+
+
+public sealed class AssetOrObjectReference<TAsset, TObject> : AssetOrObjectReferenceSerialization
     where TAsset : Asset, IAssetContainingObject<TObject>, new()
 {
-    public static AssetOrObjectReference<TAsset, TObject> Invalid = new();
+    public static AssetOrObjectReference<TAsset, TObject> Invalid { get; } = new();
+
+    public override string? Name
+    {
+        get => _assetName;
+
+        // Create via deserialization
+        protected set
+        {
+            _assetName = value;
+            _type = AssetOrObjectReferenceType.AssetName;
+        }
+    }
 
     private AssetOrObjectReferenceType _type;
     private TAsset? _asset;
@@ -78,11 +97,12 @@ public class AssetOrObjectReference<TAsset, TObject>
         }
     }
 
-    public IEnumerator PerformLoading(object? owningObject, Action<object>? onChanged, bool callChangedOnFirstLoad = false) // This is more of an owner-reference binding than loading
+    // This is more of an owner-reference binding than loading
+    public IEnumerator PerformLoading(object? owningObject, Action<object>? onChanged, bool callChangedOnFirstLoad = false, bool loadedAsDependency = false)
     {
         if (_type == AssetOrObjectReferenceType.AssetName)
         {
-            _asset = Engine.AssetLoader.ONE_Get<TAsset>(_assetName, owningObject);
+            _asset = Engine.AssetLoader.ONE_Get<TAsset>(_assetName, owningObject, false, loadedAsDependency);
             _type = AssetOrObjectReferenceType.Asset;
             _owningObject = owningObject;
         }
@@ -128,7 +148,6 @@ public class AssetOrObjectReference<TAsset, TObject>
             TAsset asset = Engine.AssetLoader.ONE_Get<TAsset>(_assetName, null, true);
             if (asset.Loaded)
                 return asset.GetObject();
-
         }
         else if (_type == AssetOrObjectReferenceType.Asset)
         {
@@ -151,6 +170,9 @@ public class AssetOrObjectReference<TAsset, TObject>
         bool bIsNull = b is null;
         if (aIsNull || bIsNull)
             return aIsNull && bIsNull;
+
+        AssertNotNull(a);
+        AssertNotNull(b);
 
         if (a._assetName != null && b._assetName != null)
             return a._assetName == b._assetName;
@@ -183,6 +205,21 @@ public class AssetOrObjectReference<TAsset, TObject>
             return objCast == this;
 
         return false;
+    }
+
+    public override int GetHashCode()
+    {
+        switch (_type)
+        {
+            case AssetOrObjectReferenceType.AssetName when _assetName != null:
+                return _assetName.GetHashCode();
+            case AssetOrObjectReferenceType.Asset when _asset != null:
+                return _asset.GetHashCode();
+            case AssetOrObjectReferenceType.Object when _assetObject != null:
+                return _assetObject.GetHashCode();
+
+        }
+        return 0;
     }
 
     #endregion

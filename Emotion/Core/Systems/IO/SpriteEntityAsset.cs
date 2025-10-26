@@ -18,7 +18,7 @@ public class SpriteEntityAsset : XMLAsset<SpriteEntity>
             {
                 foreach (SpriteAnimationFrame frame in part.Frames)
                 {
-                    LoadAssetDependency<TextureAsset>(frame.Texture);
+                    LoadAssetDependency<TextureAsset, Texture>(frame.Texture);
                 }
             }
         }

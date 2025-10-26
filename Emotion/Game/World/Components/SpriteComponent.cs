@@ -195,8 +195,5 @@ public class SpriteComponent : IRenderableComponent, IGameObjectComponent, IGame
     public virtual void Render(Renderer r)
     {
         r.RenderEntityStandalone(Entity, RenderState, Object.GetModelMatrix());
-
-        Rectangle b = GetBoundingRect(Object);
-        r.RenderRectOutline(b, Color.Red);
     }
 }

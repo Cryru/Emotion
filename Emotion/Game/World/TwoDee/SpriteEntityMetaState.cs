@@ -137,7 +137,7 @@ public class SpriteEntityMetaState
         return _parts.Count;
     }
 
-    public void GetRenderData(int partIdx, out Texture texture, out Rectangle uv, out Vector2 anchorOffset)
+    public bool GetRenderData(int partIdx, out Texture texture, out Rectangle uv, out Vector2 anchorOffset)
     {
         texture = Texture.EmptyWhiteTexture;
         uv = Rectangle.Empty;
@@ -145,13 +145,15 @@ public class SpriteEntityMetaState
 
         PartRuntimeData partData = _parts[partIdx];
         if (!partData.part.Visible || partData.currentFrame == null)
-            return;
+            return false;
 
-        TextureAsset textureAsset = partData.currentFrame.Texture.Get();
-        if (textureAsset.Loaded)
-            texture = textureAsset.Texture;
+        var partTexture = partData.currentFrame.Texture.GetObject();
+        if (partTexture == null)
+            return false;
 
+        texture = partTexture;
         anchorOffset = partData.anchor;
         uv = partData.currentFrame.UV.IsEmpty ? new Rectangle(0, 0, texture.Size) : partData.currentFrame.UV;
+        return true;
     }
 }

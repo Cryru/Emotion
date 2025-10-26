@@ -2,9 +2,10 @@
 
 namespace Emotion.Core.Systems.IO;
 
-public class SerializableAsset
+public partial class SerializableAsset
 {
-    public string? Name { get; set; }
+    [SerializeNonPublicGetSet]
+    public string? Name { get; protected set; }
 }
 
 public class SerializableAsset<T> : SerializableAsset where T : Asset, new()

@@ -219,7 +219,7 @@ public abstract class Asset : IRoutineWaiter
 
     #region Routine Waiter
 
-    public bool Finished => Loaded;
+    public bool Finished => Processed;
 
     public void Update()
     {
@@ -230,7 +230,17 @@ public abstract class Asset : IRoutineWaiter
 
     #region Dependencies
 
-    private List<Asset>? _dependencies;
+    private List<IRoutineWaiter>? _dependencies;
+
+    protected void LoadAssetDependency<T, TObject>(AssetOrObjectReference<T, TObject> assetOrObjectReference)
+        where T : Asset, IAssetContainingObject<TObject>, new()
+    {
+        IEnumerator dependantAssetRoutine = assetOrObjectReference.PerformLoading(this, null, false, true);
+        Coroutine coroutine = Engine.CoroutineManager.StartCoroutine(dependantAssetRoutine);
+
+        _dependencies ??= new List<IRoutineWaiter>();
+        _dependencies.Add(coroutine);
+    }
 
     protected T LoadAssetDependency<T>(SerializableAsset<T> serialized) where T : Asset, new()
     {
@@ -241,7 +251,7 @@ public abstract class Asset : IRoutineWaiter
     {
         T dependantAsset = Engine.AssetLoader.ONE_Get<T>(name, this, false, true, !cachedLoad);
 
-        _dependencies ??= new List<Asset>();
+        _dependencies ??= new List<IRoutineWaiter>();
         _dependencies.Add(dependantAsset);
 
         return dependantAsset;
@@ -256,8 +266,8 @@ public abstract class Asset : IRoutineWaiter
             bool anyLoading = false;
             for (int i = 0; i < _dependencies.Count; i++)
             {
-                Asset dependent = _dependencies[i];
-                if (!dependent.Processed)
+                IRoutineWaiter dependent = _dependencies[i];
+                if (!dependent.Finished)
                 {
                     anyLoading = true;
                     yield return null;
