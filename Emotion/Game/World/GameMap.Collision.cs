@@ -1,15 +1,15 @@
 ﻿#nullable enable
 
 using Emotion.Game.World.Components;
-using Emotion.Game.World.ThreeDee;
-using Emotion.Game.World.TwoDee;
-using Emotion.Primitives.DataStructures.OctTree;
+using Emotion.Game.World.Enumeration;
+using static Emotion.Game.World.Enumeration.ObjectEnumerationSystem;
 
 namespace Emotion.Game.World;
 
 public partial class GameMap
 {
-    private OctTree<GameObject> _octTree = new();
+    //private OctTree<GameObject> _octTree = new();
+    private readonly ObjectEnumerationSystem _enumeration = new();
 
     public bool CollideWithRayFirst<T>(Ray2D ray, GameObject? exclude, out GameObject? hit, out Vector2 collisionPoint)
        where T : GameObject
@@ -115,15 +115,14 @@ public partial class GameMap
         return movement;
     }
 
-    public List<GameObject> ForEachObject()
+    public ObjectEnumerator ForEachObject()
     {
-        return _objects;
+        return _enumeration.GetEnumerator();
     }
 
     public IEnumerable<T> ForEachObject<T>(bool includeNonLoaded = false) where T : GameObject
     {
-        // todo: convert to Ienumerable struct with lazy eval
-        foreach (GameObject obj in _objects)
+        foreach (GameObject obj in ForEachObject())
         {
             if (obj is T objT)
                 yield return objT;

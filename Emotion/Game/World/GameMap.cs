@@ -27,8 +27,6 @@ public partial class GameMap : IDisposable
 
     private List<GameObject> _objectsOnMap = new(); // Objects the map was saved with, todo
 
-    private List<GameObject> _objects = new(); // Objects currently on the map
-
     private Queue<GameObject> _objectsToLoad = new(); // Queue of objects to load
 
     //public List<IMapGrid> Grids = new();
@@ -41,7 +39,7 @@ public partial class GameMap : IDisposable
 
     public GameMap()
     {
-        _adapter = new GameMapToObjectFriendAdapter(this);
+        _gameObjectFriendAdapter = new GameMapToObjectFriendAdapter(this);
     }
 
     public IEnumerator InitRoutine()
@@ -54,11 +52,11 @@ public partial class GameMap : IDisposable
 
         State = GameMapState.LoadingObjects;
 
-        for (int i = 0; i < _objectsOnMap.Count; i++)
-        {
-            GameObject obj = _objects[i];
-            _objectsToLoad.Enqueue(obj);
-        }
+        //for (int i = 0; i < _objectsOnMap.Count; i++)
+        //{
+        //    GameObject obj = _objectsOnMap[i];
+        //    _objectsToLoad.Enqueue(obj);
+        //}
 
         yield return LoadPendingObjectsRoutine();
 
@@ -89,7 +87,7 @@ public partial class GameMap : IDisposable
         }
     }
 
-    private GameMapToObjectFriendAdapter _adapter;
+    private GameMapToObjectFriendAdapter _gameObjectFriendAdapter;
 
     private IEnumerator LoadPendingObjectsRoutine()
     {
@@ -101,20 +99,17 @@ public partial class GameMap : IDisposable
 
     private IEnumerator LoadSingularObjectRoutine(GameObject obj)
     {
-        yield return obj.InitRoutine(_adapter);
+        yield return obj.InitRoutine(_gameObjectFriendAdapter);
 
-        lock (_octTree)
-        {
-            _octTree.Add(obj);
-            obj.OnMove += OnObjectMoved;
-            obj.OnResize += OnObjectMoved;
-            obj.OnRotate += OnObjectMoved;
-        }
+        //lock (_octTree)
+        //{
+        //    _octTree.Add(obj);
+        //    obj.OnMove += OnObjectMoved;
+        //    obj.OnResize += OnObjectMoved;
+        //    obj.OnRotate += OnObjectMoved;
+        //}
 
-        lock (_objects)
-        {
-            _objects.Add(obj);
-        }
+        _enumeration.AddObject(obj);
     }
 
     public void AddObject(GameObject obj)
@@ -129,24 +124,23 @@ public partial class GameMap : IDisposable
 
     public void RemoveObject(GameObject obj)
     {
-        lock (_octTree)
-        {
-            obj.OnMove -= OnObjectMoved;
-            obj.OnResize -= OnObjectMoved;
-            obj.OnRotate -= OnObjectMoved;
-            _octTree.Remove(obj);
-        }
+        //lock (_octTree)
+        //{
+        //    obj.OnMove -= OnObjectMoved;
+        //    obj.OnResize -= OnObjectMoved;
+        //    obj.OnRotate -= OnObjectMoved;
+        //    _octTree.Remove(obj);
+        //}
 
-        _objects.Remove(obj);
-        obj.Done();
+        _enumeration.RemoveObject(obj); // Will call obj.Done()
     }
 
     private void OnObjectMoved(GameObject obj)
     {
-        lock (_octTree)
-        {
-            _octTree.Update(obj);
-        }
+        //lock (_octTree)
+        //{
+        //    _octTree.Update(obj);
+        //}
     }
 
     #endregion
@@ -157,19 +151,16 @@ public partial class GameMap : IDisposable
     {
         TerrainGrid?.Update(dt);
 
+        // Load objects waiting to be loaded
         if (_loadNewObjectsRoutine.Finished && _objectsToLoad.Count > 0)
         {
             _loadNewObjectsRoutine = Engine.Jobs.Add(LoadPendingObjectsRoutine());
         }
 
-        lock (_objects)
+        foreach (GameObject obj in ForEachObject())
         {
-            for (int i = 0; i < _objects.Count; i++)
-            {
-                var obj = _objects[i];
-                obj.Update(dt);
-                obj.ForEachComponentOfType<IUpdateableComponent, float>(static (component, dt) => component.Update(dt), dt);
-            }
+            obj.Update(dt);
+            obj.ForEachComponentOfType<IUpdateableComponent, float>(static (component, dt) => component.Update(dt), dt);
         }
     }
 
@@ -182,26 +173,21 @@ public partial class GameMap : IDisposable
         TerrainGrid?.Render(r, frustum);
 
         // todo: quadtree/octree query
-        lock (_objects)
+        bool cameraIs2D = r.Camera is Camera2D;
+        if (cameraIs2D)
         {
-            bool cameraIs2D = r.Camera is Camera2D;
-            if (cameraIs2D)
+            foreach (GameObject obj in ForEachObject())
             {
-                for (int i = 0; i < _objects.Count; i++)
-                {
-                    GameObject obj = _objects[i];
-                    if (!obj.AlwaysRender && !obj.GetBoundingRect().Intersects(clipArea)) continue;
-                    obj.ForEachComponentOfType<IRenderableComponent, Renderer>(static (component, r) => component.Render(r), r);
-                }
+                if (!obj.AlwaysRender && !obj.GetBoundingRect().Intersects(clipArea)) continue;
+                obj.ForEachComponentOfType<IRenderableComponent, Renderer>(static (component, r) => component.Render(r), r);
             }
-            else
+        }
+        else
+        {
+            foreach (GameObject obj in ForEachObject())
             {
-                for (int i = 0; i < _objects.Count; i++)
-                {
-                    GameObject obj = _objects[i];
-                    if (!obj.AlwaysRender && !frustum.IntersectsOrContainsCube(obj.GetBoundingCube())) continue;
-                    obj.ForEachComponentOfType<IRenderableComponent, Renderer>(static (component, r) => component.Render(r), r);
-                }
+                if (!obj.AlwaysRender && !frustum.IntersectsOrContainsCube(obj.GetBoundingCube())) continue;
+                obj.ForEachComponentOfType<IRenderableComponent, Renderer>(static (component, r) => component.Render(r), r);
             }
         }
     }
