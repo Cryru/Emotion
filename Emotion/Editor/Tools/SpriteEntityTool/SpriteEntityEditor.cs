@@ -103,7 +103,11 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UIViewport, Ob
                 _animTimeEditor?.SetValue(_animTime % _entityMetaState?.GetCurrentAnimationTime() ?? 1);
             }
 
-            _entityMetaState?.UpdateAnimation(_selectedAnim, _animTime, true);
+            if (_entityMetaState != null)
+            {
+                _entityMetaState.SetAnimation(_selectedAnim.Name, true);
+                _entityMetaState.UpdateAnimation(_animTime);
+            }
         }
 
         return base.UpdateInternal();
@@ -122,7 +126,7 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UIViewport, Ob
         if (ObjectBeingEdited != null)
         {
             AssertNotNull(_entityMetaState);
-            c.RenderEntityStandalone(ObjectBeingEdited, _entityMetaState, center);
+            c.RenderEntityStandalone(ObjectBeingEdited, _entityMetaState, Matrix4x4.CreateTranslation(center));
         }
     }
 

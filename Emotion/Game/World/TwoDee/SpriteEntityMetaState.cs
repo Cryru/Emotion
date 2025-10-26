@@ -10,8 +10,6 @@ public class SpriteEntityMetaState
 {
     public SpriteEntity Entity { get; init; }
 
-    public Matrix4x4 ModelMatrix = Matrix4x4.Identity;
-
     public SpriteEntityMetaState(SpriteEntity entity)
     {
         Entity = entity;
@@ -28,48 +26,47 @@ public class SpriteEntityMetaState
         return _totalAnimDurationSegment;
     }
 
-    public void UpdateAnimation(SpriteAnimation? animation, float currentTime, bool forceRecalculate = false)
+    public void SetAnimation(string animName, bool forceRecalculate = false)
+    {
+        SpriteAnimation? animation = Entity.GetAnimation(animName, true);
+        if (_animation == animation && !forceRecalculate)
+            return;
+
+        _animation = animation;
+        _parts.Clear();
+        _points.Clear();
+        _totalAnimDuration = 1;
+        _totalAnimDurationSegment = 1;
+
+        if (_animation != null)
+        {
+            // Initialize animation runtime cache
+            foreach (SpriteAnimationBodyPart part in _animation.ForEachPart())
+            {
+                int pointAttachIdx = -1;
+                string pointAttach = part.AttachToPoint;
+                if (pointAttach != "origin")
+                    pointAttachIdx = pointAttach.GetStableHashCode();
+
+                _parts.Add((part, pointAttachIdx, null, Vector2.Zero));
+            }
+
+            _totalAnimDuration = _animation.TotalDuration;
+            _totalAnimDurationSegment = _totalAnimDuration;
+
+            if (_animation.LoopType == AnimationLoopType.NormalThenReverse)
+                // -2 frames since we dont want to repeat first and last when switching directions
+                _totalAnimDuration = _totalAnimDuration * 2f - _animation.TimeBetweenFrames * 2f;
+        }
+    }
+
+    public float UpdateAnimation(float currentTime)
     {
         if (_animation == null)
-        {
-            if (Entity.Animations.Count > 0)
-                _animation = Entity.Animations[0];
-            else
-                return;
-        }
+            return currentTime;
 
-        // Check if changing animation
-        if (_animation != animation || forceRecalculate)
-        {
-            _animation = animation;
-            _parts.Clear();
-            _points.Clear();
-            _totalAnimDuration = 1;
-            _totalAnimDurationSegment = 1;
-
-            if (_animation != null)
-            {
-                // Initialize animation runtime cache
-                foreach (SpriteAnimationBodyPart part in _animation.ForEachPart())
-                {
-                    int pointAttachIdx = -1;
-                    string pointAttach = part.AttachToPoint;
-                    if (pointAttach != "origin")
-                        pointAttachIdx = pointAttach.GetStableHashCode();
-
-                    _parts.Add((part, pointAttachIdx, null, Vector2.Zero));
-                }
-
-                _totalAnimDuration = _animation.TotalDuration;
-                _totalAnimDurationSegment = _totalAnimDuration;
-
-                if (_animation.LoopType == AnimationLoopType.NormalThenReverse)
-                    // -2 frames since we dont want to repeat first and last when switching directions
-                    _totalAnimDuration = _totalAnimDuration * 2f - _animation.TimeBetweenFrames * 2f;
-            }
-        }
-
-        float currentAnimTime = currentTime % _totalAnimDuration;
+        float normalizedTime = currentTime % _totalAnimDuration;
+        float currentAnimTime = normalizedTime;
 
         // NormalThenReverse handling
         if (currentAnimTime >= _totalAnimDurationSegment)
@@ -117,6 +114,8 @@ public class SpriteEntityMetaState
 
             _parts[i] = item; // smh value types
         }
+
+        return normalizedTime;
     }
 
     private SpriteAnimationFrame? GetFrameAtTimestamp(SpriteAnimation animation, SpriteAnimationBodyPart part, float time)

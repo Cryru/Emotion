@@ -80,31 +80,21 @@ public class SpriteComponent : IRenderableComponent, IGameObjectComponent, IGame
 
         RenderState = new SpriteEntityMetaState(_entity);
 
-        _currentAnimation = null;
-        _animationTime = 0;
-
-        // Reset the animation (or set it to the one set before the entity was loaded).
-        // This will also set the default bone matrices.
-        // This will also calculate bounds
-        SetAnimation(_initSetAnimation);
-        _initSetAnimation = null;
-
-        RenderState.UpdateAnimation(_currentAnimation, 0);
-
-        Object.InvalidateModelMatrix();
+        // If the same animation name exists in the new entity this will take care of it.
+        // This will also update bounds.
+        SetAnimation(_currentAnimationName);
     }
 
     #endregion
 
     #region Animation and Bones
 
-    private SpriteAnimation? _currentAnimation;
+    private string _currentAnimationName = string.Empty;
     private float _animationTime;
-    private string? _initSetAnimation;
 
     public string GetCurrentAnimation()
     {
-        return _currentAnimation?.Name ?? string.Empty;
+        return _currentAnimationName;
     }
 
     public bool HasAnimation(string name)
@@ -122,31 +112,16 @@ public class SpriteComponent : IRenderableComponent, IGameObjectComponent, IGame
 
     public virtual void SetAnimation(string? name, bool forceIfMissing = false)
     {
+        name ??= string.Empty;
+        _currentAnimationName = name;
+
         if (!_componentInitialized)
-        {
-            _initSetAnimation = name;
-            return;
-        }
-
-        // Try to find the animation instance.
-        // todo: case insensitive?
-        SpriteAnimation? animInstance = null;
-        if (name != null && _entity.Animations != null)
-        {
-            for (var i = 0; i < _entity.Animations.Count; i++)
-            {
-                SpriteAnimation anim = _entity.Animations[i];
-                if (anim.Name == name) animInstance = anim;
-            }
-        }
-        if (animInstance == null && name != null && !forceIfMissing)
             return;
 
-        _currentAnimation = animInstance;
-        _animationTime = 0; // Reset time
+        _animationTime = 0;
+        RenderState.SetAnimation(_currentAnimationName);
 
-        _entity.GetBounds(_currentAnimation, out Rectangle baseRect);
-        _boundingRectBase = baseRect;
+        _boundingRectBase = _entity.GetBounds(_currentAnimationName);
         Object.InvalidateModelMatrix();
     }
 
@@ -175,11 +150,7 @@ public class SpriteComponent : IRenderableComponent, IGameObjectComponent, IGame
         rotationMatrix = Matrix4x4.CreateFromYawPitchRoll(objRotation.Y, objRotation.X, objRotation.Z);
 
         translationMatrix = Matrix4x4.CreateTranslation(obj.Position3D);
-
-        Matrix4x4 newCalculatedModelMatrix = entityLocalTransform * scaleMatrix * rotationMatrix * translationMatrix;
-        RenderState.ModelMatrix = newCalculatedModelMatrix;
-
-        return newCalculatedModelMatrix;
+        return entityLocalTransform * scaleMatrix * rotationMatrix * translationMatrix;
     }
 
     protected Rectangle _boundingRect;
@@ -214,21 +185,16 @@ public class SpriteComponent : IRenderableComponent, IGameObjectComponent, IGame
     public void Update(float dt)
     {
         // Update current animation
-        if (_currentAnimation != null && _entity != null && RenderState != null)
+        if (_entity != null && RenderState != null)
         {
             _animationTime += dt;
-
-            float duration = _currentAnimation.TotalDuration;
-            RenderState.UpdateAnimation(_currentAnimation, _animationTime % duration);
-            if (_animationTime > duration) _animationTime -= duration;
+            _animationTime = RenderState.UpdateAnimation(_animationTime);
         }
     }
 
     public virtual void Render(Renderer r)
     {
-        r.PushModelMatrix(RenderState.ModelMatrix);
-        r.RenderEntityStandalone(Entity, RenderState, Vector3.Zero);
-        r.PopModelMatrix();
+        r.RenderEntityStandalone(Entity, RenderState, Object.GetModelMatrix());
 
         Rectangle b = GetBoundingRect(Object);
         r.RenderRectOutline(b, Color.Red);

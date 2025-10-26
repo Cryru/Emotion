@@ -14,18 +14,17 @@ public partial class Renderer
     public void RenderEntityStandalone(
         SpriteEntity entity,
         SpriteEntityMetaState state,
-        Vector3 position
+        Matrix4x4 modelMatrix
     )
     {
-        if (entity.PixelArt)
-            position = position.Round();
-
+        PushModelMatrix(modelMatrix);
         int partCount = state.GetPartCount();
         for (int i = 0; i < partCount; i++)
         {
             state.GetRenderData(i, out Texture texture, out Rectangle uv, out Vector2 anchor);
-            RenderSprite(position + anchor.ToVec3(), uv.Size, Color.White, texture, uv);
+            RenderSprite(anchor.ToVec3(), uv.Size, Color.White, texture, uv);
         }
+        PopModelMatrix();
     }
 
     public void RenderEntityStandalone(

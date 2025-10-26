@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using System.Xml.Linq;
+
 namespace Emotion.Game.World.TwoDee;
 
 public class SpriteEntity
@@ -14,27 +16,41 @@ public class SpriteEntity
 
     public List<SpriteAnimation> Animations = new();
 
-    public void GetBounds(SpriteAnimation? animation, out Rectangle baseRect)
+    public SpriteAnimation? GetAnimation(string? animationName, bool returnFirstOnFail = false)
     {
-        baseRect = new Rectangle(0, 0, 1, 1);
+        if (animationName == null || Animations == null || Animations.Count == 0)
+            return null;
 
-        if (animation == null)
+        for (int i = 0; i < Animations.Count; i++)
         {
-            if (Animations.Count > 0)
-                animation = Animations[0];
-            else
-                return;
+            SpriteAnimation anim = Animations[i];
+            if (anim.Name == animationName)
+                return anim;
         }
 
+        return returnFirstOnFail ? Animations[0] : null;
+    }
+
+    public Rectangle GetBounds(string animationName)
+    {
+        SpriteAnimation? animation = GetAnimation(animationName);
+        if (animation == null)
+            return new Primitives.Rectangle(0, 0, 1, 1);
+
+        Vector2 totalMin = Vector2.Zero;
+        Vector2 totalMax = Vector2.Zero;
         foreach (SpriteAnimationBodyPart part in animation.ForEachPart())
         {
             if (part.AttachToPoint != "origin") continue;
             foreach (SpriteAnimationFrame frame in part.Frames)
             {
                 Rectangle frameRect = frame.GetBoundingRect(part);
-                baseRect = Rectangle.Union(baseRect, frameRect);
+                frameRect.GetMinMaxPoints(out Vector2 min, out Vector2 max);
+                totalMin = Vector2.Min(min, totalMin);
+                totalMax = Vector2.Max(max, totalMax);
             }
         }
+        return Rectangle.FromMinMaxPointsChecked(totalMin, totalMax);
     }
 }
 
