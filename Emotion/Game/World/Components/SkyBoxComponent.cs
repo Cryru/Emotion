@@ -9,34 +9,37 @@ namespace Emotion.Game.World.Components;
 
 public class SkyBoxComponent : MeshComponent
 {
-    private AssetOrObjectReferenceLifecycleSupport<TextureCubemapAsset, TextureCubemap> _cubeMap;
+    private AssetOwner<TextureCubemapAsset, TextureCubemap> _cubeTextureOwner = new();
     private TextureCubemap? _texture;
 
     public SkyBoxComponent(CubeMapTextureReference cubeMapTexture)
     {
-        _cubeMap = new AssetOrObjectReferenceLifecycleSupport<TextureCubemapAsset, TextureCubemap>(cubeMapTexture, OnTextureChanged);
+        _cubeTextureOwner = new();
+        _cubeTextureOwner.SetOnChangeCallback(static (_, component) => (component as SkyBoxComponent)?.OnTextureChanged(), this);
+        _cubeTextureOwner.Set(cubeMapTexture);
     }
 
     public override Coroutine? Init(GameObject obj)
     {
         Coroutine? r = base.Init(obj);
-        Coroutine? r2 = _cubeMap.Init();
+        Coroutine? r2 = _cubeTextureOwner.GetCurrentLoading();
         return Coroutine.CombineRoutines(r, r2);
     }
 
     public override void Done(GameObject obj)
     {
         base.Done(obj);
-        _cubeMap.Done();
+        _cubeTextureOwner.Done();
     }
 
     public Coroutine? SetCubeMapTexture(CubeMapTextureReference texture)
     {
-        return _cubeMap.Set(texture);
+        return _cubeTextureOwner.Set(texture);
     }
 
-    private void OnTextureChanged(TextureCubemap? texture)
+    protected void OnTextureChanged()
     {
+        TextureCubemap? texture = _cubeTextureOwner.GetCurrentObject();
         if (texture != null) // todo: component property?
             texture.Smooth = true;
         _texture = texture;

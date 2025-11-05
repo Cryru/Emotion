@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Game.World.TwoDee;
 
@@ -11,7 +12,8 @@ public class SpriteComponent : IRenderableComponent, IGameObjectComponent, IGame
     private bool _componentInitialized = false;
 
     public SpriteEntity Entity { get => _entity; }
-    private SpriteReference _entityRef = SpriteReference.Invalid;
+    private AssetOwner<SpriteEntityAsset, SpriteEntity> _entityOwner = new();
+
     private SpriteEntity _entity = null!;
 
     [DontSerialize]
@@ -19,7 +21,8 @@ public class SpriteComponent : IRenderableComponent, IGameObjectComponent, IGame
 
     public SpriteComponent(SpriteReference entity)
     {
-        _entityRef = entity;
+        _entityOwner.SetOnChangeCallback(static (_, component) => (component as SpriteComponent)?.OnEntityChanged(), this);
+        _entityOwner.Set(entity, true);
     }
 
     public SpriteComponent()
@@ -30,48 +33,24 @@ public class SpriteComponent : IRenderableComponent, IGameObjectComponent, IGame
     public virtual Coroutine? Init(GameObject obj)
     {
         Object = obj;
-        return SetEntity(_entityRef);
+        return _entityOwner.GetCurrentLoading();
     }
 
     public virtual void Done(GameObject obj)
     {
-        _entityRef.Cleanup();
+        _entityOwner.Done();
     }
 
     #region Entity Setting
 
     public Coroutine? SetEntity(SpriteReference entity)
     {
-        if (entity.ReadyToUse() || !entity.IsValid())
-        {
-            SpriteReference oldEntity = _entityRef;
-            _entityRef = entity;
-            OnEntityChanged();
-            oldEntity.Cleanup();
-
-            return null;
-        }
-
-        return Engine.CoroutineManager.StartCoroutine(SwapEntity(this, entity));
-    }
-
-    private static IEnumerator SwapEntity(SpriteComponent component, SpriteReference entity)
-    {
-        yield return entity.PerformLoading(component, static (obj) =>
-        {
-            SpriteComponent component = (SpriteComponent)obj;
-            component.OnEntityChanged();
-        });
-
-        SpriteReference oldEntity = component._entityRef;
-        component._entityRef = entity;
-        component.OnEntityChanged();
-        oldEntity.Cleanup();
+        return _entityOwner.Set(entity);
     }
 
     protected virtual void OnEntityChanged()
     {
-        SpriteEntity? entity = _entityRef.GetObject();
+        SpriteEntity? entity = _entityOwner.GetCurrentObject();
         _entity = entity ?? SpriteEntity.MissingEntity;
         _componentInitialized = true;
 

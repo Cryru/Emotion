@@ -4,6 +4,8 @@ using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Graphics.Assets;
 using Emotion.Primitives.Grids;
+using Microsoft.CodeAnalysis;
+using System;
 
 namespace Emotion.Game.World.TileMap;
 
@@ -13,24 +15,13 @@ public class GameMapTileData
     public List<TileMapTileset> Tilesets = new();
 
     private Texture[]? _tilesetTexturesLoaded;
+    private AssetOwner<TextureAsset, Texture>[]? _tilesetTextureOwners;
 
     public IEnumerator InitRuntimeDataRoutine()
     {
         var textures = new Texture[Tilesets.Count];
         _tilesetTexturesLoaded = textures;
-
-        static Action<object> OnTileSetTextureLoaded(Texture[] textures, TextureReference asset, TileMapTileset tileset, int index)
-        {
-            return (_) =>
-            {
-                Texture? texture = asset.GetObject();
-                textures[index] = texture ?? Texture.EmptyWhiteTexture;
-                if (texture == null)
-                    return;
-                if (tileset.BilinearFilterTexture)
-                    texture.Smooth = true;
-            };
-        }
+        _tilesetTextureOwners = new AssetOwner<TextureAsset, Texture>[Tilesets.Count];
 
         // Cause loading of all tileset assets and add self as referencing
         Coroutine[] routines = new Coroutine[_tilesetTexturesLoaded.Length];
@@ -40,13 +31,21 @@ public class GameMapTileData
 
             TileMapTileset ts = Tilesets[i];
             TextureReference asset = ts.Texture;
-            routines[i] = Engine.CoroutineManager.StartCoroutine(
-                asset.PerformLoading(
-                    this,
-                    OnTileSetTextureLoaded(textures, asset, ts, i),
-                    true
-                )
-            );
+
+            // Initialize the tileset texture owners
+            AssetOwner<TextureAsset, Texture> owner = new();
+            owner.SetOnChangeCallback(static (owner, userData) => {
+                if (userData is not TileMapTileset ts) return;
+
+                Texture? texture = owner.GetCurrentObject();
+                if (texture == null) return;
+
+                if (ts.BilinearFilterTexture)
+                    texture.Smooth = true;
+            }, ts);
+            _tilesetTextureOwners[i] = owner;
+
+            routines[i] = owner.Set(asset) ?? Coroutine.CompletedRoutine;
         }
 
         yield return Coroutine.WhenAll(routines);
@@ -54,11 +53,10 @@ public class GameMapTileData
 
     public void UnloadRuntimeData()
     {
-        for (int i = 0; i < Tilesets.Count; i++)
-        {
-            TileMapTileset ts = Tilesets[i];
-            ts.Texture.Cleanup();
-        }
+        if (_tilesetTextureOwners == null) return;
+        foreach (AssetOwner<TextureAsset, Texture> owner in _tilesetTextureOwners)
+            owner.Done();
+        _tilesetTextureOwners = null;
     }
 
     #region Rendering Cache

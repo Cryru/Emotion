@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Game.Systems.Animation.ThreeDee;
 using Emotion.Game.World.ThreeDee;
@@ -13,7 +14,8 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
     private bool _componentInitialized = false;
 
     public MeshEntity Entity { get => _entity; }
-    private MeshReference _entityRef = MeshReference.Invalid;
+    private AssetOwner<MeshAsset, MeshEntity> _entityOwner = new();
+
     private MeshEntity _entity = null!;
 
     [DontSerialize]
@@ -21,7 +23,8 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
 
     public MeshComponent(MeshReference entity)
     {
-        _entityRef = entity;
+        _entityOwner.SetOnChangeCallback(static (_, component) => (component as MeshComponent)?.OnEntityChanged(), this);
+        _entityOwner.Set(entity, true);
     }
 
     public MeshComponent()
@@ -32,48 +35,24 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
     public virtual Coroutine? Init(GameObject obj)
     {
         Object = obj;
-        return SetEntity(_entityRef);
+        return _entityOwner.GetCurrentLoading();
     }
 
     public virtual void Done(GameObject obj)
     {
-        _entityRef.Cleanup();
+        _entityOwner.Done();
     }
 
     #region Entity Setting
 
     public Coroutine? SetEntity(MeshReference entity)
     {
-        if (entity.ReadyToUse() || !entity.IsValid())
-        {
-            MeshReference oldEntity = _entityRef;
-            _entityRef = entity;
-            OnEntityChanged();
-            oldEntity.Cleanup();
-
-            return null;
-        }
-
-        return Engine.CoroutineManager.StartCoroutine(SwapEntity(this, entity));
-    }
-
-    private static IEnumerator SwapEntity(MeshComponent component, MeshReference entity)
-    {
-        yield return entity.PerformLoading(component, static (obj) =>
-        {
-            MeshComponent component = (MeshComponent)obj;
-            component.OnEntityChanged();
-        });
-
-        MeshReference oldEntity = component._entityRef;
-        component._entityRef = entity;
-        component.OnEntityChanged();
-        oldEntity.Cleanup();
+        return _entityOwner.Set(entity);
     }
 
     protected virtual void OnEntityChanged()
     {
-        MeshEntity? entity = _entityRef.GetObject();
+        MeshEntity? entity = _entityOwner.GetCurrentObject();
         _entity = entity ?? Cube.GetEntity();
         _componentInitialized = true;
 

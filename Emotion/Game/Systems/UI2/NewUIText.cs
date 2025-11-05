@@ -4,23 +4,23 @@ using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Game.Systems.UI.Text;
 using Emotion.Game.Systems.UI.Text.TextUpdate;
+using Emotion.Graphics.Assets;
 using Emotion.Graphics.Text;
 
 namespace Emotion.Game.Systems.UI2;
 
 public class NewUIText : UIBaseWindow
 {
-    public AssetOrObjectReference<FontAsset, FontAsset> Font
+    public AssetObjectReference<FontAsset, FontAsset> Font
     {
-        get => _assetBacking;
+        get => _assetOwner.GetCurrentReference();
         set
         {
-            _assetBacking = value.CloneForSafety();
+            _assetOwner.Set(value);
             InvalidateLoaded();
         }
     }
-    private AssetOrObjectReference<FontAsset, FontAsset> _assetBacking = FontAsset.DefaultBuiltInFontName;
-    private AssetOrObjectReference<FontAsset, FontAsset>? _loadedFont = null;
+    private AssetOwner<FontAsset, FontAsset> _assetOwner = new();
 
     public Color TextColor = Color.White;
 
@@ -144,6 +144,8 @@ public class NewUIText : UIBaseWindow
 
     public NewUIText()
     {
+        _assetOwner.Set(FontAsset.DefaultBuiltInFontName, true);
+        _assetOwner.SetOnChangeCallback(ProxyInvalidateLayout, this);
         Layout.SizingX = UISizing.Fit();
         Layout.SizingY = UISizing.Fit();
     }
@@ -151,36 +153,13 @@ public class NewUIText : UIBaseWindow
     protected override void OnClose()
     {
         base.OnClose();
-
-        // Dispose of the loaded asset
-        if (_loadedFont != null)
-        {
-            _loadedFont.Cleanup();
-            _loadedFont = null;
-        }
+        _assetOwner.Done();
     }
-
-    #region Loading
 
     protected override Coroutine? InternalLoad()
     {
-        if (Font.ReadyToUse() || !Font.IsValid())
-            return null;
-
-        // Dispose of the old one.
-        _loadedFont?.Cleanup();
-        _loadedFont = null;
-        return Engine.CoroutineManager.StartCoroutine(LoadAsset());
+        return _assetOwner.GetCurrentLoading();
     }
-
-    private IEnumerator LoadAsset()
-    {
-        yield return Font.PerformLoading(this, ProxyInvalidateLayout);
-        _loadedFont = Font;
-        InvalidateLayout();
-    }
-
-    #endregion
 
     protected override IntVector2 InternalGetWindowMinSize()
     {

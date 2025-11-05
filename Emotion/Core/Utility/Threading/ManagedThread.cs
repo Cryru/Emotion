@@ -95,7 +95,7 @@ namespace Emotion.Core.Utility.Threading
         /// <returns>True if the thread on which this is called is the managed thread, false otherwise.</returns>
         public bool IsManagedThread()
         {
-            return Thread.CurrentThread.ManagedThreadId == _threadId;
+            return Environment.CurrentManagedThreadId == _threadId;
         }
 
         /// <summary>

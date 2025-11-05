@@ -27,10 +27,10 @@ public partial class AssetOrObjectReferenceSerialization
 }
 
 
-public sealed class AssetOrObjectReference<TAsset, TObject> : AssetOrObjectReferenceSerialization
+public sealed class AssetObjectReference<TAsset, TObject> : AssetOrObjectReferenceSerialization
     where TAsset : Asset, IAssetContainingObject<TObject>, new()
 {
-    public static AssetOrObjectReference<TAsset, TObject> Invalid { get; } = new();
+    public static AssetObjectReference<TAsset, TObject> Invalid { get; } = new();
 
     public override string? Name
     {
@@ -49,21 +49,18 @@ public sealed class AssetOrObjectReference<TAsset, TObject> : AssetOrObjectRefer
     private string? _assetName;
     private TObject? _assetObject;
 
-    private object? _owningObject;
-    private Action<object>? _onAssetChanged;
-
     // Implicit conversions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator AssetOrObjectReference<TAsset, TObject>(TAsset asset)
-        => new AssetOrObjectReference<TAsset, TObject> { _type = AssetOrObjectReferenceType.Asset, _asset = asset };
+    public static implicit operator AssetObjectReference<TAsset, TObject>(TAsset asset)
+        => new AssetObjectReference<TAsset, TObject> { _type = AssetOrObjectReferenceType.Asset, _asset = asset };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator AssetOrObjectReference<TAsset, TObject>(string assetName)
-        => new AssetOrObjectReference<TAsset, TObject> { _type = AssetOrObjectReferenceType.AssetName, _assetName = assetName };
+    public static implicit operator AssetObjectReference<TAsset, TObject>(string assetName)
+        => new AssetObjectReference<TAsset, TObject> { _type = AssetOrObjectReferenceType.AssetName, _assetName = assetName };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator AssetOrObjectReference<TAsset, TObject>(TObject obj)
-        => new AssetOrObjectReference<TAsset, TObject> { _type = AssetOrObjectReferenceType.Object, _assetObject = obj };
+    public static implicit operator AssetObjectReference<TAsset, TObject>(TObject obj)
+        => new AssetObjectReference<TAsset, TObject> { _type = AssetOrObjectReferenceType.Object, _assetObject = obj };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsValid()
@@ -77,34 +74,15 @@ public sealed class AssetOrObjectReference<TAsset, TObject> : AssetOrObjectRefer
         return _type == AssetOrObjectReferenceType.Object;
     }
 
-    public void Cleanup()
+    public IEnumerator Load(object? addOwner = null, bool loadedAsDependency = false)
     {
-        if (_owningObject != null)
-        {
-            AssertNotNull(_asset);
-            _asset.OnLoaded -= AssetReloaded;
+        bool addedOwner = false;
 
-            Engine.AssetLoader.RemoveReferenceFromAsset(_asset, _owningObject);
-            _owningObject = null;
-            _onAssetChanged = null;
-
-            // If the reference was to an asset and not directly to the object,
-            // then this instance can be reused!
-            if (_assetName != null)
-                _type = AssetOrObjectReferenceType.AssetName;
-            else
-                _type = AssetOrObjectReferenceType.Deleted;
-        }
-    }
-
-    // This is more of an owner-reference binding than loading
-    public IEnumerator PerformLoading(object? owningObject, Action<object>? onChanged, bool callChangedOnFirstLoad = false, bool loadedAsDependency = false)
-    {
         if (_type == AssetOrObjectReferenceType.AssetName)
         {
-            _asset = Engine.AssetLoader.ONE_Get<TAsset>(_assetName, owningObject, false, loadedAsDependency);
+            _asset = Engine.AssetLoader.ONE_Get<TAsset>(_assetName, addOwner, false, loadedAsDependency);
             _type = AssetOrObjectReferenceType.Asset;
-            _owningObject = owningObject;
+            addedOwner = true;
         }
 
         if (_type == AssetOrObjectReferenceType.Asset)
@@ -112,31 +90,13 @@ public sealed class AssetOrObjectReference<TAsset, TObject> : AssetOrObjectRefer
             AssertNotNull(_asset);
             if (!_asset.Loaded)
                 yield return _asset;
-
-            if (_owningObject == null && owningObject != null)
-            {
-                Engine.AssetLoader.AddReferenceToAsset(_asset, owningObject);
-                _owningObject = owningObject;
-            }
-
-            _onAssetChanged = onChanged;
-            _asset.OnLoaded += AssetReloaded;
             _assetName = _asset.Name;
             _assetObject = _asset.GetObject();
             _type = AssetOrObjectReferenceType.Object;
         }
 
-        if (callChangedOnFirstLoad && owningObject != null && onChanged != null)
-            onChanged.Invoke(owningObject);
-    }
-
-    private void AssetReloaded(Asset obj)
-    {
-        TAsset assetAsMeshAsset = (TAsset)obj;
-        _assetObject = assetAsMeshAsset.GetObject();
-
-        if (_owningObject != null && _onAssetChanged != null)
-            _onAssetChanged.Invoke(_owningObject);
+        if (!addedOwner && addOwner != null)
+            AddOwnership(addOwner);
     }
 
     public TObject? GetObject()
@@ -160,11 +120,34 @@ public sealed class AssetOrObjectReference<TAsset, TObject> : AssetOrObjectRefer
         return _assetObject;
     }
 
+    public TAsset? GetAsset()
+    {
+        return _type == AssetOrObjectReferenceType.Asset ? _asset : null;
+    }
+
+    #region Ownership
+
+    public void AddOwnership(object obj)
+    {
+        if (!IsValid()) return;
+        Assert(ReadyToUse()); // Must be loaded!
+        Engine.AssetLoader.AddReferenceToAsset(_asset, obj);
+    }
+
+    public void RemoveOwnership<T>(T obj) where T : notnull
+    {
+        if (!IsValid()) return;
+        Assert(ReadyToUse()); // Must be loaded!
+        Engine.AssetLoader.RemoveReferenceFromAsset(_asset, obj);
+    }
+
+    #endregion
+
     #region Equality
 
     // Operators
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(AssetOrObjectReference<TAsset, TObject>? a, AssetOrObjectReference<TAsset, TObject>? b)
+    public static bool operator ==(AssetObjectReference<TAsset, TObject>? a, AssetObjectReference<TAsset, TObject>? b)
     {
         bool aIsNull = a is null;
         bool bIsNull = b is null;
@@ -187,7 +170,7 @@ public sealed class AssetOrObjectReference<TAsset, TObject> : AssetOrObjectRefer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(AssetOrObjectReference<TAsset, TObject>? a, AssetOrObjectReference<TAsset, TObject>? b)
+    public static bool operator !=(AssetObjectReference<TAsset, TObject>? a, AssetObjectReference<TAsset, TObject>? b)
     {
         return !(a == b);
     }
@@ -200,7 +183,7 @@ public sealed class AssetOrObjectReference<TAsset, TObject> : AssetOrObjectRefer
         if (ReferenceEquals(this, obj))
             return true;
 
-        AssetOrObjectReference<TAsset, TObject>? objCast = obj as AssetOrObjectReference<TAsset, TObject>;
+        AssetObjectReference<TAsset, TObject>? objCast = obj as AssetObjectReference<TAsset, TObject>;
         if (objCast != null)
             return objCast == this;
 
@@ -223,17 +206,6 @@ public sealed class AssetOrObjectReference<TAsset, TObject> : AssetOrObjectRefer
     }
 
     #endregion
-
-    public AssetOrObjectReference<TAsset, TObject> CloneForSafety()
-    {
-        // If using assets then we need to clone the reference since
-        // a reference can only be held by a since owner.
-        if (_assetName != null)
-            return _assetName;
-
-        // if using an object reference it doesn't matter, we can use the same.
-        return this;
-    }
 
     public override string? ToString()
     {

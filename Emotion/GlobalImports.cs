@@ -31,10 +31,10 @@ global using MathF = System.MathF;
 global using Color = Emotion.Primitives.Color;
 global using Rectangle = Emotion.Primitives.Rectangle;
 
-global using MeshReference = Emotion.Core.Systems.IO.AssetOrObjectReference<Emotion.Core.Systems.IO.MeshAsset, Emotion.Game.World.ThreeDee.MeshEntity>;
-global using SpriteReference = Emotion.Core.Systems.IO.AssetOrObjectReference<Emotion.Core.Systems.IO.SpriteEntityAsset, Emotion.Game.World.TwoDee.SpriteEntity>;
-global using TextureReference = Emotion.Core.Systems.IO.AssetOrObjectReference<Emotion.Graphics.Assets.TextureAsset, Emotion.Graphics.Objects.Texture>;
-global using CubeMapTextureReference = Emotion.Core.Systems.IO.AssetOrObjectReference<Emotion.Graphics.Assets.TextureCubemapAsset, Emotion.Graphics.Objects.TextureCubemap>;
-global using ShaderReference = Emotion.Core.Systems.IO.AssetOrObjectReference<Emotion.Graphics.Shader.NewShaderAsset, Emotion.Graphics.Shading.ShaderProgram>;
+global using MeshReference = Emotion.Core.Systems.IO.AssetObjectReference<Emotion.Core.Systems.IO.MeshAsset, Emotion.Game.World.ThreeDee.MeshEntity>;
+global using SpriteReference = Emotion.Core.Systems.IO.AssetObjectReference<Emotion.Core.Systems.IO.SpriteEntityAsset, Emotion.Game.World.TwoDee.SpriteEntity>;
+global using TextureReference = Emotion.Core.Systems.IO.AssetObjectReference<Emotion.Graphics.Assets.TextureAsset, Emotion.Graphics.Objects.Texture>;
+global using CubeMapTextureReference = Emotion.Core.Systems.IO.AssetObjectReference<Emotion.Graphics.Assets.TextureCubemapAsset, Emotion.Graphics.Objects.TextureCubemap>;
+global using ShaderReference = Emotion.Core.Systems.IO.AssetObjectReference<Emotion.Graphics.Shader.NewShaderAsset, Emotion.Graphics.Shading.ShaderProgram>;
 
 #endregion

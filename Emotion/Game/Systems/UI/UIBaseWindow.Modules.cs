@@ -543,7 +543,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         return null;
     }
 
-    protected static void ProxyInvalidateLayout(object? owner)
+    protected static void ProxyInvalidateLayout(object _, object? owner)
     {
         if (owner is UIBaseWindow win)
             win.InvalidateLayout();

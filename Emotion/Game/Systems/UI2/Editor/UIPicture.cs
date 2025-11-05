@@ -9,17 +9,16 @@ namespace Emotion.Game.Systems.UI2.Editor;
 
 public class UIPicture : UIBaseWindow
 {
-    public AssetOrObjectReference<TextureAsset, Texture> Texture
+    public AssetObjectReference<TextureAsset, Texture> Texture
     {
-        get => _textureBacking;
+        get => _assetOwner.GetCurrentReference();
         set
         {
-            _textureBacking = value.CloneForSafety();
+            _assetOwner.Set(value);
             InvalidateLoaded();
         }
     }
-    private AssetOrObjectReference<TextureAsset, Texture> _textureBacking = AssetOrObjectReference<TextureAsset, Texture>.Invalid;
-    private AssetOrObjectReference<TextureAsset, Texture>? _loadedTexture = null;
+    private AssetOwner<TextureAsset, Texture> _assetOwner = new();
 
     /// <summary>
     /// An override scale for the image. By default it is drawn either in full size, uv size, or render size.
@@ -103,41 +102,19 @@ public class UIPicture : UIBaseWindow
 
     public UIPicture()
     {
+        _assetOwner.SetOnChangeCallback(ProxyInvalidateLayout, this);
     }
 
     protected override void OnClose()
     {
         base.OnClose();
-
-        // Dispose of the loaded asset
-        if (_loadedTexture != null)
-        {
-            _loadedTexture.Cleanup();
-            _loadedTexture = null;
-        }
+        _assetOwner.Done();
     }
-
-    #region Loading
 
     protected override Coroutine? InternalLoad()
     {
-        if (Texture.ReadyToUse() || !Texture.IsValid())
-            return null;
-
-        // Dispose of the old one.
-        _loadedTexture?.Cleanup();
-        _loadedTexture = null;
-        return Engine.CoroutineManager.StartCoroutine(LoadAsset());
+        return _assetOwner.GetCurrentLoading();
     }
-
-    private IEnumerator LoadAsset()
-    {
-        yield return Texture.PerformLoading(this, ProxyInvalidateLayout);
-        _loadedTexture = Texture;
-        InvalidateLayout();
-    }
-
-    #endregion
 
     protected override IntVector2 InternalGetWindowMinSize()
     {

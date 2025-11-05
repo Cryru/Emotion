@@ -105,7 +105,7 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
 
         while (ve.State == Systems.UI.UIWindowState.Open)
         {
-            yield return Texture.PerformLoading(null, null);
+            yield return Texture.Load();
 
             Texture? texture = Texture.GetObject();
             if (texture == null) continue;

@@ -232,11 +232,10 @@ public abstract class Asset : IRoutineWaiter
 
     private List<IRoutineWaiter>? _dependencies;
 
-    protected void LoadAssetDependency<T, TObject>(AssetOrObjectReference<T, TObject> assetOrObjectReference)
+    protected void LoadAssetDependency<T, TObject>(AssetObjectReference<T, TObject> assetOrObjectReference)
         where T : Asset, IAssetContainingObject<TObject>, new()
     {
-        IEnumerator dependantAssetRoutine = assetOrObjectReference.PerformLoading(this, null, false, true);
-        Coroutine coroutine = Engine.CoroutineManager.StartCoroutine(dependantAssetRoutine);
+        Coroutine coroutine = Engine.CoroutineManager.StartCoroutine(assetOrObjectReference.Load(this, true));
 
         _dependencies ??= new List<IRoutineWaiter>();
         _dependencies.Add(coroutine);
