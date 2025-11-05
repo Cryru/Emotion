@@ -65,7 +65,7 @@ namespace Emotion.Graphics.Text
                 // Scale to closest power of two.
                 float fontHeight = Font.Height;
                 float scaleFactor = fontHeight / fontSize;
-                int scaleFactorP2 = Maths.ClosestPowerOfTwoGreaterThan((int) MathF.Floor(scaleFactor));
+                int scaleFactorP2 = Maths.ClosestPowerOfTwoGreaterThan((int)MathF.Floor(scaleFactor));
                 FontSize = fontHeight / scaleFactorP2;
                 PixelFont = true;
             }
@@ -118,7 +118,18 @@ namespace Emotion.Graphics.Text
                 renderGlyphs.Add(atlasGlyph);
             }
 
-            if (renderGlyphs != null) GLThread.ExecuteOnGLThreadAsync(AddGlyphsToAtlas, renderGlyphs);
+            if (renderGlyphs != null)
+                Engine.CoroutineManager.StartCoroutine(AddGlyphsToAtlasRoutine(renderGlyphs));
+        }
+
+        private IEnumerator AddGlyphsToAtlasRoutine(List<DrawableGlyph> renderGlyphs)
+        {
+            if (Engine.Renderer.ReadyToRender)
+                yield return null; // Eager routine handling
+
+            // todo
+            AddGlyphsToAtlas(renderGlyphs);
+            yield break;
         }
 
         public virtual void SetupDrawing(Renderer c, string text, FontEffect effect = FontEffect.None, float effectAmount = 0f, Color? effectColor = null)
