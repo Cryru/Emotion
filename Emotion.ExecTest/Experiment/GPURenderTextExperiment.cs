@@ -161,8 +161,8 @@ public static class GPURenderTextExperiment
             }
         }
 
-            Vector2 curveTextureSize = new Vector2();
+        //Vector2 curveTextureSize = new Vector2();
 
-        bool a = true;
+        //bool a = true;
     }
 }

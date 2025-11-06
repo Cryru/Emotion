@@ -18,6 +18,8 @@ using Emotion.Network.ServerSide;
 using Emotion.Primitives;
 using Emotion.Standard.Extensions;
 using Emotion.Game.World;
+using Emotion.Game.World.Components;
+using Emotion.Game.Systems.UI2;
 
 #endregion
 
@@ -27,7 +29,11 @@ public class MessageBrokerMultiplayer_TestObject : GameObject
 {
     public int PlayerId;
 
-    public Color Color;
+    public Color Color
+    {
+        get => GetComponent<SolidColorComponent>().Color;
+        set => GetComponent<SolidColorComponent>().Color = value;
+    }
     public bool PlayerControlled;
 
     private Vector2 _inputDirection;
@@ -35,6 +41,7 @@ public class MessageBrokerMultiplayer_TestObject : GameObject
     public MessageBrokerMultiplayer_TestObject()
     {
         Scale2D = new Vector2(20);
+        AddComponent(new SolidColorComponent(Color.White));
     }
 
     public void AttachInput()
@@ -64,11 +71,6 @@ public class MessageBrokerMultiplayer_TestObject : GameObject
         if (PlayerControlled)
             Position2D += _inputDirection * 0.1f * dt;
     }
-
-    public override void Render(Renderer c)
-    {
-        c.RenderSprite(Position3D, Scale2D, Color);
-    }
 }
 
 public class MessageBrokerMultiplayer_TestScene : SceneWithMap
@@ -84,7 +86,7 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
         Engine.AssetLoader.Get<ShaderAsset>("FontShaders/SDF.xml");
 
         UIBaseWindow buttonList = new UIBaseWindow();
-        buttonList.LayoutMode = LayoutMode.HorizontalList;
+        buttonList.Layout.LayoutMethod = UILayoutMethod.HorizontalList(0);
         SceneUI.AddChild(buttonList);
 
         buttonList.AddChild(new EditorButton("Host")

@@ -1,15 +1,14 @@
 ﻿#region Using
 
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Numerics;
 using Emotion.Core;
 using Emotion.Core.Systems.Input;
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Systems.Scenography;
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI2;
+using Emotion.Game.World;
+using Emotion.Game.World.Components;
 using Emotion.Graphics;
 using Emotion.Network.Base;
 using Emotion.Network.ClientSide;
@@ -17,7 +16,10 @@ using Emotion.Network.ServerSide;
 using Emotion.Network.TimeSyncMessageBroker;
 using Emotion.Primitives;
 using Emotion.Standard.Extensions;
-using Emotion.Game.World;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Numerics;
 
 #endregion
 
@@ -28,7 +30,11 @@ public class TimeSyncMultiplayer_TestObject : GameObject
     public Vector2 DesiredPosition;
     public int PlayerId;
 
-    public Color Color;
+    public Color Color
+    {
+        get => GetComponent<SolidColorComponent>().Color;
+        set => GetComponent<SolidColorComponent>().Color = value;
+    }
     public bool PlayerControlled;
 
     private Vector2 _inputDirection;
@@ -36,6 +42,7 @@ public class TimeSyncMultiplayer_TestObject : GameObject
     public TimeSyncMultiplayer_TestObject()
     {
         Scale2D = new Vector2(20);
+        AddComponent(new SolidColorComponent(Color.White));
     }
 
     public void AttachInput()
@@ -65,11 +72,6 @@ public class TimeSyncMultiplayer_TestObject : GameObject
         if (PlayerControlled)
             DesiredPosition += _inputDirection * 0.1f * dt;
     }
-
-    public override void Render(Renderer c)
-    {
-        c.RenderSprite(Position3D, Scale2D, Color);
-    }
 }
 
 public class TimeSyncMultiplayer_TestScene : SceneWithMap
@@ -85,7 +87,7 @@ public class TimeSyncMultiplayer_TestScene : SceneWithMap
         Engine.AssetLoader.Get<ShaderAsset>("FontShaders/SDF.xml");
 
         UIBaseWindow buttonList = new UIBaseWindow();
-        buttonList.LayoutMode = LayoutMode.HorizontalList;
+        buttonList.Layout.LayoutMethod = UILayoutMethod.HorizontalList(0);
         SceneUI.AddChild(buttonList);
 
         buttonList.AddChild(new EditorButton("Host")

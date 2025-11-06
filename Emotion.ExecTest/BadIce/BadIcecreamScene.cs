@@ -24,8 +24,8 @@ public class BadIcecreamScene : SceneWithMap
 
         Map = map;
 
-        var iceBlock = new Iceblock();
-        map.AddObject(iceBlock);
+        //var iceBlock = new Iceblock();
+        //map.AddObject(iceBlock);
 
         yield break;
     }
