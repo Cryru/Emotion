@@ -9,15 +9,7 @@ public interface ITerrainGrid3D : IGridWorldSpaceTiles
 
     public Vector2 TileSize { get; }
 
-    public IEnumerator InitRuntimeDataRoutine();
-
-    public void UnloadRuntimeData();
-
     public float GetHeightAt(Vector2 worldSpace);
-
-    public void Update(float dt);
-
-    public void Render(Renderer c, Frustum frustum);
 
     public bool IsTileInBounds(Vector2 tile);
 

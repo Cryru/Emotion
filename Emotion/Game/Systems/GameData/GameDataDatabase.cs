@@ -21,7 +21,7 @@ public static partial class GameDatabase
         Assert(!Initialized);
         if (Initialized) return;
 
-        Type[] gameDataTypes = ReflectorEngine.GetTypesDescendedFrom(typeof(GameDataObject), true);
+        Type[] gameDataTypes = ReflectorEngine.GetTypesDescendedFrom<GameDataObject>(true);
         foreach (Type typ in gameDataTypes)
         {
             ComplexTypeHandlerMemberBase? member = EditorAdapter.GetStaticAllDefinitionsMember(typ);

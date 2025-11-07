@@ -79,20 +79,18 @@ public class MapEditorViewMode : UIBaseWindow
                 new EditorLabel()
                 {
                     Name = "CameraPosition",
-                    TextShadow = Color.Black,
-                    ShadowOffset = new Vector2(1f),
-                    OutlineColor = Color.Black,
+                    OutlineColor = Color.Black * 0.5f,
                     OutlineSize = 2,
                     AllowRenderBatch = false,
-                    FontSize = 25
+                    FontSize = 23
                 },
                 new MapEditorViewModeOrientationGizmo()
                 {
                     Layout =
                     {
                         Margins = new UISpacing(0, 10, 0, 0),
-                        SizingX = UISizing.Fixed(128),
-                        SizingY = UISizing.Fixed(128),
+                        SizingX = UISizing.Fixed(100),
+                        SizingY = UISizing.Fixed(100),
                     }
                 }
             }
@@ -204,7 +202,7 @@ public class MapEditorViewMode : UIBaseWindow
             // if the scale is before the rotate it doesnt need to be inverted if the default projection has the near and far swapped.
             // the mesh seems to be correct?
             r.PushModelMatrix(r.Camera.GetRotationMatrix());
-            r.PushModelMatrix(Matrix4x4.CreateScale(2f * GetScale(), 2f * GetScale(), -2f * GetScale()));
+            r.PushModelMatrix(Matrix4x4.CreateScale(1.5f * GetScale(), 1.5f * GetScale(), -1.5f * GetScale()));
             r.PushModelMatrix(Matrix4x4.CreateTranslation((center + new Vector2(0, 0)).ToVec3(100)));
 
             // todo: render 3d in UI

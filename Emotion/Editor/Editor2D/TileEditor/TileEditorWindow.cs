@@ -103,14 +103,14 @@ public sealed class TileEditorWindow : GridEditorWindow
         };
         sidePanel.AddChild(sidePanelBg);
 
-        IGenericReflectorComplexTypeHandler? tileDataTypeHandler = ReflectorEngine.GetComplexTypeHandler<GameMapTileData>();
+        IGenericReflectorComplexTypeHandler? tileDataTypeHandler = ReflectorEngine.GetComplexTypeHandler<TileMapGrid>();
 
         // Layers
         {
             //GameMapTileData? tileData = GetCurrentMapTileData();
             //List<TileMapLayerGrid>? list = tileData?.Layers;
             //_layerChoose?.SetEditorExtended(list, CurrentLayer, SelectTileLayer);
-            GameMapTileData? tileData = GetCurrentMapTileData();
+            TileMapGrid? tileData = GetCurrentMapTileData();
             ComplexTypeHandlerMemberBase? layerHandler = tileDataTypeHandler?.GetMemberByName(nameof(tileData.Layers));
             if (tileData != null && layerHandler != null)
             {
@@ -202,10 +202,10 @@ public sealed class TileEditorWindow : GridEditorWindow
         return base.RenderInternal(c);
     }
 
-    public GameMapTileData? GetCurrentMapTileData()
+    public TileMapGrid? GetCurrentMapTileData()
     {
-        if (Engine.SceneManager.Current is SceneWithMap sceneWithMap && sceneWithMap.Map != null && sceneWithMap.Map.TileMapData != null)
-            return sceneWithMap.Map.TileMapData;
+        //if (Engine.SceneManager.Current is SceneWithMap sceneWithMap && sceneWithMap.Map != null && sceneWithMap.Map.TileMapData != null)
+        //    return sceneWithMap.Map.TileMapData;
         return null;
     }
 
@@ -220,7 +220,7 @@ public sealed class TileEditorWindow : GridEditorWindow
 
     public IEnumerable<TileMapLayer> GetTileLayers()
     {
-        GameMapTileData? tileData = GetCurrentMapTileData();
+        TileMapGrid? tileData = GetCurrentMapTileData();
         if (tileData == null) return Array.Empty<TileMapLayer>();
 
         return tileData.Layers;
@@ -263,7 +263,7 @@ public sealed class TileEditorWindow : GridEditorWindow
 
     public IEnumerable<TileMapTileset> GetTilesets()
     {
-        GameMapTileData? tileData = GetCurrentMapTileData();
+        TileMapGrid? tileData = GetCurrentMapTileData();
         if (tileData == null) return Array.Empty<TileMapTileset>();
 
         return tileData.Tilesets;

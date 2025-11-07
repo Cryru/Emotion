@@ -2,15 +2,12 @@
 
 #region Using
 
-using Emotion.Core.Systems.Input;
 using Emotion.Core.Utility.Profiling;
 using Emotion.Editor.EditorUI;
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 using Emotion.Editor.Tools.GameDataTool;
-using Emotion.Game.Systems.UI;
-using Emotion.Game.Systems.UI.Text.TextUpdate;
-using Emotion.Game.Systems.UI2;
+using Emotion.Editor.Workflow;
 using Emotion.Graphics.Camera;
 using System.Text;
 
@@ -22,18 +19,34 @@ public static partial class EngineEditor
 {
     public static bool IsOpen { get; private set; }
 
-    public static UIBaseWindow EditorRoot = null!;
+    public static UIBaseWindow EditorUI { get; private set; } = null!;
 
     private static NewUIText _perfText = null!;
 
-    public static void Attach()
+    private static UIBaseWindow _editorUIHorizontalParent = null!;
+    private static UIBaseWindow? _editorBars;
+    private static UIBaseWindow? _workflowParent;
+
+    public static EditorWorkflow? CurrentWorkflow { get; private set; } = null;
+
+    public static void Initialize()
     {
         if (!Engine.Configuration.DebugMode) return;
         Engine.Host.OnKey.AddListener(EditorButtonHandler, KeyListenerType.Editor);
-        EditorRoot = new UIBaseWindow()
+        EditorUI = new UIBaseWindow()
         {
             Name = "EditorRoot"
         };
+        Engine.UI.AddChild(EditorUI);
+
+        _editorUIHorizontalParent = new UIBaseWindow()
+        {
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalList(0)
+            }
+        };
+        EditorUI.AddChild(_editorUIHorizontalParent);
     }
 
     private static bool EditorButtonHandler(Key key, KeyState status)
@@ -55,7 +68,17 @@ public static partial class EngineEditor
         Engine.Input.SuppressMouseFirstPersonMode(true, "Editor");
         Engine.Host.OnKey.BlockListenersOfType(KeyListenerType.Game);
 
-        Engine.UI.AddChild(EditorRoot);
+        _workflowParent = new UIBaseWindow()
+        {
+            Layout =
+            {
+                SizingX = UISizing.Fit()
+            }
+        };
+        _editorUIHorizontalParent.AddChild(_workflowParent);
+
+        _editorBars = new UIBaseWindow();
+        _editorUIHorizontalParent.AddChild(_editorBars);
 
         UIBaseWindow barContainer = new()
         {
@@ -64,7 +87,7 @@ public static partial class EngineEditor
                 LayoutMethod = UILayoutMethod.VerticalList(0)
             }
         };
-        EditorRoot.AddChild(barContainer);
+        _editorBars.AddChild(barContainer);
         barContainer.AddChild(new EditorTopBar());
         barContainer.AddChild(new MapEditorViewMode());
 
@@ -84,7 +107,7 @@ public static partial class EngineEditor
             OutlineSize = 2,
             AllowRenderBatch = false
         };
-        EditorRoot.AddChild(_perfText);
+        _editorBars.AddChild(_perfText);
 
         IsOpen = true;
         Engine.Log.Info($"Editor opened", "Editor");
@@ -95,8 +118,14 @@ public static partial class EngineEditor
         Engine.Input.SuppressMouseFirstPersonMode(false, "Editor");
         Engine.Host.OnKey.BlockListenersOfType(null);
 
-        Engine.UI.RemoveChild(EditorRoot);
-        EditorRoot.ClearChildren();
+        AssertNotNull(_editorBars);
+        _editorUIHorizontalParent.RemoveChild(_editorBars);
+        _editorBars = null;
+
+        AssertNotNull(_workflowParent);
+        _editorUIHorizontalParent.RemoveChild(_workflowParent);
+        _workflowParent = null;
+
         SetMapEditorMode(MapEditorMode.Off);
 
         IsOpen = false;
@@ -182,7 +211,7 @@ public static partial class EngineEditor
         container.AddChild(viewGameCamera);
 
         // Camera speed
-        UIBaseWindow cameraSpeed = TypeEditor.CreateCustomWithLabel("Camera Speed", (float) 0, SetDebugCameraSpeed, LabelStyle.MapEditor);
+        UIBaseWindow cameraSpeed = TypeEditor.CreateCustomWithLabel("Camera Speed", (float)0, SetDebugCameraSpeed, LabelStyle.MapEditor);
         cameraSpeed.Layout.MaxSizeX = 220;
         container.OnModeChanged = (_) =>
         {
@@ -208,7 +237,7 @@ public static partial class EngineEditor
             c.RenderSprite(twoDee.Position, twoDee.Size, Color.Magenta * 0.1f);
             c.RenderRectOutline(twoDee.Position, twoDee.Size, Color.Magenta, 3);
         }
-        
+
         if (MapEditorMode == MapEditorMode.ThreeDee)
         {
             Frustum frustum = gameCam.GetCameraView3D();
@@ -360,7 +389,7 @@ public static partial class EngineEditor
 
     public static void OpenToolWindowUnique(UIBaseWindow tool)
     {
-        foreach (UIBaseWindow item in EditorRoot.Children)
+        foreach (UIBaseWindow item in EditorUI.Children)
         {
             if (item.GetType() == tool.GetType())
             {
@@ -373,7 +402,20 @@ public static partial class EngineEditor
                 return;
             }
         }
-        EditorRoot.AddChild(tool);
+        EditorUI.AddChild(tool);
+    }
+
+    #endregion
+
+    #region Workflow
+
+    public static void SetWorkflow(EditorWorkflow? workflow)
+    {
+        AssertNotNull(_workflowParent);
+        _workflowParent.ClearChildren();
+        CurrentWorkflow?.Done();
+        CurrentWorkflow = workflow;
+        workflow?.Init(_workflowParent);
     }
 
     #endregion

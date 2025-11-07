@@ -23,7 +23,7 @@ public class TileEditorBrushTool : TileEditorTool
 
         Vector2 tileSize = currentLayer.TileSize;
 
-        GameMapTileData? tileData = editor.GetCurrentMapTileData();
+        TileMapGrid? tileData = editor.GetCurrentMapTileData();
         if (tileData == null) yield break;
 
         TilesetId currentTilesetId = editor.GetCurrentTilesetIndex();
@@ -51,7 +51,7 @@ public class TileEditorBrushTool : TileEditorTool
 
     public override void ApplyTool(TileEditorWindow editor, TileMapLayer currentLayer, Vector2 cursorPos)
     {
-        GameMapTileData? tileData = editor.GetCurrentMapTileData();
+        TileMapGrid? tileData = editor.GetCurrentMapTileData();
         AssertNotNull(tileData);
         if (tileData == null) return;
 
@@ -65,7 +65,7 @@ public class TileEditorBrushTool : TileEditorTool
     {
         Vector2 tileSize = currentLayer.TileSize;
 
-        GameMapTileData? tileData = editor.GetCurrentMapTileData();
+        TileMapGrid? tileData = editor.GetCurrentMapTileData();
         AssertNotNull(tileData);
         if (tileData == null) return;
 

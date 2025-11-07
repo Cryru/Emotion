@@ -5,9 +5,8 @@ using Emotion.Game.World.Components;
 using Emotion.Game.World.Terrain;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Game.World.TileMap;
-using Emotion.Game.World.TwoDee;
 using Emotion.Graphics.Camera;
-using Emotion.Primitives;
+using System.Runtime.InteropServices;
 
 namespace Emotion.Game.World;
 
@@ -18,6 +17,17 @@ public enum GameMapState
     Initialized
 }
 
+public interface IMapGrid
+{
+    public IEnumerator InitRuntimeDataRoutine();
+
+    public void Done();
+
+    public void Update(float dt);
+
+    public void Render(Renderer r, CameraCullingContext culling);
+}
+
 public partial class GameMap : IDisposable
 {
     [DontSerialize]
@@ -25,17 +35,13 @@ public partial class GameMap : IDisposable
 
     public string MapFileName = string.Empty;
 
+    public IMapGrid[] Grids = Array.Empty<IMapGrid>();
+
+    public LightModel LightModel = LightModel.DefaultLightModel;
+
     private List<GameObject> _objectsOnMap = new(); // Objects the map was saved with, todo
 
     private Queue<GameObject> _objectsToLoad = new(); // Queue of objects to load
-
-    //public List<IMapGrid> Grids = new();
-    public GameMapTileData? TileMapData;
-
-    [DontSerialize] // todo: investigate
-    public ITerrainGrid3D? TerrainGrid;
-
-    public LightModel LightModel = LightModel.DefaultLightModel;
 
     public GameMap()
     {
@@ -44,11 +50,15 @@ public partial class GameMap : IDisposable
 
     public IEnumerator InitRoutine()
     {
-        if (TileMapData != null)
-            yield return TileMapData.InitRuntimeDataRoutine();
+        var gridLoadingRoutines = new Coroutine[Grids.Length];
+        for (int i = 0; i < Grids.Length; i++)
+        {
+            IMapGrid grid = Grids[i];
+            Coroutine routine = Engine.CoroutineManager.StartCoroutine(grid.InitRuntimeDataRoutine());
+            gridLoadingRoutines[i] = routine;
+        }
 
-        if (TerrainGrid != null)
-            yield return TerrainGrid.InitRuntimeDataRoutine();
+        yield return Coroutine.WhenAll(gridLoadingRoutines);
 
         State = GameMapState.LoadingObjects;
 
@@ -149,7 +159,10 @@ public partial class GameMap : IDisposable
 
     public void Update(float dt)
     {
-        TerrainGrid?.Update(dt);
+        foreach (IMapGrid grid in Grids)
+        {
+            grid.Update(dt);
+        }
 
         // Load objects waiting to be loaded
         if (_loadNewObjectsRoutine.Finished && _objectsToLoad.Count > 0)
@@ -166,27 +179,30 @@ public partial class GameMap : IDisposable
 
     public void Render(Renderer r)
     {
-        Rectangle clipArea = r.Camera.GetCameraView2D();
-        TileMapData?.Render(r, clipArea);
-
-        Frustum frustum = r.Camera.GetCameraView3D();
-        TerrainGrid?.Render(r, frustum);
+        var culling = new CameraCullingContext(r.Camera);
+        foreach (IMapGrid grid in Grids)
+        {
+            grid.Render(r, culling);
+        }
 
         // todo: quadtree/octree query
-        bool cameraIs2D = r.Camera is Camera2D;
-        if (cameraIs2D)
+        if (culling.Is2D)
         {
+            Rectangle rect = culling.Rect2D;
             foreach (GameObject obj in ForEachObject())
             {
-                if (!obj.AlwaysRender && !obj.GetBoundingRect().Intersects(clipArea)) continue;
+                if (!obj.AlwaysRender) continue;
+                if (!obj.GetBoundingRect().Intersects(rect)) continue;
                 obj.ForEachComponentOfType<IRenderableComponent, Renderer>(static (component, r) => component.Render(r), r);
             }
         }
         else
         {
+            Frustum frustum = culling.Frustum;
             foreach (GameObject obj in ForEachObject())
             {
-                if (!obj.AlwaysRender && !frustum.IntersectsOrContainsCube(obj.GetBoundingCube())) continue;
+                if (!obj.AlwaysRender) continue;
+                if (!frustum.IntersectsOrContainsCube(obj.GetBoundingCube())) continue;
                 obj.ForEachComponentOfType<IRenderableComponent, Renderer>(static (component, r) => component.Render(r), r);
             }
         }
@@ -194,7 +210,31 @@ public partial class GameMap : IDisposable
 
     public void Dispose()
     {
-        TileMapData?.UnloadRuntimeData();
-        TerrainGrid?.UnloadRuntimeData();
+        foreach (IMapGrid grid in Grids)
+        {
+            grid.Done();
+        }
     }
+
+    #region Grids
+
+    public void AddGrid(IMapGrid grid)
+    {
+        if (State == GameMapState.Initialized)
+            Coroutine.RunInline(grid.InitRuntimeDataRoutine());
+
+        Array.Resize(ref Grids, Grids.Length + 1);
+        Grids[^1] = grid;
+    }
+
+    public TGrid? GetFirstGridOfType<TGrid>()
+    {
+        foreach (IMapGrid grid in Grids)
+        {
+            if (grid is TGrid tGrid) return tGrid;
+        }
+        return default;
+    }
+
+    #endregion
 }

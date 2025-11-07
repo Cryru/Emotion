@@ -19,7 +19,7 @@ public class TileEditorEraserTool : TileEditorTool
         AssertNotNull(editor.TileTextureSelector);
         if (editor.TileTextureSelector == null) return;
 
-        GameMapTileData? tileData = editor.GetCurrentMapTileData();
+        TileMapGrid? tileData = editor.GetCurrentMapTileData();
         if (tileData == null) return;
 
         currentLayer.ExpandingSetAt(cursorPos, TileMapTile.Empty);

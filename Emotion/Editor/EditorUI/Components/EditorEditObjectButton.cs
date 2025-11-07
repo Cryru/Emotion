@@ -45,6 +45,6 @@ public class EditorEditObjectButton : SquareEditorButtonWithTexture
         AssertNotNull(_typeHandler);
 
         var objEditWindow = new ObjectPropertyEditorWindow(_obj);
-        EngineEditor.EditorRoot.AddChild(objEditWindow);
+        EngineEditor.EditorUI.AddChild(objEditWindow);
     }
 }

@@ -15,6 +15,7 @@ namespace Emotion.Core.Systems.IO.AssetPack;
 /// <summary>
 /// Load a package of assets created by the Emotion.PostBuildTool
 /// </summary>
+[DontSerialize]
 public abstract class PackedAssetSource : AssetSource
 {
     /// <summary>

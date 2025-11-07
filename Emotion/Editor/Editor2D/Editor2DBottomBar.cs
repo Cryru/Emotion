@@ -90,7 +90,7 @@ public class Editor2DBottomBar : UIBaseWindow
                 editorWindow.SpawnBottomBarContent(this, barContent);
                 _currentEditor = editorWindow;
 
-                EngineEditor.EditorRoot.AddChild(editorWindow);
+                EngineEditor.EditorUI.AddChild(editorWindow);
             };
             toolButtonList.AddChild(toolButton);
         }
@@ -106,7 +106,7 @@ public class Editor2DBottomBar : UIBaseWindow
                 editorWindow.SpawnBottomBarContent(this, barContent);
                 _currentEditor = editorWindow;
 
-                EngineEditor.EditorRoot.AddChild(editorWindow);
+                EngineEditor.EditorUI.AddChild(editorWindow);
             };
             toolButtonList.AddChild(toolButton);
         }
@@ -122,7 +122,7 @@ public class Editor2DBottomBar : UIBaseWindow
                 editorWindow.SpawnBottomBarContent(this, barContent);
                 _currentEditor = editorWindow;
 
-                EngineEditor.EditorRoot.AddChild(editorWindow);
+                EngineEditor.EditorUI.AddChild(editorWindow);
             };
             toolButtonList.AddChild(toolButton);
         }

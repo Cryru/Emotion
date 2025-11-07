@@ -302,7 +302,7 @@ public static class Engine
         LocalizationEngine.Initialize();
 
         // Debuggers
-        EngineEditor.Attach();
+        EngineEditor.Initialize();
 
         // Setup plugins.
         PerfProfiler.ProfilerEventStart("Plugin Setup", "Loading");

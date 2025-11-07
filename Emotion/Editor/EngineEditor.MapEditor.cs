@@ -48,7 +48,7 @@ public static partial class EngineEditor
         UIBaseWindow? gameUI = Engine.UI.GetWindowById("GameUIRoot");
         gameUI?.SetVisible(false);
 
-        UIBaseWindow? bottomBarCurrent = EditorRoot.GetWindowById("BottomBar");
+        UIBaseWindow? bottomBarCurrent = EditorUI.GetWindowById("BottomBar");
         bottomBarCurrent?.Close();
 
         _enableDragWithMiddleMouse = false;
@@ -68,13 +68,13 @@ public static partial class EngineEditor
             };
 
             var bottomBar = new Editor2DBottomBar();
-            EditorRoot.AddChild(bottomBar);
+            EditorUI.AddChild(bottomBar);
 
-            GameMap? map = GetCurrentMap();
-            if (map?.TerrainGrid != null)
-                SetGridSize(map.TerrainGrid.TileSize);
-            else
-                SetGridSize(Vector2.Zero);
+            //GameMap? map = GetCurrentMap();
+            //if (map?.TerrainGrid != null)
+            //    SetGridSize(map.TerrainGrid.TileSize);
+            //else
+            //    SetGridSize(Vector2.Zero);
         }
         else if (MapEditorMode == MapEditorMode.TwoDee)
         {
@@ -85,7 +85,7 @@ public static partial class EngineEditor
             };
 
             var bottomBar = new Editor2DBottomBar();
-            EditorRoot.AddChild(bottomBar);
+            EditorUI.AddChild(bottomBar);
 
             _enableDragWithMiddleMouse = true;
 
@@ -102,7 +102,7 @@ public static partial class EngineEditor
         UIBaseWindow? gameUI = Engine.UI.GetWindowById("GameUIRoot");
         gameUI?.SetVisible(true);
 
-        UIBaseWindow? bottomBarCurrent = EditorRoot.GetWindowById("BottomBar");
+        UIBaseWindow? bottomBarCurrent = EditorUI.GetWindowById("BottomBar");
         bottomBarCurrent?.Close();
 
         Engine.Renderer.Camera = _cameraOutsideEditor;

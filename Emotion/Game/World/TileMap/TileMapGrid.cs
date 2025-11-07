@@ -3,13 +3,12 @@
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Graphics.Assets;
+using Emotion.Graphics.Camera;
 using Emotion.Primitives.Grids;
-using Microsoft.CodeAnalysis;
-using System;
 
 namespace Emotion.Game.World.TileMap;
 
-public class GameMapTileData
+public class TileMapGrid : IMapGrid
 {
     public List<TileMapLayer> Layers = new();
     public List<TileMapTileset> Tilesets = new();
@@ -51,7 +50,7 @@ public class GameMapTileData
         yield return Coroutine.WhenAll(routines);
     }
 
-    public void UnloadRuntimeData()
+    public void Done()
     {
         if (_tilesetTextureOwners == null) return;
         foreach (AssetOwner<TextureAsset, Texture> owner in _tilesetTextureOwners)
@@ -84,16 +83,19 @@ public class GameMapTileData
         return (tilesetTexture, uvRect);
     }
 
-    public void Render(Renderer c, Rectangle clipArea)
+    public void Update(float dt)
     {
+
+    }
+
+    public void Render(Renderer r, CameraCullingContext culling)
+    {
+        Rectangle clipArea = culling.Rect2D;
+
         if (_renderCache == null)
-        {
             _renderCache = new TileMapLayerRenderCache[Layers.Count];
-        }
         else if (Layers.Count != _renderCache.Length)
-        {
             Array.Resize(ref _renderCache, Layers.Count);
-        }
 
         // Update the render cache, load chunks, etc.
         for (int i = 0; i < Layers.Count; i++)
@@ -107,7 +109,7 @@ public class GameMapTileData
         {
             TileMapLayerRenderCache cache = _renderCache[i];
             AssertNotNull(cache);
-            cache.Render(c, _tilesetTexturesLoaded);
+            cache.Render(r, _tilesetTexturesLoaded);
         }
     }
 

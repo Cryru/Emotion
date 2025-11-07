@@ -10,6 +10,8 @@ using Emotion.Editor.Tools.InterfaceTool;
 using Emotion.Editor.Tools.SpriteEntityTool;
 using Emotion.Core.Platform.Implementation.Win32;
 using Emotion.Standard.Reflector;
+using Emotion.Editor.Workflow;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
 
 namespace Emotion.Editor.EditorUI;
 
@@ -59,6 +61,7 @@ public class EditorTopBar : UIBaseWindow
 
         UIBaseWindow? buttonContainer = GetWindowById("ButtonContainer");
         if (buttonContainer == null) return;
+        AttachWorkflowMenu(buttonContainer);
         AttachMapMenu(buttonContainer);
 
         {
@@ -85,7 +88,7 @@ public class EditorTopBar : UIBaseWindow
             {
                 UIDropDown dropDown = EditorDropDown.OpenListDropdown(me);
 
-                Type[] gameDataObjectTypes = ReflectorEngine.GetTypesDescendedFrom(typeof(GameDataObject), true);
+                Type[] gameDataObjectTypes = ReflectorEngine.GetTypesDescendedFrom<GameDataObject>(true);
                 foreach (Type typ in gameDataObjectTypes)
                 {
                     EditorButton button = new EditorButton(typ.Name);
@@ -101,16 +104,16 @@ public class EditorTopBar : UIBaseWindow
             buttonContainer.AddChild(toolButton);
         }
 
-        {
-            EditorButton toolButton = new EditorButton("Chunk Stream Visualizer");
-            toolButton.OnClickedProxy = (_) =>
-            {
-                GameMap? currentMap = EngineEditor.GetCurrentMap();
-                if (currentMap?.TerrainGrid != null)
-                    EngineEditor.OpenToolWindowUnique(new ChunkStreamVisualizer(currentMap.TerrainGrid));
-            };
-            buttonContainer.AddChild(toolButton);
-        }
+        //{
+        //    EditorButton toolButton = new EditorButton("Chunk Stream Visualizer");
+        //    toolButton.OnClickedProxy = (_) =>
+        //    {
+        //        GameMap? currentMap = EngineEditor.GetCurrentMap();
+        //        if (currentMap?.TerrainGrid != null)
+        //            EngineEditor.OpenToolWindowUnique(new ChunkStreamVisualizer(currentMap.TerrainGrid));
+        //    };
+        //    buttonContainer.AddChild(toolButton);
+        //}
 
         {
             EditorButton toolButton = new EditorButton("Job System Visualizer");
@@ -143,69 +146,98 @@ public class EditorTopBar : UIBaseWindow
 
     private void AttachMapMenu(UIBaseWindow buttonContainer)
     {
+        EditorButton toolButton = new EditorButton("Map");
+        toolButton.OnClickedProxy = (me) =>
         {
-            EditorButton toolButton = new EditorButton("Map");
-            toolButton.OnClickedProxy = (me) =>
+            UIDropDown dropDown = EditorDropDown.OpenListDropdown(me);
+
             {
-                UIDropDown dropDown = EditorDropDown.OpenListDropdown(me);
-
+                EditorButton button = new EditorButton("New");
+                button.Layout.SizingX = UISizing.Grow();
+                button.OnClickedProxy = (_) =>
                 {
-                    EditorButton button = new EditorButton("New");
-                    button.GrowX = true;
-                    button.OnClickedProxy = (_) =>
-                    {
-                        //NewFile();
-                        dropDown.Close();
-                    };
-                    dropDown.AddChild(button);
-                }
+                    //NewFile();
+                    dropDown.Close();
+                };
+                dropDown.AddChild(button);
+            }
 
+            {
+                EditorButton button = new EditorButton("Open...");
+                button.Layout.SizingX = UISizing.Grow();
+                button.OnClickedProxy = (_) =>
                 {
-                    EditorButton button = new EditorButton("Open...");
-                    button.GrowX = true;
-                    button.OnClickedProxy = (_) =>
-                    {
-                        dropDown.Close();
-                    };
-                    dropDown.AddChild(button);
-                }
+                    dropDown.Close();
+                };
+                dropDown.AddChild(button);
+            }
 
+            {
+                EditorButton button = new EditorButton("Save");
+                button.Layout.SizingX = UISizing.Grow();
+                button.OnClickedProxy = (_) =>
                 {
-                    EditorButton button = new EditorButton("Save");
-                    button.GrowX = true;
-                    button.OnClickedProxy = (_) =>
-                    {
-                        dropDown.Close();
-                    };
-                    button.Enabled = EngineEditor.GetCurrentMap() != null;
-                    dropDown.AddChild(button);
-                }
+                    dropDown.Close();
+                };
+                button.Enabled = EngineEditor.GetCurrentMap() != null;
+                dropDown.AddChild(button);
+            }
 
+            {
+                EditorButton button = new EditorButton("Properties");
+                button.Layout.SizingX = UISizing.Grow();
+                button.OnClickedProxy = (_) =>
                 {
-                    EditorButton button = new EditorButton("Properties");
-                    button.GrowX = true;
-                    button.OnClickedProxy = (_) =>
+                    dropDown.Close();
+
+                    GameMap? map = EngineEditor.GetCurrentMap();
+                    if (map == null) return;
+
+                    var win = new ObjectPropertyEditorWindow(map);
+                    EngineEditor.EditorUI.AddChild(win);
+                };
+                button.Enabled = EngineEditor.GetCurrentMap() != null;
+                dropDown.AddChild(button);
+            }
+
+            //{
+            //    EditorButton button = new EditorButton("Save As");
+            //    button.FillX = true;
+            //    dropDown.AddChild(button);
+            //}
+        };
+        toolButton.Enabled = Engine.SceneManager.Current is SceneWithMap;
+        buttonContainer.AddChild(toolButton);
+    }
+
+    private void AttachWorkflowMenu(UIBaseWindow buttonContainer)
+    {
+        EditorButton toolButton = new EditorButton("Workflow");
+        toolButton.OnClickedProxy = (me) =>
+        {
+            UIDropDown dropDown = EditorDropDown.OpenListDropdown(me);
+
+            Type[] workflows = ReflectorEngine.GetTypesDescendedFrom<EditorWorkflow>();
+            foreach (Type workflow in workflows)
+            {
+                IGenericReflectorComplexTypeHandler? workflowHandler = ReflectorEngine.GetComplexTypeHandler(workflow);
+                if (workflowHandler?.CreateNew() is not EditorWorkflow workflowInstance) continue;
+
+                EditorButton button = new(workflowInstance.Name)
+                {
+                    Layout =
                     {
+                        SizingX = UISizing.Grow()
+                    },
+                    OnClickedProxy = (_) =>
+                    {
+                        EngineEditor.SetWorkflow(workflowInstance);
                         dropDown.Close();
-
-                        GameMap? map = EngineEditor.GetCurrentMap();
-                        if (map == null) return;
-
-                        var win = new ObjectPropertyEditorWindow(map);
-                        EngineEditor.EditorRoot.AddChild(win);
-                    };
-                    button.Enabled = EngineEditor.GetCurrentMap() != null;
-                    dropDown.AddChild(button);
-                }
-
-                //{
-                //    EditorButton button = new EditorButton("Save As");
-                //    button.FillX = true;
-                //    dropDown.AddChild(button);
-                //}
-            };
-            toolButton.Enabled = Engine.SceneManager.Current is SceneWithMap;
-            buttonContainer.AddChild(toolButton);
-        }
+                    }
+                };
+                dropDown.AddChild(button);
+            }
+        };
+        buttonContainer.AddChild(toolButton);
     }
 }

@@ -4,6 +4,7 @@ using Emotion.Core.Utility.Threading;
 using Emotion.Editor;
 using Emotion.Game.World.Terrain.MeshGridStreaming;
 using Emotion.Game.World.ThreeDee;
+using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Memory;
 using Emotion.Graphics.Shading;
@@ -44,7 +45,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
         yield break;
     }
 
-    public virtual void UnloadRuntimeData()
+    public virtual void Done()
     {
         EngineEditor.RemoveEditorVisualizations(this);
     }
@@ -274,8 +275,10 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
 
     protected List<ChunkT> _renderThisPass = new(32);
 
-    public virtual void Render(Renderer r, Frustum frustum)
+    public void Render(Renderer r, CameraCullingContext culling)
     {
+        Frustum frustum = culling.Frustum;
+
         // Gather chunks to render this pass.
         _renderThisPass.Clear();
         Dictionary<Vector2, ChunkT> chunks = GetChunksInState(ChunkState.HasGPUData);
@@ -287,9 +290,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
                 Cube bounds = chunk.Bounds;
                 Assert(!bounds.IsEmpty);
                 if (frustum.IntersectsOrContainsCube(bounds)) // Frustum cull
-                {
                     _renderThisPass.Add(chunk);
-                }
             }
         }
 

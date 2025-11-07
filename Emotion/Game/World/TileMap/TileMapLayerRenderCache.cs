@@ -32,7 +32,7 @@ public class TileMapLayerRenderCache
         _renderThisPass?.Clear();
     }
 
-    private void MarkChunkForRender(GameMapTileData tileMapData, TileMapLayer layer, TileMapChunk chunk, Vector2 chunkCoord)
+    private void MarkChunkForRender(TileMapGrid tileMapData, TileMapLayer layer, TileMapChunk chunk, Vector2 chunkCoord)
     {
         _renderThisPass ??= new List<TileMapLayerRenderCacheChunk>(32);
 
@@ -47,7 +47,7 @@ public class TileMapLayerRenderCache
         UpdateChunkRenderCache(cachedChunk, tileMapData, layer, chunk, chunkCoord);
     }
 
-    private void UpdateChunkRenderCache(TileMapLayerRenderCacheChunk chunkCache, GameMapTileData tileMapData, TileMapLayer layer, TileMapChunk chunk, Vector2 chunkCoord)
+    private void UpdateChunkRenderCache(TileMapLayerRenderCacheChunk chunkCache, TileMapGrid tileMapData, TileMapLayer layer, TileMapChunk chunk, Vector2 chunkCoord)
     {
         // We already have the latest version of this
         if (chunkCache.CachedVersion == chunk.ChunkVersion &&
@@ -125,7 +125,7 @@ public class TileMapLayerRenderCache
         }
     }
 
-    public static TileMapLayerRenderCache UpdateRenderCache(GameMapTileData tileMapData, TileMapLayer layer, Rectangle cacheArea, TileMapLayerRenderCache? cache = null)
+    public static TileMapLayerRenderCache UpdateRenderCache(TileMapGrid tileMapData, TileMapLayer layer, Rectangle cacheArea, TileMapLayerRenderCache? cache = null)
     {
         cache ??= new TileMapLayerRenderCache(layer);
         cache.Visible = layer.Visible;

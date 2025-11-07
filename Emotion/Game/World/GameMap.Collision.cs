@@ -2,6 +2,7 @@
 
 using Emotion.Game.World.Components;
 using Emotion.Game.World.Enumeration;
+using Emotion.Game.World.Terrain;
 using static Emotion.Game.World.Enumeration.ObjectEnumerationSystem;
 
 namespace Emotion.Game.World;
@@ -92,9 +93,10 @@ public partial class GameMap
 
     public bool CollideWithCube<TUserData>(Cube cube, GameObject? exclude, Func<Cube, TUserData, bool> onIntersect, TUserData userData)
     {
-        if (TerrainGrid != null)
+        var terrainGrid = GetFirstGridOfType<ITerrainGrid3D>();
+        if (terrainGrid != null)
         {
-            if (TerrainGrid.CollideWithCube(cube, onIntersect, userData))
+            if (terrainGrid.CollideWithCube(cube, onIntersect, userData))
                 return true;
         }
 
@@ -105,9 +107,10 @@ public partial class GameMap
 
     public Vector3 SweepCube(Cube cube, Vector3 movement, GameObject? exclude)
     {
-        if (TerrainGrid != null)
+        var terrainGrid = GetFirstGridOfType<ITerrainGrid3D>();
+        if (terrainGrid != null)
         {
-            movement = TerrainGrid.SweepCube(cube, movement);
+            movement = terrainGrid.SweepCube(cube, movement);
         }
 
         // todo: objects

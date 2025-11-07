@@ -18,9 +18,10 @@ public class BadIcecreamScene : SceneWithMap
         Engine.Renderer.Camera = camera;
 
         var map = new GameMap();
-        map.TileMapData = new GameMapTileData();
-        map.TileMapData.Layers.Add(new TileMapLayer() { TileSize = new Vector2(18) });
-        map.TileMapData.Tilesets.Add(new TileMapTileset() { Texture = "Test/bad_ice/tiles.png", TileSize = new Vector2(18), BilinearFilterTexture = false });
+        var tileMap = new TileMapGrid();
+        tileMap.Layers.Add(new TileMapLayer() { TileSize = new Vector2(18) });
+        tileMap.Tilesets.Add(new TileMapTileset() { Texture = "Test/bad_ice/tiles.png", TileSize = new Vector2(18), BilinearFilterTexture = false });
+        map.AddGrid(tileMap);
 
         Map = map;
 

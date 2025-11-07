@@ -40,7 +40,7 @@ public class Example3D : SceneWithMap
             }
         }
 
-        Map.TerrainGrid = terrain;
+        Map.AddGrid(terrain);
 
         //AddObject("Test/humanmalewarriorlight/humanmalewarriorlight_skin01.gltf", new Vector3(100, 100, 0));
         //AddObject("Test/male/humanmale.gltf", new Vector3(300, 100, 0));

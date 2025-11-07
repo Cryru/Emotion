@@ -61,7 +61,7 @@ public class WoWMovementController
         GameMap? map = _character.Map;
         if (map == null) return;
 
-        TerrainMeshGrid? terrain = map.TerrainGrid as TerrainMeshGrid;
+        TerrainMeshGrid? terrain = map.GetFirstGridOfType<TerrainMeshGrid>();
         if (terrain == null) return;
 
         Vector2 myPos = _character.Position2D;
@@ -133,7 +133,7 @@ public class WoWMovementController
         {
             _velocityZ = 0;
 
-            float height = map.TerrainGrid.GetHeightAt(_character.Position2D);
+            float height = terrain.GetHeightAt(_character.Position2D);
             _character.Z = height;
         }
 

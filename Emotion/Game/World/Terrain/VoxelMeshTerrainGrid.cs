@@ -12,7 +12,7 @@ using OpenGL;
 
 namespace Emotion.Game.World.Terrain;
 
-public class VoxelMeshTerrainGrid : VoxelMeshTerrainGrid<uint, MeshGridStreamableChunk<uint, uint>, uint>
+public class VoxelMeshTerrainGrid : VoxelMeshTerrainGrid<uint, MeshGridStreamableChunk<uint, uint>, uint>, IMapGrid
 {
     public VoxelMeshTerrainGrid(Vector3 tileSize, float chunkHeight, float chunkSize) : base(tileSize, chunkHeight, chunkSize)
     {

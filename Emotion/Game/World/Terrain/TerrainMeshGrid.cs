@@ -11,7 +11,7 @@ using TerrainMeshGridChunk = Emotion.Game.World.Terrain.MeshGridStreaming.MeshGr
 
 namespace Emotion.Game.World.Terrain;
 
-public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ushort>
+public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ushort>, IMapGrid
 {
     public TerrainMeshGrid(Vector2 tileSize, float chunkSize) : base(tileSize, chunkSize)
     {

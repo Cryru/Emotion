@@ -163,7 +163,7 @@ public class ListEditor<TItem> : ListEditor
                         editItemButton.OnClickedProxy = (_) =>
                         {
                             var editorWindow = new ObjectPropertyEditorWindow(item);
-                            EngineEditor.EditorRoot.AddChild(editorWindow);
+                            EngineEditor.EditorUI.AddChild(editorWindow);
                         };
                     }
                     editorListItem.AttachButton(editItemButton);

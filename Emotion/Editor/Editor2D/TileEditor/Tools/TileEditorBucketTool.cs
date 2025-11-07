@@ -77,7 +77,7 @@ public class TileEditorBucketTool : TileEditorTool
         AssertNotNull(editor.TileTextureSelector);
         if (editor.TileTextureSelector == null) return;
 
-        GameMapTileData? tileData = editor.GetCurrentMapTileData();
+        TileMapGrid? tileData = editor.GetCurrentMapTileData();
         AssertNotNull(tileData);
         if (tileData == null) return;
 
@@ -107,7 +107,7 @@ public class TileEditorBucketTool : TileEditorTool
         AssertNotNull(editor.TileTextureSelector);
         if (editor.TileTextureSelector == null) return;
 
-        GameMapTileData? tileData = editor.GetCurrentMapTileData();
+        TileMapGrid? tileData = editor.GetCurrentMapTileData();
         AssertNotNull(tileData);
         if (tileData == null) return;
 

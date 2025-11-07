@@ -1,11 +1,11 @@
 ﻿#region Using
 
-using System.Collections;
-using Emotion.Testing;
-using Emotion.ExecTest.ExamplesOne;
-using System.Threading.Tasks;
 using Emotion.Core;
+using Emotion.ExecTest.ExamplesOne;
 using Emotion.Standard;
+using Emotion.Testing;
+using System.Collections;
+using System.Threading.Tasks;
 
 #endregion
 

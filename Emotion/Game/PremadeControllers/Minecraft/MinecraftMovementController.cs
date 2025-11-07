@@ -57,7 +57,7 @@ public class MinecraftMovementController
             if (_character == null) return;
 
             GameMap? map = _character.Map;
-            VoxelMeshTerrainGrid? voxelTerrain = map?.TerrainGrid as VoxelMeshTerrainGrid;
+            VoxelMeshTerrainGrid? voxelTerrain = map?.GetFirstGridOfType<VoxelMeshTerrainGrid>();
             if (voxelTerrain == null) return;
 
             Vector3 placement = PlacementPosCursor;
@@ -72,7 +72,7 @@ public class MinecraftMovementController
             if (_character == null) return string.Empty;
 
             GameMap? map = _character.Map;
-            VoxelMeshTerrainGrid? voxelTerrain = map?.TerrainGrid as VoxelMeshTerrainGrid;
+            VoxelMeshTerrainGrid? voxelTerrain = map?.GetFirstGridOfType<VoxelMeshTerrainGrid>();
             if (voxelTerrain == null) return string.Empty;
 
             var characterPos = _character.Position3D;
@@ -106,7 +106,7 @@ public class MinecraftMovementController
         if (_character == null) return;
 
         GameMap? map = _character.Map;
-        ITerrainGrid3D? terrain = map?.TerrainGrid;
+        ITerrainGrid3D? terrain = map?.GetFirstGridOfType<ITerrainGrid3D>();
         if (terrain == null) return;
 
         Vector2 myPos = _character.Position2D;
@@ -172,7 +172,7 @@ public class MinecraftMovementController
 
         // Find cube pointing at
         bool set = false;
-        VoxelMeshTerrainGrid? voxelTerrain = map?.TerrainGrid as VoxelMeshTerrainGrid;
+        VoxelMeshTerrainGrid? voxelTerrain = map?.GetFirstGridOfType<VoxelMeshTerrainGrid>();
         if (voxelTerrain != null)
         {
             Ray3D mouseRay = _camera.GetCameraMouseRay();

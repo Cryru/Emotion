@@ -1,7 +1,6 @@
 ﻿#nullable enable
 
 using Emotion.Editor.EditorUI.Components;
-using Emotion.Game.Systems.UI;
 using Emotion.Standard.Reflector;
 
 namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;

@@ -11,8 +11,11 @@ public static class ArrayExtensions
     /// This is worse than using a list and it will copy the array.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T[] AddToArray<T>(this T[] array, T element, bool front = false)
+    public static T[] AddToArray<T>(this T[]? array, T element, bool front = false)
     {
+        if (array == null)
+            return [element];
+
         var newArray = new T[array.Length + 1];
         Array.Copy(array, 0, newArray, front ? 1 : 0, array.Length);
         if (front)

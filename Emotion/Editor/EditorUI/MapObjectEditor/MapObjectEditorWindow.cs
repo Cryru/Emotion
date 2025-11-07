@@ -89,7 +89,7 @@ public class MapObjectEditorWindow : UIBaseWindow
                 if (MouseoverObject == SelectedObject)
                 {
                     var editor = new ObjectPropertyEditorWindow(SelectedObject);
-                    EngineEditor.EditorRoot.AddChild(editor);
+                    EngineEditor.EditorUI.AddChild(editor);
                 }
                 else
                 {

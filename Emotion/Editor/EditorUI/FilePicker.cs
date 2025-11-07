@@ -24,7 +24,7 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
     private string[]? _currentBranch;
 
     public FilePicker(Action<T> onFileSelected, Func<string, bool>? fileFilter = null)
-        : base($"Select [{ReflectorEngine.GetTypeName(typeof(T))}]")
+        : base($"Select [{ReflectorEngine.GetTypeName<T>()}]")
     {
         PanelMode = PanelMode.Modal;
 

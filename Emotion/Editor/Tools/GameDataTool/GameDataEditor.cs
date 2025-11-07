@@ -350,7 +350,7 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
         }
 
         string statisticText = s.ToString();
-        EngineEditor.EditorRoot.AddChild(new ObjectPropertyEditorWindow(statisticText));
+        EngineEditor.EditorUI.AddChild(new ObjectPropertyEditorWindow(statisticText));
     }
 
     #endregion

@@ -156,6 +156,6 @@ public sealed class TerrainEditorWindow : GridEditorWindow
     public TerrainMeshGrid? GetCurrentMapTerrain()
     {
         GameMap? map = EngineEditor.GetCurrentMap();
-        return map?.TerrainGrid as TerrainMeshGrid;
+        return map?.GetFirstGridOfType<TerrainMeshGrid>();
     }
 }

@@ -189,8 +189,12 @@ public class NewUIText : UIBaseWindow
         base.InternalRender(r);
         if (string.IsNullOrEmpty(Text)) return;
 
-        //_layoutEngine.Render(r, pos, _calculatedColor, OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
         Vector3 pos = CalculatedMetrics.Position.ToVec3();
+
+        //if (ShadowOffset != Vector2.Zero)
+        //    _layoutEngine.Render(r, pos - ShadowOffset.ToVec3(), TextShadow ?? Color.Black);
+
+        //_layoutEngine.Render(r, pos, _calculatedColor, OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
         _layoutEngine.Render(r, pos, TextColor, OutlineSize > 0 ? FontEffect.Outline : FontEffect.None, OutlineSize * GetScale(), OutlineColor);
     }
 }
