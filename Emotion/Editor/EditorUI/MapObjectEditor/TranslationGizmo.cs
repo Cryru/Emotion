@@ -76,16 +76,18 @@ public class TranslationGizmo : GameObject
         //ObjectFlags |= ObjectFlags.Map3DDontReceiveAmbient;
     }
 
+    private const float ALMOST_ONE = 0.999f;
+
     public static MeshEntity GetTranslationGizmoEntity(float height = 30, float arrowHeight = 10, bool planes = true)
     {
         var arrowCylinderGen = new CylinderMeshGenerator();
-        arrowCylinderGen.RadiusBottom = 2;
-        arrowCylinderGen.RadiusTop = 2;
+        arrowCylinderGen.RadiusBottom = 3;
+        arrowCylinderGen.RadiusTop = 3;
         arrowCylinderGen.Height = height;
         arrowCylinderGen.Capped = true;
 
         var arrowGen = new CylinderMeshGenerator();
-        arrowGen.RadiusBottom = 4f;
+        arrowGen.RadiusBottom = 5f;
         arrowGen.RadiusTop = 0;
         arrowGen.Height = arrowHeight;
         arrowGen.Capped = true;
@@ -95,7 +97,7 @@ public class TranslationGizmo : GameObject
         );
         Mesh xArrow = arrowGen.GenerateMesh().TransformMeshVertices(
             Matrix4x4.CreateFromYawPitchRoll(Maths.DegreesToRadians(90), 0f, 0f) *
-            Matrix4x4.CreateTranslation(arrowCylinderGen.Height, 0, 0)
+            Matrix4x4.CreateTranslation(arrowCylinderGen.Height * ALMOST_ONE, 0, 0)
         );
         var meshXAxis = Mesh.CombineMeshes(xCylinder, xArrow, "X");
 
@@ -104,13 +106,13 @@ public class TranslationGizmo : GameObject
         );
         Mesh yArrow = arrowGen.GenerateMesh("YArrow").TransformMeshVertices(
             Matrix4x4.CreateFromYawPitchRoll(0, Maths.DegreesToRadians(-90), 0f) *
-            Matrix4x4.CreateTranslation(0, arrowCylinderGen.Height, 0)
+            Matrix4x4.CreateTranslation(0, arrowCylinderGen.Height * ALMOST_ONE, 0)
         );
         var meshYAxis = Mesh.CombineMeshes(yCylinder, yArrow, "Y");
 
         Mesh zCylinder = arrowCylinderGen.GenerateMesh("ZCylinder");
         Mesh zArrow = arrowGen.GenerateMesh("ZArrow").TransformMeshVertices(
-            Matrix4x4.CreateTranslation(0, 0, arrowCylinderGen.Height)
+            Matrix4x4.CreateTranslation(0, 0, arrowCylinderGen.Height * ALMOST_ONE)
         );
         var meshZAxis = Mesh.CombineMeshes(zCylinder, zArrow, "Z");
 
