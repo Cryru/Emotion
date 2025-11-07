@@ -27,7 +27,7 @@ namespace Emotion.SourceGeneration
             string fullTypName = typ.ToDisplayString();
 
             string safeShortName = GetSafeName(typ.Name);
-            string safeName = GetSafeName(fullTypName);
+            string safeName = GetSafeName(typ);
 
             string undefinedClassName = $"Undefined{safeShortName}Class";
 

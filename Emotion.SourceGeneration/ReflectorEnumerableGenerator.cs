@@ -40,7 +40,7 @@ namespace Emotion.SourceGeneration
 
             string fullTypName = typ.ToDisplayString();
             string elementFullTypName = elementType.ToDisplayString();
-            string safeNameFull = "ArrayOf" + GetSafeName(elementFullTypName);
+            string safeNameFull = GetSafeName(typ);
 
             if (elementType.NullableAnnotation == NullableAnnotation.Annotated)
                 safeNameFull = safeNameFull + "Nullable";

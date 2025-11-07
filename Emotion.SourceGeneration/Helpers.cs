@@ -112,6 +112,10 @@ namespace Emotion.SourceGeneration
 
         public static bool IsPartial(INamedTypeSymbol symbol)
         {
+            // Generic types cant have partial generation as we create handlers for specializations
+            if (symbol.IsGenericType)
+                return false;
+
             INamedTypeSymbol containingType = symbol.ContainingType;
             if (containingType != null)
             {
@@ -230,7 +234,7 @@ namespace Emotion.SourceGeneration
                 }
             }
 
-            if (!HasParameterlessConstructor(typ)) return false;
+            //if (!typ.IsAbstract && !HasParameterlessConstructor(typ)) return false;
             if (HasDontSerialize(typ)) return false;
             //if (typ.IsAbstract) return false;
             if (typ.DeclaredAccessibility != Accessibility.Public) return false;
@@ -256,7 +260,7 @@ namespace Emotion.SourceGeneration
             "Emotion.Core.Platform",
             "Emotion.Core.Systems.Audio",
             "Emotion.Standard.Reflector",
-            "Emotion.Editor",
+            //"Emotion.Editor",
             "Emotion.Testing",
 
             "System",
@@ -291,10 +295,21 @@ namespace Emotion.SourceGeneration
             return false;
         }
 
-
         public static string GetSafeName(string name)
         {
             return name.Replace(".", "").Replace("<", "Of").Replace(", ", "And").Replace(">", "").Replace("?", "").Replace("(", "").Replace(")", "");
+        }
+
+        public static string GetSafeName(ITypeSymbol typ)
+        {
+            if (typ is IArrayTypeSymbol arrayType)
+            {
+                ITypeSymbol elementType = arrayType.ElementType;
+                return $"ArrayOf{GetSafeName(elementType)}";
+            }
+
+            string fullTypName = typ.ToDisplayString();
+            return fullTypName.Replace(".", "").Replace("<", "Of").Replace(", ", "And").Replace(">", "").Replace("?", "").Replace("(", "").Replace(")", "");
         }
 
         public static ulong CalculateHash(string read)

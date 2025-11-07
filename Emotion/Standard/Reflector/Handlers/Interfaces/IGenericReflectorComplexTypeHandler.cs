@@ -6,6 +6,8 @@ namespace Emotion.Standard.Reflector.Handlers.Interfaces;
 
 public interface IGenericReflectorComplexTypeHandler : IGenericReflectorTypeHandler
 {
+    public Type[] Interfaces { get; }
+
     public ComplexTypeHandlerMemberBase[] GetMembers();
 
     public ComplexTypeHandlerMemberBase[] GetMembersDeep();

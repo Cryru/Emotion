@@ -15,6 +15,8 @@ public class StaticComplexTypeHandler : IGenericReflectorComplexTypeHandler, IGe
 
     public Type Type { get; init; }
 
+    public Type[] Interfaces { get => Array.Empty<Type>(); } // todo :P
+
     public bool CanGetOrParseValueAsString => false;
 
     private ComplexTypeHandlerMemberBase[] _membersArr;

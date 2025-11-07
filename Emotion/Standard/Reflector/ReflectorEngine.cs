@@ -132,7 +132,7 @@ public static class ReflectorEngine
     {
         Type typ = typeof(T);
         if (_typeHandlers.TryGetValue(typ, out IGenericReflectorTypeHandler? handler))
-            return (ComplexTypeHandler<T>) handler;
+            return (ComplexTypeHandler<T>)handler;
         return null;
     }
 
@@ -174,7 +174,7 @@ public static class ReflectorEngine
         IGenericReflectorComplexTypeHandler? handler = GetComplexTypeHandler(obj.GetType());
         if (handler == null || !handler.CanCreateNew()) return default;
 
-        T? newObj = (T?) handler.CreateNew();
+        T? newObj = (T?)handler.CreateNew();
         if (newObj == null) return newObj;
 
         IEnumerable<ComplexTypeHandlerMemberBase> members = handler.GetMembersDeep();
@@ -207,6 +207,48 @@ public static class ReflectorEngine
 
     #region Relations
 
+    private enum DescendantType
+    {
+        Not,
+        Descended,
+        DirectDescendant
+    }
+
+    private static DescendantType CheckIfTypeDescended(Type typ, Type candidate, IGenericReflectorComplexTypeHandler candidateHandler)
+    {
+        if (typ.IsInterface)
+        {
+            Type[] candidateInterfaces = candidateHandler.Interfaces;
+            foreach (Type candidateInterface in candidateInterfaces)
+            {
+                if (candidateInterface == typ)
+                    return DescendantType.DirectDescendant; // We track all interfaces as direct, non-direct is todo
+            }
+        }
+        else
+        {
+            Type? baseType = candidate.BaseType;
+            if (baseType == null)
+                return DescendantType.Not;
+
+            // Direct descendant
+            if (baseType == typ)
+                return DescendantType.DirectDescendant;
+
+            // Search up base types to determine if non-direct descendant
+            while (baseType != null)
+            {
+                baseType = baseType.BaseType;
+                if (baseType == typ)
+                {
+                    return DescendantType.Descended;
+                }
+            }
+        }
+
+        return DescendantType.Not;
+    }
+
     private static void BuildRelations()
     {
         _typeRelations.Clear();
@@ -217,46 +259,18 @@ public static class ReflectorEngine
 
             Type[]? descendants = null;
             Type[]? descendantsDirect = null;
-            foreach ((Type candidate, IGenericReflectorTypeHandler _) in _typeHandlers)
+            foreach ((Type candidate, IGenericReflectorTypeHandler candidateHandler) in _typeHandlers)
             {
-                if (handler is not IGenericReflectorComplexTypeHandler) continue;
+                if (candidateHandler is not IGenericReflectorComplexTypeHandler candidateComplexHandler) continue;
                 if (candidate == typ) continue;
 
-                Type? baseType = candidate.BaseType;
-                if (baseType == null) continue;
+                DescendantType descended = CheckIfTypeDescended(typ, candidate, candidateComplexHandler);
 
-                bool isDescended = baseType == typ;
-                if (isDescended) // Direct descendant
-                {
-                    if (descendantsDirect == null)
-                        descendantsDirect = new Type[1];
-                    else
-                        Array.Resize(ref descendantsDirect, descendantsDirect.Length + 1);
+                if (descended == DescendantType.DirectDescendant)
+                    descendantsDirect = descendantsDirect.AddToArray(candidate);
 
-                    descendantsDirect[^1] = candidate;
-                }
-                else // If not direct descendant do a deep search up.
-                {
-                    while (baseType != null)
-                    {
-                        baseType = baseType.BaseType;
-                        if (baseType == typ)
-                        {
-                            isDescended = true;
-                            break;
-                        }
-                    }
-
-                    // Deep search found nothing
-                    if (!isDescended) continue;
-                }
-
-                if (descendants == null)
-                    descendants = new Type[1];
-                else
-                    Array.Resize(ref descendants, descendants.Length + 1);
-
-                descendants[^1] = candidate;
+                if (descended == DescendantType.DirectDescendant || descended == DescendantType.Descended)
+                    descendants = descendants.AddToArray(candidate);
             }
 
             if (descendants != null) _typeRelations.Add(typ, descendants);
@@ -264,15 +278,20 @@ public static class ReflectorEngine
         }
     }
 
-    public static Type[] GetTypesDescendedFrom(Type typ, bool directOnly = false)
+    public static Type[] GetTypesDescendedFrom<T>(bool directOnly = false)
     {
+        Type typ = typeof(T);
+
         Dictionary<Type, Type[]> dict = directOnly ? _typeRelationsDirect : _typeRelations;
         if (dict.TryGetValue(typ, out Type[]? value)) return value;
         return Array.Empty<Type>();
     }
 
-    public static bool IsTypeDescendedFrom(Type typ, Type typ2)
+    public static bool IsTypeDescendedFrom<T1, T2>()
     {
+        var typ = typeof(T1);
+        var typ2 = typeof(T2);
+
         Type? baseTyp = typ.BaseType;
         while (baseTyp != null)
         {
@@ -280,11 +299,6 @@ public static class ReflectorEngine
             baseTyp = baseTyp.BaseType;
         }
         return false;
-    }
-
-    public static Type? GetBaseType(Type typ)
-    {
-        return typ.BaseType;
     }
 
     #endregion
@@ -296,6 +310,12 @@ public static class ReflectorEngine
             handler.PostInit();
         }
         _postInitCalled = true;
+    }
+
+    public static string GetTypeName<T>()
+    {
+        Type typ = typeof(T);
+        return GetTypeName(typ);
     }
 
     public static string GetTypeName(Type typ)

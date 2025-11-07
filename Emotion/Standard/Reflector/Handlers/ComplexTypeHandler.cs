@@ -21,7 +21,7 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
     public override Type Type => typeof(T);
 
     private ComplexTypeHandlerMemberBase[] _membersArr;
-    private Dictionary<string, ComplexTypeHandlerMemberBase> _members;
+    private Dictionary<string, ComplexTypeHandlerMemberBase>? _members;
     private byte[][] _membersCaseInsensitive;
     private Func<T>? _createNew;
     private string _typeName;
@@ -29,22 +29,36 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
     private ComplexTypeHandlerMemberBase[]? _membersArrDeep;
     private byte[][] _membersCaseInsensitiveDeep;
 
-    public ComplexTypeHandler(Func<T>? createNew, string typeName, ComplexTypeHandlerMemberBase[] members)
+    public Type[] Interfaces { get; init; } = Array.Empty<Type>();
+
+    public ComplexTypeHandler(Func<T>? createNew, string typeName, ComplexTypeHandlerMemberBase[]? members = null, Type[]? interfaces = null)
     {
         _createNew = createNew;
         _typeName = typeName;
 
-        _membersArr = members;
-        _members = new ();
-        _membersCaseInsensitive = new byte[members.Length][];
-        for (int i = 0; i < members.Length; i++)
+        if (members == null)
         {
-            ComplexTypeHandlerMemberBase member = members[i];
-            string memberName = member.Name;
-            _members.Add(memberName, member);
+            _membersArr = Array.Empty<ComplexTypeHandlerMemberBase>();
+            _membersCaseInsensitive = Array.Empty<byte[]>();
+            _membersCaseInsensitiveDeep = Array.Empty<byte[]>();
+        }
+        else
+        {
+            _membersArr = members;
+            _members = new();
+            _membersCaseInsensitive = new byte[members.Length][];
+            for (int i = 0; i < members.Length; i++)
+            {
+                ComplexTypeHandlerMemberBase member = members[i];
+                string memberName = member.Name;
+                _members.Add(memberName, member);
+            }
+
+            _membersCaseInsensitiveDeep = _membersCaseInsensitive;
         }
 
-        _membersCaseInsensitiveDeep = _membersCaseInsensitive;
+        if (interfaces != null)
+            Interfaces = interfaces;
 
         //if (_createNew != null)
         //    DefaultInstance = _createNew();
@@ -61,7 +75,7 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
             return new VectorEditor(4);
         if (typeof(T) == typeof(Rectangle))
             return new VectorEditor(4, ["X", "Y", "Width", "Height"]);
-        if (ReflectorEngine.IsTypeDescendedFrom(typeof(T), typeof(O_UITemplate)))
+        if (ReflectorEngine.IsTypeDescendedFrom<T, O_UITemplate>())
             return new UITemplateEditor();
 
         return new ComplexObjectEditor<T>();
@@ -244,6 +258,8 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
             }
             else
             {
+                _members ??= new();
+
                 List<ComplexTypeHandlerMemberBase> filteredBaseMembers = new List<ComplexTypeHandlerMemberBase>();
 
                 // Sometimes the base class has duplicate members (such as when hiding/overloading is done)
@@ -272,12 +288,13 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
 
     public ComplexTypeHandlerMemberBase? GetMemberByName(string name)
     {
+        if (_members == null) return null;
         if (_members.TryGetValue(name, out ComplexTypeHandlerMemberBase? member))
             return member;
         return null;
     }
 
-    private void DetermineCaseInsensitive(ComplexTypeHandlerMemberBase[] members, byte[][] utf8CaseInsensitive)
+    private static void DetermineCaseInsensitive(ComplexTypeHandlerMemberBase[] members, byte[][] utf8CaseInsensitive)
     {
         for (int i = 0; i < members.Length; i++)
         {
