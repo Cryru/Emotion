@@ -4,6 +4,8 @@
 
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers.Base;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
+using System.Linq;
 
 #endregion
 
@@ -14,16 +16,17 @@ public static partial class GameDatabase
     public static bool Initialized { get; private set; }
 
     private static Dictionary<Type, GameDataObject[]> _definedData = new();
-    private static Type[] _dataTypes = Array.Empty<Type>();
+    private static IGenericReflectorTypeHandler[] _dataTypes = Array.Empty<IGenericReflectorTypeHandler>();
 
     public static void Initialize()
     {
         Assert(!Initialized);
         if (Initialized) return;
 
-        Type[] gameDataTypes = ReflectorEngine.GetTypesDescendedFrom<GameDataObject>(true);
-        foreach (Type typ in gameDataTypes)
+        IGenericReflectorTypeHandler[] gameDataTypes = ReflectorEngine.GetDescendantsOf<GameDataObject>(true);
+        foreach (IGenericReflectorTypeHandler handler in gameDataTypes)
         {
+            Type typ = handler.Type;
             ComplexTypeHandlerMemberBase? member = EditorAdapter.GetStaticAllDefinitionsMember(typ);
             if (member == null) continue;
 
@@ -80,12 +83,6 @@ public static partial class GameDatabase
         }
 
         return null;
-    }
-
-    public static Type[] GetDataTypes()
-    {
-        Assert(Initialized);
-        return _dataTypes;
     }
 
     #endregion

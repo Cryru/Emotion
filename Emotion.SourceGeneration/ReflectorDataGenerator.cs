@@ -279,7 +279,7 @@ namespace SourceGenerator
             sb.AppendLine("    }");
             sb.AppendLine("}");
 
-            context.AddSource($"RFLC.{safeNameFull}.g.cs", sb.ToString());
+            context.AddSource($"RFLC.{GetFileNameSafeHash(safeNameFull)}.g.cs", sb.ToString());
         }
 
         public static void GenerateHandlerForComplexType(ref SourceProductionContext context, INamedTypeSymbol typ, ImmutableArray<ReflectorMemberData> members)
@@ -338,7 +338,7 @@ namespace SourceGenerator
                 if (typ.IsTupleType)
                     sb.AppendLine($"           () => new ValueTuple{fullTypName.Replace("(", "<").Replace(")", ">")}(),");
                 else
-                    sb.AppendLine($"           () => new {fullTypName}(),");
+                    sb.AppendLine($"           () => new {fullTypName.Replace("?", "")}(),");
             }
             else
             {
@@ -369,8 +369,18 @@ namespace SourceGenerator
 
                     sb.AppendLine($"               new ComplexTypeHandlerMember<{fullTypName}, {memberFullTypeName}>(");
                     sb.AppendLine($"                  \"{memberName}\",");
-                    sb.AppendLine($"                  (ref {fullTypName} p, {memberFullTypeName} v) => p.{memberName} = v,");
-                    sb.AppendLine($"                  (p) => p.{memberName}");
+
+                    if (memberSymbol.IsStatic)
+                    {
+                        sb.AppendLine($"                  (ref {fullTypName} p, {memberFullTypeName} v) => {fullTypName}.{memberName} = v,");
+                        sb.AppendLine($"                  (p) => {fullTypName}.{memberName}");
+                    }
+                    else
+                    {
+                        sb.AppendLine($"                  (ref {fullTypName} p, {memberFullTypeName} v) => p.{memberName} = v,");
+                        sb.AppendLine($"                  (p) => p.{memberName}");
+                    }
+
                     sb.AppendLine($"               )");
                     sb.AppendLine("               {");
 
@@ -406,8 +416,7 @@ namespace SourceGenerator
                 sb.AppendLine("           [");
                 foreach (INamedTypeSymbol inter in interfaces)
                 {
-                    sb.AppendLine($"               typeof({inter.ToDisplayString()})");
-                    sb.Append(", ");
+                    sb.AppendLine($"               typeof({inter.ToDisplayString()}),");
                 }
                 sb.AppendLine("           ]");
             }
@@ -417,7 +426,7 @@ namespace SourceGenerator
             sb.AppendLine("    }");
             sb.AppendLine("}");
 
-            context.AddSource($"RFLC.{CalculateHash(safeName)}.g.cs", sb.ToString());
+            context.AddSource($"RFLC.{GetFileNameSafeHash(safeName)}.g.cs", sb.ToString());
         }
 
         public static void WriteFileHeader(StringBuilder sb)

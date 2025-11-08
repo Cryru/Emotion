@@ -83,13 +83,13 @@ public class ReflectorTests
     [Test]
     public void BasicReflector_Inheritance()
     {
-        Type[] typesDescended = ReflectorEngine.GetTypesDescendedFrom<BaseClass>();
+        IGenericReflectorTypeHandler[] typesDescended = ReflectorEngine.GetDescendantsOf<BaseClass>();
         Assert.Equal(typesDescended.Length, 3);
-        Assert.True(typesDescended.Contains(typeof(BaseClassExtended)));
-        Assert.True(typesDescended.Contains(typeof(BaseClassExtendedExtended)));
-        Assert.True(typesDescended.Contains(typeof(BaseClassExtendedTwo)));
+        Assert.True(typesDescended.Contains(ReflectorEngine.GetTypeHandler<BaseClassExtended>()));
+        Assert.True(typesDescended.Contains(ReflectorEngine.GetTypeHandler<BaseClassExtendedExtended>()));
+        Assert.True(typesDescended.Contains(ReflectorEngine.GetTypeHandler<BaseClassExtendedTwo>()));
 
-        typesDescended = ReflectorEngine.GetTypesDescendedFrom<int>();
+        typesDescended = ReflectorEngine.GetDescendantsOf<int>();
         Assert.Equal(typesDescended.Length, 0);
     }
 }

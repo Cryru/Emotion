@@ -8,6 +8,7 @@ using Emotion.Game.Systems.UI2;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
+using System;
 using System.Text;
 using static Emotion.Game.Systems.GameData.GameDatabase;
 
@@ -25,6 +26,13 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
     public List<GameDataObject> EmulatedEditList = new List<GameDataObject>(); // List being edited by the list editor
     private List<GameDataObject> _modifiedList = new List<GameDataObject>();
     private List<GameDataObject> _deletedList = new List<GameDataObject>();
+
+    public GameDataEditor(IGenericReflectorComplexTypeHandler handler) : base($"{handler.TypeName} Editor")
+    {
+        GameDataType = handler.Type;
+        TypeHandler = handler;
+        StartingSplit = 0.25f;
+    }
 
     public GameDataEditor(Type typ) : base($"{ReflectorEngine.GetTypeName(typ)} Editor")
     {

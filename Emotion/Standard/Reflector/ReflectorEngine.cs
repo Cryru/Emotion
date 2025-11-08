@@ -136,6 +136,14 @@ public static class ReflectorEngine
         return null;
     }
 
+    public static ComplexTypeHandler<T>? GetTypeInfo<T>()
+    {
+        Type typ = typeof(T);
+        if (_typeHandlers.TryGetValue(typ, out IGenericReflectorTypeHandler? handler))
+            return (ComplexTypeHandler<T>)handler;
+        return null;
+    }
+
     public static IGenericReflectorComplexTypeHandler? GetComplexTypeHandler(Type typ)
     {
         if (_typeHandlers.TryGetValue(typ, out IGenericReflectorTypeHandler? handler))
@@ -278,13 +286,27 @@ public static class ReflectorEngine
         }
     }
 
-    public static Type[] GetTypesDescendedFrom<T>(bool directOnly = false)
+    public static IGenericReflectorTypeHandler[] GetDescendantsOf<T>(bool directOnly = false)
     {
-        Type typ = typeof(T);
+        Type[] types = Array.Empty<Type>();
 
+        Type typ = typeof(T);
         Dictionary<Type, Type[]> dict = directOnly ? _typeRelationsDirect : _typeRelations;
-        if (dict.TryGetValue(typ, out Type[]? value)) return value;
-        return Array.Empty<Type>();
+        if (dict.TryGetValue(typ, out Type[]? value))
+            types = value;
+
+        IGenericReflectorTypeHandler[] handlers = new IGenericReflectorTypeHandler[types.Length];
+        for (int i = 0; i < types.Length; i++)
+        {
+            Type? derivedTyp = types[i];
+            handlers[i] = InternalGetTypeHandlerViaType(derivedTyp);
+        }
+        return handlers;
+    }
+
+    private static IGenericReflectorTypeHandler InternalGetTypeHandlerViaType(Type typ)
+    {
+        return GetTypeHandler(typ)!;
     }
 
     public static bool IsTypeDescendedFrom<T1, T2>()

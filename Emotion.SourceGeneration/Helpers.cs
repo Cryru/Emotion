@@ -179,11 +179,11 @@ namespace Emotion.SourceGeneration
             return false;
         }
 
-        public static bool IsReflectorBuiltInType(INamedTypeSymbol typ)
+        public static bool IsReflectorBuiltInType(ITypeSymbol typ)
         {
-            bool isFromEmotion = typ.ContainingAssembly.Name == "Emotion";
-            bool compilingEmotion = Generator.CurrentCompilation.AssemblyName == "Emotion";
-            if (isFromEmotion && !compilingEmotion) return true;
+            //bool isFromEmotion = typ.ContainingAssembly.Name == "Emotion";
+            //bool compilingEmotion = ReflectorMain.CurrentCompilation.AssemblyName == "Emotion";
+            //if (isFromEmotion && !compilingEmotion) return true;
 
             string typName = typ.ToDisplayString();
             if (typName[typName.Length - 1] == '?') typName = typName.Substring(0, typName.Length - 1);
@@ -297,7 +297,7 @@ namespace Emotion.SourceGeneration
 
         public static string GetSafeName(string name)
         {
-            return name.Replace(".", "").Replace("<", "Of").Replace(", ", "And").Replace(">", "").Replace("?", "").Replace("(", "").Replace(")", "");
+            return name.Replace(".", "").Replace("<", "Of").Replace(", ", "And").Replace(">", "").Replace("?", "Nullable").Replace("(", "").Replace(")", "");
         }
 
         public static string GetSafeName(ITypeSymbol typ)
@@ -309,10 +309,10 @@ namespace Emotion.SourceGeneration
             }
 
             string fullTypName = typ.ToDisplayString();
-            return fullTypName.Replace(".", "").Replace("<", "Of").Replace(", ", "And").Replace(">", "").Replace("?", "").Replace("(", "").Replace(")", "");
+            return fullTypName.Replace(".", "").Replace("<", "Of").Replace(", ", "And").Replace(">", "").Replace("?", "Nullable").Replace("(", "").Replace(")", "");
         }
 
-        public static ulong CalculateHash(string read)
+        public static ulong GetFileNameSafeHash(string read)
         {
             ulong hashedValue = 3074457345618258791ul;
             for (int i = 0; i < read.Length; i++)

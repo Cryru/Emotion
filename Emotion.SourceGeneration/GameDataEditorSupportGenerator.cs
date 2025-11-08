@@ -49,7 +49,7 @@ namespace Emotion.SourceGeneration
             sb.AppendLine("{");
             sb.AppendLine("");
             sb.AppendLine($"    [System.CodeDom.Compiler.GeneratedCode(\"Emotion.SourceGeneration - Reflector\", \"2.0\")]");
-            sb.AppendLine($"    public class {undefinedClassName} : {fullTypName}");
+            sb.AppendLine($"    public class {undefinedClassName} : {fullTypName.Replace("?", "")}");
             sb.AppendLine("    {");
             sb.AppendLine("");
             sb.AppendLine("        [ModuleInitializer]");
@@ -65,7 +65,7 @@ namespace Emotion.SourceGeneration
             sb.AppendLine("    }");
             sb.AppendLine("}");
 
-            context.AddSource($"RFLC.{undefinedClassName}.g.cs", sb.ToString());
+            context.AddSource($"RFLC.{GetFileNameSafeHash(undefinedClassName)}.g.cs", sb.ToString());
         }
     }
 }

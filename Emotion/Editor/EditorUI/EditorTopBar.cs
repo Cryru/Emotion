@@ -88,14 +88,16 @@ public class EditorTopBar : UIBaseWindow
             {
                 UIDropDown dropDown = EditorDropDown.OpenListDropdown(me);
 
-                Type[] gameDataObjectTypes = ReflectorEngine.GetTypesDescendedFrom<GameDataObject>(true);
-                foreach (Type typ in gameDataObjectTypes)
+                IGenericReflectorTypeHandler[] gameDataTypes = ReflectorEngine.GetDescendantsOf<GameDataObject>(true);
+                foreach (IGenericReflectorTypeHandler handler in gameDataTypes)
                 {
-                    EditorButton button = new EditorButton(typ.Name);
+                    EditorButton button = new EditorButton(handler.TypeName);
                     button.Layout.SizingX = UISizing.Grow();
                     button.OnClickedProxy = (_) =>
                     {
-                        EngineEditor.OpenToolWindowUnique(new GameDataEditor(typ));
+                        IGenericReflectorComplexTypeHandler? complexHandler = handler as IGenericReflectorComplexTypeHandler;
+                        if (complexHandler != null)
+                            EngineEditor.OpenToolWindowUnique(new GameDataEditor(complexHandler));
                         Engine.UI.CloseDropdown();
                     };
                     dropDown.AddChild(button);
@@ -217,11 +219,12 @@ public class EditorTopBar : UIBaseWindow
         {
             UIDropDown dropDown = EditorDropDown.OpenListDropdown(me);
 
-            Type[] workflows = ReflectorEngine.GetTypesDescendedFrom<EditorWorkflow>();
-            foreach (Type workflow in workflows)
+            IGenericReflectorTypeHandler[] workflows = ReflectorEngine.GetDescendantsOf<EditorWorkflow>();
+            foreach (IGenericReflectorTypeHandler workflow in workflows)
             {
-                IGenericReflectorComplexTypeHandler? workflowHandler = ReflectorEngine.GetComplexTypeHandler(workflow);
-                if (workflowHandler?.CreateNew() is not EditorWorkflow workflowInstance) continue;
+                IGenericReflectorComplexTypeHandler? complexHandler = workflow as IGenericReflectorComplexTypeHandler;
+                EditorWorkflow? workflowInstance = complexHandler?.CreateNew() as EditorWorkflow;
+                if (workflowInstance == null) continue;
 
                 EditorButton button = new(workflowInstance.Name)
                 {

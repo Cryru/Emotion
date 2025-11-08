@@ -69,7 +69,7 @@ namespace Emotion.SourceGeneration
             sb.AppendLine("    }");
             sb.AppendLine("}");
 
-            context.AddSource($"RFLC.{safeNameFull}.g.cs", sb.ToString());
+            context.AddSource($"RFLC.{GetFileNameSafeHash(safeNameFull)}.g.cs", sb.ToString());
         }
 
         private static void GenerateHandlerForListType(ref SourceProductionContext context, INamedTypeSymbol typ)
@@ -109,7 +109,7 @@ namespace Emotion.SourceGeneration
             sb.AppendLine("    }");
             sb.AppendLine("}");
 
-            context.AddSource($"RFLC.{safeNameFull}.g.cs", sb.ToString());
+            context.AddSource($"RFLC.{GetFileNameSafeHash(safeNameFull)}.g.cs", sb.ToString());
         }
     }
 }

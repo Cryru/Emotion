@@ -82,15 +82,15 @@ public partial class LevelDesignWorkflow
 
             EditorDropDown dropDown = EditorDropDown.OpenListDropdown(newLayerButton);
 
-            Type[] gridTypes = ReflectorEngine.GetTypesDescendedFrom<IMapGrid>();
-            foreach (Type type in gridTypes)
+            IGenericReflectorTypeHandler[] gridTypes = ReflectorEngine.GetDescendantsOf<IMapGrid>();
+            foreach (IGenericReflectorTypeHandler typeHandler in gridTypes)
             {
-                EditorButton button = new EditorButton(type.Name);
+                EditorButton button = new EditorButton(typeHandler.TypeName);
                 button.GrowX = true;
                 button.OnClickedProxy = (_) =>
                 {
-                    IGenericReflectorComplexTypeHandler? handler = ReflectorEngine.GetComplexTypeHandler(type);
-                    object? newGrid = handler?.CreateNew();
+                    IGenericReflectorComplexTypeHandler? complexHandler = typeHandler as IGenericReflectorComplexTypeHandler;
+                    object? newGrid = complexHandler?.CreateNew();
                     if (newGrid is IMapGrid grid)
                         currentMap.AddGrid(grid);
 

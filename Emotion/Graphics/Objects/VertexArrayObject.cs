@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using Emotion.Core.Utility.Threading;
 using Emotion.Graphics.Data;
 using Emotion.Standard.Reflector;
+using Emotion.Standard.Reflector.Handlers;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 using OpenGL;
@@ -117,7 +118,7 @@ public abstract class VertexArrayObject : IDisposable
         int stride = Marshal.SizeOf<T>();
         var vertexType = typeof(T);
 
-        var typeData = ReflectorEngine.GetTypeHandler(vertexType) as IGenericReflectorComplexTypeHandler;
+        ComplexTypeHandler<T>? typeData = ReflectorEngine.GetTypeInfo<T>();
         AssertNotNull(typeData);
         ComplexTypeHandlerMemberBase[] members = typeData.GetMembers();
 
