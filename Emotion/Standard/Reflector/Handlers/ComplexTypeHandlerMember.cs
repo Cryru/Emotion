@@ -147,11 +147,7 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMemberBa
             if (config.Pretty)
             {
                 if (!writer.WriteChar('\n')) return;
-
-                for (int i = 0; i < indent; i++)
-                {
-                    if (!writer.WriteChar(' ')) return;
-                }
+                if (!writer.WriteChar(' ', indent)) return;
             }
         }
 
@@ -188,11 +184,7 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMemberBa
             if (_isComplex && config.Pretty)
             {
                 if (!writer.WriteChar('\n')) return;
-
-                for (int i = 0; i < indent; i++)
-                {
-                    if (!writer.WriteChar(' ')) return;
-                }
+                if (!writer.WriteChar(' ', indent)) return;
             }
 
             if (!writer.WriteString("</")) return;

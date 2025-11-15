@@ -209,6 +209,7 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
             if (config.Pretty)
             {
                 if (!writer.WriteChar('\n')) return;
+                if (!writer.WriteChar(' ', indent)) return;
             }
 
             if (!writer.WriteString("</")) return;

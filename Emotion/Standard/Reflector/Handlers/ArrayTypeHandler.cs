@@ -1,9 +1,11 @@
 ﻿#nullable enable
 
-using System.Text.Json;
+using Emotion.Standard.DataStructures.OptimizedStringReadWrite;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
-using Emotion.Standard.DataStructures.OptimizedStringReadWrite;
+using Emotion.Standard.Serialization.XML;
+using System.Text.Json;
+using System.Xml.Linq;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
@@ -141,6 +143,45 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
         if (!writer.WriteChar('\n')) return;
         if (!writer.WriteIndent()) return;
         if (!writer.WriteString("]")) return;
+    }
+
+    public override void WriteAsXML(T value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config, int indent = 0)
+    {
+        if (value == null)
+        {
+            writer.WriteString("null");
+            return;
+        }
+
+        foreach (TItem? item in value)
+        {
+            if (config.Pretty)
+            {
+                if (!writer.WriteChar('\n')) return;
+                if (!writer.WriteChar(' ', indent + config.Indentation)) return;
+            }
+
+            if (item == null)
+            {
+                writer.WriteString("<null/>");
+                continue;
+            }
+
+            IGenericReflectorTypeHandler? itemHandler = ReflectorEngine.GetTypeHandler(item.GetType());
+            if (itemHandler == null)
+            {
+                writer.WriteString("<error/>");
+                continue;
+            }
+
+            itemHandler.WriteAsXML<TItem>(item, ref writer, true, config, indent + config.Indentation);
+        }
+
+        if (config.Pretty)
+        {
+            if (!writer.WriteChar('\n')) return;
+            if (!writer.WriteChar(' ', indent)) return;
+        }
     }
 
     #endregion

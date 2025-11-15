@@ -80,6 +80,15 @@ public ref struct ValueStringWriter
         return true;
     }
 
+    public bool WriteChar(char value, int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            if (!WriteChar(value)) return false;
+        }
+        return true;
+    }
+
     public bool WriteChar(char value)
     {
         // Fast path for string builder.
