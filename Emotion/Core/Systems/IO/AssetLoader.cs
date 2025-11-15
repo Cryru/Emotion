@@ -250,6 +250,12 @@ public class AssetLoader
         return Save(content, "Assets/" + name, backup);
     }
 
+    public bool SaveDevMode(byte[] content, string name, bool backup = true)
+    {
+        if (!Engine.Configuration.DebugMode) return false;
+        return Save(content, "Assets/" + name, backup);
+    }
+
     public bool Save(string content, string name, bool backup = true)
     {
         byte[] bytes = System.Text.Encoding.Default.GetBytes(content);
