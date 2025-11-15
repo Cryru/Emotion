@@ -713,13 +713,7 @@ public class AssetLoader
     {
         while (true)
         {
-            if (_assetsToLoad.Count > 0)
-            {
-                yield return null;
-                continue;
-            }
-
-            if (_loadingAssetRoutines.Count > 0)
+            if (_assetsToLoad.Count > 0 || _loadingAssetRoutines.Count > 0)
             {
                 yield return null;
                 continue;
