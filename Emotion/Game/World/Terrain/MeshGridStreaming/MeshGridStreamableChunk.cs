@@ -10,7 +10,7 @@ namespace Emotion.Game.World.Terrain.MeshGridStreaming;
 #nullable enable
 
 public class MeshGridStreamableChunk<T, IndexT> : VersionedGridChunk<T>, IStreamableGridChunk
-    where T : struct, IEquatable<T>
+    where T : unmanaged, IEquatable<T>
     where IndexT : INumber<IndexT>
 {
     #region DEBUG

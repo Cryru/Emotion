@@ -30,12 +30,12 @@ public partial class GameObject
     [DontSerialize]
     public GameObjectState State { get; private set; } = GameObjectState.Uninitialized;
 
-    private GameMapToObjectFriendAdapter? _adapter;
+    private ObjectFriendAdapter? _adapter;
 
     /// <summary>
     /// Called by the map when the object is initialized.
     /// </summary>
-    public IEnumerator InitRoutine(GameMapToObjectFriendAdapter adapter)
+    public IEnumerator InitRoutine(ObjectFriendAdapter adapter)
     {
         _adapter = adapter;
 

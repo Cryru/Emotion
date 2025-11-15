@@ -16,7 +16,7 @@ namespace Emotion.Game.World.Terrain;
 [DontSerialize]
 public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGridWorldSpaceTiles, ITerrainGrid3D
     where ChunkT : MeshGridStreamableChunk<T, IndexT>, new()
-    where T : struct, IEquatable<T>
+    where T : unmanaged, IEquatable<T>
     where IndexT : INumber<IndexT>
 {
     public bool Initialized { get; private set; }
@@ -38,7 +38,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
             SimulationRange = RenderRange;
     }
 
-    public virtual IEnumerator InitRuntimeDataRoutine()
+    public virtual IEnumerator InitRoutine()
     {
         SetupDebugVisualizations();
         Initialized = true;
@@ -275,7 +275,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
 
     protected List<ChunkT> _renderThisPass = new(32);
 
-    public void Render(Renderer r, CameraCullingContext culling)
+    public void Render(GameMap map, Renderer r, CameraCullingContext culling)
     {
         Frustum frustum = culling.Frustum;
 

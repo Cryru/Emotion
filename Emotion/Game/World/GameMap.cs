@@ -1,12 +1,12 @@
 ﻿#nullable enable
 
+using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Game.World.Components;
-using Emotion.Game.World.Terrain;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Game.World.TileMap;
 using Emotion.Graphics.Camera;
-using System.Runtime.InteropServices;
+using Emotion.Standard.Serialization.XML;
 
 namespace Emotion.Game.World;
 
@@ -17,25 +17,14 @@ public enum GameMapState
     Initialized
 }
 
-public interface IMapGrid
-{
-    public IEnumerator InitRuntimeDataRoutine();
-
-    public void Done();
-
-    public void Update(float dt);
-
-    public void Render(Renderer r, CameraCullingContext culling);
-}
-
 public partial class GameMap : IDisposable
 {
     [DontSerialize]
     public GameMapState State { get; private set; } = GameMapState.Uninitialized;
 
-    public string MapFileName = string.Empty;
+    public string MapName = "Untitled Map";
 
-    public IMapGrid[] Grids = Array.Empty<IMapGrid>();
+    public IMapGrid[] Grids { get; set; } = Array.Empty<IMapGrid>(); // private
 
     public LightModel LightModel = LightModel.DefaultLightModel;
 
@@ -45,7 +34,8 @@ public partial class GameMap : IDisposable
 
     public GameMap()
     {
-        _gameObjectFriendAdapter = new GameMapToObjectFriendAdapter(this);
+        _gameObjectFriendAdapter = new ObjectFriendAdapter(this);
+        _gridFriendAdapter = new GridFriendAdapter(this);
     }
 
     public IEnumerator InitRoutine()
@@ -54,9 +44,13 @@ public partial class GameMap : IDisposable
         for (int i = 0; i < Grids.Length; i++)
         {
             IMapGrid grid = Grids[i];
-            Coroutine routine = Engine.CoroutineManager.StartCoroutine(grid.InitRuntimeDataRoutine());
+            Coroutine routine = Engine.CoroutineManager.StartCoroutine(grid.InitRoutine(_gridFriendAdapter));
             gridLoadingRoutines[i] = routine;
         }
+
+        // Load tile map data if any
+        if (_tileMapData != null)
+            yield return Engine.CoroutineManager.StartCoroutine(_tileMapData.InitRoutine());
 
         yield return Coroutine.WhenAll(gridLoadingRoutines);
 
@@ -77,14 +71,9 @@ public partial class GameMap : IDisposable
 
     #region Object Management
 
-    public class GameMapToObjectFriendAdapter
+    public class ObjectFriendAdapter(GameMap map)
     {
-        public GameMap Map;
-
-        public GameMapToObjectFriendAdapter(GameMap map)
-        {
-            Map = map;
-        }
+        public GameMap Map = map;
 
         public void OnObjectComponentAdded<TComponent>(GameObject obj) where TComponent : class, IGameObjectComponent
         {
@@ -97,7 +86,7 @@ public partial class GameMap : IDisposable
         }
     }
 
-    private GameMapToObjectFriendAdapter _gameObjectFriendAdapter;
+    private ObjectFriendAdapter _gameObjectFriendAdapter;
 
     private IEnumerator LoadPendingObjectsRoutine()
     {
@@ -182,7 +171,7 @@ public partial class GameMap : IDisposable
         var culling = new CameraCullingContext(r.Camera);
         foreach (IMapGrid grid in Grids)
         {
-            grid.Render(r, culling);
+            grid.Render(this, r, culling);
         }
 
         // todo: quadtree/octree query
@@ -191,8 +180,7 @@ public partial class GameMap : IDisposable
             Rectangle rect = culling.Rect2D;
             foreach (GameObject obj in ForEachObject())
             {
-                if (!obj.AlwaysRender) continue;
-                if (!obj.GetBoundingRect().Intersects(rect)) continue;
+                if (!obj.AlwaysRender && !obj.GetBoundingRect().Intersects(rect)) continue;
                 obj.ForEachComponentOfType<IRenderableComponent, Renderer>(static (component, r) => component.Render(r), r);
             }
         }
@@ -201,8 +189,7 @@ public partial class GameMap : IDisposable
             Frustum frustum = culling.Frustum;
             foreach (GameObject obj in ForEachObject())
             {
-                if (!obj.AlwaysRender) continue;
-                if (!frustum.IntersectsOrContainsCube(obj.GetBoundingCube())) continue;
+                if (!obj.AlwaysRender && !frustum.IntersectsOrContainsCube(obj.GetBoundingCube())) continue;
                 obj.ForEachComponentOfType<IRenderableComponent, Renderer>(static (component, r) => component.Render(r), r);
             }
         }
@@ -214,17 +201,43 @@ public partial class GameMap : IDisposable
         {
             grid.Done();
         }
+
+        _tileMapData?.Done();
     }
 
     #region Grids
 
+    public class GridFriendAdapter(GameMap map)
+    {
+        public GameMap Map = map;
+    }
+
+    private GridFriendAdapter _gridFriendAdapter;
+
+    /// <summary>
+    /// Map-wide data for all tile map grids in the map
+    /// </summary>
+    public TileMapData TileMapData
+    {
+        get
+        {
+            _tileMapData ??= new TileMapData();
+            return _tileMapData;
+        }
+        set // remove and use private reflector member for tileMapData
+        {
+            _tileMapData = value;
+        }
+    }
+
+    private TileMapData? _tileMapData;
+
     public void AddGrid(IMapGrid grid)
     {
         if (State == GameMapState.Initialized)
-            Coroutine.RunInline(grid.InitRuntimeDataRoutine());
+            Coroutine.RunInline(grid.InitRoutine(_gridFriendAdapter));
 
-        Array.Resize(ref Grids, Grids.Length + 1);
-        Grids[^1] = grid;
+        Grids = Grids.AddToArray(grid);
     }
 
     public TGrid? GetFirstGridOfType<TGrid>()
@@ -234,6 +247,35 @@ public partial class GameMap : IDisposable
             if (grid is TGrid tGrid) return tGrid;
         }
         return default;
+    }
+
+    #endregion
+
+    #region Save/Load
+
+    public void _Save(string? fileName = null)
+    {
+        MapName = fileName ?? MapName;
+
+        string mapFolder = $"{fileName}_MapData";
+
+        string? data = XMLSerialization.To(this);
+        AssertNotNull(data);
+        if (data == null) return;
+
+        Engine.AssetLoader.SaveDevMode(data, $"{fileName}.map", false);
+
+        IMapGrid[] grids = Grids;
+        for (int i = 0; i < grids.Length; i++)
+        {
+            IMapGrid grid = grids[i];
+            grid._Save($"{mapFolder}/{grid.UniqueId}");
+        }
+    }
+
+    public static void _Load()
+    {
+
     }
 
     #endregion

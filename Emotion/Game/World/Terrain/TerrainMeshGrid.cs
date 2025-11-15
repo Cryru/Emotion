@@ -13,14 +13,16 @@ namespace Emotion.Game.World.Terrain;
 
 public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ushort>, IMapGrid
 {
+    public string UniqueId { get; set; } = Guid.NewGuid().ToString("N");
+
     public TerrainMeshGrid(Vector2 tileSize, float chunkSize) : base(tileSize, chunkSize)
     {
     }
 
-    public override IEnumerator InitRuntimeDataRoutine()
+    public IEnumerator InitRoutine(GameMap.GridFriendAdapter adapter)
     {
         yield return GLThread.ExecuteOnGLThreadAsync(PrepareIndexBuffer);
-        yield return base.InitRuntimeDataRoutine();
+        yield return base.InitRoutine();
     }
 
     #region Rendering

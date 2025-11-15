@@ -12,18 +12,20 @@ using OpenGL;
 
 namespace Emotion.Game.World.Terrain;
 
-public class VoxelMeshTerrainGrid : VoxelMeshTerrainGrid<uint, MeshGridStreamableChunk<uint, uint>, uint>, IMapGrid
+public class VoxelMeshTerrainGrid : VoxelMeshTerrainGrid<uint, MeshGridStreamableChunk<uint, uint>, uint>
 {
     public VoxelMeshTerrainGrid(Vector3 tileSize, float chunkHeight, float chunkSize) : base(tileSize, chunkHeight, chunkSize)
     {
     }
 }
 
-public class VoxelMeshTerrainGrid<TData, TChunk, TIndex> : MeshGrid<TData, TChunk, TIndex>
-    where TData : struct, IEquatable<TData>
+public class VoxelMeshTerrainGrid<TData, TChunk, TIndex> : MeshGrid<TData, TChunk, TIndex>, IMapGrid
+    where TData : unmanaged, IEquatable<TData>
     where TChunk : MeshGridStreamableChunk<TData, TIndex>, new()
     where TIndex : unmanaged, INumber<TIndex>
 {
+    public string UniqueId { get; set; } = Guid.NewGuid().ToString("N");
+
     public Vector3 TileSize3D { get; init; }
 
     public Vector3 ChunkSize3D { get; init; }
@@ -34,14 +36,14 @@ public class VoxelMeshTerrainGrid<TData, TChunk, TIndex> : MeshGrid<TData, TChun
         ChunkSize3D = new Vector3(chunkSize, chunkSize, chunkHeight);
     }
 
-    public override IEnumerator InitRuntimeDataRoutine()
+    public IEnumerator InitRoutine(GameMap.GridFriendAdapter adapter)
     {
         List<Asset> assets = new List<Asset>();
         if (TerrainMeshMaterial.DiffuseTextureName != null)
             assets.Add(Engine.AssetLoader.ONE_Get<TextureAsset>(TerrainMeshMaterial.DiffuseTextureName));
 
         ThreadExecutionWaitToken indexBufferTask = GLThread.ExecuteOnGLThreadAsync(PrepareIndexBuffer);
-        yield return base.InitRuntimeDataRoutine();
+        yield return base.InitRoutine();
 
         yield return indexBufferTask;
 

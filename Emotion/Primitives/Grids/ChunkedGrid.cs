@@ -1,15 +1,12 @@
 ﻿#nullable enable
 
+using Emotion.Primitives.Grids.Chunked;
+
 namespace Emotion.Primitives.Grids;
 
-public interface IChunkedGrid
-{
-    public Vector2 GetChunkCoordinateOfValueCoordinate(Vector2 tile);
-}
-
-public class ChunkedGrid<T, ChunkT> : IChunkedGrid, IGrid<T>
+public class ChunkedGrid<T, ChunkT> : IGrid<T>
     where ChunkT : IGridChunk<T>, new()
-    where T : struct, IEquatable<T>
+    where T : unmanaged, IEquatable<T>
 {
     public Vector2 ChunkSize { get; private set; }
 
@@ -253,58 +250,21 @@ public class ChunkedGrid<T, ChunkT> : IChunkedGrid, IGrid<T>
     }
 
     #endregion
-}
 
-public interface IGridChunk<T> where T : struct
-{
-    public bool IsEmpty();
+    #region Save/Load
 
-    public int GetNonEmptyCount();
-
-    public T[] GetRawData();
-
-    public void SetRawData(T[] data);
-}
-
-public class GenericGridChunk<T> : IGridChunk<T> where T : struct, IEquatable<T>
-{
-    protected T[] _data = Array.Empty<T>();
-
-    public bool IsEmpty()
+    public virtual void _Save(string folder)
     {
-        T defValue = default;
-        for (int i = 0; i < _data.Length; i++)
+        foreach ((Vector2 coord, ChunkT chunk) in _chunks)
         {
-            T value = _data[i];
-            if (!defValue.Equals(value)) return false;
+            chunk._Save($"{folder}/{coord.X}_{coord.Y}");
         }
-        return true;
     }
 
-    public int GetNonEmptyCount()
-    {
-        T defValue = default;
-        int nonEmpty = 0;
-        for (int i = 0; i < _data.Length; i++)
-        {
-            T value = _data[i];
-            if (!defValue.Equals(value)) nonEmpty++;
-        }
-        return nonEmpty;
-    }
-
-    public T[] GetRawData()
-    {
-        return _data;
-    }
-
-    public void SetRawData(T[] data)
-    {
-        _data = data;
-    }
+    #endregion
 }
 
-public class VersionedGridChunk<T> : GenericGridChunk<T> where T : struct, IEquatable<T>
+public class VersionedGridChunk<T> : GenericGridChunk<T> where T : unmanaged, IEquatable<T>
 {
     // This is used to track runtime changes in the chunk for render cache updates
     [DontSerialize]

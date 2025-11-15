@@ -177,14 +177,8 @@ public abstract class GridEditorWindow : UIBaseWindow
             string inMapText = "";
             if (!inMap) inMapText = " (Outside Map)";
 
-            string currentTileText;
-            if (currentGrid is IChunkedGrid chunkedGrid)
-                currentTileText = $"{currentTile} (Chunk: {chunkedGrid.GetChunkCoordinateOfValueCoordinate(currentTile)})";
-            else
-                currentTileText = $"{currentTile}";
-
             if (_bottomText != null)
-                _bottomText.Text = $"Rollover Tile - {currentTileText}{inMapText}";
+                _bottomText.Text = $"Rollover Tile - {currentTile}{inMapText}";
         }
 
         if (!MouseInside) return;

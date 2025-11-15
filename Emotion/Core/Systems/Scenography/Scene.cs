@@ -96,7 +96,7 @@ public abstract class SceneWithMap : Scene
     {
         return new GameMap()
         {
-            MapFileName = "Maps/start.xml"
+            MapName = "Maps/start.xml"
         };
     }
 

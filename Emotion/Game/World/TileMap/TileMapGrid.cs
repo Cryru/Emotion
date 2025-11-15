@@ -8,7 +8,7 @@ using Emotion.Primitives.Grids;
 
 namespace Emotion.Game.World.TileMap;
 
-public class TileMapGrid : IMapGrid
+public class TileMapGrid
 {
     public List<TileMapLayer> Layers = new();
     public List<TileMapTileset> Tilesets = new();
@@ -58,60 +58,65 @@ public class TileMapGrid : IMapGrid
         _tilesetTextureOwners = null;
     }
 
-    #region Rendering Cache
-
-    private TileMapLayerRenderCache[]? _renderCache;
-
-    public int GetLayerOrderIndex(TileMapLayer layer)
-    {
-        int idx = Layers.IndexOf(layer);
-        return idx == -1 ? 0 : idx;
-    }
-
     public (Texture texture, Rectangle uv) GetTileRenderData(TileMapTile tile)
     {
-        if (_tilesetTexturesLoaded == null) return (Texture.EmptyWhiteTexture, Rectangle.Empty);
-
-        TileMapTileset tileset = Tilesets[tile.TilesetId];
-        Texture tilesetTexture = _tilesetTexturesLoaded[tile.TilesetId];
-        if (tilesetTexture == null) return (Texture.EmptyWhiteTexture, Rectangle.Empty);
-
-        Vector2 tilesetSize = tileset.GetTilesetTextureSize();
-        int tId = tile.TextureId - 1;
-        Rectangle uvRect = GridHelpers.GetBoxInGridAt1D(tId, tilesetSize, tileset.TileSize, tileset.Margin, tileset.Spacing);
-
-        return (tilesetTexture, uvRect);
+        return (Texture.EmptyWhiteTexture, Rectangle.Empty);
     }
 
-    public void Update(float dt)
-    {
+    //#region Rendering Cache
 
-    }
+    //private TileMapLayerRenderCache[]? _renderCache;
 
-    public void Render(Renderer r, CameraCullingContext culling)
-    {
-        Rectangle clipArea = culling.Rect2D;
+    //public int GetLayerOrderIndex(TileMapLayer layer)
+    //{
+    //    int idx = Layers.IndexOf(layer);
+    //    return idx == -1 ? 0 : idx;
+    //}
 
-        if (_renderCache == null)
-            _renderCache = new TileMapLayerRenderCache[Layers.Count];
-        else if (Layers.Count != _renderCache.Length)
-            Array.Resize(ref _renderCache, Layers.Count);
+    //public (Texture texture, Rectangle uv) GetTileRenderData(TileMapTile tile)
+    //{
+    //    if (_tilesetTexturesLoaded == null) return (Texture.EmptyWhiteTexture, Rectangle.Empty);
 
-        // Update the render cache, load chunks, etc.
-        for (int i = 0; i < Layers.Count; i++)
-        {
-            TileMapLayer layer = Layers[i];
-            _renderCache[i] = TileMapLayerRenderCache.UpdateRenderCache(this, layer, clipArea, _renderCache[i]);
-        }
+    //    TileMapTileset tileset = Tilesets[tile.TilesetId];
+    //    Texture tilesetTexture = _tilesetTexturesLoaded[tile.TilesetId];
+    //    if (tilesetTexture == null) return (Texture.EmptyWhiteTexture, Rectangle.Empty);
 
-        // Render caches
-        for (int i = 0; i < _renderCache.Length; i++)
-        {
-            TileMapLayerRenderCache cache = _renderCache[i];
-            AssertNotNull(cache);
-            cache.Render(r, _tilesetTexturesLoaded);
-        }
-    }
+    //    Vector2 tilesetSize = tileset.GetTilesetTextureSize();
+    //    int tId = tile.TextureId - 1;
+    //    Rectangle uvRect = GridHelpers.GetBoxInGridAt1D(tId, tilesetSize, tileset.TileSize, tileset.Margin, tileset.Spacing);
 
-    #endregion
+    //    return (tilesetTexture, uvRect);
+    //}
+
+    //public void Update(float dt)
+    //{
+
+    //}
+
+    //public void Render(Renderer r, CameraCullingContext culling)
+    //{
+    //    //Rectangle clipArea = culling.Rect2D;
+
+    //    //if (_renderCache == null)
+    //    //    _renderCache = new TileMapLayerRenderCache[Layers.Count];
+    //    //else if (Layers.Count != _renderCache.Length)
+    //    //    Array.Resize(ref _renderCache, Layers.Count);
+
+    //    //// Update the render cache, load chunks, etc.
+    //    //for (int i = 0; i < Layers.Count; i++)
+    //    //{
+    //    //    TileMapLayer layer = Layers[i];
+    //    //    _renderCache[i] = TileMapLayerRenderCache.UpdateRenderCache(this, layer, clipArea, _renderCache[i]);
+    //    //}
+
+    //    //// Render caches
+    //    //for (int i = 0; i < _renderCache.Length; i++)
+    //    //{
+    //    //    TileMapLayerRenderCache cache = _renderCache[i];
+    //    //    AssertNotNull(cache);
+    //    //    cache.Render(r, _tilesetTexturesLoaded);
+    //    //}
+    //}
+
+    //#endregion
 }
