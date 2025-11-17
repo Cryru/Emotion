@@ -6,6 +6,7 @@ using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Serialization.XML;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -32,6 +33,18 @@ public sealed class StringTypeHandler : ReflectorTypeHandlerBase<string>
         return reader.GetString();
     }
 
+    public override string? ParseFromXML(ref ValueStringReader reader)
+    {
+        StringBuilder str = new StringBuilder();
+        while (true)
+        {
+            char c = reader.ReadNextChar();
+            if (c == '\0' || c == '<') break;
+            str.Append(c);
+        }
+        return XMLRestoreString(str.ToString());
+    }
+
     #endregion
 
     #region Serialization Write
@@ -41,23 +54,15 @@ public sealed class StringTypeHandler : ReflectorTypeHandlerBase<string>
         writer.WriteString($"\"{value}\"");
     }
 
-    public override void WriteAsXML(string value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config, int indent = 0)
+    public override void WriteAsXML(string value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config)
     {
         if (addTypeTags)
-        {
-            if (!writer.WriteChar('<')) return;
-            if (!writer.WriteString(Type.Name)) return;
-            if (!writer.WriteChar('>')) return;
-        }
+            writer.WriteXMLTag(Type.Name, ValueStringWriter.XMLTagType.Normal);
 
         writer.WriteString(XMLSanitizeString(value));
 
         if (addTypeTags)
-        {
-            if (!writer.WriteChar('<')) return;
-            if (!writer.WriteString(Type.Name)) return;
-            if (!writer.WriteChar('>')) return;
-        }
+            writer.WriteXMLTag(Type.Name, ValueStringWriter.XMLTagType.Closing);
     }
 
     private static readonly Regex StringSanitizeRegex = new Regex("<", RegexOptions.Compiled);

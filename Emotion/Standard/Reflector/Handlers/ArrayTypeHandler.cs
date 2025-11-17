@@ -113,6 +113,40 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
         return (T?)(object?)values;
     }
 
+    public unsafe override T? ParseFromXML(ref ValueStringReader reader)
+    {
+        char* readMemory = stackalloc char[128];
+        Span<char> readMemorySpan = new Span<char>(readMemory, 128 * sizeof(char));
+
+        List<TItem?> tempList = _pool.Get();
+
+        while (true)
+        {
+            // Read item opening tag
+            int charsWritten = reader.ReadXMLTagIfNotClosing(readMemorySpan);
+            if (charsWritten == 0) break;
+
+            // Get the type handler for this item (could be derived type of TItem)
+            Span<char> nextTag = readMemorySpan.Slice(0, charsWritten);
+            IGenericReflectorTypeHandler? itemHandler = ReflectorEngine.GetTypeHandlerByName(nextTag);
+            if (itemHandler == null)
+                continue;
+
+            TItem? item = itemHandler.ParseFromXML<TItem>(ref reader);
+            tempList.Add(item);
+
+            // Skip closing tag
+            reader.MoveCursorToNextOccuranceOfChar('>');
+        }
+
+        TItem[] values = new TItem[tempList.Count];
+        tempList.CopyTo(values, 0);
+
+        _pool.Return(tempList);
+
+        return (T?)(object?)values;
+    }
+
     #endregion
 
     #region Serialization Write
@@ -145,7 +179,7 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
         if (!writer.WriteString("]")) return;
     }
 
-    public override void WriteAsXML(T value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config, int indent = 0)
+    public override void WriteAsXML(T value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config)
     {
         if (value == null)
         {
@@ -158,7 +192,7 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
             if (config.Pretty)
             {
                 if (!writer.WriteChar('\n')) return;
-                if (!writer.WriteChar(' ', indent + config.Indentation)) return;
+                if (!writer.WriteIndent()) return;
             }
 
             if (item == null)
@@ -174,13 +208,15 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
                 continue;
             }
 
-            itemHandler.WriteAsXML<TItem>(item, ref writer, true, config, indent + config.Indentation);
+            writer.PushIndent();
+            itemHandler.WriteAsXML<TItem>(item, ref writer, true, config);
+            writer.PopIndent();
         }
 
         if (config.Pretty)
         {
             if (!writer.WriteChar('\n')) return;
-            if (!writer.WriteChar(' ', indent)) return;
+            if (!writer.WriteIndent()) return;
         }
     }
 

@@ -2,11 +2,12 @@
 
 #pragma warning disable CS9080 // Use of variable in this context may expose referenced variables outside of their declaration scope
 
-using Emotion.Standard.Reflector;
-using System.Text;
-using Emotion.Standard.Reflector.Handlers.Interfaces;
-using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.DataStructures.OptimizedStringReadWrite;
+using Emotion.Standard.Reflector;
+using Emotion.Standard.Reflector.Handlers.Base;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
+using System.Text;
+using System.Xml.XPath;
 
 namespace Emotion.Standard.Serialization.XML;
 
@@ -45,26 +46,18 @@ public static class XMLSerialization
     public unsafe static T? From<T>(ref ValueStringReader reader)
     {
         Type requestedType = typeof(T);
-
-        if (!reader.MoveCursorToNextOccuranceOfChar('<')) return default;
-
-        bool hasXMLHeader = reader.PeekNextChar() == '?';
-        if (hasXMLHeader)
-        {
-            if (!reader.MoveCursorToNextOccuranceOfChar('>')) return default;
-            if (!reader.MoveCursorToNextOccuranceOfChar('<')) return default;
-        }
-
-        // Start reading tag.
-        {
-            char c = reader.ReadNextChar();
-            if (c != '<') return default;
-        }
-
-        // Read tag content
         Span<char> readMemory = stackalloc char[128];
-        int charsWritten = reader.ReadToNextOccuranceofChar('>', readMemory);
-        if (charsWritten == 0) return default;
+
+        // Read first tag
+        int charsWritten = reader.ReadXMLTag(readMemory, out bool closing);
+        if (charsWritten == 0 || closing) return default;
+
+        bool isXmlHeader = readMemory[0] == '?';
+        if (isXmlHeader)
+        {
+            charsWritten = reader.ReadXMLTag(readMemory, out closing);
+            if (charsWritten == 0 || closing) return default;
+        }
 
         Span<char> nextTag = readMemory.Slice(0, charsWritten);
         IGenericReflectorTypeHandler? typeHandler = ReflectorEngine.GetTypeHandlerByName(nextTag);
@@ -72,7 +65,7 @@ public static class XMLSerialization
 
         if (!typeHandler.IsTypeAssignableTo(requestedType))
         {
-            Engine.Log.Warning($"Tried to deserialize into {requestedType.Name} type but the document is of type {typeHandler.Type.Name}", "XML");
+            Engine.Log.Warning($"Tried to deserialize into {requestedType.Name} type but the document is of type {typeHandler.Type.Name}", MessageSource.XML);
             return default;
         }
 
@@ -108,14 +101,18 @@ public static class XMLSerialization
     {
         if (config.UseXMLHeader)
         {
-            if (!writer.WriteString(XMLHeader)) return -1;
-            if (config.Pretty && !writer.WriteChar('\n')) return -1;
+            writer.WriteString(XMLHeader);
+
+            if (config.Pretty)
+                if (!writer.WriteChar('\n'))
+                    return -1;
         }
 
         ReflectorTypeHandlerBase<T>? typeHandler = ReflectorEngine.GetTypeHandler<T>();
         if (typeHandler == null) return -1;
 
-        typeHandler.WriteAsXML(obj, ref writer, true, config, 0);
+        writer.SetIndentSize(config.Indentation);
+        typeHandler.WriteAsXML(obj, ref writer, true, config);
 
         return writer.BytesWritten;
     }

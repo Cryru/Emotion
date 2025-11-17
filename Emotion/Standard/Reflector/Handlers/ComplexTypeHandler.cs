@@ -21,7 +21,7 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
     public override Type Type => typeof(T);
 
     private ComplexTypeHandlerMemberBase[] _membersArr;
-    private Dictionary<string, ComplexTypeHandlerMemberBase>? _members;
+    private Dictionary<int, ComplexTypeHandlerMemberBase>? _members;
     private byte[][] _membersCaseInsensitive;
     private Func<T>? _createNew;
     private string _typeName;
@@ -50,8 +50,7 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
             for (int i = 0; i < members.Length; i++)
             {
                 ComplexTypeHandlerMemberBase member = members[i];
-                string memberName = member.Name;
-                _members.Add(memberName, member);
+                _members.Add(member.Name.GetStableHashCode(), member);
             }
 
             _membersCaseInsensitiveDeep = _membersCaseInsensitive;
@@ -88,7 +87,7 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
             ComplexTypeHandlerMemberBase member = _membersArr[i];
             member.PostInit();
         }
-        DetermineCaseInsensitive(_membersArr, _membersCaseInsensitive);
+        PopulateUTF8CaseInsensitive(_membersArr, _membersCaseInsensitive);
 
         // Load deep members.
         GetMembersDeep();
@@ -131,7 +130,7 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
                     {
                         AssertNotNull(_membersArrDeep);
                         ComplexTypeHandlerMemberBase member = _membersArrDeep[i];
-                        found = member.ParseFromJSON(ref reader, val);
+                        found = member.ParseFromJSON(ref reader, ref val);
                         break;
                     }
                 }
@@ -155,6 +154,41 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
         }
 
         return val;
+    }
+
+    public override unsafe T? ParseFromXML(ref ValueStringReader reader)
+    {
+        Span<char> readMemory = stackalloc char[128];
+
+        // Create the new object.
+        if (_createNew == null) return default;
+        T? obj = _createNew.Invoke();
+
+        while (true)
+        {
+            int charsWritten = reader.ReadXMLTagIfNotClosing(readMemory);
+            if (charsWritten == 0) break;
+
+            Span<char> nextTag = readMemory.Slice(0, charsWritten);
+            ComplexTypeHandlerMemberBase? member = GetMemberByName(nextTag);
+            if (member == null)
+            {
+                // todo: Try skip :/
+                break;
+            }
+
+            if(member.Name == "TileSize")
+            {
+                bool a = true;
+            }
+
+            if (!member.ParseFromXML(ref reader, ref obj)) break; // Error in parsing?
+
+            // Skip closing tag
+            reader.MoveCursorToNextOccuranceOfChar('>');
+        }
+
+        return obj;
     }
 
     #endregion
@@ -190,31 +224,27 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
         if (!writer.WriteString("}")) return;
     }
 
-    public override void WriteAsXML(T value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config, int indent = 0)
+    public override void WriteAsXML(T value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config)
     {
         if (addTypeTags)
-        {
-            if (!writer.WriteChar('<')) return;
-            if (!writer.WriteString(Type.Name)) return;
-            if (!writer.WriteChar('>')) return;
-        }
+            writer.WriteXMLTag(Type.Name, ValueStringWriter.XMLTagType.Normal);
 
+        writer.PushIndent();
         foreach (ComplexTypeHandlerMemberBase member in GetMembersDeep())
         {
-            member.WriteAsXML(value, ref writer, true, config, indent + config.Indentation);
+            member.WriteAsXML(value, ref writer, true, config);
         }
+        writer.PopIndent();
 
         if (addTypeTags)
         {
             if (config.Pretty)
             {
-                if (!writer.WriteChar('\n')) return;
-                if (!writer.WriteChar(' ', indent)) return;
+                writer.WriteChar('\n');
+                writer.WriteIndent();
             }
 
-            if (!writer.WriteString("</")) return;
-            if (!writer.WriteString(Type.Name)) return;
-            if (!writer.WriteChar('>')) return;
+            writer.WriteXMLTag(Type.Name, ValueStringWriter.XMLTagType.Closing);
         }
     }
 
@@ -267,8 +297,7 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
                 for (int i = 0; i < baseMembers.Length; i++)
                 {
                     ComplexTypeHandlerMemberBase member = baseMembers[i];
-                    string memberName = member.Name;
-                    if (_members.TryAdd(memberName, member))
+                    if (_members.TryAdd(member.Name.GetStableHashCode(), member))
                         filteredBaseMembers.Add(member);
                 }
 
@@ -280,7 +309,12 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
 
                 _membersArrDeep = [.. filteredBaseMembers];
                 _membersCaseInsensitiveDeep = new byte[_membersArrDeep.Length][];
-                DetermineCaseInsensitive(_membersArrDeep, _membersCaseInsensitiveDeep);
+                PopulateUTF8CaseInsensitive(_membersArrDeep, _membersCaseInsensitiveDeep);
+
+                foreach (ComplexTypeHandlerMemberBase member in _membersArrDeep)
+                {
+                    member.PostInit();
+                }
             }
         }
 
@@ -289,13 +323,18 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
 
     public ComplexTypeHandlerMemberBase? GetMemberByName(string name)
     {
+        return GetMemberByName(name.AsSpan());
+    }
+
+    public ComplexTypeHandlerMemberBase? GetMemberByName(ReadOnlySpan<char> name)
+    {
         if (_members == null) return null;
-        if (_members.TryGetValue(name, out ComplexTypeHandlerMemberBase? member))
+        if (_members.TryGetValue(name.GetStableHashCode(), out ComplexTypeHandlerMemberBase? member))
             return member;
         return null;
     }
 
-    private static void DetermineCaseInsensitive(ComplexTypeHandlerMemberBase[] members, byte[][] utf8CaseInsensitive)
+    private static void PopulateUTF8CaseInsensitive(ComplexTypeHandlerMemberBase[] members, byte[][] utf8CaseInsensitive)
     {
         for (int i = 0; i < members.Length; i++)
         {
@@ -309,8 +348,6 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
             byte lower = firstChar >= 65 && firstChar <= 90 ? (byte)(firstChar + 32) : firstChar;
             utf8Name[0] = lower;
             utf8CaseInsensitive[i] = utf8Name;
-
-            member.PostInit();
         }
     }
 }

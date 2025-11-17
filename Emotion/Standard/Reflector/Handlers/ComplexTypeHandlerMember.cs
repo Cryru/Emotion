@@ -1,10 +1,11 @@
 ﻿#nullable enable
 
-using System.Text.Json;
-using Emotion.Standard.Reflector.Handlers.Base;
-using Emotion.Standard.Serialization.XML;
-using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.Standard.DataStructures.OptimizedStringReadWrite;
+using Emotion.Standard.Reflector.Handlers.Base;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
+using Emotion.Standard.Serialization.XML;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
@@ -92,10 +93,9 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMemberBa
 
     #region Serialization Read
 
-    public override bool ParseFromJSON<ParseIntoT>(ref Utf8JsonReader reader, ParseIntoT intoObject)
+    public override bool ParseFromJSON<ParseIntoT>(ref Utf8JsonReader reader, ref ParseIntoT intoObject)
     {
-        if (intoObject is not ParentT parentT)
-            return false;
+        ref ParentT parentT = ref Unsafe.As<ParseIntoT, ParentT>(ref intoObject);
 
         ReflectorTypeHandlerBase<MyT>? handler = _typeHandler;
         if (handler == null) return false;
@@ -105,10 +105,9 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMemberBa
         return true;
     }
 
-    public override bool ParseFromXML<ParentT1>(ref ValueStringReader reader, ParentT1 intoObject)
+    public override bool ParseFromXML<ParentT1>(ref ValueStringReader reader, ref ParentT1 intoObject)
     {
-        if (intoObject is not ParentT parentT)
-            return false;
+        ref ParentT parentT = ref Unsafe.As<ParentT1, ParentT>(ref intoObject);
 
         ReflectorTypeHandlerBase<MyT>? handler = _typeHandler;
         if (handler == null) return false;
@@ -124,8 +123,7 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMemberBa
 
     public override void WriteAsCode<OwnerT>(OwnerT ownerObject, ref ValueStringWriter writer)
     {
-        if (ownerObject is not ParentT parentT)
-            return;
+        ref ParentT parentT = ref Unsafe.As<OwnerT, ParentT>(ref ownerObject);
 
         ReflectorTypeHandlerBase<MyT>? handler = _typeHandler;
         if (handler == null) return;
@@ -136,8 +134,7 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMemberBa
 
     public override void WriteAsXML<OwnerT>(OwnerT ownerObject, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config, int indent = 0)
     {
-        if (ownerObject is not ParentT parentT)
-            return;
+        ref ParentT parentT = ref Unsafe.As<OwnerT, ParentT>(ref ownerObject);
 
         ReflectorTypeHandlerBase<MyT>? handler = _typeHandler;
         if (handler == null) return;
@@ -146,8 +143,8 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMemberBa
         {
             if (config.Pretty)
             {
-                if (!writer.WriteChar('\n')) return;
-                if (!writer.WriteChar(' ', indent)) return;
+                writer.WriteChar('\n');
+                writer.WriteIndent();
             }
         }
 
@@ -157,39 +154,25 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMemberBa
         if (val == null)
         {
             if (addTypeTags)
-            {
-                if (!writer.WriteChar('<')) return;
-                if (!writer.WriteString(Name)) return;
-                if (!writer.WriteString("/>")) return;
+                writer.WriteXMLTag(Name, ValueStringWriter.XMLTagType.SelfClosing);
 
-                return;
-            }
-            else
-            {
-                return;
-            }
+            return;
         }
 
         if (addTypeTags)
-        {
-            if (!writer.WriteChar('<')) return;
-            if (!writer.WriteString(Name)) return;
-            if (!writer.WriteChar('>')) return;
-        }
+            writer.WriteXMLTag(Name, ValueStringWriter.XMLTagType.Normal);
 
-        handler.WriteAsXML<MyT>(val, ref writer, false, config, indent);
+        handler.WriteAsXML<MyT>(val, ref writer, false, config);
 
         if (addTypeTags)
         {
             if (_isComplex && config.Pretty)
             {
-                if (!writer.WriteChar('\n')) return;
-                if (!writer.WriteChar(' ', indent)) return;
+                writer.WriteChar('\n');
+                writer.WriteIndent();
             }
 
-            if (!writer.WriteString("</")) return;
-            if (!writer.WriteString(Name)) return;
-            if (!writer.WriteChar('>')) return;
+            writer.WriteXMLTag(Name, ValueStringWriter.XMLTagType.Closing);
         }
     }
 

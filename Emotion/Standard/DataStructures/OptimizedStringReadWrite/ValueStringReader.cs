@@ -1,6 +1,9 @@
 ﻿#nullable enable
 
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Unicode;
 
 namespace Emotion.Standard.DataStructures.OptimizedStringReadWrite;
 
@@ -27,6 +30,29 @@ public ref struct ValueStringReader
         _dataUTF8 = utf8;
         _charsTotal = Encoding.UTF8.GetCharCount(utf8);
         Type = StringType.UTF8;
+    }
+
+    public void SwitchModeToUTF8()
+    {
+        if (Type == StringType.UTF8)
+            return;
+
+        Assert(Type == StringType.DefaultUTF16);
+        _dataUTF8 = MemoryMarshal.Cast<char, byte>(_dataUTF16);
+        _charsTotal = Encoding.UTF8.GetCharCount(_dataUTF8);
+        Type = StringType.UTF8;
+
+        _dataUTF16 = ReadOnlySpan<char>.Empty;
+    }
+
+    public void SwitchModeToUTF16()
+    {
+        Assert(Type == StringType.UTF8);
+        _dataUTF16 = MemoryMarshal.Cast<byte, char>(_dataUTF8);
+        _charsTotal = _dataUTF16.Length;
+        Type = StringType.DefaultUTF16;
+
+        _dataUTF8 = ReadOnlySpan<byte>.Empty;
     }
 
     public char ReadNextChar()
@@ -198,4 +224,65 @@ public ref struct ValueStringReader
 
         return false;
     }
+
+    #region Specializations
+
+    public int ReadXMLTagIfNotClosing(Span<char> memory)
+    {
+        // Find start of tag
+        if (!MoveCursorToNextOccuranceOfChar('<')) return 0;
+
+        char nextChar = PeekNextChar();
+        if (nextChar == '/') return 0; // Closing!
+
+        // Read opening bracket
+        {
+            char c = ReadNextChar();
+            if (c != '<') return 0;
+        }
+
+        // Read content
+        int charsWritten = ReadToNextOccuranceofChar('>', memory);
+        if (charsWritten == 0) return 0;
+
+        // Close tag
+        {
+            char c = ReadNextChar();
+            if (c != '>') return 0;
+        }
+
+        return charsWritten;
+    }
+
+    public int ReadXMLTag(Span<char> memory, out bool closing)
+    {
+        closing = false;
+
+        // Find start of tag
+        if (!MoveCursorToNextOccuranceOfChar('<')) return 0;
+
+        // Read opening bracket
+        {
+            char c = ReadNextChar();
+            if (c != '<') return 0;
+        }
+
+        closing = PeekCurrentChar() == '/';
+
+        // Read content
+        int charsWritten = ReadToNextOccuranceofChar('>', memory);
+        if (charsWritten == 0) return 0;
+
+        // Close tag
+        {
+            char c = ReadNextChar();
+            if (c != '>') return 0;
+        }
+
+        // todo: attributes, self closing tag flag, etc.
+
+        return charsWritten;
+    }
+
+    #endregion
 }

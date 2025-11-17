@@ -96,7 +96,7 @@ public class StaticComplexTypeHandler : IGenericReflectorComplexTypeHandler, IGe
         throw new NotImplementedException();
     }
 
-    public void WriteAsXML<OwnerT>(OwnerT? value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config, int indent = 0)
+    public void WriteAsXML<OwnerT>(OwnerT? value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config)
     {
         throw new NotImplementedException();
     }

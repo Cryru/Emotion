@@ -61,9 +61,9 @@ public abstract class ComplexTypeHandlerMemberBase
 
     #region Serialization Read
 
-    public abstract bool ParseFromXML<ParentT>(ref ValueStringReader reader, ParentT intoObject);
+    public abstract bool ParseFromXML<ParentT>(ref ValueStringReader reader, ref ParentT intoObject);
 
-    public abstract bool ParseFromJSON<ParentT>(ref Utf8JsonReader reader, ParentT intoObject);
+    public abstract bool ParseFromJSON<ParentT>(ref Utf8JsonReader reader, ref ParentT intoObject);
 
     #endregion
 

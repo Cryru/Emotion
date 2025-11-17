@@ -136,6 +136,7 @@ public ref struct ValueStringWriter
     #region Indent
 
     private int _indent;
+    private int _indentSize = 4;
 
     public void PushIndent()
     {
@@ -149,7 +150,40 @@ public ref struct ValueStringWriter
 
     public bool WriteIndent()
     {
-        return WriteString(new string(' ', _indent * 4));
+        return WriteChar(' ', _indent * _indentSize);
+    }
+
+    public void SetIndentSize(int size)
+    {
+        _indentSize = size;
+    }
+
+    #endregion
+
+    #region Specialization
+
+    public enum XMLTagType
+    {
+        Normal,
+        Closing,
+        SelfClosing
+    }
+
+    public bool WriteXMLTag(string tagContent, XMLTagType tagType)
+    {
+        if (!WriteChar('<')) return false;
+
+        if (tagType == XMLTagType.Closing)
+            if (!WriteChar('/')) return false;
+
+        if (!WriteString(tagContent)) return false;
+
+        if (tagType == XMLTagType.SelfClosing)
+            if (!WriteChar('/')) return false;
+
+        if (!WriteChar('>')) return false;
+
+        return true;
     }
 
     #endregion

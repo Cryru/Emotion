@@ -38,7 +38,7 @@ public interface IGenericReflectorTypeHandler
 
     public void WriteAsCode<OwnerT>(OwnerT? value, ref ValueStringWriter writer);
 
-    public void WriteAsXML<OwnerT>(OwnerT? value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config, int indent = 0);
+    public void WriteAsXML<OwnerT>(OwnerT? value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config);
 
     #endregion
 }

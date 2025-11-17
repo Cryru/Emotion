@@ -102,24 +102,10 @@ public sealed class PrimitiveNumericTypeHandler<T> : ReflectorTypeHandlerBase<T>
         }
     }
 
-    public override T ParseFromXML(ref ValueStringReader reader)
+    public unsafe override T ParseFromXML(ref ValueStringReader reader)
     {
-        char c = reader.ReadNextChar();
-        if (c != '>') return default;
-        
         Span<char> readMemory = stackalloc char[128];
-        int readChars = 0;
-        
-        while (true)
-        {
-            var nextChar = reader.ReadNextChar();
-            if (nextChar == '\0' || nextChar == '<') break;
-
-            readMemory[readChars] = nextChar;
-            readChars++;
-
-            if (readChars == readMemory.Length) break;
-        }
+        int readChars = reader.ReadToNextOccuranceofChar('<', readMemory);
 
         if (T.TryParse(readMemory.Slice(0, readChars), _numberStyle, CultureInfo.InvariantCulture, out T result))
             return result;
@@ -137,23 +123,15 @@ public sealed class PrimitiveNumericTypeHandler<T> : ReflectorTypeHandlerBase<T>
         if (Type == typeof(float)) writer.WriteChar('f');
     }
 
-    public override void WriteAsXML(T value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config, int indent = 0)
+    public override void WriteAsXML(T value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config)
     {
         if (addTypeTags)
-        {
-            if (!writer.WriteChar('<')) return;
-            if (!writer.WriteString(Type.Name)) return;
-            if (!writer.WriteChar('>')) return;
-        }
+            writer.WriteXMLTag(Type.Name, ValueStringWriter.XMLTagType.Normal);
 
         writer.WriteNumber(value);
 
         if (addTypeTags)
-        {
-            if (!writer.WriteString("</")) return;
-            if (!writer.WriteString(Type.Name)) return;
-            if (!writer.WriteChar('>')) return;
-        }
+            writer.WriteXMLTag(Type.Name, ValueStringWriter.XMLTagType.Closing);
     }
 
     #endregion

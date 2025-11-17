@@ -85,7 +85,7 @@ public abstract class ReflectorTypeHandlerBase<T> : IGenericReflectorTypeHandler
 
     }
 
-    public void WriteAsXML<OwnerT>(OwnerT? value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config, int indent = 0)
+    public void WriteAsXML<OwnerT>(OwnerT? value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config)
     {
         if (value == null)
         {
@@ -94,10 +94,10 @@ public abstract class ReflectorTypeHandlerBase<T> : IGenericReflectorTypeHandler
         }
 
         if (value is T valueAsT)
-            WriteAsXML(valueAsT, ref writer, addTypeTags, config, indent);
+            WriteAsXML(valueAsT, ref writer, addTypeTags, config);
     }
 
-    public virtual void WriteAsXML(T value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config, int indent = 0)
+    public virtual void WriteAsXML(T value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config)
     {
 
     }
