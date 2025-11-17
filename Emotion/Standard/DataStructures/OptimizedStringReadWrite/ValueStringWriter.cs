@@ -8,6 +8,7 @@ public ref struct ValueStringWriter
 {
     public StringType Type = StringType.DefaultUTF16;
     public int BytesWritten = 0;
+    public readonly int CharsWritten => Type == StringType.DefaultUTF16 ? BytesWritten / 2 : BytesWritten;
 
     private StringBuilder? _builder = null;
     private Span<byte> _dataUTF8 = Span<byte>.Empty;

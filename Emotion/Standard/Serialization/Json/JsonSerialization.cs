@@ -2,12 +2,13 @@
 
 #pragma warning disable CS9080 // Use of variable in this context may expose referenced variables outside of their declaration scope
 
-using Emotion.Standard.Reflector.Handlers;
-using System.Buffers;
-using System.Text.Json;
-using System.Diagnostics.CodeAnalysis;
+using Emotion.Standard.DataStructures.OptimizedStringReadWrite;
 using Emotion.Standard.Reflector;
+using Emotion.Standard.Reflector.Handlers;
 using Emotion.Standard.Reflector.Handlers.Base;
+using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 
 namespace Emotion.Standard.Serialization.Json;
 
@@ -82,9 +83,11 @@ public static class JSONSerialization
         return complexHandler.ParseFromJSON(ref reader);
     }
 
-    public static string? To<T>(T obj)
+    public static int To<T>(T obj, ref ValueStringWriter writer)
     {
         // temp
-        return JsonSerializer.Serialize(obj);
+        string str = JsonSerializer.Serialize(obj);
+        writer.WriteString(str);
+        return writer.CharsWritten;
     }
 }

@@ -196,6 +196,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
     /// <summary>
     /// Tests the basic text drawing functionality of the composer.
     /// </summary>
+    [DebugTest]
     [Test]
     public IEnumerator RenderText()
     {
@@ -207,7 +208,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
             composer.RenderString(new Vector3(10, 10, 0), Color.Red, "The quick brown fox jumps over the lazy dog.\n123456789!@#$%^&*(0", asset.GetAtlas(20));
         };
 
-        yield return new TestWaiterRunLoops(1);
+        yield return new TestWaiterRunLoops(2);
         VerifyScreenshot(nameof(BasicRenderTests), nameof(RenderText));
     }
 

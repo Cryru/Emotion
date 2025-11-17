@@ -327,12 +327,14 @@ public class SerializationTests
         };
 
         Span<byte> utf8Text = stackalloc byte[10];
-        int bytesWrittenUtf8 = XMLSerialization.To(obj, new XMLConfig(), utf8Text);
-        Assert.True(bytesWrittenUtf8 == -1); // Success
+        int charsWrittenUtf8 = XMLSerialization.To(obj, new XMLConfig(), utf8Text);
+        Assert.True(charsWrittenUtf8 == 10);
 
         Span<char> utf16Text = stackalloc char[10];
-        int bytesWrittenUtf16 = XMLSerialization.To(obj, new XMLConfig(), utf16Text);
-        Assert.True(bytesWrittenUtf16 == -1); // Success
+        int charsWrittenUtf16 = XMLSerialization.To(obj, new XMLConfig(), utf16Text);
+        Assert.True(charsWrittenUtf16 == 10);
+
+        // Currently there is no way to tell if the writing had enough space.
     }
 
     private static string XMLSerializationVerifyAllTypes<T>(T obj, XMLConfig? config = null)
@@ -343,20 +345,19 @@ public class SerializationTests
 
         {
             Span<byte> utf8Text = stackalloc byte[256];
-            int bytesWrittenUtf8 = XMLSerialization.To(obj, config.Value, utf8Text);
-            Assert.True(bytesWrittenUtf8 != -1); // Success
+            int charsWrittenUtf8 = XMLSerialization.To(obj, config.Value, utf8Text);
+            Assert.True(charsWrittenUtf8 != 0); // Success
 
-            string utf8String = Encoding.UTF8.GetString(utf8Text.Slice(0, bytesWrittenUtf8));
+            string utf8String = Encoding.UTF8.GetString(utf8Text.Slice(0, charsWrittenUtf8));
             Assert.Equal(utf8String, serialized);
         }
 
         {
             Span<char> utf16Text = stackalloc char[256];
-            int bytesWrittenUtf16 = XMLSerialization.To(obj, config.Value, utf16Text);
-            Assert.True(bytesWrittenUtf16 != -1); // Success
+            int charsWrittenUtf16 = XMLSerialization.To(obj, config.Value, utf16Text);
+            Assert.True(charsWrittenUtf16 != 0); // Success
 
-            Span<byte> utf16TextAsByte = MemoryMarshal.Cast<char, byte>(utf16Text);
-            string utf16String = Encoding.Unicode.GetString(utf16TextAsByte.Slice(0, bytesWrittenUtf16));
+            string utf16String = utf16Text.Slice(0, charsWrittenUtf16).ToString();
             Assert.Equal(utf16String, serialized);
         }
 
@@ -372,10 +373,10 @@ public class SerializationTests
 
         {
             Span<byte> utf8Text = stackalloc byte[256];
-            int bytesWrittenUtf8 = XMLSerialization.To(obj, config.Value, utf8Text);
-            Assert.True(bytesWrittenUtf8 != -1); // Success
+            int charsWrittenUtf8 = XMLSerialization.To(obj, config.Value, utf8Text);
+            Assert.True(charsWrittenUtf8 != 0); // Success
 
-            string utf8String = Encoding.UTF8.GetString(utf8Text.Slice(0, bytesWrittenUtf8));
+            string utf8String = Encoding.UTF8.GetString(utf8Text.Slice(0, charsWrittenUtf8));
             Assert.Equal(utf8String, serialized);
 
             T deserializedUtf8 = XMLSerialization.From<T>(utf8Text);
@@ -384,11 +385,10 @@ public class SerializationTests
 
         {
             Span<char> utf16Text = stackalloc char[256];
-            int bytesWrittenUtf16 = XMLSerialization.To(obj, config.Value, utf16Text);
-            Assert.True(bytesWrittenUtf16 != -1); // Success
+            int charsWrittenUtf16 = XMLSerialization.To(obj, config.Value, utf16Text);
+            Assert.True(charsWrittenUtf16 != 0); // Success
 
-            Span<byte> utf16TextAsByte = MemoryMarshal.Cast<char, byte>(utf16Text);
-            string utf16String = Encoding.Unicode.GetString(utf16TextAsByte.Slice(0, bytesWrittenUtf16));
+            string utf16String = utf16Text.Slice(0, charsWrittenUtf16).ToString();
             Assert.Equal(utf16String, serialized);
 
             T deserializedUtf16 = XMLSerialization.From<T>(utf16Text);

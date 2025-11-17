@@ -104,16 +104,15 @@ public static class XMLSerialization
             writer.WriteString(XMLHeader);
 
             if (config.Pretty)
-                if (!writer.WriteChar('\n'))
-                    return -1;
+                writer.WriteChar('\n');
         }
 
         ReflectorTypeHandlerBase<T>? typeHandler = ReflectorEngine.GetTypeHandler<T>();
-        if (typeHandler == null) return -1;
+        if (typeHandler == null) return 0;
 
         writer.SetIndentSize(config.Indentation);
         typeHandler.WriteAsXML(obj, ref writer, true, config);
 
-        return writer.BytesWritten;
+        return writer.CharsWritten;
     }
 }
