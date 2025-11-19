@@ -133,6 +133,15 @@ public class EditorTopBar : UIBaseWindow
             buttonContainer.AddChild(toolButton);
         }
 
+        {
+            EditorButton toolButton = new EditorButton("EditorUI Style Guide");
+            toolButton.OnClickedProxy = (_) =>
+            {
+                EngineEditor.OpenToolWindowUnique(new StyleGuideViewer());
+            };
+            buttonContainer.AddChild(toolButton);
+        }
+
         //{
         //    EditorButton toolButton = new EditorButton("Test Tool");
         //    toolButton.OnClickedProxy = (_) => EngineEditor.OpenToolWindowUnique(new TestTool());
