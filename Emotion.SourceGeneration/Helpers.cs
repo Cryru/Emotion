@@ -112,6 +112,8 @@ namespace Emotion.SourceGeneration
 
         public static bool IsPartial(INamedTypeSymbol symbol)
         {
+            return false;
+
             // Generic types cant have partial generation as we create handlers for specializations
             if (symbol.IsGenericType)
                 return false;

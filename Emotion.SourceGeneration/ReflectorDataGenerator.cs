@@ -174,7 +174,7 @@ namespace SourceGenerator
                 if (allowNonPublic && !IsPartial(typ))
                 {
                     allowNonPublic = false;
-                    context.ReportDiagnostic(Diagnostic.Create(_reflectorPrivateMember, typ.Locations.FirstOrDefault()));
+                    //context.ReportDiagnostic(Diagnostic.Create(_reflectorPrivateMember, typ.Locations.FirstOrDefault()));
                 }
 
                 if (allowNonPublic)
