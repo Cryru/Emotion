@@ -20,4 +20,9 @@ public interface IMapGrid
     {
 
     }
+
+    public IEnumerator _LoadRoutine(string folder)
+    {
+        yield break;
+    }
 }

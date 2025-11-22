@@ -261,6 +261,17 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
         }
     }
 
+    public IEnumerator _LoadRoutine(string folder)
+    {
+        yield break;
+        //string[] assets = Engine.AssetLoader.GetAssetsInFolder(folder);
+
+        //foreach ((Vector2 coord, ChunkT chunk) in _chunks)
+        //{
+        //    yield return chunk._LoadRoutine($"{folder}/{coord.X}_{coord.Y}");
+        //}
+    }
+
     #endregion
 }
 

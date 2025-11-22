@@ -19,10 +19,10 @@ public enum GameMapState
 
 public partial class GameMap : IDisposable
 {
+    public string MapName = "Untitled Map";
+
     [DontSerialize]
     public GameMapState State { get; private set; } = GameMapState.Uninitialized;
-
-    public string MapName = "Untitled Map";
 
     public IMapGrid[] Grids { get; set; } = Array.Empty<IMapGrid>(); // private
 
@@ -253,19 +253,20 @@ public partial class GameMap : IDisposable
 
     #region Save/Load
 
-    public void _Save(string? fileName = null)
+   
+
+    public static void _Save(GameMap map)
     {
-        MapName = fileName ?? MapName;
+        string mapName = map.MapName;
+        string mapFolder = $"{mapName}{GameMapAsset.DATA_FOLDER_NAME}";
 
-        string mapFolder = $"{fileName}_MapData";
-
-        string? data = XMLSerialization.To(this);
+        string? data = XMLSerialization.To(map);
         AssertNotNull(data);
         if (data == null) return;
 
-        Engine.AssetLoader.SaveDevMode(data, $"{fileName}.map", false);
+        Engine.AssetLoader.SaveDevMode(data, $"{mapName}.{GameMapAsset.FILE_EXTENSION}", false);
 
-        IMapGrid[] grids = Grids;
+        IMapGrid[] grids = map.Grids;
         for (int i = 0; i < grids.Length; i++)
         {
             IMapGrid grid = grids[i];
@@ -273,9 +274,20 @@ public partial class GameMap : IDisposable
         }
     }
 
-    public static void _Load()
+    public static IEnumerator _LoadRoutine(GameMap map)
     {
+        string mapName = map.MapName;
+        string mapFolder = $"{mapName}{GameMapAsset.DATA_FOLDER_NAME}";
 
+        IMapGrid[] grids = map.Grids;
+        Coroutine[] routines = new Coroutine[grids.Length];
+        for (int i = 0; i < grids.Length; i++)
+        {
+            IMapGrid grid = grids[i];
+            routines[i] = Engine.CoroutineManager.StartCoroutine(grid._LoadRoutine($"{mapFolder}/{grid.UniqueId}"));
+        }
+
+        yield return Coroutine.WhenAll(routines);
     }
 
     #endregion

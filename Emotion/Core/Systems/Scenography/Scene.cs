@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using Emotion.Core.Systems.IO;
+using Emotion.Core.Utility.Coroutines;
 using Emotion.Game.Systems.UI;
 
 namespace Emotion.Core.Systems.Scenography;
@@ -52,16 +54,30 @@ public abstract class SceneWithMap : Scene
     {
         get
         {
-            _map ??= InitDefaultMap();
-            return _map;
-        }
-        protected set
-        {
-            // unload old?
-            _map = value;
+            GameMap? gameMap = _mapOwner.GetCurrentObject();
+            if (gameMap == null)
+            {
+                _mapOwner.Set(InitDefaultMap());
+                gameMap = _mapOwner.GetCurrentObject();
+                AssertNotNull(gameMap);
+            }
+
+            return gameMap;
         }
     }
-    private GameMap _map;
+
+    private AssetOwner<GameMapAsset, GameMap> _mapOwner = new AssetOwner<GameMapAsset, GameMap>();
+
+    protected SceneWithMap()
+    {
+        _mapOwner = new AssetOwner<GameMapAsset, GameMap>();
+        _mapOwner.SetOnChangeCallback(static (owner, scene) =>
+        {
+            GameMap? newMapObj = owner.GetCurrentObject();
+            if (newMapObj != null && scene is SceneWithMap sc)
+                sc.OnMapChanged(newMapObj);
+        }, this);
+    }
 
     public override IEnumerator LoadSceneRoutineAsync()
     {
@@ -76,6 +92,7 @@ public abstract class SceneWithMap : Scene
 
     public override IEnumerator UnloadSceneRoutineAsync()
     {
+        _mapOwner.Done();
         Status = SceneStatus.Disposed;
         yield break;
     }
@@ -98,6 +115,16 @@ public abstract class SceneWithMap : Scene
         {
             MapName = "Maps/start.xml"
         };
+    }
+
+    public Coroutine SetCurrentMap(AssetObjectReference<GameMapAsset, GameMap> asset)
+    {
+        return _mapOwner.Set(asset) ?? Coroutine.CompletedRoutine;
+    }
+
+    private void OnMapChanged(GameMap newMap)
+    {
+
     }
 
     #endregion

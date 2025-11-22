@@ -13,4 +13,6 @@ public interface IGridChunk<T> where T : struct
     public void SetRawData(T[] data);
 
     public void _Save(string fileName);
+
+    public IEnumerator _LoadRoutine(string fileName);
 }

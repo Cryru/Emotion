@@ -126,16 +126,11 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
             }
         });
 
-        Map = new GameMap();
         //Map.AddAndInitObject(new MapObjectSprite()
         //{
         //    EntityFile = "Test/Character.em2"
         //});
-
-        
-
-        //throw new System.Exception("haa");
-        yield break;
+        yield return null;
     }
 
     private void RegisterFuncs()

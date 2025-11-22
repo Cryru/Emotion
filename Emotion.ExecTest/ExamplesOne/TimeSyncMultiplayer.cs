@@ -123,8 +123,6 @@ public class TimeSyncMultiplayer_TestScene : SceneWithMap
             }
         });
 
-        Map = new GameMap();
-
         yield break;
     }
 
