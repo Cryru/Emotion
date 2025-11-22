@@ -33,7 +33,7 @@ public sealed class StringContext
         bool changed = false;
         if (_data.TryGetValue(name, out object? storedVal))
         {
-            if (!Helpers.AreObjectsEqual(val, storedVal))
+            if (!Helpers.AreObjectsEqual<object>(val, storedVal))
             {
                 _data[name] = val;
                 changed = true;

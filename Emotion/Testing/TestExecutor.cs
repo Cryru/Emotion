@@ -454,7 +454,7 @@ public static class TestExecutor
         if (compilation.Length == 0)
         {
             ScriptState<object> result = script.RunAsync().Result;
-            object returnVal = result.ReturnValue;
+            string returnVal = (string) result.ReturnValue;
             if (Helpers.AreObjectsEqual(returnVal, SUBPROCESS_SUCCESS_MSG))
             {
                 resultData.AppendLine(SUBPROCESS_SUCCESS_MSG);
