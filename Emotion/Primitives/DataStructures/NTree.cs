@@ -1,120 +1,160 @@
 ﻿#nullable enable
 
-using System.Linq;
+using System.Text;
 
-namespace Emotion.Primitives.DataStructures
+namespace Emotion.Primitives.DataStructures;
+
+/// <summary>
+/// A tree data structure.
+/// </summary>
+/// <typeparam name="T">The data type representing the branch names.</typeparam>
+/// <typeparam name="T2">The data type representing the leaf values.</typeparam>
+public class NTree<T, T2> : IEnumerable<T2>
 {
-    /// <summary>
-    /// A tree data structure.
-    /// </summary>
-    /// <typeparam name="T">The data type representing the branch names.</typeparam>
-    /// <typeparam name="T2">The data type representing the leaf values.</typeparam>
-    public class NTree<T, T2> : IEnumerable<T2>
+    public T? Name { get; init; }
+
+    public NTree<T, T2>? Parent { get; init; } = null;
+
+    public List<T2> Leaves { get; } = new List<T2>();
+
+    public List<NTree<T, T2>> Branches { get; } = new List<NTree<T, T2>>();
+
+    public NTree()
     {
-        public T Name { get; set; }
-        public List<T2> Leaves { get; set; } = new List<T2>();
-        public List<NTree<T, T2>> Branches { get; set; } = new List<NTree<T, T2>>();
+    }
 
-        protected NTree(T name)
+    protected NTree(T name, NTree<T, T2>? parent)
+    {
+        Name = name;
+        Parent = parent;
+    }
+
+    /// <summary>
+    /// Add a new leaf to the tree, adding all missing branches along the way.
+    /// </summary>
+    public void Add(Span<T> path, T2 value)
+    {
+        NTree<T, T2> target = this;
+        foreach (T branchName in path)
         {
-            Name = name;
+            target = target.AddGetBranch(branchName);
         }
 
-        public NTree()
+        target.Leaves.Add(value);
+    }
+
+    /// <summary>
+    /// Get an existing branch
+    /// </summary>
+    public NTree<T, T2>? GetBranch(T branch)
+    {
+        foreach (NTree<T, T2> subBranch in Branches)
         {
+            if (Helpers.AreObjectsEqual(subBranch.Name, branch))
+                return subBranch;
         }
 
-        /// <summary>
-        /// Add a leaf to the tree.
-        /// </summary>
-        /// <param name="path">The path to the branch/es to add the leaf to.</param>
-        /// <param name="value">The value to add as a leaf.</param>
-        public void Add(T[] path, T2 value)
+        return null;
+    }
+
+    public NTree<T, T2>? GetBranchFromPath(T[] path)
+    {
+        NTree<T, T2> current = this;
+        for (var i = 0; i < path.Length; i++)
         {
-            NTree<T, T2> target = this;
-            foreach (T name in path)
+            T pathItem = path[i];
+
+            var found = false;
+            for (var j = 0; j < current.Branches.Count; j++)
             {
-                NTree<T, T2> current = target.Branches.FirstOrDefault(x => x.Name.Equals(name));
-                if (current == null)
+                NTree<T, T2> branch = current.Branches[j];
+                if (Helpers.AreObjectsEqual(branch.Name, pathItem))
                 {
-                    current = new NTree<T, T2>(name);
-                    target.Branches.Add(current);
+                    current = branch;
+                    found = true;
+                    break;
                 }
-
-                target = current;
             }
 
-            target.Leaves.Add(value);
+            if (!found) return default;
         }
 
-        private class IterationState
-        {
-            public NTree<T, T2> Branch;
-            public int BranchIdx;
-        }
+        return current;
+    }
 
-        /// <summary>
-        /// Coroutine for iterating the tree. The leaves of each node are returned as we iterate towards the deepest level and then
-        /// backward.
-        /// </summary>
-        /// <param name="rootNode">The node to start from.</param>
-        /// <returns>The leaf values along the tree.</returns>
-        public IEnumerator<T2> TreeEnumeratorCoroutine(NTree<T, T2> rootNode)
+    /// <summary>
+    /// Add a branch or get it.
+    /// </summary>
+    public NTree<T, T2> AddGetBranch(T branch)
+    {
+        NTree<T, T2>? existingBranch = GetBranch(branch);
+        if (existingBranch != null)
+            return existingBranch;
+
+        var newBranch = new NTree<T, T2>(branch, this);
+        Branches.Add(newBranch);
+        return newBranch;
+    }
+
+    public void AddLeaf(T2 leaf)
+    {
+        Leaves.Add(leaf);
+    }
+
+    public IEnumerable<T2> ForEachLeaf()
+    {
+        Stack<NTree<T, T2>> stack = new();
+        stack.Push(this);
+
+        while (stack.TryPop(out NTree<T, T2>? nextBranch))
         {
-            var list = new List<IterationState>
+            foreach (T2 leaf in nextBranch.Leaves)
             {
-                new IterationState {Branch = rootNode, BranchIdx = 0}
-            };
-
-            while (list.Count > 0)
-            {
-                IterationState branch = list[^1];
-                NTree<T, T2> newBranch = branch.Branch.Branches[branch.BranchIdx];
-                foreach (T2 leaf in newBranch.Leaves)
-                {
-                    yield return leaf;
-                }
-
-                if (newBranch.Branches.Count > 0) list.Add(new IterationState {Branch = newBranch, BranchIdx = 0});
-
-                branch.BranchIdx++;
-                if (branch.BranchIdx == branch.Branch.Branches.Count) list.Remove(branch);
-            }
-        }
-
-        public IEnumerator<T2> GetEnumerator()
-        {
-            return TreeEnumeratorCoroutine(this);
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        public NTree<T, T2> GetBranchFromPath(T[] path)
-        {
-            NTree<T, T2> current = this;
-            for (var i = 0; i < path.Length; i++)
-            {
-                T pathItem = path[i];
-
-                var found = false;
-                for (var j = 0; j < current.Branches.Count; j++)
-                {
-                    NTree<T, T2> branch = current.Branches[j];
-                    if (branch.Name.Equals(pathItem))
-                    {
-                        current = branch;
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found) return default;
+                yield return leaf;
             }
 
-            return current;
+            foreach (NTree<T, T2> subBranch in nextBranch.Branches)
+            {
+                stack.Push(subBranch);
+            }
         }
     }
+
+    public IEnumerable<(T2, NTree<T, T2>)> ForEachLeafWithBranch()
+    {
+        Stack<NTree<T, T2>> stack = new();
+        stack.Push(this);
+
+        while (stack.TryPop(out NTree<T, T2>? nextBranch))
+        {
+            foreach (T2 leaf in nextBranch.Leaves)
+            {
+                yield return (leaf, nextBranch);
+            }
+
+            foreach (NTree<T, T2> subBranch in nextBranch.Branches)
+            {
+                stack.Push(subBranch);
+            }
+        }
+    }
+
+    public IEnumerator<T2> GetEnumerator()
+    {
+        return ForEachLeaf().GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    public override string ToString()
+    {
+        return $"Branch: {Name} [{Leaves.Count} Leaves]";
+    }
+}
+
+public class NTree<T> : NTree<T, T>
+{
 }
