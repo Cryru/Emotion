@@ -9,6 +9,9 @@ using Emotion.Game.World;
 using System.Collections;
 using System.Numerics;
 using Emotion.Game.World.Components;
+using Emotion.Game.Systems.UI;
+using Emotion.Primitives;
+using Emotion.Game.Systems.UI2;
 
 namespace Emotion.ExecTest.CryruDevelopment;
 
@@ -20,7 +23,7 @@ public class Example3D : SceneWithMap
         //cam.LookAtPoint(new Vector3(500, 500, 0));
         //Engine.Renderer.Camera = cam;
 
-        Map = new GameMap();
+        var map = new GameMap();
 
         TerrainMeshGrid terrain = new TerrainMeshGrid(new Vector2(5), 32);
         terrain.CreateEmptyChunksInArea(new Vector2(-50), new Vector2(100));
@@ -40,7 +43,9 @@ public class Example3D : SceneWithMap
             }
         }
 
-        Map.AddGrid(terrain);
+        map.AddGrid(terrain);
+
+        yield return SetCurrentMap(map);
 
         //AddObject("Test/humanmalewarriorlight/humanmalewarriorlight_skin01.gltf", new Vector3(100, 100, 0));
         //AddObject("Test/male/humanmale.gltf", new Vector3(300, 100, 0));

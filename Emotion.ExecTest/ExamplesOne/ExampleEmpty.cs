@@ -15,8 +15,6 @@ public class ExampleEmpty : SceneWithMap
 {
     protected override IEnumerator InternalLoadSceneRoutineAsync()
     {
-        Map = new GameMap();
-
         yield break;
     }
 
