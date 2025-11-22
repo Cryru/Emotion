@@ -179,17 +179,19 @@ public static class ReflectorEngine
         if (obj == null) return obj;
 
         // todo: generate this for each complex handler
-        IGenericReflectorComplexTypeHandler? handler = GetComplexTypeHandler(obj.GetType());
+        IGenericReflectorTypeHandler? genericHandler = GetTypeHandler(obj.GetType());
+        if (genericHandler is not IGenericReflectorComplexTypeHandler handler)
+            return obj;
         if (handler == null || !handler.CanCreateNew()) return default;
 
         T? newObj = (T?)handler.CreateNew();
         if (newObj == null) return newObj;
 
         IEnumerable<ComplexTypeHandlerMemberBase> members = handler.GetMembersDeep();
-        foreach (var member in members)
+        foreach (ComplexTypeHandlerMemberBase member in members)
         {
             if (member.GetValueFromComplexObject(obj, out object? val))
-                member.SetValueInComplexObject(newObj, val);
+                member.SetValueInComplexObject(newObj, CreateCopyOf(val));
         }
 
         return newObj;

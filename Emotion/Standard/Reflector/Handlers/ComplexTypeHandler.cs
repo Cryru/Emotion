@@ -177,11 +177,6 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
                 break;
             }
 
-            if(member.Name == "TileSize")
-            {
-                bool a = true;
-            }
-
             if (!member.ParseFromXML(ref reader, ref obj)) break; // Error in parsing?
 
             // Skip closing tag
