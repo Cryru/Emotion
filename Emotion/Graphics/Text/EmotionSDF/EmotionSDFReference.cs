@@ -91,8 +91,8 @@ public class EmotionSDFReference
             composer.SetState(prevState);
 
             // Free assets from memory.
-            Engine.AssetLoader.Destroy(cachedRenderName);
-            Engine.AssetLoader.Destroy(cachedMetaName);
+            Engine.AssetLoader.DisposeOf(texture);
+            Engine.AssetLoader.DisposeOf(atlasMeta);
         });
 
         return reference;

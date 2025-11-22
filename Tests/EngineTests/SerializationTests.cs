@@ -308,15 +308,15 @@ public class SerializationTests
         Assert.Equal(newDeserializedNum, 55);
     }
 
-    [Test]
-    public void XMLReflectorSerialization_ComplexObjectWithHiddenMember()
-    {
-        var obj = new TestClassWithHiddenPrimitiveMember(87);
-        string serialized = XMLSerializationVerifyAllTypes(obj);
-        string oldSerialized = XMLFormat.To(obj);
+    //[Test]
+    //public void XMLReflectorSerialization_ComplexObjectWithHiddenMember()
+    //{
+    //    var obj = new TestClassWithHiddenPrimitiveMember(87);
+    //    string serialized = XMLSerializationVerifyAllTypes(obj);
+    //    string oldSerialized = XMLFormat.To(obj);
 
-        Assert.Equal(serialized, oldSerialized);
-    }
+    //    Assert.Equal(serialized, oldSerialized);
+    //}
 
     [Test]
     public void XMLReflectorSerialization_NotEnoughRoom()

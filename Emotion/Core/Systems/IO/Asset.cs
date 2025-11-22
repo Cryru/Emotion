@@ -16,10 +16,14 @@ namespace Emotion.Core.Systems.IO;
 public abstract class Asset : IRoutineWaiter
 {
     /// <summary>
-    /// The name of the asset.
-    /// If loaded from the AssetLoader this is the engine path of the asset.
+    /// The engine path of the asset.
     /// </summary>
-    public string Name { get; set; } = "Unknown";
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The asset id for this asset within the AssetLoader.
+    /// </summary>
+    public int UniqueHash { get; set; } = 0;
 
     /// <summary>
     /// Whether this asset was loaded as a dependency. It could still be a
@@ -62,20 +66,17 @@ public abstract class Asset : IRoutineWaiter
     /// Called by the asset loader on the asset loading thread(s),
     /// which performs the IO and asset creation and/or hot reloading if already loaded.
     /// </summary>
-    public IEnumerator AssetLoader_LoadAsset()
+    public IEnumerator AssetLoader_LoadAsset(AssetLoader assetLoader)
     {
         Stopwatch timer = new Stopwatch();
         timer.Start();
 
-        // Asset not found in any source.
-        AssetSource? source = Engine.AssetLoader.GetSource(Name);
-        if (source == null)
+        AssetFileEntry? entry = assetLoader.TryGetFileEntry(Name);
+        if (entry == null)
         {
-            Engine.Log.Warning($"Tried to load asset {Name} which doesn't exist in any loaded source.", MessageSource.AssetLoader, true);
             Processed = true;
             yield break;
         }
-
         ReadOnlyMemory<byte> data = ReadOnlyMemory<byte>.Empty;
 
         // Due to sharing violations we should try to hot reload this in a try-catch.
@@ -83,7 +84,7 @@ public abstract class Asset : IRoutineWaiter
         int attempts = 0;
         while (attempts < 10)
         {
-            FileReadRoutineResult fileRead = source.GetAssetRoutine(Name);
+            FileReadRoutineResult fileRead = entry.GetAssetData();
             yield return fileRead;
 
             if (fileRead.Finished && !fileRead.Errored)
@@ -177,13 +178,15 @@ public abstract class Asset : IRoutineWaiter
     }
 
     /// <summary>
-    /// Dispose of the asset clearing any external resources it used.
+    /// Cleans up the asset resources and sets it into the disposed state.
+    /// DO NOT CALL MANUALLY! Use AssetLoader.DisposeOf
     /// </summary>
-    public void Dispose()
+    internal void _DoneViaAssetLoader()
     {
         if (Disposed) return;
         DisposeInternal();
         Disposed = true;
+        Loaded = false;
     }
 
     protected abstract void DisposeInternal();

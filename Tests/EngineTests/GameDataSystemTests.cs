@@ -1,6 +1,8 @@
 ﻿using Emotion.Core;
 using Emotion.Core.Platform;
 using Emotion.Core.Platform.Implementation.CommonDesktop;
+using Emotion.Core.Systems.IO;
+using Emotion.Editor;
 using Emotion.Game.Systems.GameData;
 using Emotion.Testing;
 using System.Collections;
@@ -25,11 +27,9 @@ public class GameDataSystemTests
     {
         const string NEW_DATA_NAME = "TestData1";
 
-        PlatformBase host = Engine.Host;
-        if (host is not DesktopPlatform desktopHost) yield break;
-
-        string projectFolder = desktopHost.DeveloperMode_GetProjectFolder();
-        if (projectFolder == "") yield break;
+        if (!AssetLoader.CanWriteAssets) yield break;
+        string projectFolder = AssetLoader.DevModeProjectFolder;
+        if (projectFolder == string.Empty) yield break;
 
         // First the game data doesn't exist, this script should fail.
         yield return TestExecutor.RunTestScriptInSubProcess($"" +

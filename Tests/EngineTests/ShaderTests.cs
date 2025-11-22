@@ -75,11 +75,11 @@ public class ShaderTests : ProxyRenderTestingScene
         // Cleanup
         foreach (ShaderAsset s in shaders)
         {
-            Engine.AssetLoader.Destroy(s.Name);
+            Engine.AssetLoader.DisposeOf(s);
         }
 
         // Ensure the shaders are unloaded.
-        Assert.Equal(shaders.Count, shaders.Select(x => x.Name).Except(Engine.AssetLoader.LoadedAssets.Select(x => x.Name)).Count());
+        Assert.Equal(shaders.Count, shaders.Select(x => x.Name).Except(Engine.AssetLoader.ForEachLoadedAsset().Select(x => x.Name)).Count());
     }
 
     /// <summary>
@@ -111,7 +111,7 @@ public class ShaderTests : ProxyRenderTestingScene
         Assert.True(shader.Shader != null);
         Assert.True(shader.IsFallback);
 
-        Engine.AssetLoader.Destroy(shader.Name);
+        Engine.AssetLoader.DisposeOf(shader);
     }
 
     /// <summary>
@@ -143,6 +143,6 @@ public class ShaderTests : ProxyRenderTestingScene
         Assert.True(shader.Shader != null);
         Assert.True(shader.IsFallback);
 
-        Engine.AssetLoader.Destroy(shader.Name);
+        Engine.AssetLoader.DisposeOf(shader);
     }
 }

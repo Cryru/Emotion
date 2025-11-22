@@ -39,7 +39,7 @@ public ref struct ValueStringWriter
         throw new NotImplementedException();
     }
 
-    public bool WriteString(string value)
+    public bool WriteString(ReadOnlySpan<char> value)
     {
         // Fast path for string builder.
         if (_builder != null)
@@ -52,12 +52,9 @@ public ref struct ValueStringWriter
         {
             int idx = _position;
             Span<char> span = _dataUTF16.Slice(idx);
-            if (span.Length == 0) return false;
+            if (value.Length > span.Length) return false;
 
-            ReadOnlySpan<char> valueAsSpan = value.AsSpan();
-            if (valueAsSpan.Length > span.Length) return false;
-
-            valueAsSpan.CopyTo(span);
+            value.CopyTo(span);
 
             _position += value.Length;
             BytesWritten += value.Length * 2;
@@ -79,6 +76,11 @@ public ref struct ValueStringWriter
         }
 
         return true;
+    }
+
+    public bool WriteString(string value)
+    {
+        return WriteString(value.AsSpan());
     }
 
     public bool WriteChar(char value, int count)

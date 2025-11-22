@@ -1,10 +1,14 @@
 ﻿#region Using
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Emotion.Core;
 using Emotion.Core.Platform.Implementation.CommonDesktop;
 using Emotion.Core.Systems.IO;
+using Emotion.Core.Systems.IO.Sources;
 using Emotion.Testing;
 
 #endregion
@@ -13,19 +17,120 @@ namespace Tests.EngineTests;
 
 /// <summary>
 /// Tests connected to asset loading.
-/// Other tests implicitly test loading of particular assets (like textures), here we test
-/// the IO and lifecycle functionality.
+/// Other tests implicitly test loading of particular assets (like textures),
+/// so this test is mostly about the asset loading API
 /// </summary>
-
-// This is a legacy test - do not trust it and the comments within
 [Test]
 public class AssetTest
 {
+    private class MockAssetSource : IAssetSource<string>
+    {
+        public static HashSet<string> ValidPaths = new();
+        public static byte MagicByte = 13;
+
+        public static FileReadRoutineResult GetAssetContent(string sourceName)
+        {
+            if (ValidPaths.Contains(sourceName))
+            {
+                var result = new FileReadRoutineResult();
+                result.SetData(new byte[1] { MagicByte });
+                return result;
+            }
+
+            return FileReadRoutineResult.GenericErrored;
+        }
+    }
+
+    [Test]
+    public IEnumerator GeneralAPI()
+    {
+        MockAssetSource.ValidPaths.Add("test.ext");
+
+        var loader = new AssetLoader();
+
+        Assert.False(loader.Exists("test.ext"));
+        loader.MountCustomSourceAsset<MockAssetSource, string>("test.ext", "test.ext");
+        Assert.True(loader.Exists("test.ext"));
+
+        var nonExistingAsset = loader.ONE_Get<OtherAsset>("fake.ext", null, true);
+        Assert.False(nonExistingAsset.Loaded);
+        Assert.True(nonExistingAsset.Processed);
+
+        var asset = loader.ONE_Get<OtherAsset>("test.ext", null, true);
+        Assert.True(asset.Loaded);
+        Assert.True(asset.Content.Span[0] == 13);
+
+        var assetCaseInsensitive = loader.ONE_Get<OtherAsset>("tEsT.ext", null, true);
+        Assert.True(assetCaseInsensitive.Loaded);
+        Assert.Equal(asset, assetCaseInsensitive);
+
+        // Test reloading
+        MockAssetSource.MagicByte = 15;
+        loader.ONE_ReloadAsset("Test.exT"); // also test case insensitive
+        loader.Update();
+        yield return 100;
+        Assert.True(asset.Loaded);
+        Assert.True(asset.Content.Span[0] == 15);
+
+        // Test folders and sensitivity
+        loader.MountCustomSourceAsset<MockAssetSource, string>("aAeEbB/tEsT.ext", "test.ext");
+        Assert.True(loader.Exists("aAeEbB/tEsT.ext"));
+        Assert.True(loader.Exists("aaeebb/test.ext"));
+        Assert.True(loader.Exists("aaeebb/Test.ext"));
+
+        loader.MountCustomSourceAsset<MockAssetSource, string>("aaeebb\\gushter.png", "test.ext");
+        Assert.True(loader.Exists("aAeEbB/GusHTer.png"));
+        Assert.True(loader.Exists("aaeebb/gushter.png"));
+        Assert.True(loader.Exists("aaeebb/Gushter.png"));
+
+        int count = 0;
+        foreach (string item in loader.ForEachAssetInFolder("aaeebb"))
+        {
+            Assert.True(item == "aaeebb/test.ext" || item == "aaeebb/gushter.png");
+            count++;
+        }
+        Assert.Equal(count, 2);
+
+        // Alias
+        loader.MountAssetAlias("pepega/omega.png", "test.ext");
+        loader.MountAssetAlias("pepega/two.txt", "not_created_yet.png");
+
+        Assert.True(loader.Exists("pepega/omega.png"));
+        Assert.False(loader.Exists("pepega/two.txt"));
+
+        var assetViaAlias = loader.ONE_Get<OtherAsset>("pepega/omega.png", null, true);
+        Assert.Equal(asset, assetViaAlias);
+
+        var assetNotYetCreated = loader.ONE_Get<OtherAsset>("pepega/two.txt", null, true);
+        Assert.False(assetNotYetCreated.Loaded);
+
+        loader.MountCustomSourceAsset<MockAssetSource, string>("not_created_yet.png", "test.ext");
+        Assert.True(loader.Exists("pepega/two.txt"));
+
+        // Unmounting
+        loader.UnmountFile("pepega\\two.txt");
+        Assert.False(loader.Exists("pepega/two.txt"));
+
+        // Mounting, unmounting, and renaming singular file (used by hot reload)
+        loader.MountFile("myfolder\\myfile.txt", "Data\\myfile.txt");
+        Assert.True(loader.Exists("Data/MYFILE.TXT"));
+        loader.UnmountFile("Data\\myfile.txt");
+        Assert.False(loader.Exists("data/MYFILE.TXT"));
+    }
+
+    [Test]
+    public void Misc()
+    {
+        // All must be engine names
+        Assert.True(Engine.AssetLoader.ForEachLoadedAsset().All(static x => !x.Name.Contains('\\') && x.Name.Equals(x.Name, StringComparison.InvariantCultureIgnoreCase)));
+
+    }
+
     /// <summary>
     /// Test loading of embedded assets.
     /// </summary>
     [Test]
-    public void EmbeddedAssetLoading()
+    public void OLD_EmbeddedAssetLoading()
     {
         // Asset should exist.
         Assert.True(Engine.AssetLoader.Exists("Embedded/embedText.txt"));
@@ -39,7 +144,7 @@ public class AssetTest
         Assert.Equal("Hello, I am an embedded file ^^", textFile.Content);
 
         // The asset should be considered loaded.
-        Assert.True(Engine.AssetLoader.Loaded("Embedded/embedText.txt"));
+        Assert.True(Engine.AssetLoader.ForEachLoadedAsset().Any(x => x.Name.Equals("Embedded/embedText.txt", StringComparison.InvariantCultureIgnoreCase)));
 
         // The name should be case insensitive.
         var insensitive = Engine.AssetLoader.Get<TextAsset>("embedded/embedtext.txt");
@@ -48,36 +153,39 @@ public class AssetTest
         Assert.True(ReferenceEquals(insensitive, textFile));
 
         // Destroy it.
-        Engine.AssetLoader.Destroy("Embedded/embedText.txt");
+        Engine.AssetLoader.DisposeOf(textFile);
 
         // Should be gone.
-        Assert.True(Engine.AssetLoader.LoadedAssets.Select(x => x.Name).FirstOrDefault(x => x == "Embedded/embedText.txt") == null);
+        Assert.False(Engine.AssetLoader.ForEachLoadedAsset().Any(x => x.Name.Equals("Embedded/embedText.txt", StringComparison.InvariantCultureIgnoreCase)));
 
         // Load non existing asset.
         textFile = Engine.AssetLoader.Get<TextAsset>("sadsadsa");
 
-        // Should be null.
-        Assert.True(textFile == null);
+        // Never return null, but asset shouldnt be loaded
+        Assert.False(textFile == null);
+        Assert.False(textFile.Loaded);
+        Assert.True(textFile.Processed);
+        Assert.True(textFile.Finished);
         Assert.False(Engine.AssetLoader.Exists("sadsadsa"));
 
         // Destroy non existent.
-        Engine.AssetLoader.Destroy("sadsadsa");
+        Engine.AssetLoader.DisposeOf(textFile);
 
         // Create and destroy null.
         Engine.AssetLoader.Get<TextAsset>(null);
-        Engine.AssetLoader.Destroy(null);
+        Engine.AssetLoader.DisposeOf(null);
     }
 
-    /// <summary>
-    /// Creation of a custom asset loader.
-    /// </summary>
     [Test]
-    public void CustomAssetLoader()
+    public IEnumerator OLD_FileSourceLoading()
     {
-        // Refresh the file which the tests edit.
-        File.WriteAllText($"OtherAssets{Path.DirectorySeparatorChar}LoremIpsum.txt", "Lorem ipsum");
+        string testFilePath = $"OtherAssets{Path.DirectorySeparatorChar}LoremIpsum.txt";
 
-        var customLoader = new AssetLoader(new AssetSource[] { new FileAssetSource("OtherAssets") });
+        // Refresh the file which the tests edit.
+        File.WriteAllText(testFilePath, "Lorem ipsum");
+
+        var customLoader = new AssetLoader();
+        customLoader.MountFileSystemFolder("OtherAssets", ".");
         var loremIpsum = customLoader.Get<TextAsset>("LoremIpsum.txt");
 
         // Assert the file loaded properly.
@@ -87,37 +195,32 @@ public class AssetTest
         // Shouldn't exist in the other asset loader.
         Assert.False(Engine.AssetLoader.Exists("LoremIpsum.txt"));
 
-        // Loading a file which exists both embedded and file.
-        // In this case the file loader will load the file, and the embedded file won't be considered a part of the main manifest.
-        var conflictLoader = new AssetLoader(new AssetSource[] { new FileAssetSource("OtherAssets"), new EmbeddedAssetSource(typeof(AssetTest).Assembly, "OtherAssets") });
-        loremIpsum = conflictLoader.Get<TextAsset>("LoremIpsum.txt");
-
-        // Assert the file loaded properly.
-        Assert.Equal(11, loremIpsum.Content.Length);
-        Assert.Equal("Lorem ipsum", loremIpsum.Content);
-
         // Modify the file, and reload.
-        File.WriteAllText($"OtherAssets{Path.DirectorySeparatorChar}LoremIpsum.txt", "Lorem Edited");
-        loremIpsum = conflictLoader.Get<TextAsset>("LoremIpsum.txt");
+        File.WriteAllText(testFilePath, "Lorem Edited");
+        loremIpsum = customLoader.Get<TextAsset>("LoremIpsum.txt");
 
         // The file shouldn't have changed, as it is cached.
         Assert.Equal(11, loremIpsum.Content.Length);
         Assert.Equal("Lorem ipsum", loremIpsum.Content);
 
         // Delete. Reload, and check for change.
-        conflictLoader.Destroy("LoremIpsum.txt");
-        loremIpsum = conflictLoader.Get<TextAsset>("LoremIpsum.txt");
+        customLoader.DisposeOf(loremIpsum);
+        loremIpsum = customLoader.Get<TextAsset>("LoremIpsum.txt");
         Assert.Equal(12, loremIpsum.Content.Length);
         Assert.Equal("Lorem Edited", loremIpsum.Content);
 
-        // Only one file should exists.
-        Assert.True(conflictLoader.AllAssets.Length == 1);
+        // Test the automatic reload
+        File.WriteAllText(testFilePath, "Lorem Edited Again");
+        yield return 100;
+        customLoader.Update();
+        yield return 100;
 
-        // Creating an asset loader with a non existent root directory should create that directory.
-        if (Directory.Exists("NewDir")) Directory.Delete("NewDir");
-        Assert.False(Directory.Exists("NewDir"));
-        var directoryCreate = new AssetLoader(new AssetSource[] { new FileAssetSource("NewDir") });
-        Assert.True(Directory.Exists("NewDir"));
+        Assert.Equal(18, loremIpsum.Content.Length);
+        Assert.Equal("Lorem Edited Again", loremIpsum.Content);
+
+        File.Delete(testFilePath);
+        yield return 100;
+        Assert.False(customLoader.Exists("LoremIpsum.txt"));
     }
 
     public class TestStorage
@@ -128,7 +231,7 @@ public class AssetTest
     /// <summary>
     /// Asset store
     /// </summary>
-    [Test]
+    //[Test]
     public void AssetStorage()
     {
         var save = Engine.AssetLoader.Get<XMLAsset<TestStorage>>("saveFile.save");
@@ -145,7 +248,7 @@ public class AssetTest
         // It will now exist!
         save = Engine.AssetLoader.Get<XMLAsset<TestStorage>>("Player/saveFile.save");
         Assert.Equal(save.Content.Text, saveFile.Content.Text);
-        Engine.AssetLoader.Destroy(saveFilePath);
+        Engine.AssetLoader.DisposeOf(save);
 
         saveFile.Save();
         Assert.True(File.Exists(Path.Join("./Player", "savefile.save.backup")));

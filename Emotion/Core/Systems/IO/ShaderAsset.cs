@@ -39,6 +39,8 @@ public class ShaderAsset : XMLAsset<ShaderDescription>
         get => Content;
     }
 
+    public string Variation { get; set; } = string.Empty;
+
     /// <summary>
     /// Whether using the fallback shader.
     /// </summary>
@@ -93,7 +95,8 @@ public class ShaderAsset : XMLAsset<ShaderDescription>
             var newAsset = new ShaderAsset
             {
                 Content = Content,
-                Name = $"{Name} #{compileConstant}"
+                Name = Name,
+                Variation = $"{Variation} #{compileConstant}"
             };
             newAsset.Compile(compileConstant);
             newAsset.CompilationConstant = compileConstant;

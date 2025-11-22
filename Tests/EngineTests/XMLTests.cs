@@ -1,17 +1,18 @@
 ﻿#region Using
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Numerics;
-using System.Text.RegularExpressions;
 using Emotion.Core;
 using Emotion.Core.Systems.IO;
 using Emotion.Primitives;
 using Emotion.Standard.Parsers.XML;
 using Emotion.Standard.Serialization;
 using Emotion.Testing;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
+using System.Numerics;
+using System.Text.RegularExpressions;
 using Tests.EngineTests.XMLTestsSupport;
 
 #endregion
@@ -1035,7 +1036,7 @@ public class XMLTests
 
         string fileName = TestingUtility.GetFunctionBackInStack(1) ?? new Guid().ToString();
         fileName = fileName.Replace("Tests.EngineTests.XMLTests.", "");
-        fileName = AssetLoader.MakeStringPathSafe(fileName);
+        fileName = MakeStringPathSafe(fileName);
 
         lock (_usedNamed)
         {
@@ -1055,5 +1056,15 @@ public class XMLTests
             Assert.True(referenceAsset.Content == data, $"Serialization {fileName} must produce same result");
 
         return data;
+    }
+
+    /// <summary>
+    /// Converts the string to one which is safe for use in the file system.
+    /// </summary>
+    /// <param name="str">The string to convert.</param>
+    /// <returns>A string safe to use in the file system.</returns>
+    private static string MakeStringPathSafe(string str)
+    {
+        return Path.GetInvalidPathChars().Aggregate(str, (current, c) => current.Replace(c, ' '));
     }
 }

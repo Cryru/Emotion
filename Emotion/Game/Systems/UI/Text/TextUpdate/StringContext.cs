@@ -104,7 +104,7 @@ public sealed class StringContext
 
             // Process the tag
             ReadOnlySpan<char> tagContent = inputSpan.Slice(start + 1, end - start - 1);
-            string processedTag = ResolveParam(tagContent.AsString(), localize);
+            string processedTag = ResolveParam(tagContent.ToString(), localize);
 
             // Copy processed tag into output
             output.Append(processedTag);

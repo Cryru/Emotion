@@ -2,16 +2,17 @@
 
 #region Using
 
-using System.IO;
-using System.Text;
-using Emotion.Standard.Reflector.Handlers.Interfaces;
-using Emotion.Standard.Reflector.Handlers.Base;
+using Emotion.Core.Platform;
+using Emotion.Core.Platform.Implementation.CommonDesktop;
+using Emotion.Core.Systems.IO;
+using Emotion.Editor;
+using Emotion.Standard.DataStructures.OptimizedStringReadWrite;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
-using Emotion.Core.Platform.Implementation.CommonDesktop;
-using Emotion.Standard.DataStructures.OptimizedStringReadWrite;
-using Emotion.Core.Platform;
-using Emotion.Editor;
+using Emotion.Standard.Reflector.Handlers.Base;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
+using System.IO;
+using System.Text;
 
 #endregion
 
@@ -464,16 +465,15 @@ public static partial class GameDatabase
 
         private static string GetGeneratedClassPathOSPath(Type typ)
         {
-            PlatformBase host = Engine.Host;
-            if (host is DesktopPlatform desktopHost)
+            if (AssetLoader.CanWriteAssets)
             {
-                string projectFolder = desktopHost.DeveloperMode_GetProjectFolder();
+                string projectFolder = AssetLoader.DevModeProjectFolder;
                 if (projectFolder != "")
                     return Path.Join(projectFolder, DATA_OBJECTS_PATH, typ.Name);
             }
 
             Assert(false, "Trying to get generated class path on a non-developer platform");
-            return "";
+            return string.Empty;
         }
 
         #endregion

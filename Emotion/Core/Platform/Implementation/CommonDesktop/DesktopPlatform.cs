@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Emotion.Core.Platform.Implementation.Win32.Native.User32;
 using Emotion.Core.Systems.IO;
+using Emotion.Editor;
 
 #endregion
 
@@ -48,36 +49,27 @@ public abstract class DesktopPlatform : PlatformBase
 
         // Add desktop assets if not mounting developer version assets (which is the assets folder from the project folder)
         // todo: maybe we want to differentiate this two states by making the production assets packed in some way?
-        if (!Engine.Configuration.DebugMode || !DeveloperMode_InitializeAssetsFromProject())
+        if (AssetLoader.CanWriteAssets)
+        {
+            Engine.AssetLoader.MountFileSystemFolder(AssetLoader.DevModeAssetFolder, string.Empty, true);
+        }
+        else
         {
             Engine.Log.Trace("Adding default desktop asset sources.", MessageSource.Platform);
-            Engine.AssetLoader.AddSource(new FileAssetSource("Assets"));
+            Engine.AssetLoader.MountFileSystemFolder("Assets", string.Empty);
         }
 
-        Engine.AssetLoader.AddStore(new FileAssetStore("Player", true));
+        Engine.AssetLoader.MountFileSystemFolder("Player", "Player", true);
     }
 
     #region File IO
-
-    protected string _devModeAssetFolder = "";
-    protected string _devModeProjectFolder = "";
-
-    public string DeveloperMode_GetProjectFolder()
-    {
-        return _devModeProjectFolder;
-    }
-
-    public string DeveloperMode_GetAssetFolder()
-    {
-        return _devModeAssetFolder;
-    }
 
     public void DeveloperMode_SelectFileNative<T>(Action<T?> onLoaded) where T : Asset, new()
     {
         string selectedPath = DeveloperMode_OSSelectFileToImport<T>();
         if (string.IsNullOrEmpty(selectedPath)) return;
 
-        string assetPath = _devModeAssetFolder;
+        string assetPath = AssetLoader.DevModeAssetFolder;
         string fullAssetPath = Path.GetFullPath(assetPath, AssetLoader.GameDirectory);
 
         bool existingAsset = selectedPath.StartsWith(fullAssetPath);
@@ -97,87 +89,6 @@ public abstract class DesktopPlatform : PlatformBase
     {
         // nop
         return string.Empty;
-    }
-
-    private bool DeveloperMode_InitializeAssetsFromProject()
-    {
-        Engine.Log.Trace("Attempting to add developer mode desktop asset sources.", MessageSource.Platform);
-
-        string? projectFolder = null;
-        try
-        {
-            projectFolder = DetermineDeveloperModeProjectFolder();
-            Engine.Log.Info($"Found project folder: {projectFolder}", MessageSource.Platform);
-        }
-        catch (Exception)
-        {
-
-        }
-
-        if (projectFolder == null) return false;
-
-        _devModeProjectFolder = projectFolder;
-
-        string assetFolder = Path.Join(projectFolder, "Assets");
-        _devModeAssetFolder = assetFolder;
-
-        var devSource = new DevModeProjectAssetSource(assetFolder);
-        Engine.AssetLoader.ONE_AddAssetSource(devSource);
-        Engine.AssetLoader.AddStore(devSource);
-
-        // todo: add store
-
-        return true;
-    }
-
-    private static string? DetermineDeveloperModeProjectFolder()
-    {
-        string currentDirectory = AssetLoader.GameDirectory;
-        DirectoryInfo? parentDir = Directory.GetParent(currentDirectory);
-        int levelsBack = 1;
-        while (parentDir != null)
-        {
-            bool found = false;
-            foreach (DirectoryInfo dir in parentDir.GetDirectories())
-            {
-                if (dir.Name == "Assets")
-                {
-                    found = true;
-                    break;
-                }
-            }
-
-            if (found)
-            {
-                found = false;
-                foreach (FileInfo file in parentDir.EnumerateFiles())
-                {
-                    if (file.Extension == ".csproj" || file.Extension == ".sln" || file.Extension == ".slnx")
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-            }
-
-            if (found)
-            {
-                // Convert to relative path.
-                StringBuilder s = new StringBuilder();
-                for (int i = 0; i < levelsBack; i++)
-                {
-                    s.Append("..");
-                    if (i != levelsBack - 1) s.Append("\\");
-                }
-
-                return s.ToString();
-            }
-
-            parentDir = Directory.GetParent(parentDir.FullName);
-            levelsBack++;
-        }
-
-        return null;
     }
 
     #endregion
@@ -275,15 +186,15 @@ public abstract class DesktopPlatform : PlatformBase
                 path = AppendPlatformIdentifierAndExtension("Mesa", "opengl32");
                 break;
             case "OpenAL":
-            {
-                path = Path.Join(DESKTOP_NATIVE_LIB_FOLDER, "OpenAL", _platformIdentifier);
+                {
+                    path = Path.Join(DESKTOP_NATIVE_LIB_FOLDER, "OpenAL", _platformIdentifier);
 
-                // Linux only dependency, located in the same folder.
-                if (_platformIdentifier == "linux") LoadLibrary(Path.Join(path, "libsndio.so.6.1"));
+                    // Linux only dependency, located in the same folder.
+                    if (_platformIdentifier == "linux") LoadLibrary(Path.Join(path, "libsndio.so.6.1"));
 
-                path = Path.Join(path, $"openal32{_platformExtension}");
-                break;
-            }
+                    path = Path.Join(path, $"openal32{_platformExtension}");
+                    break;
+                }
         }
 
         bool loaded = NativeLibrary.TryLoad(path, out nint ptr);
@@ -308,7 +219,7 @@ public abstract class DesktopPlatform : PlatformBase
         try
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                User32.MessageBox(nint.Zero, message, "Something went wrong!", (uint) MessageBoxFlags.MB_ICONERROR);
+                User32.MessageBox(nint.Zero, message, "Something went wrong!", (uint)MessageBoxFlags.MB_ICONERROR);
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 UnixNative.ExecuteBashCommand($"osascript -e 'tell app \"System Events\" to display dialog \"{message}\" buttons {{\"OK\"}} with icon caution'");
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))

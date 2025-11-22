@@ -179,10 +179,12 @@ public class MeshEntityMetaState
         }
     }
 
-    public async Task SetShader(string path)
+    public Task SetShader(string path)
     {
+        // todo: wtf
         _shaderParameters = new();
-        ShaderAsset = await Engine.AssetLoader.GetAsync<ShaderAsset>(path);
+        ShaderAsset = Engine.AssetLoader.ONE_Get<ShaderAsset>(path);
+        return Task.CompletedTask;
     }
 
     public void SetShader(ShaderAsset asset)

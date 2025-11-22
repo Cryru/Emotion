@@ -12,6 +12,10 @@ using Emotion.Core.Systems.Logging;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Core.Platform.Implementation.CommonDesktop;
 using Emotion.Core.Platform;
+using Emotion.Editor;
+using Emotion.Core.Systems.IO;
+
+
 
 
 
@@ -482,11 +486,10 @@ public static class TestExecutor
         yield return null;
         yield return null;
 
-        PlatformBase host = Engine.Host;
-        if (host is not DesktopPlatform desktopHost) yield break;
+        if (!AssetLoader.CanWriteAssets) yield break;
 
-        string projectFolder = desktopHost.DeveloperMode_GetProjectFolder();
-        if (projectFolder == "") yield break;
+        string projectFolder = AssetLoader.DevModeProjectFolder;
+        if (projectFolder == string.Empty) yield break;
 
         string solutionFolder = Path.Join(projectFolder, "..");
 

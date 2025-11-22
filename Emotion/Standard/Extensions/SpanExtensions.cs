@@ -2,29 +2,35 @@
 
 using Standart.Hash.xxHash;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
 namespace Emotion.Standard.Extensions;
 
 public static class SpanExtensions
 {
-    public static unsafe string AsString(this ReadOnlySpan<char> source)
+    public static unsafe string AsLowerCaseString(this ReadOnlySpan<char> source)
     {
-        string result = new string(' ', source.Length);
-        fixed (char* dest = result, src = &MemoryMarshal.GetReference(source))
+        Span<char> nameLower = stackalloc char[source.Length];
+        source.ToLowerInvariant(nameLower);
+        return nameLower.ToString();
+    }
+
+    public static int GetIndexOfFollowedByChar(this ReadOnlySpan<char> source, ReadOnlySpan<char> indexOf, char followedBy)
+    {
+        int searchUpTo = 0;
+        int idx = 0;
+        while (idx != -1)
         {
-            for (int i = 0; i < source.Length; i++)
-            {
-                *(dest + i) = *(src + i);
-            }
+            idx = source.Slice(searchUpTo).IndexOf(indexOf);
+            if (idx == -1)
+                break;
+
+            if (source[idx + indexOf.Length] == followedBy)
+                return searchUpTo + idx;
+            searchUpTo = idx + indexOf.Length;
         }
 
-#if DEBUG
-        // todo: can this be .ToString()?
-        var str = source.ToString();
-        Assert(str == result);
-#endif
-
-        return result;
+        return -1;
     }
 
     public static int GetStableHashCode(this Span<byte> span)

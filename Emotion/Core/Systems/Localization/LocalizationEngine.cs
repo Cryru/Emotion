@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Core.Systems.IO;
+using Emotion.Editor;
 using System.Text;
 
 namespace Emotion.Core.Systems.Localization;
@@ -50,7 +51,7 @@ public static class LocalizationEngine
     {
         if (string.IsNullOrEmpty(myStr)) return myStr;
 
-        if (Engine.Configuration.DebugMode && DebugAssetStore.IsActive)
+        if (Engine.Configuration.DebugMode && AssetLoader.CanWriteAssets)
         {
             if (float.TryParse(myStr, out float _)) return myStr;
 

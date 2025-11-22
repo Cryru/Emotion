@@ -196,7 +196,6 @@ public class BasicRenderTests : ProxyRenderTestingScene
     /// <summary>
     /// Tests the basic text drawing functionality of the composer.
     /// </summary>
-    [DebugTest]
     [Test]
     public IEnumerator RenderText()
     {

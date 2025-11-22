@@ -169,6 +169,9 @@ public static class Engine
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
         CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
+        if (RuntimeInformation.OSDescription != "Browser")
+            Thread.CurrentThread.Priority = ThreadPriority.AboveNormal;
+
         // Attach engine killer and popup to unhandled exceptions, when the debugger isn't attached.
         // This might be a bit overkill as not all unhandled exceptions are unrecoverable, but let's be pessimistically optimistic for now.
         // Note that async exceptions are considered caught.

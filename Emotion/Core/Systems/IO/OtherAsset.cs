@@ -1,16 +1,25 @@
 ﻿#nullable enable
 
+
 namespace Emotion.Core.Systems.IO;
 
 /// <summary>
-/// An asset of an another type.
+/// A generic asset of an unspecified type, accessed as raw data.
 /// </summary>
 public class OtherAsset : Asset
 {
-    /// <summary>
-    /// The context of the file as a byte array.
-    /// </summary>
     public ReadOnlyMemory<byte> Content { get; private set; }
+
+    public OtherAsset()
+    {
+        _useNewLoading = true;
+    }
+
+    protected override IEnumerator Internal_LoadAssetRoutine(ReadOnlyMemory<byte> data)
+    {
+        Content = data;
+        return base.Internal_LoadAssetRoutine(data);
+    }
 
     protected override void CreateInternal(ReadOnlyMemory<byte> data)
     {

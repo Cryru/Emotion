@@ -31,7 +31,7 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
         _onFileSelected = onFileSelected;
         FileFilterFunc = fileFilter;
         UseAssetLoaderCache = false;
-        _fileSystem = Engine.AssetLoader.GetAssetFileTree();
+        //_fileSystem = Engine.AssetLoader.GetAssetFileTree();
     }
 
     private void SetTreeBranch(string[]? branch)
@@ -176,15 +176,9 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
 
     private IEnumerator LoadFileRoutine(string name)
     {
-        T? asset = null;
-
         // Load through the asset loader.
-        var assetLoadTask = Engine.AssetLoader.GetAsync<T>(name, UseAssetLoaderCache);
-        yield return new TaskRoutineWaiter(assetLoadTask);
-        asset = assetLoadTask.Result;
-
-        // Verify
-        if (asset == null) yield break;
+        T asset = Engine.AssetLoader.ONE_Get<T>(name, UseAssetLoaderCache);
+        yield return asset;
         if (asset is XMLAssetMarkerClass xmlFile && !xmlFile.HasContent()) yield break;
 
         _onFileSelected.Invoke(asset);
