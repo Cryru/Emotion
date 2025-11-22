@@ -526,7 +526,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
             _needsLoading = false;
         }
 
-        lock(this)
+        lock (this)
         {
             foreach (UIBaseWindow child in Children)
             {
@@ -569,17 +569,38 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     {
         Assert(State == UIWindowState.Open);
 
-        // Draw background
-        if (Visuals.BackgroundColor.A != 0)
-            r.RenderSprite(CalculatedMetrics.Position.ToVec2(), CalculatedMetrics.Size.ToVec2(), Visuals.BackgroundColor);
+        // Rounded background and outline are a different path
+        if (Visuals.RoundRadius != 0)
+        {
+            Vector2 border2 = new Vector2(Maths.RoundAwayFromZero(Visuals.Border * CalculatedMetrics.ScaleF));
+            float radius = Visuals.RoundRadius * GetScale();
 
-        if (Visuals.Border != 0)
-            r.RenderRectOutline(
-                CalculatedMetrics.Position.ToVec3(),
-                CalculatedMetrics.Size.ToVec2(),
-                Visuals.BorderColor,
-                Maths.RoundAwayFromZero(Visuals.Border * CalculatedMetrics.ScaleF)
-            );
+            if (Visuals.Border != 0)
+                r.RenderRoundedRectSdf(CalculatedMetrics.Position.ToVec2(), CalculatedMetrics.Size.ToVec2(),
+                   Visuals.BorderColor, radius);
+
+            if (Visuals.BackgroundColor.A != 0)
+                r.RenderRoundedRectSdf(
+                    CalculatedMetrics.Position.ToVec2() + border2,
+                    CalculatedMetrics.Size.ToVec2() - border2 * 2,
+                    Visuals.BackgroundColor,
+                    radius - border2.X
+                );
+        }
+        else
+        {
+            // Draw background
+            if (Visuals.BackgroundColor.A != 0)
+                r.RenderSprite(CalculatedMetrics.Position.ToVec2(), CalculatedMetrics.Size.ToVec2(), Visuals.BackgroundColor);
+
+            if (Visuals.Border != 0)
+                r.RenderRectOutline(
+                    CalculatedMetrics.Position.ToVec3(),
+                    CalculatedMetrics.Size.ToVec2(),
+                    Visuals.BorderColor,
+                    Maths.RoundAwayFromZero(Visuals.Border * CalculatedMetrics.ScaleF)
+                );
+        }
 
         InternalRender(r);
 

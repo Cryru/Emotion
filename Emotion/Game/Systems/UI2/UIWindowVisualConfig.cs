@@ -6,6 +6,8 @@ public struct UIWindowVisualConfig
 {
     public Color BackgroundColor = Color.White.SetAlpha(0);
 
+    public int RoundRadius = 0;
+
     public int Border = 0;
     public Color BorderColor = Color.Black;
 
