@@ -193,7 +193,7 @@ public sealed class MeshEntityBatchRenderer
 
         _objectComparison = ObjectSort; // Prevent delegate allocation
 
-        var meshShaderAsset = Engine.AssetLoader.Get<ShaderAsset>("Shaders/MeshShader.xml");
+        var meshShaderAsset = Engine.AssetLoader.LEGACY_Get<ShaderAsset>("Shaders/MeshShader.xml");
         if (meshShaderAsset != null)
         {
             _meshShader = meshShaderAsset.Shader;

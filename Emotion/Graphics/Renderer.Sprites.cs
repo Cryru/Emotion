@@ -311,7 +311,7 @@ namespace Emotion.Graphics
 
         public void RenderGrid(Vector3 pos, Vector2 size, Vector2 tileSize, Color color, Vector2? offset = null)
         {
-            ShaderAsset gridShader = Engine.AssetLoader.ONE_Get<ShaderAsset>("Shaders/3DGrid.xml");
+            ShaderAsset gridShader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/3DGrid.xml");
             if (gridShader.Loaded && gridShader.Shader != null)
             {
                 SetShader(gridShader.Shader);

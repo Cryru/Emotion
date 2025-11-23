@@ -177,7 +177,7 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
     private IEnumerator LoadFileRoutine(string name)
     {
         // Load through the asset loader.
-        T asset = Engine.AssetLoader.ONE_Get<T>(name, UseAssetLoaderCache);
+        T asset = Engine.AssetLoader.Get<T>(name, UseAssetLoaderCache);
         yield return asset;
         if (asset is XMLAssetMarkerClass xmlFile && !xmlFile.HasContent()) yield break;
 

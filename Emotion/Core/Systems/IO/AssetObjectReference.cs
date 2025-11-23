@@ -57,7 +57,7 @@ public sealed class AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta
 
         if (_type == AssetOrObjectReferenceType.AssetName)
         {
-            _asset = Engine.AssetLoader.ONE_Get<TAsset>(_assetName, addOwner, false, loadedAsDependency);
+            _asset = Engine.AssetLoader.Get<TAsset>(_assetName, addOwner, false, loadedAsDependency);
             _type = AssetOrObjectReferenceType.Asset;
             addedOwner = true;
         }
@@ -82,7 +82,7 @@ public sealed class AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta
 
         if (_type == AssetOrObjectReferenceType.AssetName)
         {
-            TAsset asset = Engine.AssetLoader.ONE_Get<TAsset>(_assetName, null, true);
+            TAsset asset = Engine.AssetLoader.Get<TAsset>(_assetName, null, true);
             if (asset.Loaded)
                 return asset.GetObject();
         }

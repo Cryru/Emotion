@@ -12,7 +12,7 @@ public class SerializableAsset<T> : SerializableAsset where T : Asset, new()
 {
     public T Get(object? referenceObject = null)
     {
-        return Engine.AssetLoader.ONE_Get<T>(Name, referenceObject);
+        return Engine.AssetLoader.Get<T>(Name, referenceObject);
     }
 
     public static implicit operator SerializableAsset<T>(string? name)

@@ -20,14 +20,14 @@ public class StandardAudioTests
     [Test]
     public void ReadWav()
     {
-        var pepsi = Engine.AssetLoader.Get<AudioAsset>("Sounds/pepsi.wav");
+        var pepsi = Engine.AssetLoader.LEGACY_Get<AudioAsset>("Sounds/pepsi.wav");
         Assert.True(pepsi.Format.SampleRate == 44100);
         Assert.True(pepsi.Format.Channels == 2);
         //Assert.True(pepsi.Format.BitsPerSample == 16);
         //Assert.False(pepsi.Format.IsFloat);
         //Assert.False(pepsi.SoundData.IsEmpty);
 
-        var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
+        var money = Engine.AssetLoader.LEGACY_Get<AudioAsset>("Sounds/money.wav");
         Assert.True(money.Format.SampleRate == 22050);
         Assert.True(money.Format.Channels == 1);
         //Assert.True(money.Format.BitsPerSample == 16);
@@ -38,7 +38,7 @@ public class StandardAudioTests
     [Test]
     public void Convert()
     {
-        var pepsi = Engine.AssetLoader.Get<AudioAsset>("Sounds/pepsi.wav");
+        var pepsi = Engine.AssetLoader.LEGACY_Get<AudioAsset>("Sounds/pepsi.wav");
         int pepsiByteSize = pepsi.SoundData.Length * 4;
 
         var copy = new byte[pepsiByteSize];
@@ -54,7 +54,7 @@ public class StandardAudioTests
         float ratio = 48000f / pepsi.Format.SampleRate;
         Assert.Equal(copy.Length, pepsiByteSize / 2 * ratio); // divide by 2 because 16bps
 
-        var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
+        var money = Engine.AssetLoader.LEGACY_Get<AudioAsset>("Sounds/money.wav");
         int moneyByteSize = money.SoundData.Length * 4;
 
         copy = new byte[moneyByteSize];
@@ -72,7 +72,7 @@ public class StandardAudioTests
     [Test]
     public void StreamConvert()
     {
-        var pepsi = Engine.AssetLoader.Get<AudioAsset>("Sounds/pepsi.wav");
+        var pepsi = Engine.AssetLoader.LEGACY_Get<AudioAsset>("Sounds/pepsi.wav");
 
         var format = new AudioFormat(32, true, 2, 48000);
         var copy = new byte[pepsi.SoundData.Length * 4];
@@ -116,7 +116,7 @@ public class StandardAudioTests
         Task.WaitAll(testTasks.ToArray());
         testTasks.Clear();
 
-        var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
+        var money = Engine.AssetLoader.LEGACY_Get<AudioAsset>("Sounds/money.wav");
         copy = new byte[money.SoundData.Length * 4];
         CopyToByteBuffer(money, copy);
         AudioHelpers.ConvertFormat(money.Format, format, ref copy);
@@ -159,7 +159,7 @@ public class StandardAudioTests
     [Test]
     public void ConvertFormatChanges()
     {
-        var pepsi = Engine.AssetLoader.Get<AudioAsset>("Sounds/pepsi.wav");
+        var pepsi = Engine.AssetLoader.LEGACY_Get<AudioAsset>("Sounds/pepsi.wav");
         var format = new AudioFormat(32, true, 2, 48000);
         var streamer = new AudioConverter(pepsi.Format, pepsi.SoundData);
 

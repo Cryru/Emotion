@@ -101,7 +101,7 @@ public class ObjMeshAsset : Asset
                     break;
                 case "mtllib":
                     string path = AssetLoader.JoinPath(AssetLoader.GetDirectoryName(Name), args[1]);
-                    objMaterialBank = Engine.AssetLoader.Get<MtlAsset>(path);
+                    objMaterialBank = Engine.AssetLoader.LEGACY_Get<MtlAsset>(path);
                     break;
                 case "usemtl" when objMaterialBank != null:
                     currentGroup.Material = objMaterialBank.GetMaterial(args[1]);

@@ -99,7 +99,7 @@ public static class TextRenderEngine
         }
 
 
-        OtherAsset fontBytes = Engine.AssetLoader.Get<OtherAsset>(FontAsset.DefaultBuiltInFontName, false);
+        OtherAsset fontBytes = Engine.AssetLoader.LEGACY_Get<OtherAsset>(FontAsset.DefaultBuiltInFontName, false);
         stbtt_fontinfo stbFont = CreateFont(fontBytes.Content.ToArray(), 0);
         float scaleFactor = stbtt_ScaleForMappingEmToPixels(stbFont, 15);
 

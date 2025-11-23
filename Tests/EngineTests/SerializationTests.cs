@@ -23,7 +23,7 @@ public class SerializationTests
     [Test]
     public IEnumerator JSONReflectorSerialization_Complex_UTF8()
     {
-        OtherAsset asset = Engine.AssetLoader.ONE_Get<OtherAsset>("Serialized/example.gltf");
+        OtherAsset asset = Engine.AssetLoader.Get<OtherAsset>("Serialized/example.gltf");
         yield return asset;
         Assert.True(asset.Loaded);
 

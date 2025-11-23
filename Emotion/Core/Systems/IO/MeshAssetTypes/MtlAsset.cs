@@ -65,7 +65,7 @@ public class MtlAsset : Asset
                 {
                     string directory = AssetLoader.GetDirectoryName(Name);
                     string texturePath = AssetLoader.GetNonRelativePath(directory, AssetLoader.NameToEngineName(args[1]));
-                    var texture = Engine.AssetLoader.Get<TextureAsset>(texturePath);
+                    var texture = Engine.AssetLoader.LEGACY_Get<TextureAsset>(texturePath);
                     if (texture != null)
                     {
                         texture.Texture.Tile = true;

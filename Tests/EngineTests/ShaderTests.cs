@@ -27,9 +27,9 @@ public class ShaderTests : ProxyRenderTestingScene
         // Which phase of the test is happening. Done to split the draw function.
         var shaderTest = 0;
 
-        shaders.Add(Engine.AssetLoader.Get<ShaderAsset>("Shaders/TestShader.xml"));
-        shaders.Add(Engine.AssetLoader.Get<ShaderAsset>("Shaders/TestShaderFragOnly.xml"));
-        shaders.Add(Engine.AssetLoader.Get<ShaderAsset>("Shaders/TestShaderVertOnly.xml"));
+        shaders.Add(Engine.AssetLoader.LEGACY_Get<ShaderAsset>("Shaders/TestShader.xml"));
+        shaders.Add(Engine.AssetLoader.LEGACY_Get<ShaderAsset>("Shaders/TestShaderFragOnly.xml"));
+        shaders.Add(Engine.AssetLoader.LEGACY_Get<ShaderAsset>("Shaders/TestShaderVertOnly.xml"));
 
         // Ensure all shaders are loaded.
         foreach (ShaderAsset s in shaders)
@@ -88,7 +88,7 @@ public class ShaderTests : ProxyRenderTestingScene
     [Test]
     public IEnumerator ShaderBrokenLoad()
     {
-        var shader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/BrokenShader.xml");
+        var shader = Engine.AssetLoader.LEGACY_Get<ShaderAsset>("Shaders/BrokenShader.xml");
 
         ToRender = (composer) =>
         {
@@ -120,7 +120,7 @@ public class ShaderTests : ProxyRenderTestingScene
     [Test]
     public IEnumerator ShaderFallback()
     {
-        var shader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/BrokenShaderWithFallback.xml");
+        var shader = Engine.AssetLoader.LEGACY_Get<ShaderAsset>("Shaders/BrokenShaderWithFallback.xml");
 
         ToRender = (composer) =>
         {

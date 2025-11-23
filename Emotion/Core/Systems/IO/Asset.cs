@@ -251,7 +251,7 @@ public abstract class Asset : IRoutineWaiter
 
     protected T LoadAssetDependency<T>(string? name, bool cachedLoad = true) where T : Asset, new()
     {
-        T dependantAsset = Engine.AssetLoader.ONE_Get<T>(name, this, false, true, !cachedLoad);
+        T dependantAsset = Engine.AssetLoader.Get<T>(name, this, false, true, !cachedLoad);
 
         _dependencies ??= new List<IRoutineWaiter>();
         _dependencies.Add(dependantAsset);

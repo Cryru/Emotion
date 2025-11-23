@@ -81,7 +81,7 @@ public static partial class GLTFFormat
             else
             {
                 uri = AssetLoader.GetNonRelativePath(rootFolder, uri);
-                OtherAsset byteAsset = Engine.AssetLoader.ONE_Get<OtherAsset>(uri);
+                OtherAsset byteAsset = Engine.AssetLoader.Get<OtherAsset>(uri);
                 Assert(byteAsset.Processed); // We expect it to be already requested via dependencies
                 if (byteAsset.Loaded)
                     content = byteAsset.Content;
@@ -307,7 +307,7 @@ public static partial class GLTFFormat
             if (string.IsNullOrEmpty(uri)) continue;
 
             uri = AssetLoader.GetNonRelativePath(rootFolder, uri);
-            TextureAsset textureAsset = Engine.AssetLoader.ONE_Get<TextureAsset>(uri);
+            TextureAsset textureAsset = Engine.AssetLoader.Get<TextureAsset>(uri);
             Assert(textureAsset.Processed); // We expect it to be already requested via dependencies
             if (textureAsset.Loaded)
             {

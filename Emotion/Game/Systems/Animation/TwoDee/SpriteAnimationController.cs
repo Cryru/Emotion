@@ -50,7 +50,7 @@ public class SpriteAnimationController
     public SpriteAnimationController(AnimatedSprite data)
     {
         Data = data;
-        AssetTexture = Engine.AssetLoader.Get<TextureAsset>(Data.AssetFile);
+        AssetTexture = Engine.AssetLoader.LEGACY_Get<TextureAsset>(Data.AssetFile);
 
         // Set the first animation as current, by default.
         foreach (KeyValuePair<string, SpriteAnimationData> anim in Data.Animations)

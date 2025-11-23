@@ -40,7 +40,7 @@ public class MeshMaterial
     {
         if (DiffuseTextureName != null)
         {
-            TextureAsset texture = Engine.AssetLoader.ONE_Get<TextureAsset>(DiffuseTextureName);
+            TextureAsset texture = Engine.AssetLoader.Get<TextureAsset>(DiffuseTextureName);
             if (texture.Loaded)
                 return texture.Texture;
         }

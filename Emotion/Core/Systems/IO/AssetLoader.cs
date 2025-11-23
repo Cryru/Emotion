@@ -31,14 +31,14 @@ public partial class AssetLoader
 
     #region Init
 
-    public static string GameDirectory { get; private set; } = string.Empty;
+    public static string GameFolder { get; private set; } = string.Empty;
 
     internal static void SetupGameDirectory() // We want to get this as soon as possible
     {
         if (RuntimeInformation.OSDescription == "Browser") return;
 
         Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-        GameDirectory = Directory.GetCurrentDirectory();
+        GameFolder = Directory.GetCurrentDirectory();
     }
 
     /// <summary>
@@ -63,7 +63,7 @@ public partial class AssetLoader
         if (Exists("AssetRemap.xml"))
         {
             // We need this loaded now, before stuff starts requesting assets
-            XMLAsset<Dictionary<string, string>> assetRemapAsset = ONE_Get<XMLAsset<Dictionary<string, string>>>("AssetRemap.xml", null, true);
+            XMLAsset<Dictionary<string, string>> assetRemapAsset = Get<XMLAsset<Dictionary<string, string>>>("AssetRemap.xml", null, true);
             if (assetRemapAsset.HasContent())
             {
                 Dictionary<string, string>? content = assetRemapAsset.Content;
@@ -121,13 +121,70 @@ public partial class AssetLoader
 
     #region Asset Lifecycle
 
-    /// <summary>
-    /// Get a loaded asset by its name or load it.
-    /// This is a legacy API!
-    /// </summary>
-    public T? Get<T>(string name, bool cache = true) where T : Asset, new()
+    private readonly ConcurrentDictionary<int, Asset> _createdAssets = new();
+    private readonly ConcurrentQueue<Asset> _assetsToLoad = new();
+    private readonly ConcurrentQueue<AssetFileEntry?> _assetsToReload = new();
+    private readonly List<IRoutineWaiter> _loadingAssetRoutines = new(16);
+
+    public T GetInstant<T>(string? name, object? addReferenceToObject = null, bool noCache = false)
+        where T : Asset, new()
     {
-        return ONE_Get<T>(name, null, true, false, !cache);
+        return Get<T>(name, addReferenceToObject, true, false, noCache);
+    }
+
+    public T Get<T>(string? name, object? addRefenceToObject = null, bool loadInline = false, bool loadedAsDependency = false, bool noCache = false)
+        where T : Asset, new()
+    {
+        string enginePath = string.Empty;
+
+        if (!string.IsNullOrEmpty(name))
+        {
+            AssetFileEntry? entry = TryGetFileEntry(name);
+            if (entry != null)
+            {
+                enginePath = entry.FullName;
+            }
+            else // We allow loading of assets that don't exist.
+            {
+                enginePath = AssetLoader.NameToEngineName(name);
+                Engine.Log.Warning($"Requested asset that doesn't exist - {name}", MessageSource.AssetLoader);
+            }
+        }
+
+        // If the asset already exists, get it.
+        int assetCacheHash = Maths.GetCantorPair(enginePath.GetStableHashCodeASCII(), typeof(T).GetHashCode());
+        if (!noCache && _createdAssets.TryGetValue(assetCacheHash, out Asset? loadedAsset))
+        {
+            if (addRefenceToObject != null)
+                AddReferenceToAsset(loadedAsset, addRefenceToObject);
+
+            return (T)loadedAsset;
+        }
+
+        // Create a new asset and register it.
+        T newAsset = new T
+        {
+            Name = enginePath,
+            UniqueHash = assetCacheHash,
+            LoadedAsDependency = loadedAsDependency
+        };
+        if (!noCache)
+            _createdAssets.TryAdd(assetCacheHash, newAsset);
+
+        if (addRefenceToObject != null)
+            AddReferenceToAsset(newAsset, addRefenceToObject);
+
+        if (loadInline)
+        {
+            Coroutine.RunInline(newAsset.AssetLoader_LoadAsset(this));
+        }
+        else
+        {
+            // Queue the asset to be loaded
+            _assetsToLoad.Enqueue(newAsset);
+        }
+
+        return newAsset;
     }
 
     /// <summary>
@@ -143,6 +200,31 @@ public partial class AssetLoader
             removed._DoneViaAssetLoader();
         }
     }
+
+    /// <summary>
+    /// Reloads any loaded assets with the provided name.
+    /// This is called to hot reload assets by their managing sources.
+    /// 
+    /// The reload sequence will eventually converge into the same code as the load sequence,
+    /// however it dedupes reload requests as usually managing sources spam reload requests (at least on windows).
+    /// </summary>
+    public void ReloadAsset(ReadOnlySpan<char> name)
+    {
+        AssetFileEntry? entry = TryGetFileEntry(name);
+        if (entry == null) return;
+        _assetsToReload.Enqueue(entry);
+    }
+
+    /// <summary>
+    /// Get a loaded asset by its name or load it.
+    /// This is a legacy API!
+    /// </summary>
+    [Obsolete("Use GetInstant or Get")]
+    public T? LEGACY_Get<T>(string name, bool cache = true) where T : Asset, new()
+    {
+        return Get<T>(name, null, true, false, !cache);
+    }
+
 
     #endregion
 
@@ -395,73 +477,7 @@ public partial class AssetLoader
 
     #endregion
 
-    #region ONE
-
-    private readonly ConcurrentDictionary<int, Asset> _createdAssets = new();
-    private readonly ConcurrentQueue<Asset> _assetsToLoad = new();
-    private readonly ConcurrentQueue<AssetFileEntry?> _assetsToReload = new();
-    private readonly List<IRoutineWaiter> _loadingAssetRoutines = new(16);
-
-    public T GetInstant<T>(string? name, object? addReferenceToObject = null, bool noCache = false)
-        where T : Asset, new()
-    {
-        return ONE_Get<T>(name, addReferenceToObject, true, false, noCache);
-    }
-
-    public T ONE_Get<T>(string? name, object? addRefenceToObject = null, bool loadInline = false, bool loadedAsDependency = false, bool noCache = false)
-        where T : Asset, new()
-    {
-        string enginePath = string.Empty;
-
-        if (!string.IsNullOrEmpty(name))
-        {
-            AssetFileEntry? entry = TryGetFileEntry(name);
-            if (entry != null)
-            {
-                enginePath = entry.FullName;
-            }
-            else // We allow loading of assets that don't exist.
-            {
-                enginePath = AssetLoader.NameToEngineName(name);
-                Engine.Log.Warning($"Requested asset that doesn't exist - {name}", MessageSource.AssetLoader);
-            }
-        }
-
-        // If the asset already exists, get it.
-        int assetCacheHash = Maths.GetCantorPair(enginePath.GetStableHashCodeASCII(), typeof(T).GetHashCode());
-        if (!noCache && _createdAssets.TryGetValue(assetCacheHash, out Asset? loadedAsset))
-        {
-            if (addRefenceToObject != null)
-                AddReferenceToAsset(loadedAsset, addRefenceToObject);
-
-            return (T)loadedAsset;
-        }
-
-        // Create a new asset and register it.
-        T newAsset = new T
-        {
-            Name = enginePath,
-            UniqueHash = assetCacheHash,
-            LoadedAsDependency = loadedAsDependency
-        };
-        if (!noCache)
-            _createdAssets.TryAdd(assetCacheHash, newAsset);
-
-        if (addRefenceToObject != null)
-            AddReferenceToAsset(newAsset, addRefenceToObject);
-
-        if (loadInline)
-        {
-            Coroutine.RunInline(newAsset.AssetLoader_LoadAsset(this));
-        }
-        else
-        {
-            // Queue the asset to be loaded
-            _assetsToLoad.Enqueue(newAsset);
-        }
-
-        return newAsset;
-    }
+    #region References and Auto-Management
 
     public void AddReferenceToAsset(Asset? asset, object referencingObject)
     {
@@ -473,20 +489,6 @@ public partial class AssetLoader
     {
         if (asset == null) return;
         // todo
-    }
-
-    /// <summary>
-    /// Reloads any loaded assets with the provided name.
-    /// This is called to hot reload assets by their managing sources.
-    /// 
-    /// The reload sequence will eventually converge into the same code as the load sequence,
-    /// however it dedupes reload requests as usually managing sources spam reload requests (at least on windows).
-    /// </summary>
-    public void ONE_ReloadAsset(ReadOnlySpan<char> name)
-    {
-        AssetFileEntry? entry = TryGetFileEntry(name);
-        if (entry == null) return;
-        _assetsToReload.Enqueue(entry);
     }
 
     #endregion
@@ -531,7 +533,7 @@ public partial class AssetLoader
 
     private static string DetermineProjectFolder()
     {
-        string currentDirectory = AssetLoader.GameDirectory;
+        string currentDirectory = AssetLoader.GameFolder;
         DirectoryInfo? parentDir = Directory.GetParent(currentDirectory);
         int levelsBack = 1;
         while (parentDir != null)

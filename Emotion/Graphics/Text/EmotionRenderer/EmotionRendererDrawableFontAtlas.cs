@@ -52,8 +52,8 @@ public class EmotionRendererDrawableFontAtlas : DrawableFontAtlas
             _glyphRenderState = renderState;
         }
 
-        _noDiscardShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/VertColorNoDiscard.xml");
-        _windingAaShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/WindingAA.xml");
+        _noDiscardShader = Engine.AssetLoader.LEGACY_Get<ShaderAsset>("FontShaders/VertColorNoDiscard.xml");
+        _windingAaShader = Engine.AssetLoader.LEGACY_Get<ShaderAsset>("FontShaders/WindingAA.xml");
         if (_noDiscardShader == null || _windingAaShader == null)
         {
             Engine.Log.Warning("Atlas rendering shader missing.", MessageSource.Renderer);

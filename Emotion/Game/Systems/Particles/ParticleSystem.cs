@@ -77,7 +77,7 @@ public class ParticleSystem
     public void Render(Renderer c)
     {
         //var particleTexture = Engine.AssetLoader.Get<TextureAsset>("Particle.png");
-        var particleTexture = Engine.AssetLoader.ONE_Get<TextureAsset>("Particle.png");
+        var particleTexture = Engine.AssetLoader.Get<TextureAsset>("Particle.png");
 
         //c.RenderCircleOutline(SpawnShape, Color.PrettyYellow, 1, 30);
 

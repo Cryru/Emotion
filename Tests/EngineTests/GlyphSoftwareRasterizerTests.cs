@@ -49,7 +49,7 @@ public class GlyphSoftwareRasterizerTests : TestingScene
 
     private unsafe stbtt_fontinfo GetStbFont(FontAsset emotionFont)
     {
-        var byteAsset = Engine.AssetLoader.Get<OtherAsset>(emotionFont.Name, false);
+        var byteAsset = Engine.AssetLoader.LEGACY_Get<OtherAsset>(emotionFont.Name, false);
         ReadOnlyMemory<byte> fontBytes = byteAsset!.Content;
         IntPtr ptr = UnmanagedMemoryAllocator.MemAlloc(fontBytes.Length);
         fontBytes.ToArray().CopyTo(new Span<byte>((void*) ptr, fontBytes.Length));

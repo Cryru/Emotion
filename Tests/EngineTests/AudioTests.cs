@@ -58,8 +58,8 @@ public class AudioTests
         var ctx = new TestAudioContext(null);
         AudioLayer layer = ctx.CreateLayer("test");
 
-        var pepsi = Engine.AssetLoader.Get<AudioAsset>("Sounds/pepsi.wav");
-        var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
+        var pepsi = Engine.AssetLoader.LEGACY_Get<AudioAsset>("Sounds/pepsi.wav");
+        var money = Engine.AssetLoader.LEGACY_Get<AudioAsset>("Sounds/money.wav");
 
         Assert.True(layer.Status == PlaybackStatus.NotPlaying);
         layer.PlayNext(pepsi);
@@ -85,8 +85,8 @@ public class AudioTests
         var ctx = new TestAudioContext(null);
         AudioLayer layer = ctx.CreateLayer("test");
 
-        var pepsi = Engine.AssetLoader.Get<AudioAsset>("Sounds/pepsi.wav");
-        var money = Engine.AssetLoader.Get<AudioAsset>("Sounds/money.wav");
+        var pepsi = Engine.AssetLoader.LEGACY_Get<AudioAsset>("Sounds/pepsi.wav");
+        var money = Engine.AssetLoader.LEGACY_Get<AudioAsset>("Sounds/money.wav");
 
         layer.AddToQueue(pepsi);
         Assert.True(layer.Status == PlaybackStatus.Playing);

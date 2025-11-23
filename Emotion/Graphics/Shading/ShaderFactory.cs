@@ -280,7 +280,7 @@ public static class ShaderFactory
     /// </summary>
     private static string ResolveShaderDependency(string file)
     {
-        var loadedFile = Engine.AssetLoader.Get<TextAsset>(file);
+        var loadedFile = Engine.AssetLoader.LEGACY_Get<TextAsset>(file);
         return loadedFile == null ? string.Empty : Helpers.NormalizeNewLines(loadedFile.Content);
     }
 
@@ -356,8 +356,8 @@ public static class ShaderFactory
     {
         Engine.Log.Info($"Loading default shaders...", MessageSource.Renderer);
 
-        TextAsset vert = Engine.AssetLoader.ONE_Get<TextAsset>("Shaders/DefaultVert.vert");
-        TextAsset frag = Engine.AssetLoader.ONE_Get<TextAsset>("Shaders/DefaultFrag.frag");
+        TextAsset vert = Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultVert.vert");
+        TextAsset frag = Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultFrag.frag");
 
         yield return vert;
         yield return frag;
@@ -382,8 +382,8 @@ public static class ShaderFactory
             yield break;
         }
 
-        var blit = Engine.AssetLoader.ONE_Get<ShaderAsset>("Shaders/Blit.xml");
-        var blitPremultAlpha = Engine.AssetLoader.ONE_Get<ShaderAsset>("Shaders/BlitPremultAlpha.xml");
+        var blit = Engine.AssetLoader.Get<ShaderAsset>("Shaders/Blit.xml");
+        var blitPremultAlpha = Engine.AssetLoader.Get<ShaderAsset>("Shaders/BlitPremultAlpha.xml");
 
         yield return blit;
         yield return blitPremultAlpha;

@@ -183,7 +183,7 @@ public class MeshEntityMetaState
     {
         // todo: wtf
         _shaderParameters = new();
-        ShaderAsset = Engine.AssetLoader.ONE_Get<ShaderAsset>(path);
+        ShaderAsset = Engine.AssetLoader.Get<ShaderAsset>(path);
         return Task.CompletedTask;
     }
 

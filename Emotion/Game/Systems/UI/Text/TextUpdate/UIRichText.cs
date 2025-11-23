@@ -326,7 +326,7 @@ public class UIRichText : UIBaseWindow
         // Load assets
         if (FontNeedsUpdate())
         {
-            FontAsset fontAsset = Engine.AssetLoader.ONE_Get<FontAsset>(FontFile);
+            FontAsset fontAsset = Engine.AssetLoader.Get<FontAsset>(FontFile);
             if (!fontAsset.Loaded) return;
             _fontFile = fontAsset;
             _atlas = null; // Update atlas

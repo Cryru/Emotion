@@ -70,13 +70,13 @@ public abstract class DesktopPlatform : PlatformBase
         if (string.IsNullOrEmpty(selectedPath)) return;
 
         string assetPath = AssetLoader.DevModeAssetFolder;
-        string fullAssetPath = Path.GetFullPath(assetPath, AssetLoader.GameDirectory);
+        string fullAssetPath = Path.GetFullPath(assetPath, AssetLoader.GameFolder);
 
         bool existingAsset = selectedPath.StartsWith(fullAssetPath);
         if (existingAsset)
         {
             string relativePath = Path.GetRelativePath(fullAssetPath, selectedPath);
-            T? asset = Engine.AssetLoader.ONE_Get<T>(relativePath, null, false, false, true);
+            T? asset = Engine.AssetLoader.Get<T>(relativePath, null, false, false, true);
             onLoaded.Invoke(asset);
         }
         else

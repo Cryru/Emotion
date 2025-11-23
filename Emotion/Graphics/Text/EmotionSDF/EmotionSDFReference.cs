@@ -55,8 +55,8 @@ public class EmotionSDFReference
 
         if (!cachedImageExists || !cachedMetaExists) return null;
 
-        var texture = Engine.AssetLoader.Get<TextureAsset>(cachedRenderName);
-        var atlasMeta = Engine.AssetLoader.Get<XMLAsset<EmotionSDFReferenceSerialized>>(cachedMetaName);
+        var texture = Engine.AssetLoader.LEGACY_Get<TextureAsset>(cachedRenderName);
+        var atlasMeta = Engine.AssetLoader.LEGACY_Get<XMLAsset<EmotionSDFReferenceSerialized>>(cachedMetaName);
 
         if (texture == null || atlasMeta == null || atlasMeta.Content == null) return null;
 

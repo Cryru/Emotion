@@ -1051,7 +1051,7 @@ public class XMLTests
         string thisFile = Path.Join(xmlsFolder, $"{fileName}.xml");
         File.WriteAllText(thisFile, data);
 
-        var referenceAsset = Engine.AssetLoader.Get<TextAsset>($"ReferenceXMLOutput/{fileName}.xml");
+        var referenceAsset = Engine.AssetLoader.LEGACY_Get<TextAsset>($"ReferenceXMLOutput/{fileName}.xml");
         if (referenceAsset?.Content != null)
             Assert.True(referenceAsset.Content == data, $"Serialization {fileName} must produce same result");
 

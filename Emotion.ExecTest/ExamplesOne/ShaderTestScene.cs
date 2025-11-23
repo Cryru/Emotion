@@ -14,7 +14,7 @@ public class ShaderTestScene : SceneWithMap
 
     protected override IEnumerator InternalLoadSceneRoutineAsync()
     {
-        _shaderAsset = Engine.AssetLoader.ONE_Get<NewShaderAsset>("MyShader.glsl");
+        _shaderAsset = Engine.AssetLoader.Get<NewShaderAsset>("MyShader.glsl");
         yield return _shaderAsset;
     }
 

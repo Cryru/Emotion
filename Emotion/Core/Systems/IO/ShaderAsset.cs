@@ -115,7 +115,7 @@ public class ShaderAsset : XMLAsset<ShaderDescription>
         if (!string.IsNullOrEmpty(Content.Vert))
         {
             string path = AssetLoader.GetNonRelativePath(assetDirectory, Content.Vert, false);
-            vertShader = Engine.AssetLoader.Get<TextAsset>(path, false);
+            vertShader = Engine.AssetLoader.LEGACY_Get<TextAsset>(path, false);
             if (vertShader == null) Engine.Log.Warning($"Couldn't find shader file {path}. Using default.", MessageSource.AssetLoader);
         }
 
@@ -125,7 +125,7 @@ public class ShaderAsset : XMLAsset<ShaderDescription>
         if (!string.IsNullOrEmpty(Content.Frag))
         {
             string path = AssetLoader.GetNonRelativePath(assetDirectory, Content.Frag, false);
-            fragShader = Engine.AssetLoader.Get<TextAsset>(path, false);
+            fragShader = Engine.AssetLoader.LEGACY_Get<TextAsset>(path, false);
             if (fragShader == null) Engine.Log.Warning($"Couldn't find shader file {path}. Using default.", MessageSource.AssetLoader);
         }
 
@@ -175,7 +175,7 @@ public class ShaderAsset : XMLAsset<ShaderDescription>
             return;
         }
 
-        var fallBackShader = Engine.AssetLoader.Get<ShaderAsset>(Content.Fallback);
+        var fallBackShader = Engine.AssetLoader.LEGACY_Get<ShaderAsset>(Content.Fallback);
         // If fallback not found, fallback to default.
         if (fallBackShader == null)
         {

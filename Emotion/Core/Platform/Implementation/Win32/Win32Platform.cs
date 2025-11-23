@@ -671,7 +671,7 @@ public partial class Win32Platform : DesktopPlatform
         ofn.lpstrTitle = "Emotion: Select a file";
 
         string assetPath = AssetLoader.DevModeAssetFolder;
-        string fullAssetPath = Path.GetFullPath(assetPath, AssetLoader.GameDirectory);
+        string fullAssetPath = Path.GetFullPath(assetPath, AssetLoader.GameFolder);
         ofn.lpstrInitialDir = fullAssetPath;
 
         ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;

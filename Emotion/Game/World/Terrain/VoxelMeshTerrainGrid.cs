@@ -40,7 +40,7 @@ public class VoxelMeshTerrainGrid<TData, TChunk, TIndex> : MeshGrid<TData, TChun
     {
         List<Asset> assets = new List<Asset>();
         if (TerrainMeshMaterial.DiffuseTextureName != null)
-            assets.Add(Engine.AssetLoader.ONE_Get<TextureAsset>(TerrainMeshMaterial.DiffuseTextureName));
+            assets.Add(Engine.AssetLoader.Get<TextureAsset>(TerrainMeshMaterial.DiffuseTextureName));
 
         ThreadExecutionWaitToken indexBufferTask = GLThread.ExecuteOnGLThreadAsync(PrepareIndexBuffer);
         yield return base.InitRoutine();

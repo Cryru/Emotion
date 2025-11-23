@@ -83,7 +83,7 @@ public class MessageBrokerMultiplayer_TestScene : SceneWithMap
     protected override IEnumerator InternalLoadSceneRoutineAsync()
     {
         // Fixes deadlock
-        Engine.AssetLoader.Get<ShaderAsset>("FontShaders/SDF.xml");
+        Engine.AssetLoader.LEGACY_Get<ShaderAsset>("FontShaders/SDF.xml");
 
         UIBaseWindow buttonList = new UIBaseWindow();
         buttonList.Layout.LayoutMethod = UILayoutMethod.HorizontalList(0);

@@ -224,7 +224,7 @@ public static class Engine
         Log.Info($" Runtime: {Environment.Version} {RuntimeInformation.OSDescription} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}", MessageSource.Engine);
         Log.Info($" Debug Mode: {Configuration.DebugMode}, Debugger Attached: {Debugger.IsAttached}", MessageSource.Engine);
         Log.Info($" Execution Directory: {Environment.CurrentDirectory}", MessageSource.Engine);
-        Log.Info($" Game Directory: {AssetLoader.GameDirectory}", MessageSource.Engine);
+        Log.Info($" Game Directory: {AssetLoader.GameFolder}", MessageSource.Engine);
         Log.Info($" Entry Assembly: {Assembly.GetEntryAssembly()}", MessageSource.Engine);
         Log.Info("--------------", MessageSource.Engine);
 

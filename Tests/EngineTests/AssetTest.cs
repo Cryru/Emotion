@@ -51,21 +51,21 @@ public class AssetTest
         loader.MountCustomSourceAsset<MockAssetSource, string>("test.ext", "test.ext");
         Assert.True(loader.Exists("test.ext"));
 
-        var nonExistingAsset = loader.ONE_Get<OtherAsset>("fake.ext", null, true);
+        var nonExistingAsset = loader.Get<OtherAsset>("fake.ext", null, true);
         Assert.False(nonExistingAsset.Loaded);
         Assert.True(nonExistingAsset.Processed);
 
-        var asset = loader.ONE_Get<OtherAsset>("test.ext", null, true);
+        var asset = loader.Get<OtherAsset>("test.ext", null, true);
         Assert.True(asset.Loaded);
         Assert.True(asset.Content.Span[0] == 13);
 
-        var assetCaseInsensitive = loader.ONE_Get<OtherAsset>("tEsT.ext", null, true);
+        var assetCaseInsensitive = loader.Get<OtherAsset>("tEsT.ext", null, true);
         Assert.True(assetCaseInsensitive.Loaded);
         Assert.Equal(asset, assetCaseInsensitive);
 
         // Test reloading
         MockAssetSource.MagicByte = 15;
-        loader.ONE_ReloadAsset("Test.exT"); // also test case insensitive
+        loader.ReloadAsset("Test.exT"); // also test case insensitive
         loader.Update();
         yield return 100;
         Assert.True(asset.Loaded);
@@ -97,10 +97,10 @@ public class AssetTest
         Assert.True(loader.Exists("pepega/omega.png"));
         Assert.False(loader.Exists("pepega/two.txt"));
 
-        var assetViaAlias = loader.ONE_Get<OtherAsset>("pepega/omega.png", null, true);
+        var assetViaAlias = loader.Get<OtherAsset>("pepega/omega.png", null, true);
         Assert.Equal(asset, assetViaAlias);
 
-        var assetNotYetCreated = loader.ONE_Get<OtherAsset>("pepega/two.txt", null, true);
+        var assetNotYetCreated = loader.Get<OtherAsset>("pepega/two.txt", null, true);
         Assert.False(assetNotYetCreated.Loaded);
 
         loader.MountCustomSourceAsset<MockAssetSource, string>("not_created_yet.png", "test.ext");

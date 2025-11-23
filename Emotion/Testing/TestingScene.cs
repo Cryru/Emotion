@@ -86,7 +86,7 @@ public abstract class TestingScene : SceneWithMap
 
         // Load reference screenshot.
         var referenceRenderName = $"ReferenceRenders/{testClass}/{fileName}.png";
-        var referenceImage = Engine.AssetLoader.Get<OtherAsset>(referenceRenderName, false);
+        var referenceImage = Engine.AssetLoader.LEGACY_Get<OtherAsset>(referenceRenderName, false);
         if (referenceImage == null)
         {
             Engine.Log.Error($"    - Missing reference image {referenceRenderName}!", MessageSource.Test);

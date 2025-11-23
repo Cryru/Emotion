@@ -267,7 +267,7 @@ public partial class AssetLoader
             else if (e.ChangeType == WatcherChangeTypes.Changed)
             {
                 // Engine.Log.Trace($"Detected change in asset - {enginePath}!", MessageSource.Debug);
-                _loader.ONE_ReloadAsset(virtualPath);
+                _loader.ReloadAsset(virtualPath);
             }
         }
     }

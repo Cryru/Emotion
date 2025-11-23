@@ -35,7 +35,7 @@ public sealed class EmotionSDFDrawableFontAtlas : DrawableFontAtlas
 
     public EmotionSDFDrawableFontAtlas(Font font, int fontSize, bool pixelFont = false) : base(font, fontSize, pixelFont)
     {
-        _sdfShader ??= Engine.AssetLoader.Get<ShaderAsset>("FontShaders/SDF.xml");
+        _sdfShader ??= Engine.AssetLoader.LEGACY_Get<ShaderAsset>("FontShaders/SDF.xml");
 
         if (!_renderedFonts.TryGetValue(font, out EmotionSDFReference? atlas))
         {
@@ -175,8 +175,8 @@ public sealed class EmotionSDFDrawableFontAtlas : DrawableFontAtlas
     public static void GenerateSdfBackend(Renderer renderer, Font font, List<DrawableGlyph> glyphs, float sdfDist, float scale)
     {
         // Initialize objects.
-        _lineShader ??= Engine.AssetLoader.Get<ShaderAsset>("FontShaders/GlyphRenderLine.xml");
-        _fillShader ??= Engine.AssetLoader.Get<ShaderAsset>("FontShaders/GlyphRenderFill.xml");
+        _lineShader ??= Engine.AssetLoader.LEGACY_Get<ShaderAsset>("FontShaders/GlyphRenderLine.xml");
+        _fillShader ??= Engine.AssetLoader.LEGACY_Get<ShaderAsset>("FontShaders/GlyphRenderFill.xml");
 
         if (_lineShader == null || _fillShader == null)
         {

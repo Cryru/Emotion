@@ -199,7 +199,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
     [Test]
     public IEnumerator RenderText()
     {
-        var asset = Engine.AssetLoader.Get<FontAsset>("Fonts/1980XX.ttf");
+        var asset = Engine.AssetLoader.LEGACY_Get<FontAsset>("Fonts/1980XX.ttf");
 
         ToRender = (composer) =>
         {
@@ -217,8 +217,8 @@ public class BasicRenderTests : ProxyRenderTestingScene
     [Test]
     public IEnumerator RenderDepthTest()
     {
-        var asset = Engine.AssetLoader.Get<TextureAsset>("Images/logoAlpha.png");
-        var fontAsset = Engine.AssetLoader.Get<FontAsset>("Fonts/1980XX.ttf");
+        var asset = Engine.AssetLoader.LEGACY_Get<TextureAsset>("Images/logoAlpha.png");
+        var fontAsset = Engine.AssetLoader.LEGACY_Get<FontAsset>("Fonts/1980XX.ttf");
         const int maxY = 5 * 49;
 
         ToRender = (composer) =>
@@ -275,7 +275,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
         ToRender = (composer) =>
          {
              FrameBuffer testBuffer = new FrameBuffer(Engine.Renderer.DrawBuffer.Size).WithColor().WithDepth(true);
-             ShaderAsset shader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/DepthTest.xml");
+             ShaderAsset shader = Engine.AssetLoader.LEGACY_Get<ShaderAsset>("Shaders/DepthTest.xml");
 
              composer.Camera.Position += composer.Camera.WorldToScreen(Vector3.Zero).ToVec3();
 
@@ -311,7 +311,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
     [Test]
     public IEnumerator TestUVMapping()
     {
-        TextureAsset asset = Engine.AssetLoader.ONE_Get<TextureAsset>("Images/logoAsymmetric.png");
+        TextureAsset asset = Engine.AssetLoader.Get<TextureAsset>("Images/logoAsymmetric.png");
         yield return asset;
 
         ToRender = (composer) =>

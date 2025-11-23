@@ -22,7 +22,7 @@ public static class LocalizationEngine
     {
         if (Engine.Configuration.DebugMode && Engine.AssetLoader.Exists(_masterFilename))
         {
-            var masterFile = Engine.AssetLoader.Get<TextAsset>(_masterFilename);
+            var masterFile = Engine.AssetLoader.LEGACY_Get<TextAsset>(_masterFilename);
             string masterFileContent = masterFile?.Content ?? string.Empty;
             _masterFile = LocalizationCSVToDictionary(masterFileContent);
         }
@@ -36,7 +36,7 @@ public static class LocalizationEngine
             return false;
         }
 
-        var fileAsset = Engine.AssetLoader.Get<TextAsset>(option.LocalizationCSVFile);
+        var fileAsset = Engine.AssetLoader.LEGACY_Get<TextAsset>(option.LocalizationCSVFile);
         if (fileAsset?.Content == null)
         {
             _currentLanguageDict = null;

@@ -88,10 +88,10 @@ public class EmotionSDF3DrawableFontAtlas : DrawableFontAtlas
             _glyphRenderState = renderState;
         }
 
-        _noDiscardShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/VertColorNoDiscard.xml");
-        _windingShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/Winding.xml");
-        _sdfGeneratingShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/GenerateSDF.xml");
-        _sdfShader = Engine.AssetLoader.Get<ShaderAsset>("FontShaders/SDF.xml");
+        _noDiscardShader = Engine.AssetLoader.LEGACY_Get<ShaderAsset>("FontShaders/VertColorNoDiscard.xml");
+        _windingShader = Engine.AssetLoader.LEGACY_Get<ShaderAsset>("FontShaders/Winding.xml");
+        _sdfGeneratingShader = Engine.AssetLoader.LEGACY_Get<ShaderAsset>("FontShaders/GenerateSDF.xml");
+        _sdfShader = Engine.AssetLoader.LEGACY_Get<ShaderAsset>("FontShaders/SDF.xml");
         if (_noDiscardShader == null || _windingShader == null || _sdfGeneratingShader == null || _sdfShader == null)
         {
             Engine.Log.Warning("Atlas rendering shader missing.", MessageSource.Renderer);

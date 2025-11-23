@@ -73,7 +73,7 @@ public class TmxMap
                     fileSource = AssetLoader.GetNonRelativePath(directory, fileSource);
                 }
 
-                var textAsset = Engine.AssetLoader.Get<TextAsset>(fileSource);
+                var textAsset = Engine.AssetLoader.LEGACY_Get<TextAsset>(fileSource);
                 if (textAsset?.Content == null)
                 {
                     Engine.Log.Warning("Couldn't load external tileset.", MessageSource.TMX);

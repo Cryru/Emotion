@@ -131,7 +131,7 @@ public class FontAsset : Asset,
     /// <returns></returns>
     public static FontAsset GetDefaultBuiltIn()
     {
-        return Engine.AssetLoader.ONE_Get<FontAsset>(DefaultBuiltInFontName);
+        return Engine.AssetLoader.Get<FontAsset>(DefaultBuiltInFontName);
     }
 
     public FontAsset? GetObject()

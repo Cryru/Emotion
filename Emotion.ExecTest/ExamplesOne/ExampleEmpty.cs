@@ -40,7 +40,7 @@ public class ExampleEmpty : SceneWithMap
         GameMapAsset ass = GameMapAsset.CreateFromMap(map, "TestMap");
         ass.Save("TestMap");
 
-        GameMapAsset gameMapAsset = Engine.AssetLoader.ONE_Get<GameMapAsset>("TestMap.gamemap");
+        GameMapAsset gameMapAsset = Engine.AssetLoader.Get<GameMapAsset>("TestMap.gamemap");
         yield return SetCurrentMap(gameMapAsset);
     }
 

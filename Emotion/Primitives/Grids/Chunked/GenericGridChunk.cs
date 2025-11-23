@@ -52,7 +52,7 @@ public class GenericGridChunk<T> : IGridChunk<T> where T : unmanaged, IEquatable
 
     public IEnumerator _LoadRoutine(string fileName, Asset asset)
     {
-        OtherAsset binData = Engine.AssetLoader.ONE_Get<OtherAsset>(fileName, asset, false, true, true);
+        OtherAsset binData = Engine.AssetLoader.Get<OtherAsset>(fileName, asset, false, true, true);
         yield return binData;
 
         // todo: copying this is a bit cringe...

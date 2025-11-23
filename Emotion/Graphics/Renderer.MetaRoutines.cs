@@ -235,7 +235,7 @@ namespace Emotion.Graphics
 
         public void RenderRoundedRectSdf(Vector3 pos, Vector2 size, Color c, float radius = 7f)
         {
-            _roundedRectangleSdfShader ??= Engine.AssetLoader.Get<ShaderAsset>("Shaders/RoundedRectangle.xml");
+            _roundedRectangleSdfShader ??= Engine.AssetLoader.LEGACY_Get<ShaderAsset>("Shaders/RoundedRectangle.xml");
             ShaderAsset roundedRectShader = _roundedRectangleSdfShader;
 
             ShaderProgram prevShader = CurrentShader;

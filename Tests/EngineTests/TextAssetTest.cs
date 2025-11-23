@@ -13,7 +13,7 @@ public class TextAssetTest
     [Test]
     public IEnumerator ReadTextFile_UTF8()
     {
-        TextAsset? asset = Engine.AssetLoader.ONE_Get<TextAsset>("TextTest/Normal.txt");
+        TextAsset? asset = Engine.AssetLoader.Get<TextAsset>("TextTest/Normal.txt");
         yield return asset;
 
         Assert.NotNull(asset);
@@ -29,7 +29,7 @@ public class TextAssetTest
     [Test]
     public IEnumerator ReadTextFile_ANSI()
     {
-        TextAsset? asset = Engine.AssetLoader.ONE_Get<TextAsset>("TextTest/ANSI.txt");
+        TextAsset? asset = Engine.AssetLoader.Get<TextAsset>("TextTest/ANSI.txt");
         yield return asset;
 
         Assert.NotNull(asset);
@@ -45,7 +45,7 @@ public class TextAssetTest
     [Test]
     public IEnumerator ReadTextFile_UnixLneEnding()
     {
-        TextAsset? asset = Engine.AssetLoader.ONE_Get<TextAsset>("TextTest/UTF8_UnixLineEnding.txt");
+        TextAsset? asset = Engine.AssetLoader.Get<TextAsset>("TextTest/UTF8_UnixLineEnding.txt");
         yield return asset;
 
         Assert.NotNull(asset);
@@ -61,7 +61,7 @@ public class TextAssetTest
     [Test]
     public IEnumerator ReadTextFile_UTF8BOM()
     {
-        TextAsset? asset = Engine.AssetLoader.ONE_Get<TextAsset>("TextTest/UTF8BOM.txt");
+        TextAsset? asset = Engine.AssetLoader.Get<TextAsset>("TextTest/UTF8BOM.txt");
         yield return asset;
 
         Assert.NotNull(asset);
@@ -77,7 +77,7 @@ public class TextAssetTest
     [Test]
     public IEnumerator ReadTextFile_UTF16BE()
     {
-        TextAsset? asset = Engine.AssetLoader.ONE_Get<TextAsset>("TextTest/UTF16BE.txt");
+        TextAsset? asset = Engine.AssetLoader.Get<TextAsset>("TextTest/UTF16BE.txt");
         yield return asset;
 
         Assert.NotNull(asset);
@@ -93,7 +93,7 @@ public class TextAssetTest
     [Test]
     public IEnumerator ReadTextFile_UTF16LE()
     {
-        TextAsset? asset = Engine.AssetLoader.ONE_Get<TextAsset>("TextTest/UTF16LE.txt");
+        TextAsset? asset = Engine.AssetLoader.Get<TextAsset>("TextTest/UTF16LE.txt");
         yield return asset;
 
         Assert.NotNull(asset);
