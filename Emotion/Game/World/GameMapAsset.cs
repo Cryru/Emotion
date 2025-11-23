@@ -1,11 +1,13 @@
 ﻿#nullable enable
 
+using Emotion;
+using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Standard.DataStructures.OptimizedStringReadWrite;
 using Emotion.Standard.Serialization.XML;
 using System.Runtime.InteropServices;
 
-namespace Emotion.Core.Systems.IO;
+namespace Emotion.Game.World;
 
 public class GameMapAsset : Asset, IAssetContainingObject<GameMap>
 {
@@ -79,7 +81,7 @@ public class GameMapAsset : Asset, IAssetContainingObject<GameMap>
 
     private string GetMapFolder()
     {
-        return $"{Name.Replace(FILE_EXTENSION_WITH_DOT, string.Empty)}{GameMapAsset.DATA_FOLDER_NAME}";
+        return $"{Name.Replace(FILE_EXTENSION_WITH_DOT, string.Empty)}{DATA_FOLDER_NAME}";
     }
 
     public static GameMapAsset CreateFromMap(GameMap map, string path)

@@ -8,6 +8,7 @@ public partial class SerializableAsset
     public string? Name { get; protected set; }
 }
 
+[Obsolete("Use AssetObjectReference")]
 public class SerializableAsset<T> : SerializableAsset where T : Asset, new()
 {
     public T Get(object? referenceObject = null)

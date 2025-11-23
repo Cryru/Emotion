@@ -1,7 +1,6 @@
 ﻿#nullable enable
 
 using Emotion.Core;
-using Emotion.Core.Systems.IO;
 using Emotion.Core.Systems.Scenography;
 using Emotion.ExecTest.Experiment;
 using Emotion.Game.Systems.UI;
