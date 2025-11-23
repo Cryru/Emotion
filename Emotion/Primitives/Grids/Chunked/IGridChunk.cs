@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using Emotion.Core.Systems.IO;
+
 namespace Emotion.Primitives.Grids.Chunked;
 
 public interface IGridChunk<T> where T : struct
@@ -14,5 +16,5 @@ public interface IGridChunk<T> where T : struct
 
     public bool _Save(string fileName);
 
-    public IEnumerator _LoadRoutine(string fileName);
+    public IEnumerator _LoadRoutine(string fileName, Asset asset);
 }

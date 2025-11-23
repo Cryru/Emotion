@@ -251,43 +251,4 @@ public partial class GameMap : IDisposable
     }
 
     #endregion
-
-    #region Save/Load
-
-    //public static void _Save(GameMap map)
-    //{
-    //    string mapName = map.MapName;
-    //    string mapFolder = $"{mapName}{GameMapAsset.DATA_FOLDER_NAME}";
-
-    //    string? data = XMLSerialization.To(map);
-    //    AssertNotNull(data);
-    //    if (data == null) return;
-
-    //    Engine.AssetLoader.SaveDevMode(data, $"{mapName}.{GameMapAsset.FILE_EXTENSION}", false);
-
-    //    IMapGrid[] grids = map.Grids;
-    //    for (int i = 0; i < grids.Length; i++)
-    //    {
-    //        IMapGrid grid = grids[i];
-    //        grid._Save($"{mapFolder}/{grid.UniqueId}");
-    //    }
-    //}
-
-    //public static IEnumerator _LoadRoutine(GameMap map)
-    //{
-    //    string mapName = map.MapName;
-    //    string mapFolder = $"{mapName}{GameMapAsset.DATA_FOLDER_NAME}";
-
-    //    IMapGrid[] grids = map.Grids;
-    //    Coroutine[] routines = new Coroutine[grids.Length];
-    //    for (int i = 0; i < grids.Length; i++)
-    //    {
-    //        IMapGrid grid = grids[i];
-    //        routines[i] = Engine.CoroutineManager.StartCoroutine(grid._LoadRoutine($"{mapFolder}/{grid.UniqueId}"));
-    //    }
-
-    //    yield return Coroutine.WhenAll(routines);
-    //}
-
-    #endregion
 }

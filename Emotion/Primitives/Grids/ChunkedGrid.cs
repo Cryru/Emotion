@@ -1,16 +1,18 @@
 ﻿#nullable enable
 
+using Emotion.Core.Systems.IO;
+using Emotion.Core.Utility.Coroutines;
 using Emotion.Primitives.Grids.Chunked;
 
 namespace Emotion.Primitives.Grids;
 
 public class ChunkedGrid<T, ChunkT> : IGrid<T>
-    where ChunkT : IGridChunk<T>, new()
     where T : unmanaged, IEquatable<T>
+    where ChunkT : IGridChunk<T>, new()
 {
     public Vector2 ChunkSize { get; private set; }
 
-    protected Dictionary<Vector2, ChunkT> _chunks { get; set; } = new();
+    protected Dictionary<Vector2, ChunkT> _chunks { get; private set; } = new();
 
     public ChunkedGrid(float chunkSize)
     {
@@ -262,15 +264,35 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
         return true;
     }
 
-    public IEnumerator _LoadRoutine(string folder)
+    public IEnumerator _LoadRoutine(string folder, Asset ass)
     {
-        yield break;
-        //string[] assets = Engine.AssetLoader.GetAssetsInFolder(folder);
+        List<Coroutine> list = new List<Coroutine>();
+        foreach (string file in Engine.AssetLoader.ForEachAssetInFolder(folder))
+        {
+            ReadOnlySpan<char> filePathAsSpan = file.AsSpan();
+            ReadOnlySpan<char> fileName = AssetLoader.GetFileName(filePathAsSpan);
 
-        //foreach ((Vector2 coord, ChunkT chunk) in _chunks)
-        //{
-        //    yield return chunk._LoadRoutine($"{folder}/{coord.X}_{coord.Y}");
-        //}
+            Vector2 coord = Vector2.Zero;
+
+            int numIdx = 0;
+            MemoryExtensions.SpanSplitEnumerator<char> nums = fileName.Split('_');
+            foreach (Range numRange in nums)
+            {
+                ReadOnlySpan<char> numAsString = fileName[numRange];
+                if (int.TryParse(numAsString, out int result))
+                    coord[numIdx] = result;
+                else
+                    continue;
+            }
+
+            var newChunk = new ChunkT();
+            if (!_chunks.TryAdd(coord, newChunk))
+                continue;
+
+            list.Add(Engine.CoroutineManager.StartCoroutine(newChunk._LoadRoutine(file, ass)));
+        }
+
+        yield return Coroutine.WhenAll(list);
     }
 
     #endregion

@@ -20,10 +20,10 @@ public interface IAssetContainingObject<TObject>
     public TObject? GetObject();
 }
 
-public partial class AssetOrObjectReferenceSerialization
+public class AssetOrObjectReferenceSerialization
 {
-    [SerializeNonPublicGetSet]
-    public virtual string? Name { get; protected set; }
+    //[SerializeNonPublicGetSet]
+    public virtual string? Name { get; set; }
 }
 
 
@@ -37,7 +37,7 @@ public sealed class AssetObjectReference<TAsset, TObject> : AssetOrObjectReferen
         get => _assetName;
 
         // Create via deserialization
-        protected set
+        set
         {
             _assetName = value;
             _type = AssetOrObjectReferenceType.AssetName;

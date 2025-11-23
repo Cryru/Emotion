@@ -1,7 +1,6 @@
 ﻿#nullable enable
 
 using Emotion.Core.Systems.IO;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Emotion.Primitives.Grids.Chunked;
@@ -51,15 +50,14 @@ public class GenericGridChunk<T> : IGridChunk<T> where T : unmanaged, IEquatable
         return Engine.AssetLoader.Save($"{fileName}.bin", spanAsBytes);
     }
 
-    public IEnumerator _LoadRoutine(string fileName)
+    public IEnumerator _LoadRoutine(string fileName, Asset asset)
     {
-        OtherAsset binData = Engine.AssetLoader.ONE_Get<OtherAsset>($"{fileName}.bin", this);
+        OtherAsset binData = Engine.AssetLoader.ONE_Get<OtherAsset>(fileName, asset, false, true, true);
         yield return binData;
 
         // todo: copying this is a bit cringe...
         ReadOnlySpan<byte> span = binData.Content.Span;
         ReadOnlySpan<T> spanAsT = MemoryMarshal.Cast<byte, T>(span);
         _data = spanAsT.ToArray();
-
     }
 }

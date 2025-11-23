@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Core.Systems.IO;
 using Emotion.Graphics.Camera;
 
 namespace Emotion.Game.World;
@@ -21,7 +22,7 @@ public interface IMapGrid
         return true;
     }
 
-    internal IEnumerator _LoadRoutine(string folder)
+    internal IEnumerator _LoadRoutine(string folder, Asset ass)
     {
         yield break;
     }

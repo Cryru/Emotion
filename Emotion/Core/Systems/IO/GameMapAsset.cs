@@ -55,15 +55,13 @@ public class GameMapAsset : Asset, IAssetContainingObject<GameMap>
         map.MapPath = Name;
         _gameMap = map;
 
-        //LoadAssetDependency
-
         string mapFolder = GetMapFolder();
         IMapGrid[] grids = map.Grids;
         Coroutine[] routines = new Coroutine[grids.Length];
         for (int i = 0; i < grids.Length; i++)
         {
             IMapGrid grid = grids[i];
-            routines[i] = Engine.CoroutineManager.StartCoroutine(grid._LoadRoutine($"{mapFolder}/{grid.UniqueId}"));
+            routines[i] = Engine.CoroutineManager.StartCoroutine(grid._LoadRoutine($"{mapFolder}/{grid.UniqueId}", this));
         }
 
         yield return Coroutine.WhenAll(routines);

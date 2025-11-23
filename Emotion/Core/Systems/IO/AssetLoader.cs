@@ -261,6 +261,12 @@ public partial class AssetLoader
         return lastSlash == -1 || lastSlash == name.Length - 1 ? name : name.Substring(lastSlash + 1);
     }
 
+    public static ReadOnlySpan<char> GetFileName(ReadOnlySpan<char> name)
+    {
+        int lastSlash = name.LastIndexOf("/", StringComparison.InvariantCulture);
+        return lastSlash == -1 || lastSlash == name.Length - 1 ? name : name.Slice(lastSlash + 1);
+    }
+
     /// <summary>
     /// Remove the relative part of a relative path and return it relative to a directory.
     /// [Folder/OtherFile.ext] + [../../../File.ext] = Folder/File.ext
@@ -411,9 +417,14 @@ public partial class AssetLoader
         {
             AssetFileEntry? entry = TryGetFileEntry(name);
             if (entry != null)
+            {
                 enginePath = entry.FullName;
+            }
             else // We allow loading of assets that don't exist.
+            {
                 enginePath = AssetLoader.NameToEngineName(name);
+                Engine.Log.Warning($"Requested asset that doesn't exist - {name}", MessageSource.AssetLoader);
+            }
         }
 
         // If the asset already exists, get it.
