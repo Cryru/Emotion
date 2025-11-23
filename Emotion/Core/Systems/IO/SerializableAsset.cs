@@ -2,10 +2,9 @@
 
 namespace Emotion.Core.Systems.IO;
 
-public partial class SerializableAsset
+public class SerializableAsset
 {
-    [SerializeNonPublicGetSet]
-    public string? Name { get; protected set; }
+    public string? Name { get; set; }
 }
 
 [Obsolete("Use AssetObjectReference")]

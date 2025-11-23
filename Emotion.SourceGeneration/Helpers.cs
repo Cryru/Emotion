@@ -144,9 +144,9 @@ namespace Emotion.SourceGeneration
 
         public static bool IsReflectorBuiltInType(ITypeSymbol typ)
         {
-            //bool isFromEmotion = typ.ContainingAssembly.Name == "Emotion";
-            //bool compilingEmotion = ReflectorMain.CurrentCompilation.AssemblyName == "Emotion";
-            //if (isFromEmotion && !compilingEmotion) return true;
+            bool isFromEmotion = typ.ContainingAssembly.Name == "Emotion";
+            bool compilingEmotion = ReflectorMain.CurrentCompilation.AssemblyName == "Emotion";
+            if (isFromEmotion && !compilingEmotion) return true;
 
             string typName = typ.ToDisplayString();
             if (typName[typName.Length - 1] == '?') typName = typName.Substring(0, typName.Length - 1);
@@ -207,7 +207,7 @@ namespace Emotion.SourceGeneration
             if (typ.IsRefLikeType && typ.IsValueType) return false;
 
             ImmutableArray<AttributeData> classAttributes = typ.GetAttributes();
-            if (HasAttribute(classAttributes, "ObsoleteAttribute")) return false;
+            //if (HasAttribute(classAttributes, "ObsoleteAttribute")) return false;
 
             if (IsDerivedFrom(typ, "System.IO.Stream")) return false;
             if (IsDerivedFrom(typ, "System.Attribute")) return false;

@@ -20,6 +20,7 @@ namespace SourceGenerator
                 (compilation, cancellationToken) =>
                 {
                     CurrentCompilation = compilation;
+                    ReflectorMain.CurrentCompilation = compilation;
 
                     // [Step 0] Find all types defined that are not excluded
                     return GetTypesDefinedInCompilationAssembly(compilation);
@@ -243,7 +244,6 @@ namespace SourceGenerator
             sb.AppendLine($"public static class ReflectorData{safeNameFull}");
 
             sb.AppendLine("{");
-            sb.AppendLine("");
             sb.AppendLine("    [ModuleInitializer]");
             sb.AppendLine("    public static void LoadReflector()");
             sb.AppendLine("    {");
@@ -284,7 +284,6 @@ namespace SourceGenerator
             sb.AppendLine("");
             sb.AppendLine($"public static class ReflectorData{safeName}");
             sb.AppendLine("{");
-            sb.AppendLine("");
             sb.AppendLine("    [ModuleInitializer]");
             sb.AppendLine("    public static void LoadReflector()");
             sb.AppendLine("    {");
@@ -310,22 +309,21 @@ namespace SourceGenerator
 
                     string memberName = memberSymbol.Name;
 
-                    sb.AppendLine($"         new ComplexTypeHandlerMember<{fullTypName}, {memberFullTypeName}>(");
-                    sb.AppendLine($"           \"{memberName}\",");
+                    sb.AppendLine($"            new ComplexTypeHandlerMember<{fullTypName}, {memberFullTypeName}>(");
+                    sb.AppendLine($"                \"{memberName}\",");
 
                     if (memberSymbol.IsStatic)
                     {
-                        sb.AppendLine($"           (ref {fullTypName} p, {memberFullTypeName} v) => {fullTypName}.{memberName} = v,");
-                        sb.AppendLine($"           (p) => {fullTypName}.{memberName}");
+                        sb.AppendLine($"                (ref {fullTypName} p, {memberFullTypeName} v) => {fullTypName}.{memberName} = v,");
+                        sb.AppendLine($"                (p) => {fullTypName}.{memberName}");
                     }
                     else
                     {
-                        sb.AppendLine($"           (ref {fullTypName} p, {memberFullTypeName} v) => p.{memberName} = v,");
-                        sb.AppendLine($"           (p) => p.{memberName}");
+                        sb.AppendLine($"                (ref {fullTypName} p, {memberFullTypeName} v) => p.{memberName} = v,");
+                        sb.AppendLine($"                (p) => p.{memberName}");
                     }
 
-                    sb.AppendLine("         )");
-                    sb.AppendLine("           {");
+                    sb.AppendLine("            ) {");
 
                     // Generate attributes
                     ImmutableArray<AttributeData> memberAttributes = memberSymbol.GetAttributes();
@@ -344,10 +342,10 @@ namespace SourceGenerator
                         sb.AppendLine("             },");
                     }
 
-                    sb.AppendLine("           },");
+                    sb.AppendLine("            },");
                 }
 
-                sb.AppendLine("       ];");
+                sb.AppendLine("        ];");
             }
 
             ImmutableArray<INamedTypeSymbol> interfaces = typ.AllInterfaces;
