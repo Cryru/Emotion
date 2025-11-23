@@ -15,6 +15,7 @@ using Emotion.Standard.Reflector.Handlers.Interfaces;
 
 namespace Emotion.Editor.EditorUI;
 
+[DontSerialize]
 public class EditorTopBar : UIBaseWindow
 {
     public EditorTopBar()

@@ -110,39 +110,6 @@ namespace Emotion.SourceGeneration
             }
         }
 
-        public static bool IsPartial(INamedTypeSymbol symbol)
-        {
-            return false;
-
-            // Generic types cant have partial generation as we create handlers for specializations
-            if (symbol.IsGenericType)
-                return false;
-
-            INamedTypeSymbol containingType = symbol.ContainingType;
-            if (containingType != null)
-            {
-                //bool containingIsPartial = IsPartial(containingType);
-                //if (!containingIsPartial) return false;
-                return false;
-            }
-
-            // generally if there is more than one - it would be partial, right?
-            foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
-            {
-                SyntaxNode syntaxNode = syntaxReference.GetSyntax();
-                if (syntaxNode is ClassDeclarationSyntax classDeclaration)
-                {
-                    foreach (SyntaxToken modifier in classDeclaration.Modifiers)
-                    {
-                        if (modifier.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.PartialKeyword))
-                            return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
         public static bool IsDerivedFrom(INamedTypeSymbol symbol, string baseTypeFullName)
         {
             while (symbol != null)
@@ -158,8 +125,6 @@ namespace Emotion.SourceGeneration
         {
             if (typ.IsAbstract) return false;
 
-            bool isPartial = IsPartial(typ);
-
             ImmutableArray<IMethodSymbol> constructors = typ.InstanceConstructors;
             if (constructors.Length == 0) return false; // huh
 
@@ -168,10 +133,6 @@ namespace Emotion.SourceGeneration
                 if (constructor.Parameters.IsEmpty)
                 {
                     if (constructor.DeclaredAccessibility == Accessibility.Public)
-                    {
-                        return true;
-                    }
-                    else if (isPartial)
                     {
                         return true;
                     }
@@ -193,6 +154,8 @@ namespace Emotion.SourceGeneration
             if (typName == "System.ValueType") return true; // yikes
             if (typName == "System.Enum") return true; // yikes
             if (typName == "object") return true; // yikes
+
+            if (typName == "nint") return true;
 
             if (typName == "byte") return true;
             if (typName == "ushort") return true;
@@ -263,6 +226,7 @@ namespace Emotion.SourceGeneration
             "Emotion.Core.Systems.Audio",
             "Emotion.Standard.Reflector",
             //"Emotion.Editor",
+            "Emotion.Editor.EditorUI",
             "Emotion.Testing",
 
             "System",

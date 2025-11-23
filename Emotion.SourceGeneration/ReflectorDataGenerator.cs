@@ -123,15 +123,6 @@ namespace SourceGenerator
             isEnabledByDefault: true
         );
 
-        private static DiagnosticDescriptor _reflectorPrivateMember = new DiagnosticDescriptor(
-            id: "EMOTION002",
-            title: "Reflector Member Validity Warning",
-            messageFormat: "Member is marked as 'SerializeNonPublicGetSetAttribute' but the class it is part of is not marked as 'partial' or is inside another class",
-            category: "Reflector",
-            DiagnosticSeverity.Error,
-            isEnabledByDefault: true
-        );
-
         public static ImmutableArray<ReflectorMemberData> GetReflectorableTypeMembers(SourceProductionContext context, INamedTypeSymbol typ, bool staticMode = false)
         {
             // Skip members of these types.
@@ -169,23 +160,7 @@ namespace SourceGenerator
                 if (HasAttribute(memberAttributes, "ObsoleteAttribute")) continue;
                 if (HasAttribute(memberAttributes, "DontSerializeAttribute")) continue;
 
-                // Skip non-public members, unless annotated.
-                bool allowNonPublic = HasAttribute(memberAttributes, "SerializeNonPublicGetSetAttribute");
-                if (allowNonPublic && !IsPartial(typ))
-                {
-                    allowNonPublic = false;
-                    //context.ReportDiagnostic(Diagnostic.Create(_reflectorPrivateMember, typ.Locations.FirstOrDefault()));
-                }
-
-                if (allowNonPublic)
-                {
-                    IAssemblySymbol containingAssembly = typ.ContainingAssembly;
-                    Compilation compilationAssembly = CurrentCompilation;
-                    bool isFromCompilationAssembly = containingAssembly.Equals(compilationAssembly.Assembly, SymbolEqualityComparer.Default);
-                    if (!isFromCompilationAssembly) allowNonPublic = false;
-                }
-
-                if (!allowNonPublic && member.DeclaredAccessibility != Accessibility.Public) continue;
+                if (member.DeclaredAccessibility != Accessibility.Public) continue;
 
                 // If a property check if it can be get/set at all.
                 ITypeSymbol memberType = null;
@@ -193,11 +168,8 @@ namespace SourceGenerator
                 {
                     if (propSymb.GetMethod == null || propSymb.SetMethod == null) continue;
 
-                    if (!allowNonPublic)
-                    {
-                        if (propSymb.GetMethod.DeclaredAccessibility != Accessibility.Public) continue;
-                        if (propSymb.SetMethod.DeclaredAccessibility != Accessibility.Public) continue;
-                    }
+                    if (propSymb.GetMethod.DeclaredAccessibility != Accessibility.Public) continue;
+                    if (propSymb.SetMethod.DeclaredAccessibility != Accessibility.Public) continue;
 
                     if (propSymb.SetMethod.IsInitOnly) continue;
                     memberType = propSymb.Type;
@@ -303,57 +275,28 @@ namespace SourceGenerator
             string safeShortName = GetSafeName(typ.Name);
             string safeName = GetSafeName(typ);
 
-            bool partialModeGeneration = IsPartial(typ);
             bool canBeInitialized = CanBeInitialized(typ);
 
             StringBuilder sb = new StringBuilder(2000);
             WriteFileHeader(sb);
 
-            if (partialModeGeneration)
-            {
-                INamespaceSymbol nameSpace = typ.ContainingNamespace;
-                sb.AppendLine($"namespace {nameSpace.ToDisplayString()};");
-                sb.AppendLine("");
-
-                //if (typ.ContainingType != null)
-                //    sb.AppendLine($"public partial class {typ.ContainingType.Name}.{typ.Name}");
-                //else
-                sb.AppendLine($"public partial class {typ.Name}");
-            }
-            else
-            {
-                sb.AppendLine($"namespace ReflectorGen;");
-                sb.AppendLine("");
-                sb.AppendLine($"public static class ReflectorData{safeName}");
-            }
-
+            sb.AppendLine($"namespace ReflectorGen;");
+            sb.AppendLine("");
+            sb.AppendLine($"public static class ReflectorData{safeName}");
             sb.AppendLine("{");
             sb.AppendLine("");
             sb.AppendLine("    [ModuleInitializer]");
             sb.AppendLine("    public static void LoadReflector()");
             sb.AppendLine("    {");
-            sb.AppendLine($"       ReflectorEngine.RegisterTypeHandler(new {handlerType}(");
-            if (canBeInitialized)
-            {
-                if (typ.IsTupleType)
-                    sb.AppendLine($"           () => new ValueTuple{fullTypName.Replace("(", "<").Replace(")", ">")}(),");
-                else
-                    sb.AppendLine($"           () => new {fullTypName.Replace("?", "")}(),");
-            }
-            else
-            {
-                sb.AppendLine($"           null,");
-            }
-            sb.AppendLine($"           \"{safeShortName}\",");
 
             // Write members
             if (members.Length == 0)
             {
-                sb.AppendLine($"           null,");
+                sb.AppendLine($"       ComplexTypeHandlerMemberBase[]? members = null;");
             }
             else
             {
-                sb.AppendLine($"           new ComplexTypeHandlerMemberBase[] {{");
+                sb.AppendLine($"       ComplexTypeHandlerMemberBase[]? members = [");
 
                 foreach (ReflectorMemberData memberDesc in members)
                 {
@@ -367,28 +310,28 @@ namespace SourceGenerator
 
                     string memberName = memberSymbol.Name;
 
-                    sb.AppendLine($"               new ComplexTypeHandlerMember<{fullTypName}, {memberFullTypeName}>(");
-                    sb.AppendLine($"                  \"{memberName}\",");
+                    sb.AppendLine($"         new ComplexTypeHandlerMember<{fullTypName}, {memberFullTypeName}>(");
+                    sb.AppendLine($"           \"{memberName}\",");
 
                     if (memberSymbol.IsStatic)
                     {
-                        sb.AppendLine($"                  (ref {fullTypName} p, {memberFullTypeName} v) => {fullTypName}.{memberName} = v,");
-                        sb.AppendLine($"                  (p) => {fullTypName}.{memberName}");
+                        sb.AppendLine($"           (ref {fullTypName} p, {memberFullTypeName} v) => {fullTypName}.{memberName} = v,");
+                        sb.AppendLine($"           (p) => {fullTypName}.{memberName}");
                     }
                     else
                     {
-                        sb.AppendLine($"                  (ref {fullTypName} p, {memberFullTypeName} v) => p.{memberName} = v,");
-                        sb.AppendLine($"                  (p) => p.{memberName}");
+                        sb.AppendLine($"           (ref {fullTypName} p, {memberFullTypeName} v) => p.{memberName} = v,");
+                        sb.AppendLine($"           (p) => p.{memberName}");
                     }
 
-                    sb.AppendLine($"               )");
-                    sb.AppendLine("               {");
+                    sb.AppendLine("         )");
+                    sb.AppendLine("           {");
 
                     // Generate attributes
                     ImmutableArray<AttributeData> memberAttributes = memberSymbol.GetAttributes();
                     if (memberAttributes.Length > 0)
                     {
-                        sb.AppendLine("                   Attributes = new Attribute[] {");
+                        sb.AppendLine("             Attributes = new Attribute[] {");
                         foreach (AttributeData attribute in memberAttributes)
                         {
                             INamedTypeSymbol clazz = attribute.AttributeClass;
@@ -396,17 +339,39 @@ namespace SourceGenerator
                                 clazz.Name != "DontShowInEditorAttribute" &&
                                 clazz.Name != "DontSerializeButShowInEditorAttribute") continue; // todo
 
-                            sb.AppendLine($"                       {GenerateAttributeDeclaration(attribute)},");
+                            sb.AppendLine($"               {GenerateAttributeDeclaration(attribute)},");
                         }
-                        sb.AppendLine("                   },");
+                        sb.AppendLine("             },");
                     }
 
-                    sb.AppendLine("               },");
+                    sb.AppendLine("           },");
                 }
-                sb.AppendLine("           },");
+
+                sb.AppendLine("       ];");
             }
 
             ImmutableArray<INamedTypeSymbol> interfaces = typ.AllInterfaces;
+            if (interfaces.Any(x => x.Name == "ICustomReflectorMeta_ExtraMembers"))
+            {
+                sb.AppendLine($"       ComplexTypeHandlerMemberBase[] extraMembers = {fullTypName}.GetExtraReflectorMembers();");
+                sb.AppendLine($"       members = global::Emotion.Standard.Extensions.ArrayExtensions.JoinArrays(members, extraMembers);");
+            }
+
+            sb.AppendLine($"       ReflectorEngine.RegisterTypeHandler(new {handlerType}(");
+            if (canBeInitialized)
+            {
+                if (typ.IsTupleType)
+                    sb.AppendLine($"           () => new ValueTuple{fullTypName.Replace("(", "<").Replace(")", ">")}(),");
+                else
+                    sb.AppendLine($"           () => new {fullTypName.Replace("?", "")}(),");
+            }
+            else
+            {
+                sb.AppendLine($"           null,");
+            }
+            sb.AppendLine($"           \"{safeShortName}\", members,");
+
+
             if (interfaces.Length == 0)
             {
                 sb.AppendLine("           null");

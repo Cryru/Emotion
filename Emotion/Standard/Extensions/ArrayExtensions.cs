@@ -70,8 +70,12 @@ public static class ArrayExtensions
     /// <summary>
     /// Join two arrays to create a new array contains the items of both.
     /// </summary>
-    public static T[] JoinArrays<T>(this T[] arrayOne, T[] arrayTwo)
+    public static T[] JoinArrays<T>(this T[]? arrayOne, T[]? arrayTwo)
     {
+        if (arrayOne == null && arrayTwo == null) return Array.Empty<T>();
+        if (arrayOne == null) return arrayTwo!;
+        if (arrayTwo == null) return arrayOne!;
+
         var newArray = new T[arrayOne.Length + arrayTwo.Length];
         Array.Copy(arrayOne, 0, newArray, 0, arrayOne.Length);
         Array.Copy(arrayTwo, 0, newArray, arrayOne.Length, arrayTwo.Length);

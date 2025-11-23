@@ -5,7 +5,6 @@ using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.Standard.Serialization.XML;
 using System.Text.Json;
-using System.Xml.Linq;
 
 namespace Emotion.Standard.Reflector.Handlers;
 
@@ -116,7 +115,7 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
     public unsafe override T? ParseFromXML(ref ValueStringReader reader)
     {
         char* readMemory = stackalloc char[128];
-        Span<char> readMemorySpan = new Span<char>(readMemory, 128 * sizeof(char));
+        var readMemorySpan = new Span<char>(readMemory, 128 * sizeof(char));
 
         List<TItem?> tempList = _pool.Get();
 
@@ -187,6 +186,7 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
             return;
         }
 
+        writer.PushIndent();
         foreach (TItem? item in value)
         {
             if (config.Pretty)
@@ -208,10 +208,9 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
                 continue;
             }
 
-            writer.PushIndent();
             itemHandler.WriteAsXML<TItem>(item, ref writer, true, config);
-            writer.PopIndent();
         }
+        writer.PopIndent();
 
         if (config.Pretty)
         {

@@ -1,5 +1,8 @@
 ﻿#nullable enable
 
+using Emotion.Standard.Reflector.Handlers;
+using Emotion.Standard.Reflector.Handlers.Base;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
 using System.Runtime.CompilerServices;
 
 namespace Emotion.Core.Systems.IO;
@@ -13,36 +16,10 @@ public enum AssetOrObjectReferenceType
     Object
 }
 
-public interface IAssetContainingObject<TObject>
-{
-    public bool Finished { get; }
-
-    public TObject? GetObject();
-}
-
-public class AssetOrObjectReferenceSerialization
-{
-    //[SerializeNonPublicGetSet]
-    public virtual string? Name { get; set; }
-}
-
-
-public sealed class AssetObjectReference<TAsset, TObject> : AssetOrObjectReferenceSerialization
+public sealed class AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta_ExtraMembers
     where TAsset : Asset, IAssetContainingObject<TObject>, new()
 {
     public static AssetObjectReference<TAsset, TObject> Invalid { get; } = new();
-
-    public override string? Name
-    {
-        get => _assetName;
-
-        // Create via deserialization
-        set
-        {
-            _assetName = value;
-            _type = AssetOrObjectReferenceType.AssetName;
-        }
-    }
 
     private AssetOrObjectReferenceType _type;
     private TAsset? _asset;
@@ -213,4 +190,23 @@ public sealed class AssetObjectReference<TAsset, TObject> : AssetOrObjectReferen
         if (_assetObject != null) return _assetObject.ToString();
         return "Invalid Asset/Object Reference";
     }
+
+    #region Reflector
+
+    public static ComplexTypeHandlerMemberBase[] GetExtraReflectorMembers()
+    {
+        return [
+            new ComplexTypeHandlerMember<AssetObjectReference<TAsset, TObject>, string>(
+                "AssetName",
+                static (ref AssetObjectReference<TAsset, TObject> p, string? v) =>
+                {
+                    p._assetName = v;
+                    p._type = AssetOrObjectReferenceType.AssetName;
+                },
+                static (p) => p._assetName
+            )
+        ];
+    }
+
+    #endregion
 }

@@ -1,6 +1,5 @@
 ﻿#nullable enable
 
-using Emotion.Game.Systems.UI2;
 using Emotion.Standard.Reflector.Handlers;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
@@ -16,6 +15,8 @@ public static class ReflectorEngine
     private static Dictionary<Type, Type[]> _typeRelationsDirect = new();
     private static Dictionary<int, Type> _typeNameToType = new();
     private static bool _postInitCalled = false;
+
+    private static int _duplicateHandlers = 0;
 
     internal static void Init()
     {
@@ -82,10 +83,10 @@ public static class ReflectorEngine
 
         BuildRelations();
         CallHandlersPostInit();
-        Engine.Log.Info($"Loaded {_typeHandlers.Count} type handlers!", "Reflector");
+        Engine.Log.Info($"Loaded {_typeHandlers.Count} type handlers! ({_duplicateHandlers} duplicate)", "Reflector");
     }
 
-    public static event Action<Type> TypeHotReloaded;
+    public static event Action<Type>? TypeHotReloaded;
 
     internal static void OnHotReload(Type[] updatedTypes)
     {
@@ -103,6 +104,10 @@ public static class ReflectorEngine
     public static void RegisterTypeHandler(IGenericReflectorTypeHandler typeHandler)
     {
         Type type = typeHandler.Type;
+
+        if (_typeHandlers.ContainsKey(type))
+            _duplicateHandlers++;
+
         _typeHandlers[type] = typeHandler;
 
         int hash = typeHandler.TypeName.GetStableHashCode();
