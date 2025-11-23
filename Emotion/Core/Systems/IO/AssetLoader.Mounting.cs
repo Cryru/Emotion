@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Core.Systems.IO.Sources;
+using Emotion.Core.Systems.IO.Storage;
 using Emotion.Primitives.DataStructures;
 using Emotion.Standard.DataStructures.OptimizedStringReadWrite;
 using System.IO;
@@ -14,6 +15,8 @@ public partial class AssetLoader
 
     private static readonly char[] SEPARATORS = ['/', '\\'];
     private List<AssetModificationWatcher>? _watchers;
+    private List<IAssetStorage> _storages = new();
+    private IAssetStorage? _rootStorage = null;
 
     public void MountFileSystemFolder(string actualFolderPath, string mountPoint, bool canWriteTo = false)
     {
@@ -53,6 +56,21 @@ public partial class AssetLoader
         {
             _watchers ??= new List<AssetModificationWatcher>();
             _watchers.Add(new AssetModificationWatcher(this, actualFolderPath, mountPoint));
+        }
+
+        if (canWriteTo)
+        {
+            var store = new FileStorage(this, actualFolderPath, mountPoint);
+            if (mountPoint == string.Empty)
+            {
+                _rootStorage = store;
+                Engine.Log.Info($"Mounted root writable location '{actualFolderPath}'", MessageSource.AssetLoader);
+            }
+            else
+            {
+                _storages.Add(store);
+                Engine.Log.Info($"Mounted writable location '{actualFolderPath}' @ '{mountPoint}'", MessageSource.AssetLoader);
+            }
         }
     }
 
@@ -134,6 +152,32 @@ public partial class AssetLoader
         }
     }
 
+    protected IAssetStorage? GetStorageForLocation(ReadOnlySpan<char> virtualPath)
+    {
+        static bool PathStartsWithMount(ReadOnlySpan<char> path, ReadOnlySpan<char> mount)
+        {
+            for (int i = 0; i < mount.Length; i++)
+            {
+                char p = path[i];
+                char m = mount[i];
+                if (p == '\\') p = '/';
+                if (char.ToLowerInvariant(p) != char.ToLowerInvariant(m))
+                    return false;
+            }
+
+            return true;
+        }
+
+        foreach (IAssetStorage storage in _storages)
+        {
+            string storageAt = storage.MountPoint;
+            if (PathStartsWithMount(virtualPath, storageAt))
+                return storage;
+        }
+
+        return _rootStorage;
+    }
+
     private class AssetModificationWatcher
     {
         private FileSystemWatcher _watcher;
@@ -186,6 +230,7 @@ public partial class AssetLoader
         protected void AssetChangeEvent(object sender, FileSystemEventArgs e)
         {
             string filePath = e.FullPath;
+            if (filePath.EndsWith(".backup") || filePath.EndsWith(".writeTemp")) return;
 
             Span<char> virtualPath = stackalloc char[1024];
             {
@@ -206,6 +251,7 @@ public partial class AssetLoader
             else if (e.ChangeType == WatcherChangeTypes.Renamed && e is RenamedEventArgs eRename)
             {
                 string oldPath = eRename.OldFullPath;
+                if (oldPath.EndsWith(".writeTemp")) return;
 
                 Span<char> oldVirtualPath = stackalloc char[1024];
                 {

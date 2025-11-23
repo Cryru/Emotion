@@ -113,7 +113,7 @@ public abstract class SceneWithMap : Scene
     {
         return new GameMap()
         {
-            MapName = "Maps/start.xml"
+            MapPath = "Maps/start.xml"
         };
     }
 

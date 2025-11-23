@@ -253,12 +253,13 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
 
     #region Save/Load
 
-    public virtual void _Save(string folder)
+    public virtual bool _Save(string folder)
     {
         foreach ((Vector2 coord, ChunkT chunk) in _chunks)
         {
-            chunk._Save($"{folder}/{coord.X}_{coord.Y}");
+            if (!chunk._Save($"{folder}/{coord.X}_{coord.Y}")) return false;
         }
+        return true;
     }
 
     public IEnumerator _LoadRoutine(string folder)

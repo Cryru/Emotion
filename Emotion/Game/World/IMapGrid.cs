@@ -16,12 +16,12 @@ public interface IMapGrid
 
     public void Render(GameMap map, Renderer r, CameraCullingContext culling);
 
-    public void _Save(string folder)
+    internal bool _Save(string folder)
     {
-
+        return true;
     }
 
-    public IEnumerator _LoadRoutine(string folder)
+    internal IEnumerator _LoadRoutine(string folder)
     {
         yield break;
     }

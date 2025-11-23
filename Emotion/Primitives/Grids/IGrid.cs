@@ -45,8 +45,8 @@ public interface IGrid<T> : IGrid
         return GetAt(new Vector2(x, y));
     }
 
-    public void _Save(string folder)
+    public bool _Save(string folder)
     {
-
+        return true;
     }
 }

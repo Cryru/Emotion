@@ -193,7 +193,7 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
         if (_typeHandler != null && ObjectBeingEdited != null)
         {
             string xml = XMLFormat.To(ObjectBeingEdited);
-            Engine.AssetLoader.SaveDevMode(xml, _currentFileName);
+            Engine.AssetLoader.Save(_currentFileName, xml);
         }
     }
 

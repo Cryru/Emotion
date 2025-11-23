@@ -3,6 +3,7 @@
 #region Using
 
 using Emotion.Core.Systems.IO.Sources;
+using Emotion.Core.Systems.IO.Storage;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Primitives.DataStructures;
 using System.Collections.Concurrent;
@@ -150,7 +151,7 @@ public partial class AssetLoader
     /// <summary>
     /// Whether an asset with the provided name exists in any source.
     /// </summary>
-    public bool Exists(string name)
+    public bool Exists(ReadOnlySpan<char> name)
     {
         return TryGetFileEntry(name) != null;
     }
@@ -339,72 +340,54 @@ public partial class AssetLoader
 
     #region Storage
 
+    public bool Save(string name, StringBuilder sb)
+    {
+        ReadOnlySpan<char> nameSpan = name.AsSpan();
+        IAssetStorage? storage = GetStorageForLocation(nameSpan);
+        if (storage == null) return false;
 
+        AssetStorageOperation op = storage.StartSave(nameSpan);
+        if (!op.IsValid) return false;
+
+        Stream stream = op.Stream;
+        using (StreamWriter streamWriter = new StreamWriter(stream, Encoding.UTF8, leaveOpen: true))
+        {
+            foreach (ReadOnlyMemory<char> chunk in sb.GetChunks())
+            {
+                streamWriter.Write(chunk);
+            }
+        }
+
+        return storage.EndSave(op);
+    }
+
+    public bool Save(string name, Span<byte> data)
+    {
+        ReadOnlySpan<char> nameSpan = name.AsSpan();
+        IAssetStorage? storage = GetStorageForLocation(name);
+        if (storage == null) return false;
+
+        AssetStorageOperation op = storage.StartSave(nameSpan);
+        if (!op.IsValid) return false;
+
+        Stream stream = op.Stream;
+        stream.Write(data);
+
+        return storage.EndSave(op);
+    }
+
+    public bool Save(string name, byte[] data)
+    {
+        return Save(name, data.AsSpan());
+    }
+
+    public bool Save(string name, string str)
+    {
+        byte[] bytes = System.Text.Encoding.UTF8.GetBytes(str);
+        return Save(name, bytes);
+    }
 
     #endregion
-
-
-
-
-
-    public bool SaveDevMode(string content, string name, bool backup = true)
-    {
-        if (!Engine.Configuration.DebugMode) return false;
-        return Save(content, "Assets/" + name, backup);
-    }
-
-    public bool SaveDevMode(byte[] content, string name, bool backup = true)
-    {
-        if (!Engine.Configuration.DebugMode) return false;
-        return Save(content, "Assets/" + name, backup);
-    }
-
-    public bool Save(string content, string name, bool backup = true)
-    {
-        byte[] bytes = System.Text.Encoding.Default.GetBytes(content);
-        return Save(bytes, name, backup);
-    }
-
-    /// <summary>
-    /// Store an asset.
-    /// </summary>
-    /// <param name="asset">The asset data to store.</param>
-    /// <param name="name">The engine name to store it under.</param>
-    /// <param name="backup">Whether to backup the old file if any.</param>
-    /// <returns>Whether the file was saved.</returns>
-    public bool Save(byte[] asset, string name, bool backup = true)
-    {
-        return false;
-        //if (string.IsNullOrEmpty(name)) return false;
-
-        //// Convert to engine name.
-        //name = NameToEngineName(name);
-
-        //// Find a store which matches the name folder.
-        //IAssetStore? store = GetStore(name);
-        //if (store == null)
-        //{
-        //    Engine.Log.Warning($"Couldn't find asset store for {name}.", MessageSource.AssetLoader);
-        //    return false;
-        //}
-
-        //// Store the asset.
-        //try
-        //{
-        //    store.SaveAsset(asset, name, backup);
-        //    Engine.Log.Info($"Saved asset {name} via {store}", MessageSource.AssetLoader);
-
-        //    // If it didn't exist until now - add it to the internal manifest.
-        //    if (!Exists(name) && store is AssetSource source)
-        //        MountFile(name, source);
-        //    return true;
-        //}
-        //catch (Exception ex)
-        //{
-        //    Engine.Log.Error(new Exception($"Couldn't store asset - {name}", ex));
-        //    return false;
-        //}
-    }
 
     #region ONE
 
@@ -413,7 +396,14 @@ public partial class AssetLoader
     private readonly ConcurrentQueue<AssetFileEntry?> _assetsToReload = new();
     private readonly List<IRoutineWaiter> _loadingAssetRoutines = new(16);
 
-    public T ONE_Get<T>(string? name, object? addRefenceToObject = null, bool loadInline = false, bool loadedAsDependency = false, bool noCache = false) where T : Asset, new()
+    public T GetInstant<T>(string? name, object? addReferenceToObject = null, bool noCache = false)
+        where T : Asset, new()
+    {
+        return ONE_Get<T>(name, addReferenceToObject, true, false, noCache);
+    }
+
+    public T ONE_Get<T>(string? name, object? addRefenceToObject = null, bool loadInline = false, bool loadedAsDependency = false, bool noCache = false)
+        where T : Asset, new()
     {
         string enginePath = string.Empty;
 

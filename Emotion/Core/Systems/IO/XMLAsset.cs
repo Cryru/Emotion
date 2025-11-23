@@ -101,7 +101,7 @@ public class XMLAsset<T> : XMLAssetMarkerClass, IAssetContainingObject<T>
             return false;
         }
 
-        bool saved = Engine.AssetLoader.Save(data, name, backup);
+        bool saved = Engine.AssetLoader.Save(name, data);
         if (!saved) Engine.Log.Warning($"Couldn't save file {name}.", MessageSource.Other);
         return saved;
     }

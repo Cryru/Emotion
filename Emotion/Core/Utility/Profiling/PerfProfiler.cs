@@ -87,7 +87,7 @@ public static class PerfProfiler
                       "\"displayTimeUnit\":\"ms\"" +
                       "}";
 
-        Engine.AssetLoader.Save(Encoding.UTF8.GetBytes(json), name, false);
+        Engine.AssetLoader.Save(name, json);
         Engine.Log.Info($"Saved profiler data to {name}.", "Profiler");
     }
 

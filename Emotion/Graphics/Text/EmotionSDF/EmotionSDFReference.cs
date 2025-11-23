@@ -42,7 +42,7 @@ public class EmotionSDFReference
         // Sample framebuffer and save it.
         byte[] data = atlasBuffer.Sample(new Rectangle(0, 0, atlasBuffer.Size), PixelFormat.Red);
         byte[] pngData = PngFormat.Encode(data, atlasBuffer.Size, PixelFormat.Red);
-        Engine.AssetLoader.Save(pngData, cachedRenderName, false);
+        Engine.AssetLoader.Save(cachedRenderName, pngData);
     }
 
     public static EmotionSDFReference? TryLoadReferenceFromFile(DrawableFontAtlas atlas, int size, bool pixelFont, string tag, bool withDepthStencil)

@@ -63,7 +63,7 @@ public static class LocalizationEngine
             {
                 Engine.Log.Warning($"Found string missing from master localization file - {myStrSafe}!", "Localization");
                 _masterFile.Add(myStrSafe, myStrSafe);
-                Engine.AssetLoader.Save(Encoding.Default.GetBytes(DictionaryToLocalizationCSV(_masterFile)), _masterFilename);
+                Engine.AssetLoader.Save(_masterFilename, DictionaryToLocalizationCSV(_masterFile));
             }
         }
 
@@ -114,7 +114,7 @@ public static class LocalizationEngine
         return dict;
     }
 
-    private static string DictionaryToLocalizationCSV(Dictionary<string, string> dict)
+    private static StringBuilder DictionaryToLocalizationCSV(Dictionary<string, string> dict)
     {
         StringBuilder sb = new StringBuilder();
         foreach (var item in dict)
@@ -124,6 +124,6 @@ public static class LocalizationEngine
             sb.Append(item.Value);
             sb.Append("\n");
         }
-        return sb.ToString();
+        return sb;
     }
 }

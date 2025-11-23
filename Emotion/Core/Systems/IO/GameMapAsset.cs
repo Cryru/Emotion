@@ -2,7 +2,6 @@
 
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Standard.DataStructures.OptimizedStringReadWrite;
-using Emotion.Standard.Reflector;
 using Emotion.Standard.Serialization.XML;
 using System.Runtime.InteropServices;
 
@@ -11,6 +10,7 @@ namespace Emotion.Core.Systems.IO;
 public class GameMapAsset : Asset, IAssetContainingObject<GameMap>
 {
     public const string FILE_EXTENSION = "gamemap";
+    public const string FILE_EXTENSION_WITH_DOT = $".{FILE_EXTENSION}";
     public const string DATA_FOLDER_NAME = "_Data";
 
     private GameMap? _gameMap;
@@ -46,19 +46,18 @@ public class GameMapAsset : Asset, IAssetContainingObject<GameMap>
             reader = new ValueStringReader(dataSpan);
         }
 
-        _gameMap = XMLSerialization.From<GameMap>(ref reader);
-        if (_gameMap == null)
+        var map = XMLSerialization.From<GameMap>(ref reader);
+        if (map == null)
         {
             Engine.Log.Warning($"Failed to deserialize map data for map {Name}", "GameMap");
             yield break;
         }
-
-        GameMap map = _gameMap;
-        string mapName = map.MapName;
-        string mapFolder = $"{mapName}{GameMapAsset.DATA_FOLDER_NAME}";
+        map.MapPath = Name;
+        _gameMap = map;
 
         //LoadAssetDependency
 
+        string mapFolder = GetMapFolder();
         IMapGrid[] grids = map.Grids;
         Coroutine[] routines = new Coroutine[grids.Length];
         for (int i = 0; i < grids.Length; i++)
@@ -78,5 +77,48 @@ public class GameMapAsset : Asset, IAssetContainingObject<GameMap>
     protected override void DisposeInternal()
     {
 
+    }
+
+    private string GetMapFolder()
+    {
+        return $"{Name.Replace(FILE_EXTENSION_WITH_DOT, string.Empty)}{GameMapAsset.DATA_FOLDER_NAME}";
+    }
+
+    public static GameMapAsset CreateFromMap(GameMap map, string path)
+    {
+        if (!path.EndsWith(FILE_EXTENSION_WITH_DOT))
+            path = $"{path}{FILE_EXTENSION_WITH_DOT}";
+
+        map.MapPath = path;
+        return new GameMapAsset()
+        {
+            Name = path,
+            _gameMap = map,
+            Processed = true
+        };
+    }
+
+    public bool Save(string? path = null)
+    {
+        GameMap? map = _gameMap;
+        if (map == null) return false;
+
+        string? data = XMLSerialization.To(map);
+        AssertNotNull(data);
+        if (data == null) return false;
+
+        bool mapFileSaved = Engine.AssetLoader.Save(Name, data);
+        if (!mapFileSaved) return false;
+
+        string mapFolder = GetMapFolder();
+        IMapGrid[] grids = map.Grids;
+        for (int i = 0; i < grids.Length; i++)
+        {
+            IMapGrid grid = grids[i];
+            bool gridSaved = grid._Save($"{mapFolder}/{grid.UniqueId}");
+            if (!gridSaved) return false;
+        }
+
+        return true;
     }
 }

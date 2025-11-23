@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Core.Systems.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Emotion.Primitives.Grids.Chunked;
@@ -42,17 +43,12 @@ public class GenericGridChunk<T> : IGridChunk<T> where T : unmanaged, IEquatable
         _data = data;
     }
 
-    public unsafe void _Save(string fileName)
+    public unsafe bool _Save(string fileName)
     {
         T[] data = _data;
-        int dataLength = sizeof(T) * _data.Length;
-        byte[] dataTemp = new byte[dataLength];
-        fixed (T* pData = &data[0])
-        {
-            Marshal.Copy((nint)pData, dataTemp, 0, dataLength);
-        }
-        //ReadOnlySpan<byte> bytes = MemoryMarshal.AsBytes<T>(_data);
-        Engine.AssetLoader.SaveDevMode(dataTemp, $"{fileName}.bin", false);
+        Span<T> span = new Span<T>(data);
+        Span<byte> spanAsBytes = MemoryMarshal.Cast<T, byte>(span);
+        return Engine.AssetLoader.Save($"{fileName}.bin", spanAsBytes);
     }
 
     public IEnumerator _LoadRoutine(string fileName)
