@@ -450,22 +450,25 @@ public static class TestExecutor
         Script<object> script = CSharpScript.Create(testScript + $"\nreturn \"{SUBPROCESS_SUCCESS_MSG}\";", options);
         ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> compilation = script.Compile();
 
-        for (int i = 0; i < compilation.Length; i++)
-        {
-            if (i != 0) resultData.Append("\n      ");
-            resultData.Append(compilation[i].GetMessage());
-        }
         if (compilation.Length == 0)
         {
             ScriptState<object> result = script.RunAsync().Result;
             string returnVal = (string) result.ReturnValue;
             if (Helpers.AreObjectsEqual(returnVal, SUBPROCESS_SUCCESS_MSG))
             {
-                resultData.AppendLine(SUBPROCESS_SUCCESS_MSG);
+                resultData.Append(SUBPROCESS_SUCCESS_MSG);
             }
             else
             {
-                resultData.AppendLine($"Subscript finished early - {returnVal}.");
+                resultData.Append($"Subscript finished early - {returnVal}.");
+            }
+        }
+        else
+        {
+            for (int i = 0; i < compilation.Length; i++)
+            {
+                if (i != 0) resultData.Append("\n      ");
+                resultData.Append(compilation[i].GetMessage());
             }
         }
 

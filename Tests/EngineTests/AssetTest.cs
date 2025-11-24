@@ -135,7 +135,7 @@ public class AssetTest
         Assert.True(Engine.AssetLoader.Exists("Embedded/embedText.txt"));
 
         // Test loading of embedded text file.
-        var textFile = Engine.AssetLoader.GetInstant<TextAsset>("Embedded/embedText.txt");
+        var textFile = Engine.AssetLoader.LEGACY_Get<TextAsset>("Embedded/embedText.txt");
 
         // Assert the file is as expected.
         Assert.True(Engine.AssetLoader.Exists("Embedded/embedText.txt"));
@@ -146,7 +146,7 @@ public class AssetTest
         Assert.True(Engine.AssetLoader.ForEachLoadedAsset().Any(x => x.Name.Equals("Embedded/embedText.txt", StringComparison.InvariantCultureIgnoreCase)));
 
         // The name should be case insensitive.
-        var insensitive = Engine.AssetLoader.GetInstant<TextAsset>("embedded/embedtext.txt");
+        var insensitive = Engine.AssetLoader.LEGACY_Get<TextAsset>("embedded/embedtext.txt");
 
         // Should even be the same reference.
         Assert.True(ReferenceEquals(insensitive, textFile));
@@ -158,7 +158,7 @@ public class AssetTest
         Assert.False(Engine.AssetLoader.ForEachLoadedAsset().Any(x => x.Name.Equals("Embedded/embedText.txt", StringComparison.InvariantCultureIgnoreCase)));
 
         // Load non existing asset.
-        textFile = Engine.AssetLoader.GetInstant<TextAsset>("sadsadsa");
+        textFile = Engine.AssetLoader.LEGACY_Get<TextAsset>("sadsadsa");
 
         // Never return null, but asset shouldnt be loaded
         Assert.False(textFile == null);
@@ -171,7 +171,7 @@ public class AssetTest
         Engine.AssetLoader.DisposeOf(textFile);
 
         // Create and destroy null.
-        Engine.AssetLoader.GetInstant<TextAsset>(null);
+        Engine.AssetLoader.LEGACY_Get<TextAsset>(null);
         Engine.AssetLoader.DisposeOf(null);
     }
 
@@ -185,7 +185,7 @@ public class AssetTest
 
         var customLoader = new AssetLoader();
         customLoader.MountFileSystemFolder("OtherAssets", ".");
-        var loremIpsum = customLoader.GetInstant<TextAsset>("LoremIpsum.txt");
+        var loremIpsum = customLoader.LEGACY_Get<TextAsset>("LoremIpsum.txt");
 
         // Assert the file loaded properly.
         Assert.Equal(11, loremIpsum.Content.Length);
@@ -196,7 +196,7 @@ public class AssetTest
 
         // Modify the file, and reload.
         File.WriteAllText(testFilePath, "Lorem Edited");
-        loremIpsum = customLoader.GetInstant<TextAsset>("LoremIpsum.txt");
+        loremIpsum = customLoader.LEGACY_Get<TextAsset>("LoremIpsum.txt");
 
         // The file shouldn't have changed, as it is cached.
         Assert.Equal(11, loremIpsum.Content.Length);
@@ -204,7 +204,7 @@ public class AssetTest
 
         // Delete. Reload, and check for change.
         customLoader.DisposeOf(loremIpsum);
-        loremIpsum = customLoader.GetInstant<TextAsset>("LoremIpsum.txt");
+        loremIpsum = customLoader.LEGACY_Get<TextAsset>("LoremIpsum.txt");
         Assert.Equal(12, loremIpsum.Content.Length);
         Assert.Equal("Lorem Edited", loremIpsum.Content);
 
@@ -231,14 +231,18 @@ public class AssetTest
     /// Asset store
     /// </summary>
     [Test]
-    public void AssetStorage()
+    public IEnumerator AssetStorage()
     {
         var saveFilePath = "Player/saveFile.save";
-        var save = Engine.AssetLoader.GetInstant<XMLAsset<TestStorage>>(saveFilePath);
+        var save = Engine.AssetLoader.Get<XMLAsset<TestStorage>>(saveFilePath);
+        yield return save;
+
         Assert.False(save.Loaded);
         Engine.AssetLoader.DisposeOf(save);
 
         XMLAsset<TestStorage> saveFile = XMLAsset<TestStorage>.LoadOrCreate(saveFilePath);
+        yield return saveFile;
+
         Assert.True(File.Exists(Path.Join(".", "Player", "savefile.save")));
         Assert.True(Engine.AssetLoader.Exists(saveFilePath));
 
@@ -246,7 +250,9 @@ public class AssetTest
         saveFile.Save();
 
         // It will now exist!
-        save = Engine.AssetLoader.GetInstant<XMLAsset<TestStorage>>("Player/saveFile.save");
+        save = Engine.AssetLoader.Get<XMLAsset<TestStorage>>("Player/saveFile.save");
+        yield return save;
+
         Assert.Equal(save.Content.Text, saveFile.Content.Text);
         Engine.AssetLoader.DisposeOf(save);
 

@@ -126,12 +126,6 @@ public partial class AssetLoader
     private readonly ConcurrentQueue<AssetFileEntry?> _assetsToReload = new();
     private readonly List<IRoutineWaiter> _loadingAssetRoutines = new(16);
 
-    public T GetInstant<T>(string? name, object? addReferenceToObject = null, bool noCache = false)
-        where T : Asset, new()
-    {
-        return Get<T>(name, addReferenceToObject, true, false, noCache);
-    }
-
     public T Get<T>(string? name, object? addRefenceToObject = null, bool loadInline = false, bool loadedAsDependency = false, bool noCache = false)
         where T : Asset, new()
     {

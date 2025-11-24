@@ -123,7 +123,7 @@ public class XMLAsset<T> : XMLAssetMarkerClass, IAssetContainingObject<T>
     /// </summary>
     public static XMLAsset<T> LoadOrCreate(string name)
     {
-        if (Engine.AssetLoader.Exists(name)) return Engine.AssetLoader.LEGACY_Get<XMLAsset<T>>(name)!;
+        if (Engine.AssetLoader.Exists(name)) return Engine.AssetLoader.Get<XMLAsset<T>>(name);
 
         // If the file doesn't exist - create it.
         XMLAsset<T> newFile = CreateFromContent(Activator.CreateInstance<T>(), name);

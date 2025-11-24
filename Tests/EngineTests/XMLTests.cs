@@ -26,7 +26,6 @@ namespace Tests.EngineTests;
 /// Due to Emotion rolling its own parser we need to test it :P
 /// </summary>
 [Test]
-[TestClassRunParallel]
 public class XMLTests
 {
     [Test]
@@ -1051,7 +1050,7 @@ public class XMLTests
         string thisFile = Path.Join(xmlsFolder, $"{fileName}.xml");
         File.WriteAllText(thisFile, data);
 
-        var referenceAsset = Engine.AssetLoader.LEGACY_Get<TextAsset>($"ReferenceXMLOutput/{fileName}.xml");
+        var referenceAsset = Engine.AssetLoader.Get<TextAsset>($"ReferenceXMLOutput/{fileName}.xml", null, true);
         if (referenceAsset?.Content != null)
             Assert.True(referenceAsset.Content == data, $"Serialization {fileName} must produce same result");
 
