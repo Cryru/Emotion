@@ -127,6 +127,7 @@ public class XMLAsset<T> : XMLAssetMarkerClass, IAssetContainingObject<T>
 
         // If the file doesn't exist - create it.
         XMLAsset<T> newFile = CreateFromContent(Activator.CreateInstance<T>(), name);
+        newFile.Processed = true;
         newFile.Save();
         return newFile;
     }
