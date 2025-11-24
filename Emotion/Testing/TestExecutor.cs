@@ -531,6 +531,8 @@ public static class TestExecutor
 
             if (!success)
                 Engine.Log.Error($"      Script error: {testScriptResponse}", MessageSource.Test);
+            else
+                Engine.Log.Info($"      Script response: {testScriptResponse}", MessageSource.Test);
         });
 
         ProcessStartInfo subProcessStart = new ProcessStartInfo("dotnet", $"run -c Autobuild /p:Platform=DefaultSubProcess SubTestLinkId=SubLink{randomNumber}");

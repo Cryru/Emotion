@@ -21,15 +21,13 @@ public class FileStorage : IAssetStorage
 
     public AssetStorageOperation StartSave(ReadOnlySpan<char> virtualPath)
     {
-        virtualPath = virtualPath.Slice(_mountPoint.Length);
-
         // String allocations here are a bit cringe, but the file API works with strings only anyway so....
-
+        var virtualPathNotMounted = virtualPath.Slice(_mountPoint.Length);
         string actualPath;
         if (Path.DirectorySeparatorChar != '/')
-            actualPath = Path.Join(_actualFolder, virtualPath.ToString().ToLowerInvariant().Replace('/', Path.DirectorySeparatorChar));
+            actualPath = Path.Join(_actualFolder, virtualPathNotMounted.ToString().ToLowerInvariant().Replace('/', Path.DirectorySeparatorChar));
         else
-            actualPath = Path.Join(_actualFolder, virtualPath.ToString().ToLowerInvariant());
+            actualPath = Path.Join(_actualFolder, virtualPathNotMounted.ToString().ToLowerInvariant());
 
         string tempFileName = actualPath + ".writeTemp";
         try

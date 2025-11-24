@@ -233,10 +233,11 @@ public class AssetTest
     [Test]
     public void AssetStorage()
     {
-        var save = Engine.AssetLoader.GetInstant<XMLAsset<TestStorage>>("saveFile.save");
-        Assert.False(save.Loaded);
-
         var saveFilePath = "Player/saveFile.save";
+        var save = Engine.AssetLoader.GetInstant<XMLAsset<TestStorage>>(saveFilePath);
+        Assert.False(save.Loaded);
+        Engine.AssetLoader.DisposeOf(save);
+
         XMLAsset<TestStorage> saveFile = XMLAsset<TestStorage>.LoadOrCreate(saveFilePath);
         Assert.True(File.Exists(Path.Join(".", "Player", "savefile.save")));
         Assert.True(Engine.AssetLoader.Exists(saveFilePath));
@@ -251,5 +252,7 @@ public class AssetTest
 
         saveFile.Save();
         Assert.True(File.Exists(Path.Join("./Player", "savefile.save.backup")));
+
+        File.Delete(Path.Join(".", "Player", "savefile.save"));
     }
 }
