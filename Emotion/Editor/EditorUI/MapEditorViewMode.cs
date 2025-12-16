@@ -6,6 +6,7 @@ using Emotion.Game.Systems.UI;
 using Emotion.Game.Systems.UI2;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Camera;
+using Emotion.Graphics.Text;
 
 namespace Emotion.Editor.EditorUI;
 
@@ -79,9 +80,7 @@ public class MapEditorViewMode : UIBaseWindow
                 new EditorLabel()
                 {
                     Name = "CameraPosition",
-                    OutlineColor = Color.Black * 0.5f,
-                    OutlineSize = 2,
-                    AllowRenderBatch = false,
+                    Effect = TextEffect.Outline(Color.Black * 0.5f, 2),
                     FontSize = 23
                 },
                 new MapEditorViewModeOrientationGizmo()

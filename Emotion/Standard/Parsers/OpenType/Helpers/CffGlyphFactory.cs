@@ -15,7 +15,9 @@ public sealed class CffGlyphFactory
 
     public float Scale;
 
+#if PARSE_GLYPH_DRAW_COMMANDS
     private List<GlyphDrawCommand> _commandsInProgress = new List<GlyphDrawCommand>();
+#endif
     private Vector2 _pen;
 
     public CffGlyphFactory(float scale)
@@ -28,7 +30,9 @@ public sealed class CffGlyphFactory
     {
         Glyph.Min *= Scale;
         Glyph.Max *= Scale;
+#if PARSE_GLYPH_DRAW_COMMANDS
         Glyph.Commands = _commandsInProgress.ToArray();
+#endif
     }
 
     public void MoveTo(float dx, float dy)
@@ -36,24 +40,30 @@ public sealed class CffGlyphFactory
         CloseShape();
         _pen += new Vector2(dx, dy);
 
+#if PARSE_GLYPH_DRAW_COMMANDS
         PushCommand(GlyphDrawCommandType.Move, _pen, Vector2.Zero);
+#endif
         EnsureBounds(_pen);
     }
 
     public void CloseShape()
     {
+#if PARSE_GLYPH_DRAW_COMMANDS
         if (_commandsInProgress.Count == 0) return;
 
         _commandsInProgress.Add(new GlyphDrawCommand
         {
             Type = GlyphDrawCommandType.Close
         });
+#endif
     }
 
     public void LineTo(float dx, float dy)
     {
         _pen += new Vector2(dx, dy);
+#if PARSE_GLYPH_DRAW_COMMANDS
         PushCommand(GlyphDrawCommandType.Line, _pen, Vector2.Zero);
+#endif
         EnsureBounds(_pen);
     }
 
@@ -68,6 +78,7 @@ public sealed class CffGlyphFactory
         _pen = new Vector2(cx2 + dx3, cy2 + dy3);
 
         // Convert cubic curves to quad curves for easier rendering.
+#if PARSE_GLYPH_DRAW_COMMANDS
         List<Vector2>? quadCurves = CubicCurveConverter.CubicToQuad(prevPos, new Vector2(cx1, cy1), new Vector2(cx2, cy2), _pen);
         for (var i = 1; i < quadCurves.Count; i += 2)
         {
@@ -75,12 +86,14 @@ public sealed class CffGlyphFactory
             Vector2 controlPoint = quadCurves[i];
             PushCommand(GlyphDrawCommandType.Curve, endPoint, controlPoint);
         }
+#endif
 
         EnsureBounds(_pen);
         EnsureBounds(new Vector2(cx1, cy1));
         EnsureBounds(new Vector2(cx2, cy2));
     }
 
+#if PARSE_GLYPH_DRAW_COMMANDS
     private void PushCommand(GlyphDrawCommandType type, Vector2 pos, Vector2 cp)
     {
         _commandsInProgress.Add(new GlyphDrawCommand
@@ -90,6 +103,7 @@ public sealed class CffGlyphFactory
             P1 = cp * Scale,
         });
     }
+#endif
 
     private void EnsureBounds(Vector2 p)
     {

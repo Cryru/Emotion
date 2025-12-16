@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Core.Systems.IO;
+using Emotion.Core.Utility.Coroutines;
 using Emotion.Core.Utility.Threading;
 using Emotion.Game.World.Terrain.MeshGridStreaming;
 using Emotion.Game.World.ThreeDee;
@@ -42,9 +43,8 @@ public class VoxelMeshTerrainGrid<TData, TChunk, TIndex> : MeshGrid<TData, TChun
         if (TerrainMeshMaterial.DiffuseTextureName != null)
             assets.Add(Engine.AssetLoader.Get<TextureAsset>(TerrainMeshMaterial.DiffuseTextureName));
 
-        ThreadExecutionWaitToken indexBufferTask = GLThread.ExecuteOnGLThreadAsync(PrepareIndexBuffer);
+        IRoutineWaiter indexBufferTask = GLThread.ExecuteOnGLThreadAsync(PrepareIndexBuffer);
         yield return base.InitRoutine();
-
         yield return indexBufferTask;
 
         for (int i = 0; i < assets.Count; i++)

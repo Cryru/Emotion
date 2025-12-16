@@ -13,6 +13,7 @@ using Emotion.Graphics.Batches3D;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Memory;
 using Emotion.Graphics.Shading;
+using Emotion.Graphics.Text;
 using OpenGL;
 using OpenGL.Khronos;
 
@@ -54,7 +55,7 @@ public sealed partial class Renderer
         set
         {
             _vSync = value;
-            GLThread.ExecuteGLThreadAsync(ApplySettings);
+            GLThread.ExecuteOnGLThreadAsync(static () => Engine.Renderer.ApplySettings());
         }
     }
 
@@ -309,6 +310,7 @@ public sealed partial class Renderer
         // Create render objects
         RenderStream = new RenderStreamBatch(); // This is used for IM-like rendering.
         MeshEntityRenderer = new MeshEntityBatchRenderer();
+        TextRenderer.Init();
 
         // Apply display settings (this is the initial application) and attach the camera updating coroutine.
         ApplySettings();
@@ -519,6 +521,7 @@ public sealed partial class Renderer
 
         RenderStream.DoTasks(this);
         MeshEntityRenderer.DoTasks();
+        TextRenderer.DoTasks();
         GPUMemoryAllocator.ProcessFreed();
         InFrame = false;
     }

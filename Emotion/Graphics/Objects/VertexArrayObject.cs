@@ -150,7 +150,7 @@ public abstract class VertexArrayObject : IDisposable
         if (Engine.Host == null) return;
         if (ptr == Bound) Bound = 0;
 
-        GLThread.ExecuteGLThreadAsync(() => { Gl.DeleteVertexArrays(ptr); });
+        GLThread.ExecuteOnGLThreadAsync((uint ptr) => Gl.DeleteVertexArrays(ptr), ptr);
     }
 }
 

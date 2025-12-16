@@ -6,6 +6,7 @@ using System.Text;
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Systems.Logging;
 using Emotion.Core.Utility.Threading;
+using Emotion.Graphics.Shader;
 using OpenGL;
 
 #endregion
@@ -371,7 +372,7 @@ public static class ShaderFactory
         }
 
         Engine.Log.Info("Compiling default shaders...", MessageSource.Renderer);
-        GLThread.ExecuteGLThread(() => // todo: execute gl thread coroutine waiter
+        yield return GLThread.ExecuteOnGLThreadAsync(() => // todo: execute gl thread coroutine waiter
         {
             ShaderProgram? defaultShaderProgram = CreateShader(vert.Content, frag.Content);
             DefaultProgram.CopyFrom(defaultShaderProgram);

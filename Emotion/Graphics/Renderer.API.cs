@@ -310,7 +310,6 @@ public sealed partial class Renderer
     /// <summary>
     /// Set the current shader.
     /// </summary>
-    /// <param name="shader">The shader to set as current.</param>
     public ShaderProgram SetShader(ShaderProgram? shader = null)
     {
         FlushRenderStream();
@@ -330,7 +329,7 @@ public sealed partial class Renderer
     {
         ShaderProgram? program = null;
         if (shader.IsValid())
-            program = shader.GetObject();
+            program = shader.GetObjectLoadinline();
 
         return SetShader(program);
     }

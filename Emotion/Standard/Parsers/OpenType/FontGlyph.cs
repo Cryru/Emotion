@@ -2,6 +2,7 @@
 
 namespace Emotion.Standard.Parsers.OpenType;
 
+#if PARSE_GLYPH_DRAW_COMMANDS
 public enum GlyphDrawCommandType : byte
 {
     Move,
@@ -22,6 +23,7 @@ public struct GlyphDrawCommand
         return $"{Type} {P0} {P1}";
     }
 }
+#endif
 
 public class FontGlyphComponent
 {
@@ -57,7 +59,9 @@ public class FontGlyph
     public Vector2 Min;
     public Vector2 Max;
 
+#if PARSE_GLYPH_DRAW_COMMANDS
     public GlyphDrawCommand[]? Commands;
+#endif
 
     /// <summary>
     /// The bounding box for the glyph.

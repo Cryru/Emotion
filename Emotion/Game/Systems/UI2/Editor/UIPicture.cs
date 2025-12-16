@@ -120,7 +120,7 @@ public class UIPicture : UIBaseWindow
     {
         Assert(!IsLoading());
 
-        Texture? texture = Texture.GetObject();
+        Texture? texture = _assetOwner.GetCurrentObject();
         if (texture == null)
             return IntVector2.Zero;
 
@@ -166,6 +166,6 @@ public class UIPicture : UIBaseWindow
     protected override void InternalRender(Renderer r)
     {
         base.InternalRender(r);
-        r.RenderSprite(CalculatedMetrics.Position.ToVec3(), CalculatedMetrics.Size.ToVec2(), ImageColor, Texture.GetObject(), _renderWithUV, FlipX);
+        r.RenderSprite(CalculatedMetrics.Position.ToVec3(), CalculatedMetrics.Size.ToVec2(), ImageColor, _assetOwner.GetCurrentObject(), _renderWithUV, FlipX);
     }
 }

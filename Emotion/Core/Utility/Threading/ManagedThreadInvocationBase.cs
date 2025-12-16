@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Core.Utility.Coroutines;
 using Emotion.Standard.DataStructures;
 
 
@@ -7,35 +8,22 @@ using Emotion.Standard.DataStructures;
 
 namespace Emotion.Core.Utility.Threading
 {
-    public class ManagedThreadInvocationBase : ThreadExecutionWaitToken
+    internal class ManagedThreadInvocationBase : IRoutineWaiter
     {
-        private static ObjectPool<ManualResetEventSlim> _resetEventPool = new ObjectPool<ManualResetEventSlim>();
-        private ManualResetEventSlim _signal;
+        public bool Finished { get; private set; }
 
-        protected ManagedThreadInvocationBase()
+        public void Update()
         {
-            _signal = _resetEventPool.Get();
+
         }
 
         public virtual void Run()
         {
-            _signal.Set();
-            Trigger();
-        }
-
-        public void Wait()
-        {
-            _signal.Wait();
-        }
-
-        public void RecycleWaiter()
-        {
-            _resetEventPool.Return(_signal);
-            _signal = null;
+            Finished = true;
         }
     }
 
-    public class ManagedThreadInvocationResult<T> : ManagedThreadInvocationBase
+    internal class ManagedThreadInvocationResult<T> : ManagedThreadInvocationBase
     {
         public T Result;
         public Func<T> Action;
@@ -52,7 +40,7 @@ namespace Emotion.Core.Utility.Threading
         }
     }
 
-    public class ManagedThreadInvocationResult<T, T1> : ManagedThreadInvocationBase
+    internal class ManagedThreadInvocationResult<T, T1> : ManagedThreadInvocationBase
     {
         public T Result;
         public T1 Arg1;
@@ -71,7 +59,7 @@ namespace Emotion.Core.Utility.Threading
         }
     }
 
-    public class ManagedThreadInvocation : ManagedThreadInvocationBase
+    internal class ManagedThreadInvocation : ManagedThreadInvocationBase
     {
         public Action Action;
 
@@ -87,7 +75,7 @@ namespace Emotion.Core.Utility.Threading
         }
     }
 
-    public class ManagedThreadInvocation<T1> : ManagedThreadInvocationBase
+    internal class ManagedThreadInvocation<T1> : ManagedThreadInvocationBase
     {
         public T1 Arg1;
         public Action<T1> Action;
@@ -105,7 +93,7 @@ namespace Emotion.Core.Utility.Threading
         }
     }
 
-    public class ManagedThreadInvocation<T1, T2> : ManagedThreadInvocationBase
+    internal class ManagedThreadInvocation<T1, T2> : ManagedThreadInvocationBase
     {
         public T1 Arg1;
         public T2 Arg2;
@@ -125,7 +113,7 @@ namespace Emotion.Core.Utility.Threading
         }
     }
 
-    public class ManagedThreadInvocationResult<T, T1, T2> : ManagedThreadInvocationBase
+    internal class ManagedThreadInvocationResult<T, T1, T2> : ManagedThreadInvocationBase
     {
         public T Result;
         public T1 Arg1;
@@ -146,7 +134,7 @@ namespace Emotion.Core.Utility.Threading
         }
     }
 
-    public class ManagedThreadInvocationResult<T, T1, T2, T3> : ManagedThreadInvocationBase
+    internal class ManagedThreadInvocationResult<T, T1, T2, T3> : ManagedThreadInvocationBase
     {
         public T Result;
         public T1 Arg1;

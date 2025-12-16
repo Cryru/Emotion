@@ -9,6 +9,7 @@ using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 using Emotion.Editor.Tools.GameDataTool;
 using Emotion.Editor.Workflow;
 using Emotion.Graphics.Camera;
+using Emotion.Graphics.Text;
 using System.Text;
 
 #endregion
@@ -21,7 +22,7 @@ public static partial class EngineEditor
 
     public static UIBaseWindow EditorUI { get; private set; } = null!;
 
-    private static NewUIText _perfText = null!;
+    private static UIText _perfText = null!;
 
     private static UIBaseWindow _editorUIHorizontalParent = null!;
     private static UIBaseWindow? _editorBars;
@@ -35,7 +36,9 @@ public static partial class EngineEditor
         Engine.Host.OnKey.AddListener(EditorButtonHandler, KeyListenerType.Editor);
         EditorUI = new UIBaseWindow()
         {
-            Name = "EditorRoot"
+            Name = "EditorRoot",
+            OrderInParent = 999
+            
         };
         Engine.UI.AddChild(EditorUI);
 
@@ -94,7 +97,7 @@ public static partial class EngineEditor
         SetupDebugCameraUI(barContainer);
         SetupGameEditorVisualizations(barContainer);
 
-        _perfText = new NewUIText
+        _perfText = new UIText
         {
             Layout =
             {
@@ -103,9 +106,7 @@ public static partial class EngineEditor
             },
 
             FontSize = 25,
-            OutlineColor = Color.Black,
-            OutlineSize = 2,
-            AllowRenderBatch = false
+            Effect = TextEffect.Outline(Color.Black, 2)
         };
         _editorBars.AddChild(_perfText);
 

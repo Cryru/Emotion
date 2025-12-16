@@ -89,10 +89,10 @@ public class Texture : TextureObjectBase
     /// <summary>
     /// Create a texture from data.
     /// </summary>
-    public Texture(Vector2 size, byte[] data, PixelFormat pixelFormat, bool? smooth = false, InternalFormat internalFormat = InternalFormat.Rgba) : this()
+    public Texture(Vector2 size, byte[] data, PixelFormat pixelFormat, bool? smooth = false, InternalFormat internalFormat = InternalFormat.Rgba, PixelType pixelType = PixelType.UnsignedByte) : this()
     {
         _smooth = smooth ?? Engine.Configuration.TextureDefaultSmooth;
-        Upload(size, data, pixelFormat, internalFormat);
+        Upload(size, data, pixelFormat, internalFormat, pixelType);
     }
 
     /// <summary>
@@ -114,6 +114,17 @@ public class Texture : TextureObjectBase
 
         PrepareForUpload(data, ref pixelFormat, ref internalFormat);
         Gl.TexImage2D(TextureTarget.Texture2d, 0, internalFormat, (int)size.X, (int)size.Y, 0, pixelFormat, pixelType, data);
+        
+        PostUpload();
+    }
+
+    public virtual void UploadPartial(IntVector2 offset, IntVector2 size, Span<byte> data)
+    {
+        var pixelFormat = PixelFormat;
+        var internalFormat = InternalFormat;
+
+        PrepareForUpload(data, ref pixelFormat, ref internalFormat);
+        Gl.TexSubImage2D(TextureTarget.Texture2d, 0, offset.X, offset.Y, size.X, size.Y, pixelFormat, PixelType, data);
         PostUpload();
     }
 

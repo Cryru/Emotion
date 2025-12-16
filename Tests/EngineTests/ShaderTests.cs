@@ -6,6 +6,7 @@ using System.Linq;
 using System.Numerics;
 using Emotion.Core;
 using Emotion.Core.Systems.IO;
+using Emotion.Graphics.Shader;
 using Emotion.Primitives;
 using Emotion.Testing;
 
@@ -27,13 +28,14 @@ public class ShaderTests : ProxyRenderTestingScene
         // Which phase of the test is happening. Done to split the draw function.
         var shaderTest = 0;
 
-        shaders.Add(Engine.AssetLoader.LEGACY_Get<ShaderAsset>("Shaders/TestShader.xml"));
-        shaders.Add(Engine.AssetLoader.LEGACY_Get<ShaderAsset>("Shaders/TestShaderFragOnly.xml"));
-        shaders.Add(Engine.AssetLoader.LEGACY_Get<ShaderAsset>("Shaders/TestShaderVertOnly.xml"));
+        shaders.Add(Engine.AssetLoader.Get<ShaderAsset>("Shaders/TestShader.xml"));
+        shaders.Add(Engine.AssetLoader.Get<ShaderAsset>("Shaders/TestShaderFragOnly.xml"));
+        shaders.Add(Engine.AssetLoader.Get<ShaderAsset>("Shaders/TestShaderVertOnly.xml"));
 
         // Ensure all shaders are loaded.
         foreach (ShaderAsset s in shaders)
         {
+            yield return s;
             Assert.True(s.Shader != null);
             Assert.False(s.IsFallback);
         }

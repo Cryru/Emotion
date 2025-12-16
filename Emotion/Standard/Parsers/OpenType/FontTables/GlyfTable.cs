@@ -18,6 +18,7 @@ public static class GlyfTable
             ReadGlyph(glyph, locaTableParsed, reader, scale);
         }
 
+#if PARSE_GLYPH_DRAW_COMMANDS
         // Second pass: combine composite glyphs.
         for (var i = 0; i < glyphs.Length; i++)
         {
@@ -25,6 +26,7 @@ public static class GlyfTable
             if (!glyph.Composite) continue;
             CombineCompositeGlyph(glyph, glyphs);
         }
+#endif
     }
 
     private static void ReadGlyph(FontGlyph g, LocaTable locaTable, ByteReader glyfTableReader, float scale)
@@ -48,6 +50,8 @@ public static class GlyfTable
 
         g.Min = new Vector2(minX, minY) * scale;
         g.Max = new Vector2(maxX, maxY) * scale;
+
+#if PARSE_GLYPH_DRAW_COMMANDS
 
         // Simple glyph
         if (numberOfContours > 0)
@@ -308,8 +312,10 @@ public static class GlyfTable
 
             g.Components = components.ToArray();
         }
+#endif
     }
 
+#if PARSE_GLYPH_DRAW_COMMANDS
     private static void CombineCompositeGlyph(FontGlyph g, FontGlyph[] glyphs)
     {
         var combinedCommands = new List<GlyphDrawCommand>();
@@ -354,6 +360,7 @@ public static class GlyfTable
 
         g.Commands = combinedCommands.ToArray();
     }
+#endif
 
     private static void ReadGlyphCoordinate(ByteReader reader, byte flags, ref int prevVal, short shortVectorBitMask, short sameBitMask)
     {

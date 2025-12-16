@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Core.Utility.Coroutines;
 using Emotion.Standard.Reflector.Handlers;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
@@ -10,7 +11,6 @@ namespace Emotion.Core.Systems.IO;
 public enum AssetOrObjectReferenceType
 {
     None = 0,
-    Deleted,
     Asset,
     AssetName,
     Object
@@ -20,6 +20,11 @@ public struct AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta_Extra
     where TAsset : Asset, IAssetContainingObject<TObject>, new()
 {
     public static AssetObjectReference<TAsset, TObject> Invalid { get; } = new();
+
+    public AssetOrObjectReferenceType Type { get => _type; }
+    public string? AssetName { get => _assetName; }
+    public TAsset? Asset { get => _asset; }
+    public TObject? AssetObject { get => _assetObject; }
 
     private AssetOrObjectReferenceType _type;
     private TAsset? _asset;
@@ -42,7 +47,7 @@ public struct AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta_Extra
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsValid()
     {
-        return _type != AssetOrObjectReferenceType.None && _type != AssetOrObjectReferenceType.Deleted;
+        return _type != AssetOrObjectReferenceType.None;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -51,35 +56,8 @@ public struct AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta_Extra
         return _type == AssetOrObjectReferenceType.Object;
     }
 
-    public IEnumerator Load(object? addOwner = null, bool loadedAsDependency = false)
+    public TObject? GetObjectLoadinline()
     {
-        bool addedOwner = false;
-
-        if (_type == AssetOrObjectReferenceType.AssetName)
-        {
-            _asset = Engine.AssetLoader.Get<TAsset>(_assetName, addOwner, false, loadedAsDependency);
-            _type = AssetOrObjectReferenceType.Asset;
-            addedOwner = true;
-        }
-
-        if (_type == AssetOrObjectReferenceType.Asset)
-        {
-            AssertNotNull(_asset);
-            if (!_asset.Loaded)
-                yield return _asset;
-            _assetName = _asset.Name;
-            _assetObject = _asset.GetObject();
-            _type = AssetOrObjectReferenceType.Object;
-        }
-
-        if (!addedOwner && addOwner != null)
-            AddOwnership(addOwner);
-    }
-
-    public TObject? GetObject()
-    {
-        AssertNotNull(_type != AssetOrObjectReferenceType.Deleted);
-
         if (_type == AssetOrObjectReferenceType.AssetName)
         {
             TAsset asset = Engine.AssetLoader.Get<TAsset>(_assetName, null, true);
@@ -101,24 +79,6 @@ public struct AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta_Extra
     {
         return _type == AssetOrObjectReferenceType.Asset ? _asset : null;
     }
-
-    #region Ownership
-
-    public void AddOwnership(object obj)
-    {
-        if (!IsValid()) return;
-        Assert(ReadyToUse()); // Must be loaded!
-        Engine.AssetLoader.AddReferenceToAsset(_asset, obj);
-    }
-
-    public void RemoveOwnership<T>(T obj) where T : notnull
-    {
-        if (!IsValid()) return;
-        Assert(ReadyToUse()); // Must be loaded!
-        Engine.AssetLoader.RemoveReferenceFromAsset(_asset, obj);
-    }
-
-    #endregion
 
     #region Equality
 

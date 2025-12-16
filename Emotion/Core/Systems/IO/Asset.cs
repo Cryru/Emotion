@@ -4,6 +4,7 @@
 
 using Emotion.Core.Systems.Logging;
 using Emotion.Core.Utility.Coroutines;
+using System.Reflection.Metadata;
 
 #endregion
 
@@ -116,7 +117,7 @@ public abstract class Asset : IRoutineWaiter
 
             attempts++;
         }
-       
+
         ByteSize = data.Length;
 
         if (_useNewLoading)
@@ -240,22 +241,33 @@ public abstract class Asset : IRoutineWaiter
 
     #region Dependencies
 
-    private List<IRoutineWaiter>? _dependencies;
+    private List<Asset>? _dependencies;
 
     protected void LoadAssetDependency<T, TObject>(AssetObjectReference<T, TObject> assetOrObjectReference)
         where T : Asset, IAssetContainingObject<TObject>, new()
     {
-        Coroutine coroutine = Engine.CoroutineManager.StartCoroutine(assetOrObjectReference.Load(this, true));
+        T? asset = null;
+        if (assetOrObjectReference.Type == AssetOrObjectReferenceType.AssetName)
+        {
+            asset = Engine.AssetLoader.Get<T>(assetOrObjectReference.AssetName, this, LoadingInline, true);
+        }
+        else if (assetOrObjectReference.Type == AssetOrObjectReferenceType.Asset)
+        {
+            asset = assetOrObjectReference.Asset;
+            if (asset != null)
+                Engine.AssetLoader.AddReferenceToAsset(asset, this);
+        }
+        if (asset == null) return;
 
-        _dependencies ??= new List<IRoutineWaiter>();
-        _dependencies.Add(coroutine);
+        _dependencies ??= new List<Asset>();
+        _dependencies.Add(asset);
     }
 
     protected T LoadAssetDependency<T>(string? name, bool cachedLoad = true) where T : Asset, new()
     {
         T dependantAsset = Engine.AssetLoader.Get<T>(name, this, LoadingInline, true, !cachedLoad);
 
-        _dependencies ??= new List<IRoutineWaiter>();
+        _dependencies ??= new List<Asset>();
         _dependencies.Add(dependantAsset);
 
         return dependantAsset;
@@ -270,8 +282,8 @@ public abstract class Asset : IRoutineWaiter
             bool anyLoading = false;
             for (int i = 0; i < _dependencies.Count; i++)
             {
-                IRoutineWaiter dependent = _dependencies[i];
-                if (!dependent.Finished)
+                Asset dependent = _dependencies[i];
+                if (!dependent.Loaded)
                 {
                     anyLoading = true;
                     yield return null;

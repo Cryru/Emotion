@@ -32,7 +32,8 @@ public partial class Gl
     ///     The initial value is Gl.FALSE. See Gl.LogicOp.
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
     public const int COLOR_LOGIC_OP = 0x0BF2;
 
     /// <summary>
@@ -50,14 +51,16 @@ public partial class Gl
     /// [GL4] Gl.Get: data returns a single boolean value indicating whether polygon offset is enabled for polygons in point
     /// mode. The initial value is Gl.FALSE. See Gl.PolygonOffset.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_NV_polygon_mode", Api = "gles2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_NV_polygon_mode", Api = "gles2")]
     public const int POLYGON_OFFSET_POINT = 0x2A01;
 
     /// <summary>
     /// [GL4] Gl.Get: data returns a single boolean value indicating whether polygon offset is enabled for polygons in line
     /// mode. The initial value is Gl.FALSE. See Gl.PolygonOffset.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_NV_polygon_mode", Api = "gles2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_NV_polygon_mode", Api = "gles2")]
     public const int POLYGON_OFFSET_LINE = 0x2A02;
 
     /// <summary>
@@ -92,7 +95,9 @@ public partial class Gl
     /// [GL4] Gl.Get: data returns a single value, the name of the texture currently bound to the target Gl.TEXTURE_1D. The
     /// initial value is 0. See Gl.BindTexture.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_4_5")] [RequiredByFeature("GL_ARB_direct_state_access", Api = "gl|glcore")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_VERSION_4_5")]
+    [RequiredByFeature("GL_ARB_direct_state_access", Api = "gl|glcore")]
     public const int TEXTURE_BINDING_1D = 0x8068;
 
     /// <summary>
@@ -110,7 +115,8 @@ public partial class Gl
     /// <summary>
     /// [GL4|GLES3.2] Gl.GetTexLevelParameter: params returns a single value, the internal format of the texture image.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")]
     public const int TEXTURE_INTERNAL_FORMAT = 0x1003;
 
     /// <summary>
@@ -124,43 +130,55 @@ public partial class Gl
     ///     [GLES3.2] Gl.GetTexLevelParameter: The actual internal storage resolution of an individual component.
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")] [RequiredByFeature("GL_EXT_texture")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")]
+    [RequiredByFeature("GL_EXT_texture")]
     public const int TEXTURE_RED_SIZE = 0x805C;
 
     /// <summary>
     /// [GL2.1] Gl.GetTexLevelParameter:
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")] [RequiredByFeature("GL_EXT_texture")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")]
+    [RequiredByFeature("GL_EXT_texture")]
     public const int TEXTURE_GREEN_SIZE = 0x805D;
 
     /// <summary>
     /// [GL2.1] Gl.GetTexLevelParameter:
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")] [RequiredByFeature("GL_EXT_texture")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")]
+    [RequiredByFeature("GL_EXT_texture")]
     public const int TEXTURE_BLUE_SIZE = 0x805E;
 
     /// <summary>
     /// [GL2.1] Gl.GetTexLevelParameter:
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")] [RequiredByFeature("GL_EXT_texture")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")]
+    [RequiredByFeature("GL_EXT_texture")]
     public const int TEXTURE_ALPHA_SIZE = 0x805F;
 
     /// <summary>
     /// [GL] Value of GL_DOUBLE symbol.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")] [RequiredByFeature("GL_EXT_vertex_attrib_64bit")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_ARB_gpu_shader_fp64", Api = "gl|glcore")]
+    [RequiredByFeature("GL_EXT_vertex_attrib_64bit")]
     public const int DOUBLE = 0x140A;
 
     /// <summary>
     /// [GL] Value of GL_PROXY_TEXTURE_1D symbol.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_EXT_texture")]
     public const int PROXY_TEXTURE_1D = 0x8063;
 
     /// <summary>
     /// [GL] Value of GL_PROXY_TEXTURE_2D symbol.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_EXT_texture")]
     public const int PROXY_TEXTURE_2D = 0x8064;
 
     /// <summary>
@@ -171,13 +189,15 @@ public partial class Gl
     /// <summary>
     /// [GL] Value of GL_RGB4 symbol.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_EXT_texture")]
     public const int RGB4 = 0x804F;
 
     /// <summary>
     /// [GL] Value of GL_RGB5 symbol.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_EXT_texture")]
     public const int RGB5 = 0x8050;
 
     /// <summary>
@@ -203,19 +223,23 @@ public partial class Gl
     /// <summary>
     /// [GL] Value of GL_RGB12 symbol.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_EXT_texture")]
     public const int RGB12 = 0x8053;
 
     /// <summary>
     /// [GL] Value of GL_RGB16 symbol.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RequiredByFeature("GL_EXT_texture_norm16", Api = "gles2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_EXT_texture")]
+    [RequiredByFeature("GL_EXT_texture_norm16", Api = "gles2")]
     public const int RGB16 = 0x8054;
 
     /// <summary>
     /// [GL] Value of GL_RGBA2 symbol.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_EXT_texture")]
     public const int RGBA2 = 0x8055;
 
     /// <summary>
@@ -264,20 +288,24 @@ public partial class Gl
     /// <summary>
     /// [GL] Value of GL_RGBA12 symbol.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_EXT_texture")]
     public const int RGBA12 = 0x805A;
 
     /// <summary>
     /// [GL] Value of GL_RGBA16 symbol.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RequiredByFeature("GL_EXT_texture_norm16", Api = "gles2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_EXT_texture")]
+    [RequiredByFeature("GL_EXT_texture_norm16", Api = "gles2")]
     public const int RGBA16 = 0x805B;
 
     /// <summary>
     /// [GL2.1] Gl.Get: params returns one value indicating the depth of the attribute stack. The initial value is 0. See
     /// Gl.PushClientAttrib.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int CLIENT_ATTRIB_STACK_DEPTH = 0x0BB1;
 
     /// <summary>
@@ -292,32 +320,37 @@ public partial class Gl
     ///     framebuffer using a logical operation. The initial value is Gl.FALSE. See Gl.LogicOp.
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int INDEX_LOGIC_OP = 0x0BF1;
 
     /// <summary>
     /// [GL2.1] Gl.Get: params returns one value indicating the maximum supported depth of the client attribute stack. See
     /// Gl.PushClientAttrib.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int MAX_CLIENT_ATTRIB_STACK_DEPTH = 0x0D3B;
 
     /// <summary>
     /// [GL2.1] Gl.Get: params returns one value, the size of the feedback buffer. See Gl.FeedbackBuffer.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int FEEDBACK_BUFFER_SIZE = 0x0DF1;
 
     /// <summary>
     /// [GL2.1] Gl.Get: params returns one value, the type of the feedback buffer. See Gl.FeedbackBuffer.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int FEEDBACK_BUFFER_TYPE = 0x0DF2;
 
     /// <summary>
     /// [GL2.1] Gl.Get: params return one value, the size of the selection buffer. See Gl.SelectBuffer.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int SELECTION_BUFFER_SIZE = 0x0DF4;
 
     /// <summary>
@@ -369,7 +402,10 @@ public partial class Gl
     ///     value is Gl.FALSE. See Gl.NormalPointer.
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+    [RequiredByFeature("GL_EXT_vertex_array")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int NORMAL_ARRAY = 0x8075;
 
     /// <summary>
@@ -393,7 +429,10 @@ public partial class Gl
     ///     is Gl.FALSE. See Gl.ColorPointer.
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+    [RequiredByFeature("GL_EXT_vertex_array")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int COLOR_ARRAY = 0x8076;
 
     /// <summary>
@@ -408,7 +447,9 @@ public partial class Gl
     ///     value is Gl.FALSE. See Gl.IndexPointer.
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_EXT_vertex_array")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int INDEX_ARRAY = 0x8077;
 
     /// <summary>
@@ -434,7 +475,10 @@ public partial class Gl
     ///     initial value is Gl.FALSE. See Gl.TexCoordPointer.
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+    [RequiredByFeature("GL_EXT_vertex_array")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int TEXTURE_COORD_ARRAY = 0x8078;
 
     /// <summary>
@@ -449,7 +493,9 @@ public partial class Gl
     ///     value is Gl.FALSE. See Gl.EdgeFlagPointer.
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_EXT_vertex_array")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int EDGE_FLAG_ARRAY = 0x8079;
 
     /// <summary>
@@ -463,7 +509,10 @@ public partial class Gl
     ///     Gl.VertexPointer.
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+    [RequiredByFeature("GL_EXT_vertex_array")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int VERTEX_ARRAY_SIZE = 0x807A;
 
     /// <summary>
@@ -477,7 +526,10 @@ public partial class Gl
     ///     Gl.VertexPointer.
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+    [RequiredByFeature("GL_EXT_vertex_array")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int VERTEX_ARRAY_TYPE = 0x807B;
 
     /// <summary>
@@ -491,7 +543,10 @@ public partial class Gl
     ///     Gl.VertexPointer.
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+    [RequiredByFeature("GL_EXT_vertex_array")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int VERTEX_ARRAY_STRIDE = 0x807C;
 
     /// <summary>
@@ -504,7 +559,10 @@ public partial class Gl
     ///     [GLES1.1] Gl.Get: params returns one value, the data type of each normal in the normal array. See Gl.NormalPointer.
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+    [RequiredByFeature("GL_EXT_vertex_array")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int NORMAL_ARRAY_TYPE = 0x807E;
 
     /// <summary>
@@ -518,7 +576,10 @@ public partial class Gl
     ///     Gl.NormalPointer.
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+    [RequiredByFeature("GL_EXT_vertex_array")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int NORMAL_ARRAY_STRIDE = 0x807F;
 
     /// <summary>
@@ -532,7 +593,10 @@ public partial class Gl
     ///     Gl.ColorPointer.
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+    [RequiredByFeature("GL_EXT_vertex_array")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int COLOR_ARRAY_SIZE = 0x8081;
 
     /// <summary>
@@ -545,7 +609,10 @@ public partial class Gl
     ///     Gl.ColorPointer.
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+    [RequiredByFeature("GL_EXT_vertex_array")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int COLOR_ARRAY_TYPE = 0x8082;
 
     /// <summary>
@@ -559,21 +626,28 @@ public partial class Gl
     ///     Gl.ColorPointer.
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+    [RequiredByFeature("GL_EXT_vertex_array")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int COLOR_ARRAY_STRIDE = 0x8083;
 
     /// <summary>
     /// [GL2.1] Gl.Get: params returns one value, the data type of indexes in the color index array. The initial value is
     /// Gl.FLOAT. See Gl.IndexPointer.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_EXT_vertex_array")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int INDEX_ARRAY_TYPE = 0x8085;
 
     /// <summary>
     /// [GL2.1] Gl.Get: params returns one value, the byte offset between consecutive color indexes in the color index array.
     /// The initial value is 0. See Gl.IndexPointer.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_EXT_vertex_array")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int INDEX_ARRAY_STRIDE = 0x8086;
 
     /// <summary>
@@ -588,7 +662,10 @@ public partial class Gl
     ///     Gl.TexCoordPointer.
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+    [RequiredByFeature("GL_EXT_vertex_array")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int TEXTURE_COORD_ARRAY_SIZE = 0x8088;
 
     /// <summary>
@@ -603,7 +680,10 @@ public partial class Gl
     ///     See Gl.TexCoordPointer.
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+    [RequiredByFeature("GL_EXT_vertex_array")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int TEXTURE_COORD_ARRAY_TYPE = 0x8089;
 
     /// <summary>
@@ -617,26 +697,35 @@ public partial class Gl
     ///     array. See Gl.TexCoordPointer.
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+    [RequiredByFeature("GL_EXT_vertex_array")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int TEXTURE_COORD_ARRAY_STRIDE = 0x808A;
 
     /// <summary>
     /// [GL2.1] Gl.Get: params returns one value, the byte offset between consecutive edge flags in the edge flag array. The
     /// initial value is 0. See Gl.EdgeFlagPointer.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_vertex_array")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_EXT_vertex_array")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int EDGE_FLAG_ARRAY_STRIDE = 0x808C;
 
     /// <summary>
     /// [GL2.1] Gl.GetTexLevelParameter:
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_EXT_texture")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int TEXTURE_LUMINANCE_SIZE = 0x8060;
 
     /// <summary>
     /// [GL2.1] Gl.GetTexLevelParameter:
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_EXT_texture")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int TEXTURE_INTENSITY_SIZE = 0x8061;
 
     /// <summary>
@@ -651,14 +740,18 @@ public partial class Gl
     ///     in the range 01. See Gl.PrioritizeTextures and Gl.BindTexture for more information.
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture_object")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_EXT_texture_object")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int TEXTURE_PRIORITY = 0x8066;
 
     /// <summary>
     /// [GL2.1] Gl.GetTexParameter: Returns the residence status of the target texture. If the value returned in params is
     /// Gl.TRUE, the texture is resident in texture memory. See Gl.AreTexturesResident.
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture_object")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_EXT_texture_object")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int TEXTURE_RESIDENT = 0x8067;
 
     /// <summary>
@@ -687,7 +780,9 @@ public partial class Gl
     ///     [0,1] (see Gl.PixelTransfer).
     ///     </para>
     /// </summary>
-    [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_texture")] [RemovedByFeature("GL_VERSION_3_2")]
+    [RequiredByFeature("GL_VERSION_1_1")]
+    [RequiredByFeature("GL_EXT_texture")]
+    [RemovedByFeature("GL_VERSION_3_2")]
     public const int INTENSITY = 0x8049;
 
     /// <summary>
@@ -714,7 +809,7 @@ public partial class Gl
     public static void DrawArrays(PrimitiveType mode, int first, int count)
     {
         Assert(Delegates.pglDrawArrays != null, "pglDrawArrays not implemented");
-        Delegates.pglDrawArrays((int) mode, first, count);
+        Delegates.pglDrawArrays((int)mode, first, count);
         DebugCheckErrors(null);
     }
 
@@ -746,7 +841,7 @@ public partial class Gl
         PerformanceMetrics.RegisterDrawCall();
 
         Assert(Delegates.pglDrawElements != null, "pglDrawElements not implemented");
-        Delegates.pglDrawElements((int) mode, count, (int) type, indices);
+        Delegates.pglDrawElements((int)mode, count, (int)type, indices);
         DebugCheckErrors(null);
     }
 
@@ -812,7 +907,7 @@ public partial class Gl
             fixed (IntPtr* p_params = &@params)
             {
                 Assert(Delegates.pglGetPointerv != null, "pglGetPointerv not implemented");
-                Delegates.pglGetPointerv((int) pname, p_params);
+                Delegates.pglGetPointerv((int)pname, p_params);
             }
         }
 
@@ -911,7 +1006,7 @@ public partial class Gl
     public static void CopyTexImage1D(TextureTarget target, int level, InternalFormat internalformat, int x, int y, int width, int border)
     {
         Assert(Delegates.pglCopyTexImage1D != null, "pglCopyTexImage1D not implemented");
-        Delegates.pglCopyTexImage1D((int) target, level, (int) internalformat, x, y, width, border);
+        Delegates.pglCopyTexImage1D((int)target, level, (int)internalformat, x, y, width, border);
         DebugCheckErrors(null);
     }
 
@@ -964,7 +1059,7 @@ public partial class Gl
     public static void CopyTexImage2D(TextureTarget target, int level, InternalFormat internalformat, int x, int y, int width, int height, int border)
     {
         Assert(Delegates.pglCopyTexImage2D != null, "pglCopyTexImage2D not implemented");
-        Delegates.pglCopyTexImage2D((int) target, level, (int) internalformat, x, y, width, height, border);
+        Delegates.pglCopyTexImage2D((int)target, level, (int)internalformat, x, y, width, height, border);
         DebugCheckErrors(null);
     }
 
@@ -994,7 +1089,7 @@ public partial class Gl
     public static void CopyTexSubImage1D(TextureTarget target, int level, int xoffset, int x, int y, int width)
     {
         Assert(Delegates.pglCopyTexSubImage1D != null, "pglCopyTexSubImage1D not implemented");
-        Delegates.pglCopyTexSubImage1D((int) target, level, xoffset, x, y, width);
+        Delegates.pglCopyTexSubImage1D((int)target, level, xoffset, x, y, width);
         DebugCheckErrors(null);
     }
 
@@ -1039,7 +1134,7 @@ public partial class Gl
     public static void CopyTexSubImage2D(TextureTarget target, int level, int xoffset, int yoffset, int x, int y, int width, int height)
     {
         Assert(Delegates.pglCopyTexSubImage2D != null, "pglCopyTexSubImage2D not implemented");
-        Delegates.pglCopyTexSubImage2D((int) target, level, xoffset, yoffset, x, y, width, height);
+        Delegates.pglCopyTexSubImage2D((int)target, level, xoffset, yoffset, x, y, width, height);
         DebugCheckErrors(null);
     }
 
@@ -1077,7 +1172,7 @@ public partial class Gl
     public static void TexSubImage1D(TextureTarget target, int level, int xoffset, int width, PixelFormat format, PixelType type, IntPtr pixels)
     {
         Assert(Delegates.pglTexSubImage1D != null, "pglTexSubImage1D not implemented");
-        Delegates.pglTexSubImage1D((int) target, level, xoffset, width, (int) format, (int) type, pixels);
+        Delegates.pglTexSubImage1D((int)target, level, xoffset, width, (int)format, (int)type, pixels);
         DebugCheckErrors(null);
     }
 
@@ -1172,7 +1267,7 @@ public partial class Gl
     public static void TexSubImage2D(TextureTarget target, int level, int xoffset, int yoffset, int width, int height, PixelFormat format, PixelType type, IntPtr pixels)
     {
         Assert(Delegates.pglTexSubImage2D != null, "pglTexSubImage2D not implemented");
-        Delegates.pglTexSubImage2D((int) target, level, xoffset, yoffset, width, height, (int) format, (int) type, pixels);
+        Delegates.pglTexSubImage2D((int)target, level, xoffset, yoffset, width, height, (int)format, (int)type, pixels);
         DebugCheckErrors(null);
     }
 
@@ -1220,16 +1315,18 @@ public partial class Gl
     [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
     [RequiredByFeature("GL_SC_VERSION_2_0", Api = "glsc2")]
     [RequiredByFeature("GL_EXT_subtexture")]
-    public static void TexSubImage2D(TextureTarget target, int level, int xoffset, int yoffset, int width, int height, PixelFormat format, PixelType type, object pixels)
+    public static unsafe void TexSubImage2D(TextureTarget target, int level, int xoffset, int yoffset, int width, int height, PixelFormat format, PixelType type, Span<byte> data)
     {
-        GCHandle pin_pixels = GCHandle.Alloc(pixels, GCHandleType.Pinned);
-        try
+        if (data.IsEmpty)
         {
-            TexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pin_pixels.AddrOfPinnedObject());
+            TexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, IntPtr.Zero);
         }
-        finally
+        else
         {
-            pin_pixels.Free();
+            fixed (byte* pData = &data[0])
+            {
+                TexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, (IntPtr)pData);
+            }
         }
     }
 
@@ -1254,7 +1351,7 @@ public partial class Gl
     public static void BindTexture(TextureTarget target, uint texture)
     {
         Assert(Delegates.pglBindTexture != null, "pglBindTexture not implemented");
-        Delegates.pglBindTexture((int) target, texture);
+        Delegates.pglBindTexture((int)target, texture);
         DebugCheckErrors(null);
     }
 
@@ -1401,7 +1498,7 @@ public partial class Gl
     public static void ColorPointer(int size, ColorPointerType type, int stride, IntPtr pointer)
     {
         Assert(Delegates.pglColorPointer != null, "pglColorPointer not implemented");
-        Delegates.pglColorPointer(size, (int) type, stride, pointer);
+        Delegates.pglColorPointer(size, (int)type, stride, pointer);
         DebugCheckErrors(null);
     }
 
@@ -1455,7 +1552,7 @@ public partial class Gl
     public static void DisableClientState(EnableCap array)
     {
         Assert(Delegates.pglDisableClientState != null, "pglDisableClientState not implemented");
-        Delegates.pglDisableClientState((int) array);
+        Delegates.pglDisableClientState((int)array);
         DebugCheckErrors(null);
     }
 
@@ -1517,7 +1614,7 @@ public partial class Gl
     public static void EnableClientState(EnableCap array)
     {
         Assert(Delegates.pglEnableClientState != null, "pglEnableClientState not implemented");
-        Delegates.pglEnableClientState((int) array);
+        Delegates.pglEnableClientState((int)array);
         DebugCheckErrors(null);
     }
 
@@ -1540,7 +1637,7 @@ public partial class Gl
     public static void IndexPointer(IndexPointerType type, int stride, IntPtr pointer)
     {
         Assert(Delegates.pglIndexPointer != null, "pglIndexPointer not implemented");
-        Delegates.pglIndexPointer((int) type, stride, pointer);
+        Delegates.pglIndexPointer((int)type, stride, pointer);
         DebugCheckErrors(null);
     }
 
@@ -1596,7 +1693,7 @@ public partial class Gl
     public static void NormalPointer(NormalPointerType type, int stride, IntPtr pointer)
     {
         Assert(Delegates.pglNormalPointer != null, "pglNormalPointer not implemented");
-        Delegates.pglNormalPointer((int) type, stride, pointer);
+        Delegates.pglNormalPointer((int)type, stride, pointer);
         DebugCheckErrors(null);
     }
 
@@ -1658,7 +1755,7 @@ public partial class Gl
     public static void TexCoordPointer(int size, TexCoordPointerType type, int stride, IntPtr pointer)
     {
         Assert(Delegates.pglTexCoordPointer != null, "pglTexCoordPointer not implemented");
-        Delegates.pglTexCoordPointer(size, (int) type, stride, pointer);
+        Delegates.pglTexCoordPointer(size, (int)type, stride, pointer);
         DebugCheckErrors(null);
     }
 
@@ -1726,7 +1823,7 @@ public partial class Gl
     public static void VertexPointer(int size, VertexPointerType type, int stride, IntPtr pointer)
     {
         Assert(Delegates.pglVertexPointer != null, "pglVertexPointer not implemented");
-        Delegates.pglVertexPointer(size, (int) type, stride, pointer);
+        Delegates.pglVertexPointer(size, (int)type, stride, pointer);
         DebugCheckErrors(null);
     }
 
@@ -1901,7 +1998,10 @@ public partial class Gl
         [SuppressUnmanagedCodeSecurity]
         public delegate void glDrawElements(int mode, int count, int type, IntPtr indices);
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
+        [ThreadStatic]
         public static glDrawElements pglDrawElements;
 
         [RequiredByFeature("GL_VERSION_1_1")]
@@ -1945,7 +2045,9 @@ public partial class Gl
         [SuppressUnmanagedCodeSecurity]
         public delegate void glCopyTexImage1D(int target, int level, int internalformat, int x, int y, int width, int border);
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_copy_texture", EntryPoint = "glCopyTexImage1DEXT")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RequiredByFeature("GL_EXT_copy_texture", EntryPoint = "glCopyTexImage1DEXT")]
+        [ThreadStatic]
         public static glCopyTexImage1D pglCopyTexImage1D;
 
         [RequiredByFeature("GL_VERSION_1_1")]
@@ -1967,7 +2069,9 @@ public partial class Gl
         [SuppressUnmanagedCodeSecurity]
         public delegate void glCopyTexSubImage1D(int target, int level, int xoffset, int x, int y, int width);
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_copy_texture", EntryPoint = "glCopyTexSubImage1DEXT")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RequiredByFeature("GL_EXT_copy_texture", EntryPoint = "glCopyTexSubImage1DEXT")]
+        [ThreadStatic]
         public static glCopyTexSubImage1D pglCopyTexSubImage1D;
 
         [RequiredByFeature("GL_VERSION_1_1")]
@@ -1989,7 +2093,9 @@ public partial class Gl
         [SuppressUnmanagedCodeSecurity]
         public delegate void glTexSubImage1D(int target, int level, int xoffset, int width, int format, int type, IntPtr pixels);
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_subtexture", EntryPoint = "glTexSubImage1DEXT")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RequiredByFeature("GL_EXT_subtexture", EntryPoint = "glTexSubImage1DEXT")]
+        [ThreadStatic]
         public static glTexSubImage1D pglTexSubImage1D;
 
         [RequiredByFeature("GL_VERSION_1_1")]
@@ -2030,7 +2136,10 @@ public partial class Gl
         [SuppressUnmanagedCodeSecurity]
         public delegate void glDeleteTextures(int n, uint* textures);
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
+        [ThreadStatic]
         public static glDeleteTextures pglDeleteTextures;
 
         [RequiredByFeature("GL_VERSION_1_1")]
@@ -2054,7 +2163,10 @@ public partial class Gl
         [return: MarshalAs(UnmanagedType.I1)]
         public delegate bool glIsTexture(uint texture);
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+        [RequiredByFeature("GL_ES_VERSION_2_0", Api = "gles2")]
+        [ThreadStatic]
         public static glIsTexture pglIsTexture;
 
         [RequiredByFeature("GL_VERSION_1_1")]
@@ -2063,7 +2175,10 @@ public partial class Gl
         [SuppressUnmanagedCodeSecurity]
         public delegate void glArrayElement(int i);
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_EXT_vertex_array", EntryPoint = "glArrayElementEXT")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RequiredByFeature("GL_EXT_vertex_array", EntryPoint = "glArrayElementEXT")]
+        [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
+        [ThreadStatic]
         public static glArrayElement pglArrayElement;
 
         [RequiredByFeature("GL_VERSION_1_1")]
@@ -2072,7 +2187,10 @@ public partial class Gl
         [SuppressUnmanagedCodeSecurity]
         public delegate void glColorPointer(int size, int type, int stride, IntPtr pointer);
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+        [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
+        [ThreadStatic]
         public static glColorPointer pglColorPointer;
 
         [RequiredByFeature("GL_VERSION_1_1")]
@@ -2081,7 +2199,10 @@ public partial class Gl
         [SuppressUnmanagedCodeSecurity]
         public delegate void glDisableClientState(int array);
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+        [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
+        [ThreadStatic]
         public static glDisableClientState pglDisableClientState;
 
         [RequiredByFeature("GL_VERSION_1_1")]
@@ -2089,7 +2210,9 @@ public partial class Gl
         [SuppressUnmanagedCodeSecurity]
         public delegate void glEdgeFlagPointer(int stride, IntPtr pointer);
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
+        [ThreadStatic]
         public static glEdgeFlagPointer pglEdgeFlagPointer;
 
         [RequiredByFeature("GL_VERSION_1_1")]
@@ -2098,7 +2221,10 @@ public partial class Gl
         [SuppressUnmanagedCodeSecurity]
         public delegate void glEnableClientState(int array);
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+        [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
+        [ThreadStatic]
         public static glEnableClientState pglEnableClientState;
 
         [RequiredByFeature("GL_VERSION_1_1")]
@@ -2106,7 +2232,9 @@ public partial class Gl
         [SuppressUnmanagedCodeSecurity]
         public delegate void glIndexPointer(int type, int stride, IntPtr pointer);
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
+        [ThreadStatic]
         public static glIndexPointer pglIndexPointer;
 
         [RequiredByFeature("GL_VERSION_1_1")]
@@ -2114,7 +2242,9 @@ public partial class Gl
         [SuppressUnmanagedCodeSecurity]
         public delegate void glInterleavedArrays(int format, int stride, IntPtr pointer);
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
+        [ThreadStatic]
         public static glInterleavedArrays pglInterleavedArrays;
 
         [RequiredByFeature("GL_VERSION_1_1")]
@@ -2123,7 +2253,10 @@ public partial class Gl
         [SuppressUnmanagedCodeSecurity]
         public delegate void glNormalPointer(int type, int stride, IntPtr pointer);
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+        [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
+        [ThreadStatic]
         public static glNormalPointer pglNormalPointer;
 
         [RequiredByFeature("GL_VERSION_1_1")]
@@ -2132,7 +2265,10 @@ public partial class Gl
         [SuppressUnmanagedCodeSecurity]
         public delegate void glTexCoordPointer(int size, int type, int stride, IntPtr pointer);
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+        [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
+        [ThreadStatic]
         public static glTexCoordPointer pglTexCoordPointer;
 
         [RequiredByFeature("GL_VERSION_1_1")]
@@ -2141,7 +2277,10 @@ public partial class Gl
         [SuppressUnmanagedCodeSecurity]
         public delegate void glVertexPointer(int size, int type, int stride, IntPtr pointer);
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RequiredByFeature("GL_VERSION_ES_CM_1_0", Api = "gles1")]
+        [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
+        [ThreadStatic]
         public static glVertexPointer pglVertexPointer;
 
         [RequiredByFeature("GL_VERSION_1_1")]
@@ -2150,7 +2289,9 @@ public partial class Gl
         [return: MarshalAs(UnmanagedType.I1)]
         public delegate bool glAreTexturesResident(int n, uint* textures, byte* residences);
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
+        [ThreadStatic]
         public static glAreTexturesResident pglAreTexturesResident;
 
         [RequiredByFeature("GL_VERSION_1_1")]
@@ -2170,7 +2311,9 @@ public partial class Gl
         [SuppressUnmanagedCodeSecurity]
         public delegate void glIndexub(byte c);
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
+        [ThreadStatic]
         public static glIndexub pglIndexub;
 
         [RequiredByFeature("GL_VERSION_1_1")]
@@ -2178,7 +2321,9 @@ public partial class Gl
         [SuppressUnmanagedCodeSecurity]
         public delegate void glIndexubv(byte* c);
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
+        [ThreadStatic]
         public static glIndexubv pglIndexubv;
 
         [RequiredByFeature("GL_VERSION_1_1")]
@@ -2186,7 +2331,9 @@ public partial class Gl
         [SuppressUnmanagedCodeSecurity]
         public delegate void glPopClientAttrib();
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
+        [ThreadStatic]
         public static glPopClientAttrib pglPopClientAttrib;
 
         [RequiredByFeature("GL_VERSION_1_1")]
@@ -2194,7 +2341,9 @@ public partial class Gl
         [SuppressUnmanagedCodeSecurity]
         public delegate void glPushClientAttrib(uint mask);
 
-        [RequiredByFeature("GL_VERSION_1_1")] [RemovedByFeature("GL_VERSION_3_2", Profile = "core")] [ThreadStatic]
+        [RequiredByFeature("GL_VERSION_1_1")]
+        [RemovedByFeature("GL_VERSION_3_2", Profile = "core")]
+        [ThreadStatic]
         public static glPushClientAttrib pglPushClientAttrib;
     }
 }

@@ -32,7 +32,7 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
 
     private Vector2 GetPartTextureSize()
     {
-        Texture? texture = Texture.GetObject();
+        Texture? texture = Texture.GetObjectLoadinline();
         if (texture != null)
             return texture.Size;
         return Vector2.One;
@@ -105,12 +105,13 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
 
         while (ve.State == Systems.UI.UIWindowState.Open)
         {
-            yield return Texture.Load();
+            Assert(false, "Todo");
+            //yield return Texture.Load();
 
-            Texture? texture = Texture.GetObject();
-            if (texture == null) continue;
+            //Texture? texture = Texture.GetObject();
+            //if (texture == null) continue;
 
-            ve.SetValue(GetCalculatedOrigin(part));
+            //ve.SetValue(GetCalculatedOrigin(part));
         }
     }
 

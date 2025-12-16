@@ -1,4 +1,0 @@
-<ShaderDescription>
-    <Frag>FontShaders/GlyphRenderLine.frag</Frag>
-    <Vert>FontShaders/GlyphRenderLine.vert</Vert>
-</ShaderDescription>

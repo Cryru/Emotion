@@ -1,9 +1,9 @@
-﻿namespace Emotion.Graphics.Batches
+﻿namespace Emotion.Graphics.Batches;
+
+public enum BatchMode
 {
-    public enum BatchMode
-    {
-        Quad,
-        TriangleFan,
-        SequentialTriangles
-    }
+    Quad,
+    TriangleFan,
+    SequentialTriangles,
+    TriangleStrip
 }

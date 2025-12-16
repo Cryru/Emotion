@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Core.Utility.Coroutines;
+using System.Reflection.Metadata;
 
 namespace Emotion.Core.Systems.IO;
 
@@ -37,7 +38,7 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
         AssetObjectReference<TAsset, TObject> newAsset = _currentRef;
 
         // New object that is already loaded, or invalid
-        if (newAsset.ReadyToUse() || !newAsset.IsValid())
+        if (newAsset.Type == AssetOrObjectReferenceType.Object || !newAsset.IsValid())
         {
             AttachNewAsset(newAsset, true);
             InternalOnChanged();
@@ -48,10 +49,30 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
         return _currentSetRoutine;
     }
 
-    private IEnumerator LoadNewAssetAndAttach(AssetObjectReference<TAsset, TObject> newAsset)
+    private IEnumerator LoadNewAssetAndAttach(AssetObjectReference<TAsset, TObject> handle)
     {
-        yield return newAsset.Load(this);
-        AttachNewAsset(newAsset, false);
+        bool addedOwner = false;
+        if (handle.Type == AssetOrObjectReferenceType.AssetName)
+        {
+            TAsset asset = Engine.AssetLoader.Get<TAsset>(handle.AssetName, this, false, false);
+            handle = asset;
+            addedOwner = true;
+        }
+
+        if (handle.Type == AssetOrObjectReferenceType.Asset)
+        {
+            TAsset? asset = handle.Asset;
+            AssertNotNull(asset);
+            if (!asset.Loaded)
+                yield return asset;
+
+            TObject? obj = asset.GetObject();
+            if (obj != null)
+                handle = obj;
+        }
+        _currentRef = handle;
+
+        AttachNewAsset(handle, !addedOwner);
         InternalOnChanged();
     }
 
@@ -72,13 +93,13 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
     {
         if (_currentRef == null || !_currentRef.IsValid()) return default;
 
-        Assert(_currentRef.ReadyToUse());
-        return _currentRef.GetObject();
+        Assert(_currentRef.Type == AssetOrObjectReferenceType.Object);
+        return _currentRef.AssetObject;
     }
 
     public bool CanBeUsed()
     {
-        return _currentRef.ReadyToUse();
+        return _currentRef.Type == AssetOrObjectReferenceType.Object;
     }
 
     public void Done()
@@ -92,21 +113,17 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
 
     private void DetachOldAsset(AssetObjectReference<TAsset, TObject> handle)
     {
-        TAsset? asset = handle.GetAsset();
-        if (asset != null)
-            asset.OnLoaded -= AssetHotReloaded;
-
-        handle.RemoveOwnership(this);
+        TAsset? asset = handle.Asset;
+        asset?.OnLoaded -= AssetHotReloaded;
+        RemoveOwnership(handle, this);
     }
 
     private void AttachNewAsset(AssetObjectReference<TAsset, TObject> handle, bool addOwnership)
     {
-        TAsset? asset = handle.GetAsset();
-        if (asset != null)
-            asset.OnLoaded += AssetHotReloaded;
-
+        TAsset? asset = handle.Asset;
+        asset?.OnLoaded += AssetHotReloaded;
         if (addOwnership)
-            handle.AddOwnership(this);
+            AddOwnership(handle, this);
     }
 
     private void AssetHotReloaded(Asset? asset)
@@ -124,4 +141,23 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
     {
         _onChange?.Invoke(this, _onChangeUserData);
     }
+
+    #region Ownership API
+
+    private static void AddOwnership(AssetObjectReference<TAsset, TObject> handle, object owner)
+    {
+        if (!handle.IsValid()) return;
+        Assert(handle.Type == AssetOrObjectReferenceType.Object); // Must be loaded!
+        Engine.AssetLoader.AddReferenceToAsset(handle.Asset, owner);
+    }
+
+    private static void RemoveOwnership<T>(AssetObjectReference<TAsset, TObject> handle, T obj) where T : notnull
+    {
+        if (!handle.IsValid()) return;
+        Assert(handle.Type == AssetOrObjectReferenceType.Object); // Must be loaded!
+        Engine.AssetLoader.RemoveReferenceFromAsset(handle.Asset, obj);
+    }
+
+
+    #endregion
 }

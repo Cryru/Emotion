@@ -94,6 +94,6 @@ public class ChunkStreamVisualizer : EditorWindow
             c.RenderCircleOutline(actorPos.ToVec3(), rangeRender, Color.Green, true);
         }
 
-        c.RenderString(Vector3.Zero, Color.Black, $"Renderable: {renderable}\nSimulated: {simulated}\nLoaded: {loaded}", FontAsset.GetDefaultBuiltIn().GetAtlas(15));
+        c.RenderString(Vector3.Zero, Color.Black, $"Renderable: {renderable}\nSimulated: {simulated}\nLoaded: {loaded}", 15);
     }
 }

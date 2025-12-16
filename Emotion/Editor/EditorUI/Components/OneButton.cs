@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using Emotion.Graphics.Text;
+
 namespace Emotion.Editor.EditorUI.Components;
 
 public enum ButtonType
@@ -27,7 +29,7 @@ public class OneButton : UIBaseWindow
         set => _label.Text = value;
     }
 
-    protected NewUIText _label;
+    protected UIText _label;
     protected ButtonState _state = ButtonState.Default;
 
     public OneButton(string labelText, ButtonType buttonType = ButtonType.Default)
@@ -49,7 +51,7 @@ public class OneButton : UIBaseWindow
             Visuals.BorderColor = OnePalette.PRIMARY_2;
         }
 
-        var label = new NewUIText()
+        var label = new UIText()
         {
             TextColor = OnePalette.PRIMARY_2,
             FontSize = OnePalette.FONT_SIZE,
@@ -58,8 +60,7 @@ public class OneButton : UIBaseWindow
             Layout =
             {
                 AnchorAndParentAnchor = UIAnchor.CenterCenter
-            },
-            TextHeightMode = Game.Systems.UI.Text.GlyphHeightMeasurement.NoMinY
+            }
         };
         AddChild(label);
         _label = label;

@@ -2,7 +2,6 @@
 
 using Emotion.Core.Utility.Coroutines;
 using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 
 namespace Emotion.Core.Systems.JobSystem;
@@ -59,51 +58,56 @@ public class AsyncJobManager
         Channel<AsyncJobRoutine> channel = threadContext.Queue;
         ChannelReader<AsyncJobRoutine> reader = channel.Reader;
 
-        List<AsyncJobRoutine> activeJobs = new List<AsyncJobRoutine>(16);
-        SpinWait spinner = new SpinWait();
+        LinkedList<AsyncJobRoutine> jobs = new LinkedList<AsyncJobRoutine>();
         while (Engine.Status != EngineState.Stopped)
         {
-            bool performedWork = false;
+            bool addedThisTick = false;
 
             if (priorityReader.TryRead(out AsyncJobRoutine? newPriorityJob))
             {
-                activeJobs.Add(newPriorityJob);
-                performedWork = true;
-            }
-            else if (!threadContext.ImportantJobsOnly && reader.TryRead(out AsyncJobRoutine? newJob))
-            {
-                activeJobs.Add(newJob);
-                performedWork = true;
+                addedThisTick = true;
+                jobs.AddLast(newPriorityJob);
             }
 
-            for (int i = activeJobs.Count - 1; i >= 0; i--)
+            if (!threadContext.ImportantJobsOnly && !addedThisTick)
             {
-                var val = activeJobs[i];
-                val.RunTask();
-                performedWork = true;
-
-                if (val.Finished)
+                if (reader.TryRead(out AsyncJobRoutine? newJob))
                 {
-                    if (val.JobTag != null)
-                    {
-                        threadContext.JobTagCount.AddOrUpdate(val.JobTag, 0, static (_, oldValue) => oldValue - 1);
-                    }
-
-                    AsyncJobRoutine.ReturnToPoolIfFromPool(val);
-
-                    int lastIndex = activeJobs.Count - 1;
-                    activeJobs[i] = activeJobs[lastIndex];
-                    activeJobs.RemoveAt(lastIndex);
+                    jobs.AddLast(newJob);
                 }
             }
 
-            threadContext.Metrics_JobCount = activeJobs.Count;
+            // Run queued jobs
+            int jobCount = 0;
+            LinkedListNode<AsyncJobRoutine>? currentNode = jobs.First;
+            while (currentNode != null)
+            {
+                jobCount++;
+                AsyncJobRoutine val = currentNode.Value;
+                val.RunTask();
+                if (val.Finished)
+                {
+                    jobs.Remove(currentNode);
 
-            // Wait for more work
-            if (!performedWork)
-                spinner.SpinOnce();
-            else
-                spinner.Reset();
+                    if (val.JobTag != null)
+                    {
+                        threadContext.JobTagCount.AddOrUpdate(
+                           val.JobTag,
+                           addValue: 0,
+                           updateValueFactory: (_, oldValue) => oldValue - 1
+                       );
+                    }
+
+                    AsyncJobRoutine.ReturnToPoolIfFromPool(val);
+                }
+                currentNode = currentNode.Next;
+            }
+
+            threadContext.Metrics_JobCount = jobCount;
+
+            // No jobs were ran, sleep.
+            if (jobCount == 0)
+                Thread.Sleep(10);
         }
     }
 

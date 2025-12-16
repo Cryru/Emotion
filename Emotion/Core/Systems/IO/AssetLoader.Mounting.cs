@@ -230,7 +230,7 @@ public partial class AssetLoader
         protected void AssetChangeEvent(object sender, FileSystemEventArgs e)
         {
             string filePath = e.FullPath;
-            if (filePath.EndsWith(".backup") || filePath.EndsWith(".writeTemp")) return;
+            if (filePath.EndsWith(".backup") || filePath.EndsWith(".writeTemp") || filePath.EndsWith(".TMP") || filePath.EndsWith('~')) return;
 
             Span<char> virtualPath = stackalloc char[1024];
             {
@@ -242,6 +242,7 @@ public partial class AssetLoader
             {
                 Engine.Log.Trace($"Asset created - {filePath}!", MessageSource.Debug);
                 _loader.MountFile(filePath, virtualPath);
+                _loader.ReloadAsset(virtualPath);
             }
             else if (e.ChangeType == WatcherChangeTypes.Deleted)
             {
@@ -252,6 +253,14 @@ public partial class AssetLoader
             {
                 string oldPath = eRename.OldFullPath;
                 if (oldPath.EndsWith(".writeTemp")) return;
+
+                // Visual Studio does weird stuff
+                if (oldPath.EndsWith('~'))
+                {
+                    Engine.Log.Trace($"Asset changed {virtualPath}!", MessageSource.Debug);
+                    _loader.ReloadAsset(virtualPath);
+                    return;
+                }
 
                 Span<char> oldVirtualPath = stackalloc char[1024];
                 {

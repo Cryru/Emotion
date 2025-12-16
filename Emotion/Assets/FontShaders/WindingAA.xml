@@ -1,4 +1,0 @@
-<ShaderDescription>
-    <Vert>FontShaders/WindingAA.vert</Vert>
-    <Frag>FontShaders/WindingAA.frag</Frag>
-</ShaderDescription>

@@ -147,7 +147,7 @@ public class SpriteEntityMetaState
         if (!partData.part.Visible || partData.currentFrame == null)
             return false;
 
-        var partTexture = partData.currentFrame.Texture.GetObject();
+        var partTexture = partData.currentFrame.Texture.GetObjectLoadinline();
         if (partTexture == null)
             return false;
 

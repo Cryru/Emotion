@@ -1,5 +1,4 @@
 ﻿using Emotion.Game.Systems.UI;
-using Emotion.Game.Systems.UI.Text.TextUpdate;
 using System.Globalization;
 
 #nullable enable
@@ -17,7 +16,7 @@ public class NumberEditor<TNumber> : TypeEditor where TNumber : INumber<TNumber>
         };
         AddChild(inputBackground);
 
-        UITextInput2 input = new UITextInput2
+        UITextInput input = new UITextInput
         {
             Name = "TextInput",
 
@@ -38,7 +37,7 @@ public class NumberEditor<TNumber> : TypeEditor where TNumber : INumber<TNumber>
 
     public override void SetValue(object? value)
     {
-        UITextInput2? textInput = GetWindowById<UITextInput2>("TextInput");
+        UITextInput? textInput = GetWindowById<UITextInput>("TextInput");
         AssertNotNull(textInput);
         if (value == null)
             textInput.Text = "<null>";

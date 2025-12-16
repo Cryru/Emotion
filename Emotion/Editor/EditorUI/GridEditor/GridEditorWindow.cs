@@ -2,8 +2,6 @@
 
 using Emotion.Editor.Editor2D;
 using Emotion.Editor.EditorUI.Components;
-using Emotion.Game.Systems.UI;
-using Emotion.Game.Systems.UI.Text.TextUpdate;
 using Emotion.Primitives.Grids;
 
 namespace Emotion.Editor.EditorUI.GridEditor;
@@ -55,10 +53,7 @@ public abstract class GridEditorWindow : UIBaseWindow
             };
             textList.AddChild(label);
 
-            var labelDynamic = new EditorLabel("")
-            {
-                AllowRenderBatch = false
-            };
+            var labelDynamic = new EditorLabel("");
             textList.AddChild(labelDynamic);
             _bottomText = labelDynamic;
         }

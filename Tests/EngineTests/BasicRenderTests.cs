@@ -199,12 +199,13 @@ public class BasicRenderTests : ProxyRenderTestingScene
     [Test]
     public IEnumerator RenderText()
     {
-        var asset = Engine.AssetLoader.LEGACY_Get<FontAsset>("Fonts/1980XX.ttf");
+        var asset = Engine.AssetLoader.Get<FontAsset>("Fonts/1980XX.ttf");
+        yield return asset;
 
         ToRender = (composer) =>
         {
             composer.SetUseViewMatrix(false);
-            composer.RenderString(new Vector3(10, 10, 0), Color.Red, "The quick brown fox jumps over the lazy dog.\n123456789!@#$%^&*(0", asset.GetAtlas(20));
+            composer.RenderString(new Vector3(10, 10, 0), Color.Red, "The quick brown fox jumps over the lazy dog.\n123456789!@#$%^&*(0", asset.Font, 20);
         };
 
         yield return new TestWaiterRunLoops(2);
@@ -217,8 +218,12 @@ public class BasicRenderTests : ProxyRenderTestingScene
     [Test]
     public IEnumerator RenderDepthTest()
     {
-        var asset = Engine.AssetLoader.LEGACY_Get<TextureAsset>("Images/logoAlpha.png");
-        var fontAsset = Engine.AssetLoader.LEGACY_Get<FontAsset>("Fonts/1980XX.ttf");
+        var asset = Engine.AssetLoader.Get<TextureAsset>("Images/logoAlpha.png");
+        yield return asset;
+
+        var fontAsset = Engine.AssetLoader.Get<FontAsset>("Fonts/1980XX.ttf");
+        yield return fontAsset;
+
         const int maxY = 5 * 49;
 
         ToRender = (composer) =>
@@ -254,9 +259,9 @@ public class BasicRenderTests : ProxyRenderTestingScene
             composer.RenderSprite(new Vector3(Engine.Renderer.CurrentTarget.Size.X - 250, 100, 0), new Vector2(100, 100), Color.White, asset.Texture);
             composer.RenderSprite(new Vector3(Engine.Renderer.CurrentTarget.Size.X - 300, 100, 1), new Vector2(100, 100), Color.White, asset.Texture);
 
-            composer.RenderString(new Vector3(Engine.Renderer.CurrentTarget.Size.X / 2 - 100, 0, 1), Color.Red, "This is test text", fontAsset.GetAtlas(20));
-            composer.RenderString(new Vector3(Engine.Renderer.CurrentTarget.Size.X / 2 - 100, 10, 2), Color.Green, "This is test text", fontAsset.GetAtlas(20));
-            composer.RenderString(new Vector3(Engine.Renderer.CurrentTarget.Size.X / 2 - 100, 20, 1), Color.Blue, "This is test text", fontAsset.GetAtlas(20));
+            composer.RenderString(new Vector3(Engine.Renderer.CurrentTarget.Size.X / 2 - 100, 0, 1), Color.Red, "This is test text", fontAsset.Font, 20);
+            composer.RenderString(new Vector3(Engine.Renderer.CurrentTarget.Size.X / 2 - 100, 10, 2), Color.Green, "This is test text", fontAsset.Font, 20);
+            composer.RenderString(new Vector3(Engine.Renderer.CurrentTarget.Size.X / 2 - 100, 20, 1), Color.Blue, "This is test text", fontAsset.Font, 20);
             composer.RenderSprite(new Vector3(Engine.Renderer.CurrentTarget.Size.X / 2 - 100, 0, 0), new Vector2(200, 100), Color.Black);
 
             Engine.Renderer.EndFrame();
@@ -273,9 +278,8 @@ public class BasicRenderTests : ProxyRenderTestingScene
     public IEnumerator TestDepthFromOtherFrameBuffer()
     {
         ToRender = (composer) =>
-         {
+        {
              FrameBuffer testBuffer = new FrameBuffer(Engine.Renderer.DrawBuffer.Size).WithColor().WithDepth(true);
-             ShaderAsset shader = Engine.AssetLoader.LEGACY_Get<ShaderAsset>("Shaders/DepthTest.xml");
 
              composer.Camera.Position += composer.Camera.WorldToScreen(Vector3.Zero).ToVec3();
 
@@ -285,8 +289,8 @@ public class BasicRenderTests : ProxyRenderTestingScene
              composer.RenderTo(null);
 
              composer.SetUseViewMatrix(false);
-             composer.SetShader(shader.Shader);
-             shader.Shader.SetUniformInt("depthTexture", 1);
+             var shader = composer.SetShader("Shaders/DepthTest.xml");
+             shader.SetUniformInt("depthTexture", 1);
              Texture.EnsureBound(testBuffer.DepthTexture.Pointer, 1);
              composer.RenderSprite(new Vector3(0, 0, 0), testBuffer.Texture.Size, Color.White, testBuffer.Texture);
              composer.SetShader();

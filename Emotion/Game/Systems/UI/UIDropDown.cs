@@ -30,7 +30,7 @@ public class UIDropDown : UIAttachedWindow
         HandleInput = true;
         Layout.SizingX = UISizing.Fit();
         Layout.SizingY = UISizing.Fit();
-        OrderInParent = 99;
+        OrderInParent = 999;
         //OverlayWindow = true;
     }
 

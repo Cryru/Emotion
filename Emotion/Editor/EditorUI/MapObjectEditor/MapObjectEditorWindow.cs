@@ -63,18 +63,13 @@ public class MapObjectEditorWindow : UIBaseWindow
             };
             barContent.AddChild(textList);
 
-            var label = new EditorLabel
-            ("Object Editor")
+            var label = new EditorLabel("Object Editor")
             {
                 WindowColor = Color.White * 0.5f
             };
             textList.AddChild(label);
 
-            var labelDynamic = new EditorLabel
-            ("")
-            {
-                AllowRenderBatch = false
-            };
+            var labelDynamic = new EditorLabel("");
             textList.AddChild(labelDynamic);
             _bottomText = labelDynamic;
         }

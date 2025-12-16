@@ -10,8 +10,6 @@ using Emotion.Core.Utility.Coroutines;
 using Emotion.Editor;
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Game.Systems.UI;
-using Emotion.Game.Systems.UI.Text;
-using Emotion.Game.Systems.UI.Text.TextUpdate;
 using Emotion.Game.Systems.UI2;
 using Emotion.Game.Systems.UI2.Editor;
 using Emotion.Graphics;
@@ -263,7 +261,7 @@ public class NewUITests : TestingScene
                 },
                 Children =
                 {
-                    new NewUIText()
+                    new UIText()
                     {
                         Text = items[i],
                         FontSize = 50,

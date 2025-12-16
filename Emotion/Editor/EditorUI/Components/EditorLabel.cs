@@ -1,7 +1,6 @@
 ﻿#nullable enable
 
-using Emotion.Game.Systems.UI;
-using Emotion.Game.Systems.UI2;
+using Emotion.Graphics.Text;
 
 namespace Emotion.Editor.EditorUI.Components;
 
@@ -11,7 +10,7 @@ public enum LabelStyle
     MapEditor
 }
 
-public class EditorLabel : NewUIText
+public class EditorLabel : UIText
 {
     public EditorLabel()
     {
@@ -33,8 +32,7 @@ public class EditorLabel : NewUIText
         switch (style)
         {
             case LabelStyle.MapEditor:
-                label.OutlineColor = Color.Black;
-                label.OutlineSize = 2;
+                label.Effect = TextEffect.Outline(Color.Black, 2);
                 label.FontSize = 23;
                 break;
         }
