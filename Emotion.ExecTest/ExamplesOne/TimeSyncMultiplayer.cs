@@ -83,9 +83,6 @@ public class TimeSyncMultiplayer_TestScene : SceneWithMap
 
     protected override IEnumerator InternalLoadSceneRoutineAsync()
     {
-        // Fixes deadlock
-        Engine.AssetLoader.LEGACY_Get<ShaderAsset>("FontShaders/SDF.xml");
-
         UIBaseWindow buttonList = new UIBaseWindow();
         buttonList.Layout.LayoutMethod = UILayoutMethod.HorizontalList(0);
         SceneUI.AddChild(buttonList);
@@ -209,12 +206,12 @@ public class TimeSyncMultiplayer_TestScene : SceneWithMap
             var firstRoom = server.ActiveRooms[0];
             if (firstRoom.ServerGameplay is MsgBrokerTimeSyncGameplay syncRoom)
             {
-                c.RenderString(Vector3.Zero, Color.Red, $"{Engine.CurrentGameTime}\n{syncRoom.CurrentGameTime}", FontAsset.GetDefaultBuiltIn().GetAtlas(35));
+                c.RenderString(Vector3.Zero, Color.Red, $"{Engine.CurrentGameTime}\n{syncRoom.CurrentGameTime}", 35);
             }
         }
         else if (_clientCom != null)
         {
-            c.RenderString(Vector3.Zero, Color.Red, $"{Engine.CurrentGameTime}\n{_networkCom}", FontAsset.GetDefaultBuiltIn().GetAtlas(35));
+            c.RenderString(Vector3.Zero, Color.Red, $"{Engine.CurrentGameTime}\n{_networkCom}", 35);
         }
 
         c.ClearDepth();

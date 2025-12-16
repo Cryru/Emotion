@@ -3,13 +3,13 @@
 #region Using
 
 using Emotion.Core.Systems.IO;
-using Emotion.Game.Systems.UI.Text;
 using Emotion.Graphics.Assets;
 using Emotion.Graphics.Batches;
-using Emotion.Graphics.Batches.SpriteBatcher;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
+using Emotion.Graphics.Shader;
 using Emotion.Graphics.Text;
+using Emotion.Standard.Parsers.OpenType;
 
 #endregion
 
@@ -18,16 +18,6 @@ namespace Emotion.Graphics
     // Command routines for sprites (and sprite-like) which use the RenderComposer.
     public sealed partial class Renderer
     {
-        private bool _spriteBatcherEnabled;
-        private RenderSpriteBatch _batcher = new RenderSpriteBatch();
-
-        public void EnableSpriteBatcher(bool on)
-        {
-            _spriteBatcherEnabled = on;
-
-            if (!on) _batcher.Clear();
-        }
-
         /// <summary>
         /// Render a (textured) quad to the screen.
         /// </summary>
@@ -40,16 +30,8 @@ namespace Emotion.Graphics
         /// <param name="flipY">Whether to flip the texture on the y axis.</param>
         public void RenderSprite(Vector3 position, Vector2 size, Color color, Texture? texture = null, Rectangle? textureArea = null, bool flipX = false, bool flipY = false)
         {
-            if (_spriteBatcherEnabled && _bufferStack.Count == 1)
-            {
-                Span<VertexData> vertices = _batcher.AddSprite(CurrentState, texture);
-                VertexData.SpriteToVertexData(vertices, position, size, color, texture, textureArea, flipX, flipY);
-            }
-            else
-            {
-                Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad, texture);
-                VertexData.SpriteToVertexData(vertices, position, size, color, texture, textureArea, flipX, flipY);
-            }
+            Span<VertexData> vertices = RenderStream.GetStreamMemory(4, BatchMode.Quad, texture);
+            VertexData.SpriteToVertexData(vertices, position, size, color, texture, textureArea, flipX, flipY);
         }
 
         /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
@@ -85,7 +67,7 @@ namespace Emotion.Graphics
         /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
         public void RenderSprite(Vector3 position, Texture texture, Rectangle? textureArea = null)
         {
-            RenderSprite(position, texture.Size, Color.White, texture, textureArea);
+            RenderSprite(position, textureArea?.Size ?? texture.Size, Color.White, texture, textureArea);
         }
 
         /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
@@ -276,52 +258,18 @@ namespace Emotion.Graphics
             RenderRectOutline(rect.Position.ToVec3(), rect.Size, color, thickness);
         }
 
-        /// <summary>
-        /// Render a string from an atlas.
-        /// </summary>
-        /// <param name="position">The top left position of where to start drawing the string.</param>
-        /// <param name="color">The text color.</param>
-        /// <param name="text">The text itself.</param>
-        /// <param name="atlas">The font atlas to use.</param>
-        /// <param name="layouter">The layouter to use.</param>
-        /// <param name="effect">Effect to apply</param>
-        /// <param name="effectAmount">The effect amount.</param>
-        /// <param name="effectColor">The effect color.</param>
-        public void RenderString(
-            Vector3 position, Color color, string text, DrawableFontAtlas atlas, TextLayouter? layouter = null,
-            FontEffect effect = FontEffect.None, float effectAmount = 0f, Color? effectColor = null)
-        {
-            layouter ??= new TextLayouter(atlas);
-
-            atlas.SetupDrawing(this, text, effect, effectAmount, effectColor);
-
-            var reUsableVector = new Vector3();
-            foreach (char c in text)
-            {
-                Vector2 gPos = layouter.AddLetter(c, out DrawableGlyph g);
-                if (g == null || g.GlyphUV == Rectangle.Empty) continue;
-
-                reUsableVector.X = gPos.X;
-                reUsableVector.Y = gPos.Y;
-                atlas.DrawGlyph(this, g, position + reUsableVector, color);
-            }
-
-            atlas.FinishDrawing(this);
-        }
-
         public void RenderGrid(Vector3 pos, Vector2 size, Vector2 tileSize, Color color, Vector2? offset = null)
         {
             ShaderAsset gridShader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/3DGrid.xml");
-            if (gridShader.Loaded && gridShader.Shader != null)
-            {
-                SetShader(gridShader.Shader);
-                gridShader.Shader.SetUniformVector2("squareSize", tileSize);
-                gridShader.Shader.SetUniformVector2("cameraPos", offset.HasValue ? (offset.Value / size) : Vector2.Zero);
-                gridShader.Shader.SetUniformVector2("totalSize", size);
-                gridShader.Shader.SetUniformColor("objectTint", color);
-                RenderSprite(pos, size, Color.White);
-                SetShader(null);
-            }
+            if (!gridShader.Loaded || gridShader.Shader == null) return;
+
+            SetShader(gridShader.Shader);
+            gridShader.Shader.SetUniformVector2("squareSize", tileSize);
+            gridShader.Shader.SetUniformVector2("cameraPos", offset.HasValue ? (offset.Value / size) : Vector2.Zero);
+            gridShader.Shader.SetUniformVector2("totalSize", size);
+            gridShader.Shader.SetUniformColor("objectTint", color);
+            RenderSprite(pos, size, Color.White);
+            SetShader(null);
         }
     }
 }

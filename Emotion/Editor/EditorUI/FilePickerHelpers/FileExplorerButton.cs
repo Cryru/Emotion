@@ -2,6 +2,7 @@
 
 using System.IO;
 using Emotion.Core.Systems.IO;
+using Emotion.Editor.EditorUI.Components;
 using Emotion.Game.Systems.UI;
 using Emotion.Game.Systems.UI2.Editor;
 
@@ -13,7 +14,7 @@ namespace Emotion.Editor.EditorUI.FilePickerHelpers;
 
 public class FileExplorerButton : UICallbackButton
 {
-    private NewUIText _label;
+    private UIText _label;
     private UIBaseWindow _bg;
     private UIBaseWindow _notch;
 
@@ -55,7 +56,7 @@ public class FileExplorerButton : UICallbackButton
         _bg = bg;
         AddChild(bg);
 
-        NewUIText txt = new()
+        UIText txt = new()
         {
             Name = "buttonText",
 
@@ -159,7 +160,7 @@ public class FileExplorerButton : UICallbackButton
         // If unknown file type then display the
         // preview as a label of the file extension.
 
-        var ext = new UIText
+        var ext = new EditorLabel
         {
             ParentAnchor = UIAnchor.CenterCenter,
             Anchor = UIAnchor.CenterCenter,

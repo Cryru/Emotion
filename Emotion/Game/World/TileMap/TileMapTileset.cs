@@ -19,7 +19,7 @@ public class TileMapTileset
 
     public Vector2 GetTilesetTextureSize()
     {
-        Texture? asset = Texture.GetObject();
+        Texture? asset = Texture.GetObjectLoadinline();
         if (asset == null) return TileSize;
         return Vector2.Max(asset.Size, TileSize);
     }

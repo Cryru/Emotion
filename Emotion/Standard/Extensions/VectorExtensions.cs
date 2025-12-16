@@ -59,6 +59,16 @@ public static class VectorExtensions
         return new Vector3(v.X, v.Y, v.Z);
     }
 
+    public static IntVector2 ToIVec2Floor(this Vector2 v)
+    {
+        return IntVector2.FromVec2Floor(v);
+    }
+
+    public static IntVector2 ToIVec2Ceil(this Vector2 v)
+    {
+        return IntVector2.FromVec2Ceiling(v);
+    }
+
     /// <summary>
     /// Round the vector by casting it's components to ints.
     /// </summary>

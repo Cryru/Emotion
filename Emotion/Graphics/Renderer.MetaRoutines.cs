@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using Emotion.Core.Systems.IO;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
+using Emotion.Graphics.Shader;
 using Emotion.Graphics.Shading;
 
 #endregion
@@ -235,8 +236,9 @@ namespace Emotion.Graphics
 
         public void RenderRoundedRectSdf(Vector3 pos, Vector2 size, Color c, float radius = 7f)
         {
-            _roundedRectangleSdfShader ??= Engine.AssetLoader.LEGACY_Get<ShaderAsset>("Shaders/RoundedRectangle.xml");
+            _roundedRectangleSdfShader ??= Engine.AssetLoader.Get<ShaderAsset>("Shaders/RoundedRectangle.xml");
             ShaderAsset roundedRectShader = _roundedRectangleSdfShader;
+            if (!roundedRectShader.Loaded) return;
 
             ShaderProgram prevShader = CurrentShader;
             SetShader(roundedRectShader.Shader);

@@ -2,9 +2,10 @@
 
 #region Using
 
-using Emotion.Core.Systems.Logging;
 using Emotion.Standard.OpenType.FontTables;
 using Emotion.Standard.Parsers.OpenType.FontTables;
+using NewStbTrueTypeSharp;
+using static NewStbTrueTypeSharp.StbTrueType;
 
 #endregion
 
@@ -121,8 +122,18 @@ public class Font
     /// </summary>
     public uint LastCharIndex { get; protected set; }
 
+    #region New
+
+    public int FontHash { get; protected set; }
+
+    internal StbTrueType.stbtt_fontinfo StbFontInfo { get; set; }
+
+    #endregion
+
     public Font(ReadOnlyMemory<byte> fileData)
     {
+        StbFontInfo = StbTrueType.CreateFont(fileData, 0);
+
         // Note: OpenType fonts use big endian byte ordering.
         using var r = new ByteReader(fileData);
         var tag = new string(r.ReadChars(4));
@@ -170,6 +181,8 @@ public class Font
             Copyright = NameTable.GetDefaultValue(names, "copyright");
             UniqueId = NameTable.GetDefaultValue(names, "uniqueID");
         }
+
+        FontHash = FullName.GetStableHashCode();
 
         // Parse required tables
         FontTable? headTable = GetTable("head");
@@ -382,4 +395,43 @@ public class Font
 
         return cvt;
     }
+
+    #region Public API
+
+    public int GetGlyphIndexFromChar(char ch)
+    {
+        if (CharToGlyph.TryGetValue(ch, out FontGlyph? val))
+            return val.MapIndex;
+        return 0;
+    }
+
+    public float GetScaleFromFontSize(int textSize, bool pixelFont = false)
+    {
+        if (pixelFont)
+        {
+            // Scale to closest power of two.
+            float fontHeight = Height;
+            float scaleFactor = fontHeight / textSize;
+            int scaleFactorP2 = Maths.ClosestPowerOfTwoGreaterThan((int)MathF.Floor(scaleFactor));
+            textSize = (int) Math.Floor(fontHeight / scaleFactorP2);
+        }
+
+        // Convert from Emotion font size (legacy) to real font size.
+        if (Engine.Configuration.UseEmotionFontSize)
+        {
+            float diff = UnitsPerEm / Height;
+            textSize = (int) MathF.Round(textSize * diff);
+        }
+
+        stbtt_fontinfo stbFont = StbFontInfo;
+        return stbtt_ScaleForMappingEmToPixels(stbFont, textSize);
+    }
+
+    public int GetTextHeight(int textSize, bool pixelFont = false)
+    {
+        float scale = GetScaleFromFontSize(textSize, pixelFont);
+        return (int)MathF.Round((Ascender - Descender) * scale);
+    }
+
+    #endregion
 }

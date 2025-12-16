@@ -1,10 +1,5 @@
 ﻿#nullable enable
 
-using Emotion.Standard.Reflector;
-using Emotion.Standard.Reflector.Handlers;
-using Emotion.Standard.Reflector.Handlers.Base;
-using Emotion.Standard.Reflector.Handlers.Interfaces;
-
 namespace Emotion.Editor.EditorUI.Components;
 
 public class StyleGuideViewer : EditorWindow
@@ -48,7 +43,7 @@ public class StyleGuideViewer : EditorWindow
 
         foreach (var buttonState in buttonStates)
         {
-            buttonStateSection.AddChild(new NewUIText()
+            buttonStateSection.AddChild(new UIText()
             {
                 Text = Enum.GetName<ButtonState>(buttonState) ?? string.Empty
             });
@@ -62,7 +57,7 @@ public class StyleGuideViewer : EditorWindow
             },
             SetChildren =
             [
-                new NewUIText()
+                new UIText()
                 {
                     Text = "Default"
                 }
@@ -85,7 +80,7 @@ public class StyleGuideViewer : EditorWindow
             },
             SetChildren =
             [
-                new NewUIText()
+                new UIText()
                 {
                     Text = "Outlined"
                 }
@@ -99,5 +94,23 @@ public class StyleGuideViewer : EditorWindow
             button.SetState(but);
             outlineButtonSection.AddChild(button);
         }
+
+        var textInputSection = new UIContainer()
+        {
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalList(40)
+            },
+            SetChildren =
+            [
+                new UIText()
+                {
+                    Text = "Text Input"
+                }
+            ]
+        };
+        grid.AddChild(textInputSection);
+
+        textInputSection.AddChild(new OneTextInput());
     }
 }

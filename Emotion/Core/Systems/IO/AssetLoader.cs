@@ -214,7 +214,7 @@ public partial class AssetLoader
     /// Get a loaded asset by its name or load it.
     /// This is a legacy API!
     /// </summary>
-    [Obsolete("Use GetInstant or Get")]
+    [Obsolete("Use Get (+ .Loaded) and parallelize your code (or just load inline and suffer)!")]
     public T? LEGACY_Get<T>(string name, bool cache = true) where T : Asset, new()
     {
         return Get<T>(name, null, true, false, !cache);

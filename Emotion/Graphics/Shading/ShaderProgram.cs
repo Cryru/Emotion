@@ -352,7 +352,7 @@ public class ShaderProgram
         if (Engine.Host == null) return;
         if (Bound == ptr) Bound = 0;
 
-        GLThread.ExecuteGLThreadAsync(() => { Gl.DeleteProgram(ptr); });
+        GLThread.ExecuteOnGLThreadAsync(static (uint ptr) => Gl.DeleteProgram(ptr), ptr);
     }
 
     /// <summary>

@@ -7,6 +7,7 @@ using Emotion.Core.Systems.IO;
 using Emotion.Core.Systems.Logging;
 using Emotion.Game.Systems.Animation.TwoDee;
 using Emotion.Graphics.Assets;
+using Emotion.Graphics.Shader;
 using Emotion.Graphics.Shading;
 
 #endregion

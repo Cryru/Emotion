@@ -2,16 +2,133 @@
 
 #region Using
 
-using Emotion.Core.Systems.Logging;
 using Emotion.Core.Utility;
 using Emotion.Core.Utility.Profiling;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Shading;
 using OpenGL;
+using System.Runtime.InteropServices;
 
 #endregion
 
 namespace Emotion.Graphics.Batches;
+
+public static class TextureAtlasHelper
+{
+    private static Dictionary<PixelFormat, Vector2> _pixelFormatToSize = [];
+
+    public static Vector2 GetMaxAtlasTextureSize(PixelFormat format)
+    {
+        if (_pixelFormatToSize.TryGetValue(format, out Vector2 atlasSize))
+            return atlasSize;
+
+        int componentCount = Gl.PixelFormatToComponentCount(format);
+        atlasSize = new Vector2(Gl.CurrentLimits.MaxTextureSize / componentCount);
+        _pixelFormatToSize.Add(format, atlasSize);
+        return atlasSize;
+    }
+}
+
+public class TextureAtlasSimple<T> : Packing.PackingResumableState
+    where T : notnull
+{
+    public struct TextureAtlasItem
+    {
+        public int Staleness;
+        public Rectangle UV;
+    }
+
+    public Texture Texture => _atlasTexture;
+    public Vector2 Spacing = new Vector2(2);
+
+    private readonly Texture _atlasTexture;
+    private Dictionary<T, int> _items = new();
+    private List<TextureAtlasItem> _itemBacking = new();
+
+    public TextureAtlasSimple(PixelFormat pixelFormat, InternalFormat internalFormat, PixelType pixelType)
+        : base(TextureAtlasHelper.GetMaxAtlasTextureSize(pixelFormat))
+    {
+        _atlasTexture = new Texture(Size, pixelFormat, false, internalFormat, pixelType);
+    }
+
+    public bool CheckHas(T hash, out Rectangle uv, bool markActivity = false)
+    {
+        if (_items.TryGetValue(hash, out int itemIdx))
+        {
+            TextureAtlasItem item = _itemBacking[itemIdx];
+            item.Staleness = 0;
+            _itemBacking[itemIdx] = item;
+
+            uv = item.UV;
+            return true;
+        }
+
+        uv = Rectangle.Empty;
+        return false;
+    }
+
+    public Rectangle? TryAdd(T hash, IntVector2 size, Span<byte> data)
+    {
+        Vector2? offset = Packing.FitRectanglesResumable(size.ToVec2() + Spacing * 2, this);
+        if (offset == null) return null;
+
+        Vector2 renderOffset = offset.Value + Spacing;
+
+        var uv = new Primitives.Rectangle(renderOffset, size.ToVec2());
+        var newItem = new TextureAtlasItem()
+        {
+            Staleness = 0,
+            UV = uv
+        };
+        _items.TryAdd(hash, _itemBacking.Count);
+        _itemBacking.Add(newItem);
+
+        _atlasTexture.UploadPartial(renderOffset.ToIVec2Floor(), size, data);
+        return uv;
+    }
+
+    public bool Update(T hash, IntVector2 size, Span<byte> data)
+    {
+        if (!_items.TryGetValue(hash, out int itemIdx)) return false;
+
+        TextureAtlasItem item = _itemBacking[itemIdx];
+
+        Rectangle uv = item.UV;
+        IntVector2 renderOffset = uv.Position.ToIVec2Floor();
+        IntVector2 uvSize = uv.Size.ToIVec2Floor();
+        if (uvSize != size) return false;
+
+        _atlasTexture.UploadPartial(renderOffset, size, data);
+
+        return true;
+    }
+
+    public (int staleItems, int totalItems, float usage) TickAllItems(int activityThreshold)
+    {
+        int itemsThatHaventBeenUsedRecently = 0;
+
+        Span<TextureAtlasItem> blocksSpan = CollectionsMarshal.AsSpan(_itemBacking);
+        for (int i = 0; i < blocksSpan.Length; i++)
+        {
+            ref TextureAtlasItem item = ref blocksSpan[i];
+            if (item.Staleness > activityThreshold)
+                itemsThatHaventBeenUsedRecently++;
+
+            item.Staleness++;
+        }
+
+        return (itemsThatHaventBeenUsedRecently, blocksSpan.Length, CanvasPos.Y / Size.Y);
+    }
+
+    public void Clear()
+    {
+        _items.Clear();
+        _itemBacking.Clear();
+
+        CanvasPos = Vector2.Zero;
+        PackingSpaces.Clear();
+    }
+}
 
 /// <summary>
 /// A texture which contains other textures. Used by the render stream batch to
@@ -76,21 +193,14 @@ public class TextureAtlas : Packing.PackingResumableState
     private static int _repackRate = 60 * 60; // How often to repack the atlas. (In frames) If two repacks pass without a texture being used, it will be ejected.
     private static int _activityBeforePack = 20; // How many texture usages are needed to add the texture to the pack. (In texture usages between _repackRate ticks)
 
-    protected static Vector2 _maxTextureBatchSize;
-    protected static Vector2 _atlasTextureSize;
+    protected Vector2 _maxTextureBatchSize;
+    //protected static Vector2 _atlasTextureSize;
 
     protected int _maxTexturesToDrawToAtlasPerFrame = 2;
 
-    static TextureAtlas()
+    public TextureAtlas(bool smooth = false) : base(TextureAtlasHelper.GetMaxAtlasTextureSize(PixelFormat.Rgba))
     {
-        _atlasTextureSize = new Vector2(Gl.CurrentLimits.MaxTextureSize / 4f);
-        _maxTextureBatchSize = _atlasTextureSize / 2f;
-        Engine.Log.Trace($"Texture atlas textures will be of size {_atlasTextureSize}", MessageSource.Renderer);
-    }
-
-    public TextureAtlas(bool smooth = false) : base(_atlasTextureSize)
-    {
-        Size = _atlasTextureSize;
+        _maxTextureBatchSize = Size / 2f;
 
         _vbo = new VertexBuffer((uint)(VertexData.SizeInBytes * 4), BufferUsage.StaticDraw);
         _vboLocal = new VertexData[4];
@@ -100,7 +210,7 @@ public class TextureAtlas : Packing.PackingResumableState
         ibo.Upload(quadIndices);
         _vao = new VertexArrayObject<VertexData>(_vbo, ibo);
 
-        _fbo = new FrameBuffer(_atlasTextureSize).WithColor();
+        _fbo = new FrameBuffer(Size).WithColor();
         _fbo.CheckErrors();
         _firstDraw = true;
 
@@ -370,7 +480,7 @@ public class TextureAtlas : Packing.PackingResumableState
             //Engine.Log.Info($"Drawing texture {texture.Pointer} to atlas", "");
 
             Vector2 offset = meta.BatchOffset;
-            VirtualTextureAtlasTexture? virtualTexture = texture as VirtualTextureAtlasTexture;
+            var virtualTexture = texture as VirtualTextureAtlasTexture;
 
             if (virtualTexture != null)
             {

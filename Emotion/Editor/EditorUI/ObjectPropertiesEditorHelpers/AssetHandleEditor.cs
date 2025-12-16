@@ -2,7 +2,6 @@
 
 using Emotion.Core.Systems.IO;
 using Emotion.Editor.EditorUI.Components;
-using Emotion.Game.Systems.UI.Text.TextUpdate;
 
 namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 
@@ -37,7 +36,7 @@ public class AssetHandleEditor<T> : TypeEditor where T : Asset, new()
         };
         container.AddChild(inputBackground);
 
-        UITextInput2 input = new UITextInput2
+        UITextInput input = new UITextInput
         {
             Name = "TextInput",
             Layout =
@@ -79,7 +78,7 @@ public class AssetHandleEditor<T> : TypeEditor where T : Asset, new()
 
     private void UpdateTextInput()
     {
-        UITextInput2? textInput = GetWindowById<UITextInput2>("TextInput");
+        UITextInput? textInput = GetWindowById<UITextInput>("TextInput");
         AssertNotNull(textInput);
         textInput.Text = _objectEditing?.Name ?? string.Empty;
     }

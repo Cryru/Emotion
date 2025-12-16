@@ -1,9 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Core;
-using Emotion.Core.Systems.IO;
 using Emotion.Game.World;
-using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
 using Emotion.Testing;

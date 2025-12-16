@@ -136,7 +136,7 @@ public sealed class MeshEntityBatchRenderer
             if (cascadeId != 0) resolution = resolution / (2 * cascadeId);
             FramebufferResolution = new Vector2(resolution);
 
-            GLThread.ExecuteGLThreadAsync(InitFrameBuffer);
+            GLThread.ExecuteOnGLThreadAsync(InitFrameBuffer);
             LightViewProj = Matrix4x4.Identity;
 
             ViewProjUniformName = $"cascadeLightProj[{cascadeId}]";
@@ -151,7 +151,7 @@ public sealed class MeshEntityBatchRenderer
             {
                 //Buffer = new FrameBuffer(FramebufferResolution).WithColor(true, InternalFormat.Rg32F, PixelFormat.Rgba).WithDepth();
                 Buffer = new FrameBuffer(FramebufferResolution).WithDepth(true);
-                BufferAttachment = Buffer.ColorAttachment;
+                //BufferAttachment = Buffer.ColorAttachment;
             }
             else
             {

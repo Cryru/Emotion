@@ -1,7 +1,5 @@
 ﻿#nullable enable
 
-using Emotion.Core.Systems.IO;
-
 namespace Emotion.Game.Systems.UI.New;
 
 // todo: scenes - make current scene current even while loading, add loaded bool
@@ -431,7 +429,7 @@ public class UISystem : UIBaseWindow
                 if (_debugInspectModeFadeText < 800) fade = 1f;
 
                 r.RenderSprite(Vector3.Zero, new Vector2(400, 20), Color.Black * fade);
-                r.RenderString(Vector3.Zero, Color.Red * fade, $"UI INSPECT MODE ACTIVE!", FontAsset.GetDefaultBuiltIn().GetAtlas(20));
+                r.RenderString(Vector3.Zero, Color.Red * fade, $"UI INSPECT MODE ACTIVE!", 20);
             }
 
             foreach (UIBaseWindow win in _debugWindowsUnderMouse!)
@@ -439,7 +437,7 @@ public class UISystem : UIBaseWindow
                 Rectangle bounds = win.CalculatedMetrics.Bounds.ToRect();
                 r.RenderRectOutline(bounds, Color.Red, 2);
                 r.RenderSprite(bounds.BottomLeft.ToVec3() + new Vector3(0, 100, 0), new Vector2(450, 20), Color.Black);
-                r.RenderString(bounds.BottomLeft.ToVec3() + new Vector3(0, 100, 0), Color.Red, $"{win} {win.Layout.LayoutMethod.Mode}", FontAsset.GetDefaultBuiltIn().GetAtlas(15));
+                r.RenderString(bounds.BottomLeft.ToVec3() + new Vector3(0, 100, 0), Color.Red, $"{win} {win.Layout.LayoutMethod.Mode}", 15);
             }
         }
     }

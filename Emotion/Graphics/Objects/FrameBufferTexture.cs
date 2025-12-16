@@ -59,7 +59,7 @@ public class FrameBufferTexture : Texture
     public override void Dispose()
     {
         if (RenderBufferPtr != 0)
-            GLThread.ExecuteGLThreadAsync(() => Gl.DeleteRenderbuffers(RenderBufferPtr));
+            GLThread.ExecuteOnGLThreadAsync(static (uint ptr) => Gl.DeleteRenderbuffers(ptr), RenderBufferPtr);
 
         base.Dispose();
     }

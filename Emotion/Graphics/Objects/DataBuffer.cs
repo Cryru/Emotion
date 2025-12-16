@@ -316,7 +316,7 @@ public class DataBuffer : IDisposable
         if (Engine.Host == null) return;
         if (Bound[Type] == ptr) Bound[Type] = 0;
 
-        GLThread.ExecuteGLThreadAsync(() => { Gl.DeleteBuffers(ptr); });
+        GLThread.ExecuteOnGLThreadAsync(static (uint ptr) => Gl.DeleteBuffers(ptr), ptr);
     }
 
     #endregion

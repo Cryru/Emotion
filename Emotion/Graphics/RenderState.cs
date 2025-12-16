@@ -75,7 +75,7 @@ public partial struct RenderState
             else if (name.Contains(".glsl"))
             {
                 // todo: async loading
-                NewShaderAsset shaderHandle = Engine.AssetLoader.Get<NewShaderAsset>(name, null, true);
+                ShaderAsset shaderHandle = Engine.AssetLoader.Get<ShaderAsset>(name, null, true);
                 if (shaderHandle.Loaded && shaderHandle.CompiledShader != null)
                     shaderWant = shaderHandle.CompiledShader;
             }

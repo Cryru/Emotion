@@ -2,7 +2,6 @@
 
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Game.Systems.UI;
-using Emotion.Game.Systems.UI.Text.TextUpdate;
 using System.Globalization;
 
 namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
@@ -13,7 +12,7 @@ public class VectorEditor : TypeEditor
 
     private static string[] _componentNamesDefault = { "X", "Y", "Z", "W" };
     private string[] _componentNames;
-    private UITextInput2[] _componentEditors;
+    private UITextInput[] _componentEditors;
 
     private object? _value;
     private float[] _componentValues;
@@ -21,7 +20,7 @@ public class VectorEditor : TypeEditor
     public VectorEditor(int componentCount, string[]? componentNameOverride = null)
     {
         _componentCount = componentCount;
-        _componentEditors = new UITextInput2[componentCount];
+        _componentEditors = new UITextInput[componentCount];
         _componentValues = new float[componentCount];
 
         _componentNames = componentNameOverride ?? _componentNamesDefault;
@@ -53,7 +52,7 @@ public class VectorEditor : TypeEditor
             editorContainer.AddChild(inputBackground);
 
             int inputIndex = i;
-            UITextInput2 input = new UITextInput2
+            UITextInput input = new UITextInput
             {
                 Name = "TextInput",
 

@@ -237,7 +237,7 @@ public unsafe class RenderStreamBatch
         // Some batch modes cannot be used with draw elements.
         // For them record where the memory request started and its length.
         // 1 request = 1 mesh
-        if (BatchMode == BatchMode.TriangleFan)
+        if (BatchMode == BatchMode.TriangleFan || BatchMode == BatchMode.TriangleStrip)
         {
             // Not enough size - extend.
             if (_batchableLengthUtilization + 1 >= _batchableLengths[0].Length)
@@ -333,9 +333,10 @@ public unsafe class RenderStreamBatch
             BatchMode.Quad => PrimitiveType.Triangles,
             BatchMode.SequentialTriangles => PrimitiveType.Triangles,
             BatchMode.TriangleFan => PrimitiveType.TriangleFan,
+            BatchMode.TriangleStrip => PrimitiveType.TriangleStrip,
             _ => PrimitiveType.Triangles
         };
-        if (BatchMode == BatchMode.TriangleFan)
+        if (BatchMode == BatchMode.TriangleFan || BatchMode == BatchMode.TriangleStrip)
         {
             if (Gl.CurrentVersion.GLES)
                 for (var i = 0; i < _batchableLengthUtilization; i++)
@@ -459,8 +460,7 @@ public unsafe class RenderStreamBatch
             case BatchMode.Quad:
                 indexCount = structCount / 4 * 6;
                 break;
-            case BatchMode.TriangleFan:
-            case BatchMode.SequentialTriangles:
+            default:
                 indexCount = structCount;
                 break;
         }
@@ -473,8 +473,7 @@ public unsafe class RenderStreamBatch
             case BatchMode.Quad:
                 IndexBuffer.FillQuadIndices(indicesSpan, offset);
                 break;
-            case BatchMode.TriangleFan:
-            case BatchMode.SequentialTriangles:
+            default:
                 for (ushort i = 0; i < indicesSpan.Length; i++)
                 {
                     indicesSpan[i] = (ushort) (offset + i);
@@ -530,8 +529,7 @@ public unsafe class RenderStreamBatch
             case BatchMode.Quad:
                 indexCount = structCount / 4 * 6;
                 break;
-            case BatchMode.TriangleFan:
-            case BatchMode.SequentialTriangles:
+            default:
                 indexCount = structCount;
                 break;
         }
@@ -544,8 +542,7 @@ public unsafe class RenderStreamBatch
             case BatchMode.Quad:
                 IndexBuffer.FillQuadIndices(indicesSpan, offset);
                 break;
-            case BatchMode.TriangleFan:
-            case BatchMode.SequentialTriangles:
+            default:
                 for (ushort i = 0; i < indicesSpan.Length; i++)
                 {
                     indicesSpan[i] = (ushort)(offset + i);
@@ -625,7 +622,7 @@ public unsafe class RenderStreamBatch
         // Some batch modes cannot be used with draw elements.
         // For them record where the memory request started and its length.
         // 1 request = 1 mesh
-        if (BatchMode == BatchMode.TriangleFan)
+        if (BatchMode == BatchMode.TriangleFan || BatchMode == BatchMode.TriangleStrip)
         {
             // Not enough size - extend.
             if (_batchableLengthUtilization + 1 >= _batchableLengths[0].Length)

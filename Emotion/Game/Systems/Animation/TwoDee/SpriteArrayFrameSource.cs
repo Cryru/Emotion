@@ -22,7 +22,7 @@ public partial class SpriteArrayFrameSource : SpriteAnimationFrameSource
 
     public SpriteArrayFrameSource(Texture t)
     {
-        GLThread.ExecuteGLThreadAsync(() =>
+        GLThread.ExecuteOnGLThreadAsync(() =>
         {
             Frames = AutoDetectFrames(t);
             FrameOffsets = new Vector2[Frames.Length];

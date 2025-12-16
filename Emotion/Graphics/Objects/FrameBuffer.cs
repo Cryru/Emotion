@@ -5,7 +5,9 @@
 using Emotion.Core.Systems.Logging;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Core.Utility.Threading;
+using Emotion.Game.Systems.UI;
 using OpenGL;
+using System.Net.Mail;
 
 #endregion
 
@@ -47,7 +49,7 @@ public class FrameBuffer : IDisposable
     /// <summary>
     /// The color attachment of the FrameBuffer if any.
     /// </summary>
-    public FrameBufferTexture ColorAttachment { get; protected set; }
+    public Texture ColorAttachment { get; protected set; }
 
     /// <summary>
     /// The depth, or depth and stencil, attachment of the FrameBuffer if any.
@@ -175,6 +177,13 @@ public class FrameBuffer : IDisposable
         Gl.DrawBuffers(ColorModes);
 
         return this;
+    }
+
+    public void AttachUnmanagedTextureAsColor(Texture t)
+    {
+        EnsureBound(Pointer);
+        Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2d, t.Pointer, 0);
+        ColorAttachment = t;
     }
 
     /// <summary>

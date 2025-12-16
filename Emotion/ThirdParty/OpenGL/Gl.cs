@@ -219,7 +219,7 @@ public partial class Gl : KhronosApi
     // ReSharper disable once UnusedParameter.Local
     private static void DebugCheckErrors(object returnValue)
     {
-        if (!Engine.Configuration.GlDebugMode) return;
+        //if (!Engine.Configuration.GlDebugMode) return;
 
         if (SuppressingErrors) ClearErrors();
 

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Emotion.Core.Systems.IO;
 using Emotion.Game.Systems.Animation.ThreeDee;
 using Emotion.Graphics.Data;
+using Emotion.Graphics.Shader;
 using Emotion.Graphics.Shading;
 
 #endregion

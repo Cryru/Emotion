@@ -10,11 +10,11 @@ namespace Emotion.ExecTest.ExamplesOne;
 
 public class ShaderTestScene : SceneWithMap
 {
-    private NewShaderAsset _shaderAsset;
+    private ShaderAsset _shaderAsset;
 
     protected override IEnumerator InternalLoadSceneRoutineAsync()
     {
-        _shaderAsset = Engine.AssetLoader.Get<NewShaderAsset>("MyShader.glsl");
+        _shaderAsset = Engine.AssetLoader.Get<ShaderAsset>("MyShader.glsl");
         yield return _shaderAsset;
     }
 

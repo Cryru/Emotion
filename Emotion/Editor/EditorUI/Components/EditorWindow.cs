@@ -494,7 +494,7 @@ public class EditorWindow : UIBaseWindow
         _contentParent.Margins = Rectangle.Empty;
         _panelMode = PanelMode.SubWindow;
 
-        GLThread.ExecuteGLThreadAsync(() =>
+        GLThread.ExecuteOnGLThreadAsync(() =>
         {
             Vector2 contentSize = _panelItself.CalculatedMetrics.Size.ToVec2();
             _windowFB = new FrameBuffer(contentSize).WithColor();
