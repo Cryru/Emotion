@@ -2602,7 +2602,13 @@ public enum EnableCap
     [RequiredByFeature("GL_ARB_debug_output", Api = "gl|glcore")]
     [RequiredByFeature("GL_KHR_debug")]
     [RequiredByFeature("GL_KHR_debug", Api = "gles2")]
-    DebugOuput = 0x92E0
+    DebugOuput = 0x92E0,
+
+    [RequiredByFeature("GL_VERSION_4_3")]
+    [RequiredByFeature("GL_ES_VERSION_3_2", Api = "gles2")]
+    [RequiredByFeature("GL_KHR_debug", Api = "gl|glcore|gles1|gles2")]
+    [RequiredByFeature("GL_ARB_debug_output", Api = "gl|glcore")]
+    DebugOutputSynchronous = 0x8242
 }
 
 /// <summary>

@@ -242,6 +242,7 @@ public sealed partial class Renderer
         if (Engine.Configuration.GlDebugMode && !CompatibilityMode && hasDebugSupport)
         {
             Gl.Enable(EnableCap.DebugOuput);
+            Gl.Enable(EnableCap.DebugOutputSynchronous);
             Gl.DebugMessageCallback(_glDebugCallback, IntPtr.Zero);
             Engine.Log.Trace("Attached OpenGL debug callback.", MessageSource.Renderer);
         }
