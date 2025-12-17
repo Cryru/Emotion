@@ -46,13 +46,14 @@ public class OneButton : UIBaseWindow
         if (buttonType == ButtonType.Outlined)
         {
             Visuals.Border = 1;
-            Visuals.BorderColor = new Color("#C4B5EE");
+            Visuals.BorderColor = OnePalette.PRIMARY_2;
         }
 
         var label = new NewUIText()
         {
-            TextColor = new Color("#C4B5EE"),
-            FontSize = 16,
+            TextColor = OnePalette.PRIMARY_2,
+            FontSize = OnePalette.FONT_SIZE,
+            Font = OnePalette.FONT,
             Text = labelText,
             Layout =
             {
@@ -73,12 +74,12 @@ public class OneButton : UIBaseWindow
         {
             case ButtonState.Default:
                 {
-                    Visuals.BackgroundColor = new Color("#2B1F4E");
+                    Visuals.BackgroundColor = OnePalette.PRIMARY_6;
                     break;
                 }
             case ButtonState.Hover:
                 {
-                    Visuals.BackgroundColor = new Color("#493487");
+                    Visuals.BackgroundColor = OnePalette.PRIMARY_5;
                     break;
                 }
         }
