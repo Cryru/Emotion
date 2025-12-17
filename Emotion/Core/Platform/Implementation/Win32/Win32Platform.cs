@@ -128,7 +128,7 @@ public partial class Win32Platform : DesktopPlatform
             config.HostTitle,
             windowStyle,
             (int) CreateWindowFlags.CW_USEDEFAULT, (int) CreateWindowFlags.CW_USEDEFAULT, // Position - default
-            (int) config.HostSize.X, (int) config.HostSize.Y, // Size - initial
+            (int) config.RenderSize.X, (int) config.RenderSize.Y, // Size - initial
             IntPtr.Zero, // No parent window
             IntPtr.Zero, // No window menu
             Kernel32.GetModuleHandle(null),

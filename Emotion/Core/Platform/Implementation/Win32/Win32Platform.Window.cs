@@ -147,11 +147,6 @@ public partial class Win32Platform
 
     private void InternalSetSize(IntPtr windowHandle, Vector2 value)
     {
-        // Scale the rect, and set it.
-        Rect r = GetFullWindowRect((int)value.X, (int)value.Y);
-        int width = (int)value.X; // r.Right - r.Left;
-        int height = (int)value.Y; // r.Bottom - r.Top;
-
         // Center on the monitor.
         Core.Platform.MonitorScreen monitor = GetMonitorOfWindow();
         if (monitor == null)
@@ -159,6 +154,15 @@ public partial class Win32Platform
             Engine.Log.Warning("No monitor attached?", MessageSource.Win32);
             return;
         }
+
+        // Clamp to monitor
+        value.X = Math.Min(value.X, monitor.Width);
+        value.Y = Math.Min(value.Y, monitor.Height);
+
+        // Scale the rect, and set it.
+        Rect r = GetFullWindowRect((int)value.X, (int)value.Y);
+        int width = (int)value.X; // r.Right - r.Left;
+        int height = (int)value.Y; // r.Bottom - r.Top;
 
         Vector2 center = monitor.Position + new Vector2(monitor.Width, monitor.Height) / 2 - new Vector2(width, height) / 2;
 

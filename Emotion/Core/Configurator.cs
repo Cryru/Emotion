@@ -131,7 +131,7 @@ public sealed class Configurator
     /// The starting size of the host. On desktop platforms the host is the window.
     /// On some platforms this is ignored as the host is either always fullscreen or unresizable.
     /// </summary>
-    public Vector2 HostSize { get; set; } = new Vector2(1280, 720);
+    public Vector2 HostSize { get; set; } = new Vector2(1800, 970);
 
     /// <summary>
     /// The display mode to start the host in.
