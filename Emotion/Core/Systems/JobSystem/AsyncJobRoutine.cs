@@ -6,43 +6,102 @@ namespace Emotion.Core.Systems.JobSystem;
 
 public class AsyncJobRoutine : IRoutineWaiter
 {
-    public bool Finished { get; set; }
+    // State
+    public bool FromPool { get; private set; }
 
-    public string? JobTag { get; set; }
+    public bool Finished { get; private set; }
 
-    public IEnumerator Routine;
-    public IRoutineWaiter? CurrentWaiter;
+    // Data
+    public string? JobTag { get; private set; }
 
-    private bool _subRoutine;
+    private IEnumerator _routine;
+    private IRoutineWaiter? _currentWaiter;
+    private bool _isSubRoutine;
+    private ISimpleAsyncJob? _functor;
 
     public AsyncJobRoutine(IEnumerator routine, bool subRoutine = false, string? tag = null)
     {
-        Routine = routine;
-        _subRoutine = subRoutine;
+        _routine = routine;
+        _isSubRoutine = subRoutine;
         JobTag = tag;
+    }
+
+    private static ObjectPoolManual<AsyncJobRoutine> _asyncRoutinePool = new ObjectPoolManual<AsyncJobRoutine>(
+        static () => new AsyncJobRoutine(),
+        static (rot) => rot.Reset()
+    );
+
+    public static AsyncJobRoutine CreateFromPool(IEnumerator routine, bool subRoutine = false, string? tag = null)
+    {
+        AsyncJobRoutine newRoutine = _asyncRoutinePool.Get();
+        newRoutine._routine = routine;
+        newRoutine._isSubRoutine = subRoutine;
+        newRoutine.JobTag = tag;
+
+        return newRoutine;
+    }
+
+    public static AsyncJobRoutine CreateFromPool(ISimpleAsyncJob functor, string? tag = null)
+    {
+        AsyncJobRoutine newRoutine = _asyncRoutinePool.Get();
+        newRoutine._functor = functor;
+        newRoutine.JobTag = tag;
+
+        return newRoutine;
+    }
+
+    public static void ReturnToPoolIfFromPool(AsyncJobRoutine rot)
+    {
+        if (rot.FromPool)
+            _asyncRoutinePool.Return(rot);
+    }
+
+    internal AsyncJobRoutine()
+    {
+        FromPool = true;
+        _routine = null!;
+    }
+
+    internal void Reset()
+    {
+        _routine = null!;
+        _currentWaiter = null;
+        JobTag = null;
+        Finished = false;
+        _isSubRoutine = false;
+        _functor = null;
     }
 
     public void Update()
     {
-        if (_subRoutine)
+        if (_isSubRoutine)
             RunTask();
     }
 
     public void RunTask()
     {
+        // Short circuit for simple functor
+        if (_functor != null)
+        {
+            _functor.Run();
+            Finished = true;
+            return;
+        }
+
         Assert(!Finished);
 
-        if (CurrentWaiter != null)
+        if (_currentWaiter != null)
         {
-            CurrentWaiter.Update();
-            if (!CurrentWaiter.Finished) return;
-            CurrentWaiter = null;
+            _currentWaiter.Update();
+            if (!_currentWaiter.Finished) return;
+            if (_currentWaiter is AsyncJobRoutine subRot) ReturnToPoolIfFromPool(subRot);
+            _currentWaiter = null;
         }
 
         bool done = true;
-        while (Routine.MoveNext())
+        while (_routine.MoveNext())
         {
-            object current = Routine.Current;
+            object current = _routine.Current;
             if (current == null)
             {
                 done = false;
@@ -51,7 +110,7 @@ public class AsyncJobRoutine : IRoutineWaiter
 
             if (current is IEnumerator subRoutine)
             {
-                CurrentWaiter = new AsyncJobRoutine(subRoutine, true);
+                _currentWaiter = CreateFromPool(subRoutine, true);
                 done = false;
                 break;
             }
@@ -60,7 +119,7 @@ public class AsyncJobRoutine : IRoutineWaiter
                 waiter.Update();
                 if (!waiter.Finished)
                 {
-                    CurrentWaiter = waiter;
+                    _currentWaiter = waiter;
                     done = false;
                     break;
                 }

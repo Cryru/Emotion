@@ -97,6 +97,8 @@ public class AsyncJobManager
                            updateValueFactory: (_, oldValue) => oldValue - 1
                        );
                     }
+
+                    AsyncJobRoutine.ReturnToPoolIfFromPool(val);
                 }
                 currentNode = currentNode.Next;
             }
@@ -107,6 +109,49 @@ public class AsyncJobManager
             if (jobCount == 0)
                 Thread.Sleep(10);
         }
+    }
+
+    public void Add(ISimpleAsyncJob func, bool priorityJob = false, string? jobTag = null)
+    {
+        if (SINGLE_THREAD_DEBUG_MODE)
+        {
+            func.Run();
+            return;
+        }
+
+        if (jobTag != null)
+        {
+            _jobTagCount.AddOrUpdate(
+               jobTag,
+               addValue: 1,
+               updateValueFactory: (_, oldValue) => oldValue + 1
+           );
+        }
+
+        var job = AsyncJobRoutine.CreateFromPool(func, jobTag);
+        InternalEnqueueJob(job, priorityJob);
+    }
+
+    public void AddNoFeedback(IEnumerator routineAsync, bool priorityJob = false, string? jobTag = null)
+    {
+        if (SINGLE_THREAD_DEBUG_MODE)
+        {
+            Engine.CoroutineManager.StartCoroutine(routineAsync);
+            return;
+        }
+
+        if (jobTag != null)
+        {
+            _jobTagCount.AddOrUpdate(
+               jobTag,
+               addValue: 1,
+               updateValueFactory: (_, oldValue) => oldValue + 1
+           );
+        }
+
+        // If we don't need to provide feedback on it being finished, we can create it from the pool.
+        var job = AsyncJobRoutine.CreateFromPool(routineAsync, false, jobTag);
+        InternalEnqueueJob(job, priorityJob);
     }
 
     public IRoutineWaiter Add(IEnumerator routineAsync, bool priorityJob = false, string? jobTag = null)
@@ -123,8 +168,13 @@ public class AsyncJobManager
            );
         }
 
-        AsyncJobRoutine job = new AsyncJobRoutine(routineAsync, false, jobTag);
+        var job = new AsyncJobRoutine(routineAsync, false, jobTag);
+        InternalEnqueueJob(job, priorityJob);
+        return job;
+    }
 
+    private void InternalEnqueueJob(AsyncJobRoutine job, bool priorityJob)
+    {
         // Spin wait until we manage to write to the channel
         if (priorityJob)
         {
@@ -142,8 +192,6 @@ public class AsyncJobManager
                 Thread.Yield();
             }
         }
-
-        return job;
     }
 
     public bool NotManyJobsWithTag(string tag, int factor = 1)
@@ -154,15 +202,19 @@ public class AsyncJobManager
         return count < many;
     }
 
-    public int DebugOnly_GetThreadJobAmount(int threadId)
+    #region Debug API
+
+    internal int DebugOnly_GetThreadJobAmount(int threadId)
     {
         if (_threads == null) return -1;
         return _threads[threadId].Metrics_JobCount;
     }
 
-    public int DebugOnly_GetQueuedJobCount()
+    internal int DebugOnly_GetQueuedJobCount()
     {
         if (_taskQueue == null) return 0;
         return _taskQueue.Reader.Count;
     }
+
+    #endregion
 }
