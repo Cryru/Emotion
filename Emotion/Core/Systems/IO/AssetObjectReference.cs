@@ -16,7 +16,7 @@ public enum AssetOrObjectReferenceType
     Object
 }
 
-public sealed class AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta_ExtraMembers
+public struct AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta_ExtraMembers
     where TAsset : Asset, IAssetContainingObject<TObject>, new()
 {
     public static AssetObjectReference<TAsset, TObject> Invalid { get; } = new();
@@ -134,14 +134,17 @@ public sealed class AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta
         AssertNotNull(a);
         AssertNotNull(b);
 
-        if (a._assetName != null && b._assetName != null)
-            return a._assetName == b._assetName;
+        var aVal = a.Value;
+        var bVal = b.Value;
 
-        if (a._asset != null && b._asset != null)
-            return a._asset == b._asset;
+        if (aVal._assetName != null && bVal._assetName != null)
+            return aVal._assetName == bVal._assetName;
 
-        if (a._assetObject != null && b._assetObject != null)
-            return a._assetObject.Equals(b._assetObject);
+        if (aVal._asset != null && bVal._asset != null)
+            return aVal._asset == bVal._asset;
+
+        if (aVal._assetObject != null && bVal._assetObject != null)
+            return aVal._assetObject.Equals(bVal._assetObject);
 
         return false;
     }
@@ -152,19 +155,13 @@ public sealed class AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta
         return !(a == b);
     }
 
-    public override bool Equals(object? obj)
+    public override readonly bool Equals(object? obj)
     {
         if (obj == null)
             return false;
 
-        if (ReferenceEquals(this, obj))
-            return true;
-
-        AssetObjectReference<TAsset, TObject>? objCast = obj as AssetObjectReference<TAsset, TObject>;
-        if (objCast != null)
-            return objCast == this;
-
-        return false;
+        var objCast = obj as AssetObjectReference<TAsset, TObject>?;
+        return objCast == this;
     }
 
     public override int GetHashCode()
