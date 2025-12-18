@@ -331,12 +331,13 @@ public static partial class EngineEditor
         // This is really bad allocation wise, but its for debug so whatever
         if (_textVisualization != null && IsOpen && MapEditorMode == MapEditorMode.Off)
         {
-            StringBuilder b = new StringBuilder();
+            StringBuilder? b = _editorTextVisualization.Count > 0 ? new StringBuilder() : null;
             foreach (var visualization in _editorTextVisualization)
             {
-                b.AppendLine(visualization.GetText());
+                b!.AppendLine(visualization.GetText());
             }
-            _textVisualization.Text = b.ToString();
+            if (b != null)
+                _textVisualization.Text = b.ToString();
         }
     }
 
