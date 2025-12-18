@@ -1,5 +1,6 @@
 ﻿#region Using
 
+using Emotion.Core.Utility.Coroutines;
 using System.Collections.Concurrent;
 
 #endregion
@@ -182,17 +183,18 @@ namespace Emotion.Core.Utility.Threading
         }
 
         /// <inheritdoc cref="ExecuteOnThreadAsync(Action)" />
-        public void ExecuteOnThreadAsync<T, T2>(Action<T, T2> action, T arg1, T2 arg2)
+        public IRoutineWaiter ExecuteOnThreadAsync<T, T2>(Action<T, T2> action, T arg1, T2 arg2)
         {
             // Run straight away if on the managed thread.
             if (IsManagedThread())
             {
                 action(arg1, arg2);
-                return;
+                return Coroutine.CompletedRoutine;
             }
 
             var invocation = new ManagedThreadInvocation<T, T2>(action, arg1, arg2);
             _invocationQueue.Enqueue(invocation);
+            return invocation;
         }
 
         /// <inheritdoc cref="ExecuteOnThreadAsync(Action)" />

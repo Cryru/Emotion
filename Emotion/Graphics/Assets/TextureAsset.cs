@@ -39,20 +39,42 @@ public class TextureAsset : TextureAssetBase<Texture>
         UploadTexture(size, pixels, flipped, format, rentedMemory);
     }
 
+    private struct TextureUploadParams
+    {
+        public Texture Texture;
+        public Vector2 TextureSize;
+        public byte[] Pixels;
+        public PixelFormat Format;
+        public bool RentedMemory;
+    }
+
     protected virtual void UploadTexture(Vector2 size, byte[] pixels, bool flipped, PixelFormat pixelFormat, bool rentedMemory)
     {
         Texture.FlipY = flipped;
-        GLThread.ExecuteGLThreadAsync(() =>
+        Texture.CreationStack = Name;
+
+        TextureUploadParams uploadParams = new()
         {
-            Texture.NonGLThreadInitializedCreatePointer(Texture);
-            Texture.Upload(size, pixels, pixelFormat, pixelFormat == PixelFormat.Red ? InternalFormat.Red : null);
+            Texture = Texture,
+            TextureSize = size,
+            Pixels = pixels,
+            Format = pixelFormat,
+            RentedMemory = rentedMemory
+        };
+
+        GLThread.ExecuteOnGLThreadAsync(static (uploadParams) =>
+        {
+            Texture texture = uploadParams.Texture;
+            Vector2 textureSize = uploadParams.TextureSize;
+            PixelFormat pixelFormat = uploadParams.Format;
+            byte[] pixels = uploadParams.Pixels;
+            bool rentedMemory = uploadParams.RentedMemory;
+
+            Texture.NonGLThreadInitializedCreatePointer(texture);
+            texture.Upload(textureSize, pixels, pixelFormat, pixelFormat == PixelFormat.Red ? InternalFormat.Red : null);
 
             if (rentedMemory)
                 ArrayPool<byte>.Shared.Return(pixels);
-
-//#if DEBUG
-//            Texture.CreationStack = Name + "\n" + Texture.CreationStack;
-//#endif
-        });
+        }, uploadParams);
     }
 }

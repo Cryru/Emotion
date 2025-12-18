@@ -43,22 +43,22 @@ public abstract class TextureObjectBase : IDisposable
             // Texture was deleted or not uploaded yet, if it will be uploaded the smooth value set will be applied then.
             if (Pointer == 0) return;
 
-            GLThread.ExecuteGLThreadAsync(() =>
+            GLThread.ExecuteOnGLThreadAsync(static (texture) =>
             {
-                int smoothOption = HasMipmaps ? Gl.LINEAR_MIPMAP_LINEAR : Gl.LINEAR;
+                int smoothOption = texture.HasMipmaps ? Gl.LINEAR_MIPMAP_LINEAR : Gl.LINEAR;
 
                 if (Engine.Renderer.Dsa)
                 {
-                    Gl.TextureParameter(Pointer, TextureParameterName.TextureMinFilter, _smooth ? smoothOption : Gl.NEAREST);
-                    Gl.TextureParameter(Pointer, TextureParameterName.TextureMagFilter, _smooth ? Gl.LINEAR : Gl.NEAREST);
+                    Gl.TextureParameter(texture.Pointer, TextureParameterName.TextureMinFilter, texture._smooth ? smoothOption : Gl.NEAREST);
+                    Gl.TextureParameter(texture.Pointer, TextureParameterName.TextureMagFilter, texture._smooth ? Gl.LINEAR : Gl.NEAREST);
                 }
                 else
                 {
-                    EnsureBound(_textureTarget, Pointer);
-                    Gl.TexParameter(_textureTarget, TextureParameterName.TextureMinFilter, _smooth ? smoothOption : Gl.NEAREST);
-                    Gl.TexParameter(_textureTarget, TextureParameterName.TextureMagFilter, _smooth ? Gl.LINEAR : Gl.NEAREST);
+                    EnsureBound(texture._textureTarget, texture.Pointer);
+                    Gl.TexParameter(texture._textureTarget, TextureParameterName.TextureMinFilter, texture._smooth ? smoothOption : Gl.NEAREST);
+                    Gl.TexParameter(texture._textureTarget, TextureParameterName.TextureMagFilter, texture._smooth ? Gl.LINEAR : Gl.NEAREST);
                 }
-            });
+            }, this);
         }
     }
 
@@ -72,20 +72,20 @@ public abstract class TextureObjectBase : IDisposable
         {
             _tile = value;
 
-            GLThread.ExecuteGLThreadAsync(() =>
+            GLThread.ExecuteOnGLThreadAsync(static (texture) =>
             {
                 if (Engine.Renderer.Dsa)
                 {
-                    Gl.TextureParameter(Pointer, TextureParameterName.TextureWrapS, _tile ? Gl.REPEAT : Gl.CLAMP_TO_EDGE);
-                    Gl.TextureParameter(Pointer, TextureParameterName.TextureWrapT, _tile ? Gl.REPEAT : Gl.CLAMP_TO_EDGE);
+                    Gl.TextureParameter(texture.Pointer, TextureParameterName.TextureWrapS, texture._tile ? Gl.REPEAT : Gl.CLAMP_TO_EDGE);
+                    Gl.TextureParameter(texture.Pointer, TextureParameterName.TextureWrapT, texture._tile ? Gl.REPEAT : Gl.CLAMP_TO_EDGE);
                 }
                 else
                 {
-                    EnsureBound(_textureTarget, Pointer);
-                    Gl.TexParameter(_textureTarget, TextureParameterName.TextureWrapS, _tile ? Gl.REPEAT : Gl.CLAMP_TO_EDGE);
-                    Gl.TexParameter(_textureTarget, TextureParameterName.TextureWrapT, _tile ? Gl.REPEAT : Gl.CLAMP_TO_EDGE);
+                    EnsureBound(texture._textureTarget, texture.Pointer);
+                    Gl.TexParameter(texture._textureTarget, TextureParameterName.TextureWrapS, texture._tile ? Gl.REPEAT : Gl.CLAMP_TO_EDGE);
+                    Gl.TexParameter(texture._textureTarget, TextureParameterName.TextureWrapT, texture._tile ? Gl.REPEAT : Gl.CLAMP_TO_EDGE);
                 }
-            });
+            }, this);
         }
     }
 

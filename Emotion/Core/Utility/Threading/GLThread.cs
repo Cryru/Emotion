@@ -5,6 +5,7 @@
 #nullable enable
 
 using Emotion;
+using Emotion.Core.Utility.Coroutines;
 
 namespace Emotion.Core.Utility.Threading
 {
@@ -116,9 +117,9 @@ namespace Emotion.Core.Utility.Threading
         }
 
         /// <inheritdoc cref="ExecuteOnGLThreadAsync{T}(Action{T}, T)" />
-        public static void ExecuteOnGLThreadAsync<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2)
+        public static IRoutineWaiter ExecuteOnGLThreadAsync<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2)
         {
-            _threadManager.ExecuteOnThreadAsync(action, arg1, arg2);
+            return _threadManager.ExecuteOnThreadAsync(action, arg1, arg2);
         }
 
         /// <inheritdoc cref="ExecuteGLThread{T}(Func{T})" />
