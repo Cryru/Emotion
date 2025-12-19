@@ -3,9 +3,7 @@
 #if Superluminal
 #region Using
 
-using System;
 using System.Runtime.InteropServices;
-using Emotion.Utility;
 
 #endregion
 
@@ -14,7 +12,7 @@ using Emotion.Utility;
 #pragma warning disable IDE0044 // Add readonly modifier
 #pragma warning disable IDE0051 // Unused field
 
-namespace Emotion.Common
+namespace Emotion.Core.Utility.Profiling
 {
     /// <summary>
     /// https://superluminal.eu/
