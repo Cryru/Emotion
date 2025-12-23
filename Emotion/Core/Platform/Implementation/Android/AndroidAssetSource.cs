@@ -3,6 +3,7 @@
 #region Using
 
 using Emotion.Core.Systems.IO;
+using Emotion.Core.Systems.IO.Sources;
 using System.IO;
 using Activity = Android.App.Activity;
 
@@ -10,72 +11,44 @@ using Activity = Android.App.Activity;
 
 namespace Emotion.Core.Platform.Implementation.Android;
 
-public class AndroidAssetSource : AssetSource
+public class AndroidAssetSource : IAssetSource<string>
 {
-    private Activity _activity;
-    private Dictionary<string, string> _enginePathToFilePath = new();
-    private string[] manifest;
+    private static Activity? _activity;
 
-    public AndroidAssetSource(Activity activity)
+    public static void MountAssets(Activity activity)
     {
+        MountAssetsDown(activity, string.Empty);
         _activity = activity;
-
-        List<string> assets = PopulateAssetsDown("");
-        manifest = assets.ToArray() ?? Array.Empty<string>();
-
-        for (var i = 0; i < manifest.Length; i++)
-        {
-            string str = manifest[i];
-            _enginePathToFilePath.Add(AssetLoader.NameToEngineName(str), str);
-        }
     }
 
-    private List<string> PopulateAssetsDown(string path)
+    private static bool MountAssetsDown(Activity activity, string path)
     {
-        var folderAssets = new List<string>();
-
-        var thisFolder = _activity.Assets?.List(path);
-        if (thisFolder == null) return folderAssets;
+        string[]? thisFolder = activity.Assets?.List(path);
+        if (thisFolder == null) return false;
 
         for (int i = 0; i < thisFolder.Length; i++)
         {
             string folderOrFile = thisFolder[i];
 
             string innerPath = path == "" ? folderOrFile : path + "/" + folderOrFile;
-            List<string> insideThis = PopulateAssetsDown(innerPath);
-            if (insideThis.Count > 0)
+            if (!MountAssetsDown(activity, innerPath))
             {
-                folderAssets.AddRange(insideThis);
-            }
-            else
-            {
-                folderAssets.Add(innerPath);
+                Engine.AssetLoader.MountCustomSourceAsset<AndroidAssetSource, string>(innerPath, innerPath);
             }
         }
 
-        return folderAssets;
+        return true;
     }
 
-    public override ReadOnlyMemory<byte> GetAsset(string enginePath)
+    public static FileReadRoutineResult GetAssetContent(string loadData)
     {
-        if (_activity.Assets == null) return null;
-        if (!_enginePathToFilePath.ContainsKey(enginePath)) return null;
+        if (_activity == null) return FileReadRoutineResult.GenericErrored;
 
-        string filePath = _enginePathToFilePath[enginePath];
-        Stream stream = _activity.Assets.Open(filePath);
+        Stream stream = _activity.Assets.Open(loadData);
         using var memoryStream = new MemoryStream();
         stream.CopyTo(memoryStream);
-        return memoryStream.ToArray();
-    }
+        var resultBytes = memoryStream.ToArray();
 
-    public override string[] GetManifest()
-    {
-        return manifest;
-    }
-
-    public override FileReadRoutineResult GetAssetRoutine(string enginePath)
-    {
-        ReadOnlyMemory<byte> resultBytes = GetAsset(enginePath);
         var result = new FileReadRoutineResult();
         result.SetData(resultBytes);
         return result;

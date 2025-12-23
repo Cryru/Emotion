@@ -82,8 +82,7 @@ public class AndroidHost : PlatformBase
             _onFrame = onFrame;
         };
 
-        Engine.AssetLoader.AddSource(new AndroidAssetSource(_activity));
-        Engine.AssetLoader.AddStore(new FileAssetStore("Player", true));
+        AndroidAssetSource.MountAssets(_activity);
     }
 
     public override void DisplayMessageBox(string message)

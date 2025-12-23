@@ -40,7 +40,7 @@ public static class AudioBinFormat
         // Compress using the .Net deflate stream
         using var compressedStream = new MemoryStream();
         using var deflateStream = new BrotliStream(memoryStr, CompressionMode.Compress);
-        Span<byte> soundAsByte = MemoryMarshal.Cast<float, byte>(soundData);
+        Span<byte> soundAsByte = MemoryMarshal.Cast<float, byte>(soundData.AsSpan());
         deflateStream.Write(soundAsByte);
         deflateStream.Flush();
 
@@ -63,7 +63,7 @@ public static class AudioBinFormat
 
         ReadOnlyMemory<byte> compressedData = fileData.Slice(reader.Position);
         float[] soundData = new float[soundByteLength / sizeof(float)];
-        Span<byte> soundAsByte = MemoryMarshal.Cast<float, byte>(soundData);
+        Span<byte> soundAsByte = MemoryMarshal.Cast<float, byte>(soundData.AsSpan());
         bool success = BrotliDecoder.TryDecompress(compressedData.Span, soundAsByte, out int bytesWritten);
         Assert(bytesWritten == soundByteLength);
 
