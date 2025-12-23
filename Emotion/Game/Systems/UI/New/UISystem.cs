@@ -75,8 +75,8 @@ public class UISystem : UIBaseWindow
 
     private void HostResized(Vector2 size)
     {
-        Vector2 scaledTarget = TargetResolution * TargetDPI;
-        Vector2 scaledCurrent = size * Engine.Host.GetDPI();
+        Vector2 scaledTarget = TargetResolution;// / TargetDPI;
+        Vector2 scaledCurrent = size;// / Engine.Host.GetDPI();
 
         Layout.Scale = scaledCurrent / scaledTarget;
         Engine.Log.Info($"UI Scale is {Layout.Scale}", MessageSource.UI);
