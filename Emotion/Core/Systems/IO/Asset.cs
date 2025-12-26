@@ -56,6 +56,11 @@ public abstract class Asset : IRoutineWaiter
     public bool Disposed { get; protected set; }
 
     /// <summary>
+    /// Whether the asset is being loaded inline on the main thread (bad).
+    /// </summary>
+    public bool LoadingInline { get; protected set; }
+
+    /// <summary>
     /// Fires when the asset is loaded or hot reloaded.
     /// </summary>
     public event Action<Asset>? OnLoaded;
@@ -66,10 +71,12 @@ public abstract class Asset : IRoutineWaiter
     /// Called by the asset loader on the asset loading thread(s),
     /// which performs the IO and asset creation and/or hot reloading if already loaded.
     /// </summary>
-    public IEnumerator AssetLoader_LoadAsset(AssetLoader assetLoader)
+    public IEnumerator AssetLoader_LoadAsset(AssetLoader assetLoader, bool loadingInline = false)
     {
         Stopwatch timer = new Stopwatch();
         timer.Start();
+
+        LoadingInline = loadingInline;
 
         AssetFileEntry? entry = assetLoader.TryGetFileEntry(Name);
         if (entry == null)
@@ -244,14 +251,9 @@ public abstract class Asset : IRoutineWaiter
         _dependencies.Add(coroutine);
     }
 
-    protected T LoadAssetDependency<T>(SerializableAsset<T> serialized) where T : Asset, new()
-    {
-        return LoadAssetDependency<T>(serialized.Name);
-    }
-
     protected T LoadAssetDependency<T>(string? name, bool cachedLoad = true) where T : Asset, new()
     {
-        T dependantAsset = Engine.AssetLoader.Get<T>(name, this, false, true, !cachedLoad);
+        T dependantAsset = Engine.AssetLoader.Get<T>(name, this, LoadingInline, true, !cachedLoad);
 
         _dependencies ??= new List<IRoutineWaiter>();
         _dependencies.Add(dependantAsset);

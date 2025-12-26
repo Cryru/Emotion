@@ -170,7 +170,7 @@ public partial class AssetLoader
 
         if (loadInline)
         {
-            Coroutine.RunInline(newAsset.AssetLoader_LoadAsset(this));
+            Coroutine.RunInline(newAsset.AssetLoader_LoadAsset(this, true));
         }
         else
         {
