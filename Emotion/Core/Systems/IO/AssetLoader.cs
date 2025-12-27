@@ -170,6 +170,7 @@ public partial class AssetLoader
 
         if (loadInline)
         {
+            Engine.Log.Warning($"Loading asset inline - {name}", MessageSource.AssetLoader);
             Coroutine.RunInline(newAsset.AssetLoader_LoadAsset(this, true));
         }
         else
