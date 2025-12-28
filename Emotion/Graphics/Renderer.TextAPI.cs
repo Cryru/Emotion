@@ -16,7 +16,7 @@ namespace Emotion.Graphics;
 
 public sealed partial class Renderer
 {
-    private TextLayouter _globalTextLayouter = new TextLayouter(false, false);
+    private TextLayouter _globalTextLayouter = new TextLayouter(false);
 
     /// <inheritdoc cref="RenderString(Vector3, Color, ReadOnlySpan{char}, AssetObjectReference{FontAsset, Font}, int)" />
     public void RenderString(Vector3 position, Color color, string text, AssetObjectReference<FontAsset, Font> font, int fontSize)

@@ -39,15 +39,14 @@ public class UITextInput : UIText
         _blinkingTimer = new Every(650, () => { _cursorOn = !_cursorOn; });
         _arrowHeldTimer = new Every(50, ArrowHeldProc);
         WrapText = false;
-        UseNewLayoutSystem = true;
 
-        GrowX = true;
-        GrowY = true;
+        Layout.SizingX = UISizing.Grow();
+        Layout.SizingY = UISizing.Grow();
     }
 
     protected override TextLayouter CreateTextLayouter()
     {
-        return new TextLayouter(false, true);
+        return new TextLayouter(false);
     }
 
     protected override void OnOpen()
@@ -97,7 +96,7 @@ public class UITextInput : UIText
                 {
                     _selectionStart = closestSepIdx;
                     _selectionEnd = _selectionStart;
-                    EnsureSelectionRight();
+                    EnsureSelectionValid();
                 }
             }
             else if (status == KeyState.Up)
@@ -114,7 +113,7 @@ public class UITextInput : UIText
             {
                 _selectionStart = 0;
                 _selectionEnd = _layouter.GetSelectionIndexMax();
-                EnsureSelectionRight();
+                EnsureSelectionValid();
 
                 return false;
             }
@@ -179,7 +178,7 @@ public class UITextInput : UIText
             _selectionEnd = _selectionStart;
         }
 
-        EnsureSelectionRight();
+        EnsureSelectionValid();
     }
 
     private void TextInputEventHandler(char c)
@@ -189,7 +188,7 @@ public class UITextInput : UIText
 
         if (c == '\r') c = '\n';
 
-        EnsureSelectionRight();
+        EnsureSelectionValid();
 
         int smallerSelIdx = Math.Min(_selectionStart, _selectionEnd);
         int largerSelIdx = Math.Max(_selectionStart, _selectionEnd);
@@ -228,7 +227,7 @@ public class UITextInput : UIText
 
                     _selectionEnd = newSelectionIndex;
                     _selectionStart = _selectionEnd;
-                    EnsureSelectionRight();
+                    EnsureSelectionValid();
                     break;
                 }
             default:
@@ -249,7 +248,7 @@ public class UITextInput : UIText
 
                         _selectionEnd = newSelectionIndex;
                         _selectionStart = _selectionEnd;
-                        EnsureSelectionRight();
+                        EnsureSelectionValid();
                     }
 
                     break;
@@ -259,7 +258,7 @@ public class UITextInput : UIText
 
     protected void InsertString(string str)
     {
-        EnsureSelectionRight();
+        EnsureSelectionValid();
 
         int smallerSelIdx = Math.Min(_selectionStart, _selectionEnd);
         int largerSelIdx = Math.Max(_selectionStart, _selectionEnd);
@@ -292,7 +291,7 @@ public class UITextInput : UIText
         int newSelectionIndex = _layouter.GetSelectionIndexFromStringIndex(oldStringIndex);
         _selectionEnd = newSelectionIndex;
         _selectionStart = _selectionEnd;
-        EnsureSelectionRight();
+        EnsureSelectionValid();
     }
 
     protected override Vector2 InternalMeasure(Vector2 space)
@@ -350,49 +349,6 @@ public class UITextInput : UIText
         }
     }
 
-    protected override bool RenderInternal(Renderer c)
-    {
-        Rectangle? prevClip = c.CurrentState.ClipRect;
-        Rectangle clipRect = Bounds.Offset(c.ModelMatrix.Translation.ToVec2());
-        if (prevClip != null)
-            clipRect = Rectangle.Clip(prevClip.Value, clipRect);
-
-        c.SetClipRect(clipRect);
-        base.RenderInternal(c);
-        c.SetClipRect(prevClip);
-
-        // Maybe recalculate selection box only when text/selection changes?
-        // On the other hand only one can be focused at a time soooo
-        bool focused = Engine.UI.InputFocus == this;
-        if (focused)
-        {
-            if (_cursorOn)
-            {
-                Rectangle cursorCharRect = _layouter.GetBoundOfSelectionIndex(_selectionEnd);
-                var top = new Vector3(cursorCharRect.X + X, cursorCharRect.Y + Y, Z);
-                var bottom = new Vector3(cursorCharRect.X + X, cursorCharRect.Y + Y + cursorCharRect.Height, Z);
-                c.RenderLine(top, bottom, _calculatedColor);
-            }
-
-            if (_selectionStart != _selectionEnd)
-            {
-                static void DrawSelectionRectangle(Rectangle lineBound, (Vector3 offset, Renderer composer) args)
-                {
-                    args.composer.RenderSprite(args.offset + lineBound.PositionZ(0), lineBound.Size, Color.PrettyBlue * 0.3f);
-                }
-
-                int selStart = _selectionStart;
-                int selEnd = _selectionEnd;
-                if (selEnd > selStart) selEnd--;
-                else selStart--;
-
-                _layouter.ForEachLineBetweenSelectionIndices(selStart, selEnd, DrawSelectionRectangle, (Position, c));               
-            }
-        }
-
-        return true;
-    }
-
     protected virtual bool CanAddCharacter(char c, int stringLength)
     {
         if (MaxCharacters != -1 && stringLength >= MaxCharacters) return false;
@@ -424,7 +380,7 @@ public class UITextInput : UIText
             else
             {
                 _selectionEnd--;
-                EnsureSelectionRight();
+                EnsureSelectionValid();
                 _selectionStart = _selectionEnd;
             }
 
@@ -442,7 +398,7 @@ public class UITextInput : UIText
             else
             {
                 _selectionEnd++;
-                EnsureSelectionRight();
+                EnsureSelectionValid();
                 _selectionStart = _selectionEnd;
             }
 
@@ -456,7 +412,7 @@ public class UITextInput : UIText
             {
                 _selectionStart = closestSepIdx;
                 _selectionEnd = _selectionStart;
-                EnsureSelectionRight();
+                EnsureSelectionValid();
             }
 
             ResetBlinkingCursor();
@@ -469,7 +425,7 @@ public class UITextInput : UIText
             {
                 _selectionStart = closestSepIdx;
                 _selectionEnd = _selectionStart;
-                EnsureSelectionRight();
+                EnsureSelectionValid();
             }
 
             ResetBlinkingCursor();
@@ -478,7 +434,7 @@ public class UITextInput : UIText
 
     #region Selection
 
-    private void EnsureSelectionRight()
+    private void EnsureSelectionValid()
     {
         if (Text == null)
         {

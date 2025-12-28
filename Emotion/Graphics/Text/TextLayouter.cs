@@ -2,10 +2,10 @@
 
 #region Using
 
-using Emotion.Core.Systems.IO;
 using Emotion.Graphics.Text.LayoutEngineTypes;
 using Emotion.Standard.Parsers.OpenType;
 using System.Runtime.InteropServices;
+using static Emotion.Graphics.Text.TextLayouter;
 using static StbTrueTypeSharp.StbTrueType;
 
 #endregion
@@ -28,11 +28,6 @@ public class TextLayouter
     /// Text selection APIs /should/ handle these fine.
     /// </summary>
     public bool ResolveTags { get; init; }
-
-    /// <summary>
-    /// Whether the selection API should work.
-    /// </summary>
-    public bool SelectionAPI { get; init; }
 
     #endregion
 
@@ -64,10 +59,9 @@ public class TextLayouter
 
     #endregion
 
-    public TextLayouter(bool resolveTags = true, bool selectionAPI = false)
+    public TextLayouter(bool resolveTags = true)
     {
         ResolveTags = resolveTags;
-        SelectionAPI = selectionAPI;
     }
 
     public void RunLayout(
@@ -288,69 +282,72 @@ public class TextLayouter
         }
 
         // 4. Break up blocks so that they can be rendered into the atlas
-        int atlasWidth = TextRenderer.GetAtlasWidth();
-        if (textSize < atlasWidth)
+        if (!TextRenderer.LETTER_BY_LETTER)
         {
-            for (int i = 0; i < _textBlocks.Count; i++)
+            int atlasWidth = TextRenderer.GetAtlasWidth();
+            if (textSize < atlasWidth)
             {
-                TextBlock block = _textBlocks[i];
-                if (block.Skip) continue;
-
-                ReadOnlySpan<char> blockString = block.GetBlockString(str);
-                int stringWidth = MeasureStringApproximate(blockString, textSize, font);
-                block.Width = stringWidth;
-                _textBlocks[i] = block;
-
-                // This block fits.
-                if (stringWidth < atlasWidth) continue;
-
-                // Try to break at the next space
-                Span<char> atlasBreakCharacter = [' '];
-                int lastFitBreakChar = blockString.IndexOfAny(atlasBreakCharacter);
-                if (lastFitBreakChar == 0) // If starts with a space, get the next one, otherwise this block will be size 0.
-                    lastFitBreakChar = blockString.Slice(1).IndexOfAny(atlasBreakCharacter);
-
-                // A single word doesn't fit.
-                if (lastFitBreakChar == -1)
+                for (int i = 0; i < _textBlocks.Count; i++)
                 {
-                    int charactersThatWillFit = atlasWidth / textSize;
+                    TextBlock block = _textBlocks[i];
+                    if (block.Skip) continue;
 
-                    int blockLength = block.Length;
-                    int blockStart = block.StartIndex;
-
-                    block.Length = charactersThatWillFit;
+                    ReadOnlySpan<char> blockString = block.GetBlockString(str);
+                    int stringWidth = MeasureStringApproximate(blockString, textSize, font);
+                    block.Width = stringWidth;
                     _textBlocks[i] = block;
 
-                    int charsLeft = blockLength - charactersThatWillFit;
-                    int newBlockStartOffset = charactersThatWillFit;
-                    while (charsLeft > 0)
+                    // This block fits.
+                    if (stringWidth < atlasWidth) continue;
+
+                    // Try to break at the next space
+                    Span<char> atlasBreakCharacter = [' '];
+                    int lastFitBreakChar = blockString.IndexOfAny(atlasBreakCharacter);
+                    if (lastFitBreakChar == 0) // If starts with a space, get the next one, otherwise this block will be size 0.
+                        lastFitBreakChar = blockString.Slice(1).IndexOfAny(atlasBreakCharacter);
+
+                    // A single word doesn't fit.
+                    if (lastFitBreakChar == -1)
                     {
-                        int charsInNewBlock = Math.Min(charsLeft, charactersThatWillFit);
-                        TextBlock newBlock = new TextBlock(blockStart + newBlockStartOffset);
-                        newBlock.Length = charsInNewBlock;
-                        _textBlocks.Insert(i + 1, newBlock);
-                        i++; // We know these blocks won't overflow for sure
+                        int charactersThatWillFit = atlasWidth / textSize;
 
-                        newBlockStartOffset += charsInNewBlock;
-                        charsLeft -= charsInNewBlock;
+                        int blockLength = block.Length;
+                        int blockStart = block.StartIndex;
+
+                        block.Length = charactersThatWillFit;
+                        _textBlocks[i] = block;
+
+                        int charsLeft = blockLength - charactersThatWillFit;
+                        int newBlockStartOffset = charactersThatWillFit;
+                        while (charsLeft > 0)
+                        {
+                            int charsInNewBlock = Math.Min(charsLeft, charactersThatWillFit);
+                            TextBlock newBlock = new TextBlock(blockStart + newBlockStartOffset);
+                            newBlock.Length = charsInNewBlock;
+                            _textBlocks.Insert(i + 1, newBlock);
+                            i++; // We know these blocks won't overflow for sure
+
+                            newBlockStartOffset += charsInNewBlock;
+                            charsLeft -= charsInNewBlock;
+                        }
+                        continue;
                     }
-                }
-                // Cut off at word break
-                else
-                {
-                    int lengthToEnd = block.Length - lastFitBreakChar;
-                    block.Length = lastFitBreakChar;
-                    _textBlocks[i] = block;
+                    // Cut off at word break
+                    else
+                    {
+                        int lengthToEnd = block.Length - lastFitBreakChar;
+                        block.Length = lastFitBreakChar;
+                        _textBlocks[i] = block;
 
-                    TextBlock newBlock = new TextBlock(block.StartIndex + lastFitBreakChar);
-                    newBlock.Length = lengthToEnd;
-                    _textBlocks.Insert(i + 1, newBlock);
+                        TextBlock newBlock = new TextBlock(block.StartIndex + lastFitBreakChar);
+                        newBlock.Length = lengthToEnd;
+                        _textBlocks.Insert(i + 1, newBlock);
 
-                    i--; // We want to rerun this block as cutting just one word doesn't ensure it will be fine.
-                }
-            }
+                        i--; // We want to rerun this block as cutting just one word doesn't ensure it will be fine.
+                    }
+                } // end [foreach textblock]
+            } // end [textSize < atlasWidth]
         }
-
 
         // Get lists as spans for easier working with.
         // Nothing should be added or removed from the lists past this point.
@@ -452,12 +449,6 @@ public class TextLayouter
         Calculated_TotalSize = new IntVector2(longestLine, totalHeight);
         _lastLayoutTextHeight = lineSpacing;
         _lastLayoutFont = font;
-
-        // If we're going to use the selection API, we'll need extra info
-        if (SelectionAPI)
-        {
-
-        }
     }
 
     private bool ProcessTag(ReadOnlySpan<char> text, ref TagDefinition def)
@@ -585,7 +576,7 @@ public class TextLayouter
         }
     }
 
-    #region Layout Helpers
+    #region Layout Measurers
 
     private static int MeasureStringApproximate(ReadOnlySpan<char> text, int textSize, Font font)
     {
@@ -633,93 +624,6 @@ public class TextLayouter
         return height;
     }
 
-    private static unsafe int GetPositionInBlockString(Vector2 pos, ReadOnlySpan<char> text, Font font, int textSize)
-    {
-        // This code should match MeasureWidth and the code in the TextRenderer
-
-        float scale = font.GetScaleFromFontSize(textSize);
-
-        stbtt_fontinfo stbFont = font.StbFontInfo;
-        stbtt_GetFontVMetrics(stbFont, out int ascent, out int descent, out int lineGap);
-
-        float xPos = 0;
-        for (int i = 0; i < text.Length; i++)
-        {
-            char ch = text[i];
-
-            int glyphIdx = font.GetGlyphIndexFromChar(ch);
-            stbtt_GetGlyphHMetrics(stbFont, glyphIdx, out int advance, out int lsb);
-
-            float xShift = xPos - MathF.Floor(xPos);
-            int x0, y0, x1, y1;
-            stbtt_GetCodepointBitmapBoxSubpixel(stbFont, ch, scale, scale, xShift, 0, &x0, &y0, &x1, &y1);
-
-            int width = x1 - x0;
-            int height = y1 - y0;
-            Rectangle r = new Primitives.Rectangle(xPos, 0, width, height);
-            if (r.Contains(pos))
-            {
-                return i;
-            }
-
-            xPos += advance * scale;
-            if (i < text.Length - 1)
-            {
-                int nextGlyphIndex = font.GetGlyphIndexFromChar(text[i + 1]);
-                int kerning = stbtt_GetCodepointKernAdvance(stbFont, glyphIdx, nextGlyphIndex);
-                xPos += kerning * scale;
-            }
-        }
-
-        return -1;
-    }
-
-    private static unsafe Rectangle GetBoundOfCharacterInString(int chIdx, ReadOnlySpan<char> text, Font font, int textSize)
-    {
-        // This code should match MeasureWidth and the code in the TextRenderer
-
-        float scale = font.GetScaleFromFontSize(textSize);
-
-        stbtt_fontinfo stbFont = font.StbFontInfo;
-        stbtt_GetFontVMetrics(stbFont, out int ascent, out int descent, out int lineGap);
-
-        float xPos = 0;
-        for (int i = 0; i < text.Length; i++)
-        {
-            char ch = text[i];
-
-            int glyphIdx = font.GetGlyphIndexFromChar(ch);
-            stbtt_GetGlyphHMetrics(stbFont, glyphIdx, out int advance, out int lsb);
-
-            float xShift = xPos - MathF.Floor(xPos);
-            int x0, y0, x1, y1;
-            stbtt_GetCodepointBitmapBoxSubpixel(stbFont, ch, scale, scale, xShift, 0, &x0, &y0, &x1, &y1);
-
-            int width = x1 - x0;
-            int height = y1 - y0;
-            if (chIdx == i)
-            {
-                return new Rectangle(xPos, 0, width, height);
-            }
-
-            xPos += advance * scale;
-            if (i < text.Length - 1)
-            {
-                int nextGlyphIndex = font.GetGlyphIndexFromChar(text[i + 1]);
-                int kerning = stbtt_GetCodepointKernAdvance(stbFont, glyphIdx, nextGlyphIndex);
-                xPos += kerning * scale;
-            }
-        }
-
-        return Rectangle.Empty;
-    }
-
-    private Vector2 GetNextGlyphPosition(Vector2 pen, char c, out Vector2 drawPosition)
-    {
-        drawPosition = Vector2.Zero;
-        return Vector2.Zero;
-    }
-
     #endregion
 
     #region API
@@ -753,110 +657,63 @@ public class TextLayouter
 
     #region Selection
 
+    private struct SelectionIndexPositionQueryContext
+    {
+        public Vector2 Position;
+        public int ClosestIndex;
+        public int InsideBound;
+        public float DistToClosest;
+        public float DistToClosestY;
+    }
+
     public (int, int, float) GetSelectionIndexFromPosition(Vector2 position)
     {
         if (_textBlocks.Count == 0) return (0, 0, 0);
         AssertNotNull(_lastLayoutFont);
 
-        int closestIndex = -1;
-        int insideBound = -1;
-        float distToClosest = float.MaxValue;
-        float distClosestY = float.MaxValue;
-
-        Span<char> str = CollectionsMarshal.AsSpan(_lastLayoutText);
-
-        int index = 0;
-        float blockHeight = _lastLayoutTextHeight;
-        for (int i = 0; i < _textBlocks.Count; i++)
+        var context = new SelectionIndexPositionQueryContext()
         {
-            TextBlock block = _textBlocks[i];
-            Rectangle blockBounds = new Primitives.Rectangle(block.X, block.Y, block.Width, blockHeight);
+            Position = position,
+            ClosestIndex = -1,
+            InsideBound = -1,
+            DistToClosest = float.MaxValue,
+            DistToClosestY = float.MaxValue
+        };
 
-            bool lastBlockOnLine = false;
-            if (i == _textBlocks.Count - 1 || _textBlocks[i + 1].Newline)
-                lastBlockOnLine = true;
-
-            if (lastBlockOnLine)
-                blockBounds.Width += _lastLayoutTextSize;
-
+        ForEachCharacter(ref context, static (ref SelectionIndexPositionQueryContext context, int index, Rectangle bound) =>
+        {
+            Vector2 position = context.Position;
             bool leftOfCenter = true;// position.X < bound.Center.X;
-            if (!blockBounds.Contains(position)) continue;
-
-            ReadOnlySpan<char> blockStr = block.GetBlockString(str);
-            int insideChar = GetPositionInBlockString(position - blockBounds.Position, blockStr, _lastLayoutFont, _lastLayoutTextSize);
-            if (insideChar != -1)
+            if (bound.Contains(position))
             {
-                insideBound = index + insideChar;
-                distToClosest = 0;
+                context.InsideBound = leftOfCenter ? index : index + 1;
             }
-            bool a = true;
 
-            //insideBound = leftOfCenter ? index : index + 1;
+            float dist = Math.Abs(position.X - bound.Center.X);
+            float distY = Math.Abs(position.Y - bound.Center.Y);
+            if (context.DistToClosestY > distY)
+            {
+                context.ClosestIndex = leftOfCenter ? index : index + 1;
+                context.DistToClosestY = distY;
+                context.DistToClosest = dist;
+            }
+            if (context.DistToClosestY == distY && context.DistToClosest > dist)
+            {
+                context.ClosestIndex = leftOfCenter ? index : index + 1;
+                context.DistToClosest = dist;
+            }
+        });
 
-            index += block.Length;
-        }
-
-        int boundReturn = insideBound;
-        if (boundReturn == -1) boundReturn = closestIndex;
+        int boundReturn = context.InsideBound;
+        if (boundReturn == -1) boundReturn = context.ClosestIndex;
         if (boundReturn == -1) boundReturn = 0;
-        return (boundReturn, insideBound, distToClosest);
+        return (boundReturn, context.InsideBound, context.DistToClosest);
+    }
 
-        ////int index = 0;
-        //Vector2 pen = new Vector2(0, 0);
-        //for (int i = 0; i < _textBlocks.Count; i++)
-        //{
-        //    TextBlock block = _textBlocks[i];
-
-        //    if (block.Newline)
-        //    {
-        //        pen.X = 0;
-        //        pen.Y += _lastLayoutTextHeight;
-        //    }
-
-        //    bool lastBlockOnLine = false;
-        //    if (i == _textBlocks.Count - 1 || _textBlocks[i + 1].Newline)
-        //        lastBlockOnLine = true;
-        //    int loopAdd = lastBlockOnLine ? 1 : 0;
-
-        //    ReadOnlySpan<char> blockString = block.GetBlockString(string.Empty);// _text);
-        //    for (int ci = 0; ci < blockString.Length + loopAdd; ci++)
-        //    {
-        //        bool isExtraLoop = ci == blockString.Length;
-        //        char c = isExtraLoop ? ' ' : blockString[ci];
-
-        //        pen = GetNextGlyphPosition(pen, c, out Vector2 _);
-
-        //        Rectangle bound = new Rectangle(pen.X, pen.Y, 0, _lastLayoutTextHeight);
-
-        //        bool leftOfCenter = true;// position.X < bound.Center.X;
-        //        if (bound.Contains(position))
-        //        {
-        //            insideBound = leftOfCenter ? index : index + 1;
-        //        }
-
-        //        float dist = Math.Abs(position.X - bound.Center.X);
-        //        float distY = Math.Abs(position.Y - bound.Center.Y);
-        //        if (distClosestY > distY)
-        //        {
-        //            closestIndex = leftOfCenter ? index : index + 1;
-        //            distClosestY = distY;
-        //            distToClosest = dist;
-        //        }
-        //        if (distClosestY == distY && distToClosest > dist)
-        //        {
-        //            closestIndex = leftOfCenter ? index : index + 1;
-        //            distToClosest = dist;
-        //        }
-
-        //        pen.X += 0;
-        //        index++;
-        //    }
-        //}
-
-        //int boundReturn = insideBound;
-        //if (boundReturn == -1) boundReturn = closestIndex;
-        //if (boundReturn == -1) boundReturn = 0;
-        //return (boundReturn, insideBound, distToClosest);
+    private struct GetBoundOfSelectionIndexContext
+    {
+        public int SelectionIndex;
+        public Rectangle Bound;
     }
 
     public Rectangle GetBoundOfSelectionIndex(int selectionIdx)
@@ -864,77 +721,18 @@ public class TextLayouter
         if (_textBlocks.Count == 0) return Rectangle.Empty;
         AssertNotNull(_lastLayoutFont);
 
-        int insideBound = -1;
-
-        Span<char> str = CollectionsMarshal.AsSpan(_lastLayoutText);
-
-        int index = 0;
-        float blockHeight = _lastLayoutTextHeight;
-        for (int i = 0; i < _textBlocks.Count; i++)
+        var context = new GetBoundOfSelectionIndexContext()
         {
-            TextBlock block = _textBlocks[i];
+            SelectionIndex = selectionIdx
+        };
 
-            bool lastBlockOnLine = false;
-            if (i == _textBlocks.Count - 1 || _textBlocks[i + 1].Newline)
-                lastBlockOnLine = true;
+        ForEachCharacter(ref context, static (ref GetBoundOfSelectionIndexContext context, int index, Rectangle bound) =>
+        {
+            if (index == context.SelectionIndex)
+                context.Bound = bound;
+        });
 
-            ReadOnlySpan<char> blockStr = block.GetBlockString(str);
-
-            int thisBlockStart = index;
-            int thisBlockEnd = index + (blockStr.Length - 1);
-            if (selectionIdx >= thisBlockStart && selectionIdx < thisBlockEnd)
-            {
-                Rectangle b = GetBoundOfCharacterInString(selectionIdx - thisBlockStart, blockStr, _lastLayoutFont, _lastLayoutTextSize);
-                b.Height = _lastLayoutTextHeight;
-                return b;
-            }
-
-            for (int ch = 0; ch < blockStr.Length; ch++)
-            {
-                if (index == selectionIdx)
-                {
-
-                }
-
-                index++;
-            }
-        }
-
-        return Rectangle.Empty;
-
-        //int index = 0;
-        //Vector2 pen = new Vector2(0, 0);
-        //for (int i = 0; i < _textBlocks.Count; i++)
-        //{
-        //    TextBlock block = _textBlocks[i];
-
-        //    if (block.Newline)
-        //    {
-        //        pen.X = 0;
-        //        pen.Y += _lastLayoutTextHeight;
-        //    }
-
-        //    bool lastBlockOnLine = false;
-        //    if (i == _textBlocks.Count - 1 || _textBlocks[i + 1].Newline)
-        //        lastBlockOnLine = true;
-        //    int loopAdd = lastBlockOnLine ? 1 : 0;
-
-        //    ReadOnlySpan<char> blockString = block.GetBlockString(string.Empty);//_text);
-        //    for (int ci = 0; ci < blockString.Length + loopAdd; ci++)
-        //    {
-        //        char c = ci == blockString.Length ? ' ' : blockString[ci];
-
-        //        pen = GetNextGlyphPosition(pen, c, out Vector2 _);
-
-        //        Rectangle bound = new Rectangle(pen.X, pen.Y, 0, _lastLayoutTextHeight);
-        //        if (index == selectionIdx) return bound;
-
-        //        pen.X += 0;
-        //        index++;
-        //    }
-        //}
-
-        //return Rectangle.Empty;
+        return context.Bound;
     }
 
     public int GetSelectionIndexFromStringIndex(int stringIndex)
@@ -1115,6 +913,69 @@ public class TextLayouter
         }
 
         return returnVal;
+    }
+
+    public delegate void ForEachCharacterFunc<TIn>(ref TIn context, int index, Rectangle bound);
+    private unsafe void ForEachCharacter<TIn>(ref TIn input, ForEachCharacterFunc<TIn> func)
+        where TIn : struct
+    {
+        // This code should match MeasureWidth and the code in the TextRenderer
+
+        Vector2 pen = Vector2.Zero;
+
+        Font? font = _lastLayoutFont;
+        if (font == null) return;
+        stbtt_fontinfo stbFont = font.StbFontInfo;
+        float scale = font.GetScaleFromFontSize(_lastLayoutTextSize);
+
+        float fontHeight = _lastLayoutTextHeight;
+
+        int index = 0;
+        Span<char> str = CollectionsMarshal.AsSpan(_lastLayoutText);
+        for (int i = 0; i < _textBlocks.Count; i++)
+        {
+            TextBlock block = _textBlocks[i];
+
+            if (block.Newline)
+            {
+                pen.X = 0;
+                pen.Y += fontHeight;
+            }
+
+            bool lastBlockOnLine = false;
+            if (i == _textBlocks.Count - 1 || _textBlocks[i + 1].Newline)
+                lastBlockOnLine = true;
+            int loopAdd = lastBlockOnLine ? 1 : 0;
+
+            ReadOnlySpan<char> blockStr = block.GetBlockString(str);
+            for (int ci = 0; ci < blockStr.Length + loopAdd; ci++)
+            {
+                bool isExtraLoop = ci == blockStr.Length;
+                char ch = isExtraLoop ? ' ' : blockStr[ci];
+
+                int glyphIdx = font.GetGlyphIndexFromChar(ch);
+                stbtt_GetGlyphHMetrics(stbFont, glyphIdx, out int advance, out int lsb);
+
+                float xShift = pen.X - MathF.Floor(pen.X);
+                int x0, y0, x1, y1;
+                stbtt_GetCodepointBitmapBoxSubpixel(stbFont, ch, scale, scale, xShift, 0, &x0, &y0, &x1, &y1);
+
+                int width = x1 - x0;
+                int height = y1 - y0;
+                Rectangle charBound = new Rectangle(pen.X, pen.Y, width, fontHeight);
+                func(ref input, index, charBound);
+
+                index++;
+
+                pen.X += advance * scale;
+                if (i < blockStr.Length - 1)
+                {
+                    int nextGlyphIndex = font.GetGlyphIndexFromChar(blockStr[i + 1]);
+                    int kerning = stbtt_GetCodepointKernAdvance(stbFont, glyphIdx, nextGlyphIndex);
+                    pen.X += kerning * scale;
+                }
+            }
+        }
     }
 
     #endregion

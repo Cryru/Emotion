@@ -19,7 +19,7 @@ public static partial class TextRenderer
     private static ShaderAsset? _sdfShader;
 
     private const byte SOLID_PIXEL_THRESHOLD = 85;
-    private const bool LETTER_BY_LETTER = false;
+    public const bool LETTER_BY_LETTER = false;
 
     public static int GetAtlasWidth()
     {
