@@ -231,7 +231,7 @@ namespace Emotion.SourceGeneration
 
             "System",
             "StbTrueTypeSharp",
-            "NewStbTrueTypeSharp"
+            "StbTrueTypeSharp"
         };
 
         private static string[] _allowNamespacesWhenReferenced = new string[]

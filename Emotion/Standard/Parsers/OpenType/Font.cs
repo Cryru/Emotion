@@ -4,8 +4,8 @@
 
 using Emotion.Standard.OpenType.FontTables;
 using Emotion.Standard.Parsers.OpenType.FontTables;
-using NewStbTrueTypeSharp;
-using static NewStbTrueTypeSharp.StbTrueType;
+using StbTrueTypeSharp;
+using static StbTrueTypeSharp.StbTrueType;
 
 #endregion
 

@@ -143,7 +143,7 @@ namespace Emotion.SourceGeneration
             "Emotion.Core.Systems.JobSystem",
             "Emotion.Core.Utility.Threading",
             "Emotion.Core.Systems.Audio",
-            "NewStbTrueTypeSharp",
+            "StbTrueTypeSharp",
             "Emotion.Core.Platform",
             "System.Collections.Generic.Stack",
             "System.Collections.Generic.IDictionary",

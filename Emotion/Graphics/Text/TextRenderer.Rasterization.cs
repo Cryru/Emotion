@@ -4,7 +4,7 @@ using Emotion.Standard.Memory;
 using Emotion.Standard.Parsers.OpenType;
 using System.Buffers;
 using System.Runtime.InteropServices;
-using static NewStbTrueTypeSharp.StbTrueType;
+using static StbTrueTypeSharp.StbTrueType;
 
 namespace Emotion.Graphics.Text;
 

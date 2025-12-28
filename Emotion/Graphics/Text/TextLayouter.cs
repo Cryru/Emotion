@@ -6,7 +6,7 @@ using Emotion.Core.Systems.IO;
 using Emotion.Graphics.Text.LayoutEngineTypes;
 using Emotion.Standard.Parsers.OpenType;
 using System.Runtime.InteropServices;
-using static NewStbTrueTypeSharp.StbTrueType;
+using static StbTrueTypeSharp.StbTrueType;
 
 #endregion
 

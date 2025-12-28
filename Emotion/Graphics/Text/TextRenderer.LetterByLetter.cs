@@ -4,7 +4,7 @@ using Emotion.Core.Systems.JobSystem;
 using Emotion.Core.Utility.Threading;
 using Emotion.Graphics.Batches;
 using Emotion.Standard.Parsers.OpenType;
-using static NewStbTrueTypeSharp.StbTrueType;
+using static StbTrueTypeSharp.StbTrueType;
 
 namespace Emotion.Graphics.Text;
 
