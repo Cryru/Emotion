@@ -60,7 +60,7 @@ Include the "LICENSE THIRD-PARTY" file from the repository in your exe when dist
 | [Fast Noise Lite](https://github.com/Auburn/FastNoiseLite) | MIT | Simplex Noise | ThirdParty/FastNoiseLite
 | [WinApi](https://github.com/prasannavl/WinApi) | Apache | Windows API Interop Headers | @ Emotion.Core.Platform.Implementation.Win32.Native
 | [OpenGL.Net](https://github.com/luca-piccioni/OpenGL.Net) | MIT | OpenGL API | ThirdParty/OpenGL
-| [StbTrueType](https://github.com/nothings/stb/blob/master/stb_truetype.h) & [StbTrueTypeSharp](https://github.com/zwcloud/StbTruetypeSharp) | MIT & GPL3 | Font Rendering Option and Comparison | Referenced by Tests @ Tests/StbTrueType and Graphics/Text/StbGlyphRenderer
+| [StbTrueType](https://github.com/nothings/stb/blob/master/stb_truetype.h) & [StbTrueTypeSharp](https://github.com/zwcloud/StbTruetypeSharp) | MIT & GPL3 | Text Rasterization | Slighly optimized and uses an arena allocator @ ThirdParty/StbTrueType
 | [TiledSharp](https://github.com/marshallward/TiledSharp) | Apache 2.0 | .TMX Support | Uses custom XML and engine integration @ Emotion.Standard.Parsers.TMX
 
 ### Optional Dependencies
@@ -68,7 +68,6 @@ Include the "LICENSE THIRD-PARTY" file from the repository in your exe when dist
 | Library | License | Used For | Inclusion |
 | -- | -- | -- | -- |
 | [Roslyn/Microsoft.CodeAnalysis.CSharp](https://github.com/dotnet/roslyn) | MIT | Runtime C# Script Compilation | Emotion.Plugins.CSharpScripting
-| [CimGui](https://github.com/cimgui/cimgui) & [CimGui.Net](https://github.com/mellinoe/ImGui.NET) | MIT | Developer UI | Emotion.Plugins.ImGuiNet, Precompiled for Mac64, Linux64, and Win64
 | [ANGLE](https://github.com/google/angle) | Google License | Compatibility | Precompiled for Win32 and Win64, Add "ANGLE" symbol
 | [llvmpipe / Gallium / Mesa](https://mesa3d.org/) | MIT | Compatibility via Software Renderer | Precompiled for Win32 and Win64
 | [Glfw](https://github.com/glfw/glfw) & [Glfw.Net](https://github.com/Chman/Glfw.Net) | Zlib | Mac and Linux Window Creation | Precompiled for Mac64, Linux64, Win32, and Win64, Add "GLFW" symbol
@@ -89,4 +88,3 @@ Include the "LICENSE THIRD-PARTY" file from the repository in your exe when dist
 | [OpenAL-Soft](https://github.com/kcat/openal-soft/) | X | Audio Code Reference | None
 | [NAudio](https://github.com/naudio/NAudio) | X | Audio Code Reference | None
 | [Audacity](https://github.com/audacity) | X | Audio Code Reference | None
-| [Astiopin's SDF generator](https://github.com/astiopin/sdf_atlas) | X | EmotionSDF4 atlas generation reference | None
