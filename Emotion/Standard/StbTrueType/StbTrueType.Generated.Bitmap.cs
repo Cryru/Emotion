@@ -3,7 +3,7 @@
 using Emotion.Standard.Memory;
 using System.Runtime.InteropServices;
 
-namespace NewStbTrueTypeSharp
+namespace StbTrueTypeSharp
 {
     unsafe partial class StbTrueType
     {

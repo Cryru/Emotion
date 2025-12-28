@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 #endregion
 
-namespace NewStbTrueTypeSharp;
+namespace StbTrueTypeSharp;
 
 internal static unsafe class StbRuntime
 {
@@ -19,8 +19,6 @@ internal static unsafe class StbRuntime
             bytePtr[i] = 0;
         }
 
-        MemoryStats.Allocated();
-
         return bytePtr;
     }
 
@@ -31,7 +29,6 @@ internal static unsafe class StbRuntime
 
         var ptr = new nint(a);
         Marshal.FreeHGlobal(ptr);
-        MemoryStats.Freed();
     }
 
     public static void memcpy(void* to, void* from, ulong size)
