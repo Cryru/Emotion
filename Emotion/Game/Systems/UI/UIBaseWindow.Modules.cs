@@ -100,7 +100,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         {
             if (_priority == value) return;
             _priority = value;
-            InvalidateLayout();
+            Parent?.InvalidateChildrenOrder();
         }
     }
 
@@ -328,22 +328,22 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         if (Engine.UI.InUpdate && State == UIWindowState.Open)
             _childrenToAdd.Enqueue(child);
         else
-            Inner_AddChildToList(child);
+            Children.Add(child);
 
         // Start loading early, don't wait for next update
         child.UpdateLoading();
 
         if (State == UIWindowState.Open)
             child.SetStateOpened();
+
+        InvalidateChildrenOrder();
         InvalidateLayout();
     }
 
     private readonly Queue<UIBaseWindow> _childrenToAdd = new Queue<UIBaseWindow>(0);
 
-    private void Inner_AddChildToList(UIBaseWindow child)
+    private void SortChildren()
     {
-        Children.Add(child);
-
         // Custom insertion sort as Array.Sort is unstable
         // Isn't too problematic performance wise since adding children shouldn't happen often.
         for (var i = 1; i < Children.Count; i++)
@@ -482,8 +482,6 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         }
 
 
-
-
         // todo: Layout functions should be rewritten in a way so they can be resumed at any point in the tree,
         // to prevent all invalidations going all the way up.
         // For instance this case doesn't make sense to propagate:
@@ -492,6 +490,13 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         //  Parent.Layout.SizingY.Mode != UISizing.UISizingMode.Fit
 
         //Parent?.InvalidateLayout(); 
+    }
+
+    protected bool _needsChildrenSort = true;
+
+    public void InvalidateChildrenOrder()
+    {
+        _needsChildrenSort = true;
     }
 
     #endregion
@@ -637,6 +642,12 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
         // If loading we don't want to update or draw the UI
         if (this is not UISystem && IsLoading()) return;
+
+        if (_needsChildrenSort)
+        {
+            SortChildren();
+            _needsChildrenSort = false;
+        }
 
         UpdateInternal();
         if (State == UIWindowState.Closed) return; // Closed self in update.
@@ -858,7 +869,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     {
         while (_childrenToAdd.TryDequeue(out UIBaseWindow? newChild))
         {
-            Inner_AddChildToList(newChild);
+            Children.Add(newChild);
         }
 
         foreach (UIBaseWindow child in Children)

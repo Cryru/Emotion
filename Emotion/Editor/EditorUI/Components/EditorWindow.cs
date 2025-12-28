@@ -141,13 +141,6 @@ public class EditorWindow : UIBaseWindow
         base.InternalOnLayoutComplete();
     }
 
-    protected override IntVector2 InternalGetWindowMinSize()
-    {
-        if (_hostWindow != null)
-            return IntVector2.FromVec2Ceiling(_hostWindow.Size);
-        return base.InternalGetWindowMinSize();
-    }
-
     #endregion
 
     #region Helpers
@@ -194,7 +187,7 @@ public class EditorWindow : UIBaseWindow
                 break;
         }
 
-        Engine.UI.SetInputFocus(_contentParent);
+        Engine.UI.SetInputFocus(_panelInner);
         ApplyHeaderText();
 
         //IEnumerator OpenSubWindowDelayedRoutine()
@@ -212,6 +205,8 @@ public class EditorWindow : UIBaseWindow
         else
             OrderInParent--;
 
+        UpdateTopBarColor();
+
         base.InputFocusChanged(haveFocus);
     }
 
@@ -226,16 +221,12 @@ public class EditorWindow : UIBaseWindow
                 _windowFB.Resize(_hostWindow.Size, true);
 
                 Vector2 size = _hostWindow.Size / GetScale();
-                _panelItself.Layout.SizingX = UISizing.Fixed((int) size.X);
-                _panelItself.Layout.SizingY = UISizing.Fixed((int) size.Y);
+                _panelItself.Layout.SizingX = UISizing.Fixed((int)size.X);
+                _panelItself.Layout.SizingY = UISizing.Fixed((int)size.Y);
             }
             r.RenderToAndClear(_windowFB);
             r.RenderSprite(Position, Size, Color.CornflowerBlue);
         }
-
-        //UIBaseWindow? focus = Engine.UI.InputFocus;
-        //if (focus != null && focus.IsWithin(this))
-        //    c.RenderSprite(_topBar.Position, _topBar.Size, _topBarMouseDown || _topBar.MouseInside ? EditorColorPalette.ActiveButtonColor : EditorColorPalette.ButtonColor);
 
         base.InternalRender(r);
     }
@@ -340,8 +331,8 @@ public class EditorWindow : UIBaseWindow
             r.Size /= GetScale(); // Unscale
 
             // The sizing should prevent it from being smaller than the children
-            _panelItself.Layout.SizingX = UISizing.Fixed((int) r.Size.X);
-            _panelItself.Layout.SizingY = UISizing.Fixed((int) r.Size.Y);
+            _panelItself.Layout.SizingX = UISizing.Fixed((int)r.Size.X);
+            _panelItself.Layout.SizingY = UISizing.Fixed((int)r.Size.Y);
         }
     }
 
@@ -366,7 +357,6 @@ public class EditorWindow : UIBaseWindow
 
             Visuals =
             {
-                BackgroundColor = Color.Black * 0.5f,
                 Border = 1,
                 BorderColor = Color.White * 0.5f
             },
@@ -384,6 +374,14 @@ public class EditorWindow : UIBaseWindow
             {
                 _topBarMouseDown = false;
             },
+            OnMouseEnterProxy = (_) =>
+            {
+                UpdateTopBarColor();
+            },
+            OnMouseLeaveProxy = (_) =>
+            {
+                UpdateTopBarColor();
+            }
         };
         _topBar = topBar;
         parent.AddChild(topBar);
@@ -435,6 +433,19 @@ public class EditorWindow : UIBaseWindow
             }
         };
         topBarButtonList.AddChild(closeButton);
+
+        UpdateTopBarColor();
+    }
+
+    private void UpdateTopBarColor()
+    {
+        if (_topBar == null) return;
+
+        bool focused = Engine.UI.InputFocus?.IsWithin(this) ?? false;
+        if (focused)
+            _topBar.Visuals.BackgroundColor = _topBar.MouseInside ? EditorColorPalette.ActiveButtonColor : EditorColorPalette.ButtonColor;
+        else
+            _topBar.Visuals.BackgroundColor = _topBar.MouseInside ? Color.White * 0.2f : Color.Black * 0.5f;
     }
 
     private void UpdateDragMove()
@@ -457,7 +468,7 @@ public class EditorWindow : UIBaseWindow
             UIBaseWindow? mapEditorTopBar = Engine.UI.GetWindowById("EditorTopBar");
             if (mapEditorTopBar != null)
             {
-                int topBarPos = (int) MathF.Floor(mapEditorTopBar.CalculatedMetrics.Bounds.Bottom / scale);
+                int topBarPos = (int)MathF.Floor(mapEditorTopBar.CalculatedMetrics.Bounds.Bottom / scale);
                 snapArea.Y = topBarPos;
                 snapArea.Height -= topBarPos;
             }
@@ -472,6 +483,13 @@ public class EditorWindow : UIBaseWindow
 
     private PlatformSubWindow? _hostWindow;
     private FrameBuffer? _windowFB;
+
+    protected override IntVector2 InternalGetWindowMinSize()
+    {
+        if (_hostWindow != null)
+            return IntVector2.FromVec2Ceiling(_hostWindow.Size);
+        return base.InternalGetWindowMinSize();
+    }
 
     public override UIBaseWindow? FindMouseInput(Vector2 pos)
     {

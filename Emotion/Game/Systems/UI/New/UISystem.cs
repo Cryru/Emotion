@@ -130,7 +130,7 @@ public class UISystem : UIBaseWindow
 
     private void UpdateInput()
     {
-        if (_needsFocusUpdate) UpdateFocus();
+        if (_needsFocusUpdate) UpdateInputFocus();
         if (!_mouseMovedThisTick) UpdateMouseFocus();
         _mouseMovedThisTick = false;
     }
@@ -187,11 +187,56 @@ public class UISystem : UIBaseWindow
         }
     }
 
-    private void UpdateFocus()
+    private void UpdateInputFocus()
     {
-
-
         _needsFocusUpdate = false;
+
+        UIBaseWindow? newFocus;
+        if (_inputFocusManual != null && SupportsInputAlongTree(_inputFocusManual))
+        {
+            newFocus = _inputFocusManual;
+        }
+        else
+        {
+            _inputFocusManual = null;
+            newFocus = null;
+            //newFocus = FindInputFocusable();
+        }
+
+        if (newFocus == this) newFocus = null;
+
+        if (InputFocus != newFocus)
+        {
+            UIBaseWindow? commonParentWithOldFocus = null;
+
+            UIBaseWindow? oldFocus = InputFocus;
+
+            // Re-hook event to get KeyUp events on keys that are pressed down.
+            if (oldFocus != null)
+                Engine.Host.OnKey.RemoveListener(_keyboardFocusOnKeyDelegateCache);
+
+            // Set input focus actually
+            InputFocus = newFocus;
+
+            // Send focus remove events only on the part of the tree that will be unfocused.
+            if (oldFocus != null)
+            {
+                commonParentWithOldFocus = FindCommonParent(oldFocus, newFocus);
+                SetFocusUpTree(oldFocus, false, commonParentWithOldFocus);
+            }
+
+            // Attach listener to new focus and send focus events
+            if (newFocus != null)
+            {
+                Engine.Host.OnKey.AddListener(_keyboardFocusOnKeyDelegateCache, KeyListenerType.UI);
+
+                // Send focus add events down to the child that will be focused.
+                SetFocusUpTree(newFocus, true, commonParentWithOldFocus);
+            }
+
+            // Kinda spammy.
+            // Engine.Log.Info($"New input focus {InputFocus}", "UI");
+        }
     }
 
     private bool MouseFocusOnKey(Key key, KeyState status)
@@ -248,6 +293,13 @@ public class UISystem : UIBaseWindow
         if (status == KeyState.Down)
             UpdateInput();
 
+        UIBaseWindow current = InputFocus;
+        while (current != null)
+        {
+            bool propagate = current.OnKey(key, status, Engine.Input.MousePosition);
+            if (!propagate) return false;
+            current = current.Parent;
+        }
 
         return true;
     }
@@ -257,7 +309,20 @@ public class UISystem : UIBaseWindow
 
     public void SetInputFocus(UIBaseWindow? window)
     {
-        InputFocus = window;
+        // If focus is being removed (set to null) then we explicitly don't want to
+        // focus the same window as before (or their tree). So we temporary remove their focus.
+        bool removedHandleInput = false;
+        UIBaseWindow? oldFocus = InputFocus;
+        if (window == null && oldFocus != null && oldFocus.ChildrenHandleInput)
+        {
+            oldFocus.ChildrenHandleInput = false;
+            removedHandleInput = true;
+        }
+
+        _inputFocusManual = window;
+        UpdateInputFocus();
+
+        if (removedHandleInput) oldFocus!.ChildrenHandleInput = true;
     }
 
     // Helpers
@@ -278,6 +343,7 @@ public class UISystem : UIBaseWindow
 
     private static bool SupportsInputAlongTree(UIBaseWindow window)
     {
+        if (window.State != UIWindowState.Open) return false;
         if (!window.HandleInput || !window.Visible) return false;
 
         UIBaseWindow? parent = window.Parent;
@@ -288,6 +354,36 @@ public class UISystem : UIBaseWindow
         }
 
         return true;
+    }
+
+    private static UIBaseWindow? FindCommonParent(UIBaseWindow one, UIBaseWindow? two)
+    {
+        if (two == null) return null;
+        if (two.IsWithin(one)) return one;
+        if (one.IsWithin(two)) return two;
+
+        UIBaseWindow? p = one.Parent;
+        while (p != null)
+        {
+            if (two.IsWithin(p)) return p;
+            p = p.Parent;
+        }
+
+        return null;
+    }
+
+    private static void SetFocusUpTree(UIBaseWindow startFrom, bool focus, UIBaseWindow? stopAt)
+    {
+        if (stopAt == startFrom) return;
+        startFrom.InputFocusChanged(focus);
+
+        UIBaseWindow? p = startFrom.Parent;
+        while (p != null)
+        {
+            if (p == stopAt) break;
+            p.InputFocusChanged(focus);
+            p = p.Parent;
+        }
     }
 
     #endregion

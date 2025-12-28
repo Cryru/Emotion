@@ -30,13 +30,13 @@ public partial class UIController : UIBaseWindow
     protected bool _updateInputFocus = true;
     protected bool _mouseUpdatedThisTick = false;
 
-    private Func<Key, KeyState, bool> _mouseFocusOnKeyDelegateCache;
-    private Func<Key, KeyState, bool> _keyboardFocusOnKeyDelegateCache;
+    //private Func<Key, KeyState, bool> _mouseFocusOnKeyDelegateCache;
+    //private Func<Key, KeyState, bool> _keyboardFocusOnKeyDelegateCache;
 
     public UIController()
     {
-        _mouseFocusOnKeyDelegateCache = MouseFocusOnKey;
-        _keyboardFocusOnKeyDelegateCache = KeyboardFocusOnKey;
+        //_mouseFocusOnKeyDelegateCache = MouseFocusOnKey;
+        //_keyboardFocusOnKeyDelegateCache = KeyboardFocusOnKey;
 
         HandleInput = true;
         Engine.Host.OnResize += Host_OnResize;
@@ -46,8 +46,8 @@ public partial class UIController : UIBaseWindow
     {
         Engine.Host.OnResize -= Host_OnResize;
         //Engine.Host.OnMouseMove -= Host_MouseMove;
-        if (InputFocus != null) Engine.Host.OnKey.RemoveListener(_keyboardFocusOnKeyDelegateCache);
-        if (_myMouseFocus != null) Engine.Host.OnKey.RemoveListener(_mouseFocusOnKeyDelegateCache);
+        //if (InputFocus != null) Engine.Host.OnKey.RemoveListener(_keyboardFocusOnKeyDelegateCache);
+        //if (_myMouseFocus != null) Engine.Host.OnKey.RemoveListener(_mouseFocusOnKeyDelegateCache);
         ClearChildren();
     }
 
@@ -166,30 +166,30 @@ public partial class UIController : UIBaseWindow
 
     #region Input
 
-    private bool KeyboardFocusOnKey(Key key, KeyState status)
-    {
-        // It is possible to receive an input even while a recalculating is pending.
-        if (_updateInputFocus && status == KeyState.Down)
-        {
-            UpdateInputFocus();
-        }
+    //private bool KeyboardFocusOnKey(Key key, KeyState status)
+    //{
+    //    // It is possible to receive an input even while a recalculating is pending.
+    //    if (_updateInputFocus && status == KeyState.Down)
+    //    {
+    //        UpdateInputFocus();
+    //    }
 
-        if (!Visible) return true;
-        if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd) return true;
-        if (InputFocus != null && InputFocus.VisibleAlongTree())
-        {
-            Vector2 mousePos = Engine.Host.MousePosition;
-            var current = InputFocus;
-            while (current != null)
-            {
-                bool propagate = current.OnKey(key, status, mousePos);
-                if (!propagate) return false;
-                current = current.Parent;
-            }
-        }
+    //    if (!Visible) return true;
+    //    if (key > Key.MouseKeyStart && key < Key.MouseKeyEnd) return true;
+    //    if (InputFocus != null && InputFocus.VisibleAlongTree())
+    //    {
+    //        Vector2 mousePos = Engine.Host.MousePosition;
+    //        var current = InputFocus;
+    //        while (current != null)
+    //        {
+    //            bool propagate = current.OnKey(key, status, mousePos);
+    //            if (!propagate) return false;
+    //            current = current.Parent;
+    //        }
+    //    }
 
-        return true;
-    }
+    //    return true;
+    //}
 
     protected virtual bool MouseFocusOnKey(Key key, KeyState status)
     {
@@ -250,126 +250,126 @@ public partial class UIController : UIBaseWindow
         return true;
     }
 
-    public void InvalidateInputFocus()
-    {
-        _updateInputFocus = true;
-    }
+    //public void InvalidateInputFocus()
+    //{
+    //    _updateInputFocus = true;
+    //}
 
-    public void SetInputFocus(UIBaseWindow? win)
-    {
-        // If focus is being removed (set to null) then we explicitly don't want to
-        // focus the same window as before (or their tree). So we temporary remove their focus.
-        var removedHandleInput = false;
-        UIBaseWindow? oldFocus = InputFocus;
-        if (win == null && oldFocus != null && oldFocus.ChildrenHandleInput)
-        {
-            oldFocus.ChildrenHandleInput = false;
-            removedHandleInput = true;
-        }
+    //public void SetInputFocus(UIBaseWindow? win)
+    //{
+    //    // If focus is being removed (set to null) then we explicitly don't want to
+    //    // focus the same window as before (or their tree). So we temporary remove their focus.
+    //    var removedHandleInput = false;
+    //    UIBaseWindow? oldFocus = InputFocus;
+    //    if (win == null && oldFocus != null && oldFocus.ChildrenHandleInput)
+    //    {
+    //        oldFocus.ChildrenHandleInput = false;
+    //        removedHandleInput = true;
+    //    }
 
-        _inputFocusManual = win;
-        UpdateInputFocus();
+    //    _inputFocusManual = win;
+    //    UpdateInputFocus();
 
-        if (removedHandleInput) oldFocus!.ChildrenHandleInput = true;
-    }
+    //    if (removedHandleInput) oldFocus!.ChildrenHandleInput = true;
+    //}
 
     private void UpdateInputFocus()
     {
-        _updateInputFocus = false;
+        //_updateInputFocus = false;
 
-        UIBaseWindow? newFocus;
-        if (!ChildrenHandleInput || !Visible)
-        {
-            newFocus = null;
-        }
-        else if (_inputFocusManual != null && _inputFocusManual.VisibleAlongTree() && _inputFocusManual.HandleInput && _inputFocusManual.State == UIWindowState.Open)
-        {
-            newFocus = _inputFocusManual;
-        }
-        else
-        {
-            _inputFocusManual = null;
-            newFocus = FindInputFocusable(this);
-        }
+        //UIBaseWindow? newFocus;
+        //if (!ChildrenHandleInput || !Visible)
+        //{
+        //    newFocus = null;
+        //}
+        //else if (_inputFocusManual != null && _inputFocusManual.VisibleAlongTree() && _inputFocusManual.HandleInput && _inputFocusManual.State == UIWindowState.Open)
+        //{
+        //    newFocus = _inputFocusManual;
+        //}
+        //else
+        //{
+        //    _inputFocusManual = null;
+        //    newFocus = FindInputFocusable(this);
+        //}
 
-        if (newFocus == this) newFocus = null;
+        //if (newFocus == this) newFocus = null;
 
-        if (InputFocus != newFocus)
-        {
-            UIBaseWindow? commonParentWithOldFocus = null;
+        //if (InputFocus != newFocus)
+        //{
+        //    UIBaseWindow? commonParentWithOldFocus = null;
 
-            // Re-hook event to get KeyUp events on keys that are pressed down.
-            if (InputFocus != null)
-            {
-                Engine.Host.OnKey.RemoveListener(_keyboardFocusOnKeyDelegateCache);
+        //    // Re-hook event to get KeyUp events on keys that are pressed down.
+        //    if (InputFocus != null)
+        //    {
+        //        Engine.Host.OnKey.RemoveListener(_keyboardFocusOnKeyDelegateCache);
 
-                // Send focus remove events only on the part of the tree that will be unfocused.
-                commonParentWithOldFocus = FindCommonParent(InputFocus, newFocus);
-                SetFocusUpTree(InputFocus, false, commonParentWithOldFocus);
-            }
+        //        // Send focus remove events only on the part of the tree that will be unfocused.
+        //        commonParentWithOldFocus = FindCommonParent(InputFocus, newFocus);
+        //        SetFocusUpTree(InputFocus, false, commonParentWithOldFocus);
+        //    }
 
-            InputFocus = newFocus;
+        //    InputFocus = newFocus;
 
-            if (InputFocus != null)
-            {
-                Engine.Host.OnKey.AddListener(_keyboardFocusOnKeyDelegateCache, KeyListenerType.UI);
+        //    if (InputFocus != null)
+        //    {
+        //        Engine.Host.OnKey.AddListener(_keyboardFocusOnKeyDelegateCache, KeyListenerType.UI);
 
-                // Send focus add events down to the child that will be focused.
-                SetFocusUpTree(InputFocus, true, commonParentWithOldFocus);
-            }
+        //        // Send focus add events down to the child that will be focused.
+        //        SetFocusUpTree(InputFocus, true, commonParentWithOldFocus);
+        //    }
 
-            // Kinda spammy.
-            // Engine.Log.Info($"New input focus {InputFocus}", "UI");
-        }
+        //    // Kinda spammy.
+        //    // Engine.Log.Info($"New input focus {InputFocus}", "UI");
+        //}
     }
 
-    protected void SetFocusUpTree(UIBaseWindow startFrom, bool focus, UIBaseWindow? stopAt)
-    {
-        if (stopAt == startFrom) return;
-        startFrom.InputFocusChanged(focus);
+    //protected void SetFocusUpTree(UIBaseWindow startFrom, bool focus, UIBaseWindow? stopAt)
+    //{
+    //    if (stopAt == startFrom) return;
+    //    startFrom.InputFocusChanged(focus);
 
-        UIBaseWindow? p = startFrom.Parent;
-        while (p != null)
-        {
-            if (p == stopAt) break;
-            p.InputFocusChanged(focus);
-            p = p.Parent;
-        }
-    }
+    //    UIBaseWindow? p = startFrom.Parent;
+    //    while (p != null)
+    //    {
+    //        if (p == stopAt) break;
+    //        p.InputFocusChanged(focus);
+    //        p = p.Parent;
+    //    }
+    //}
 
-    protected static UIBaseWindow? FindCommonParent(UIBaseWindow one, UIBaseWindow? two)
-    {
-        if (two == null) return null;
-        if (two.IsWithin(one)) return one;
-        if (one.IsWithin(two)) return two;
+    //protected static UIBaseWindow? FindCommonParent(UIBaseWindow one, UIBaseWindow? two)
+    //{
+    //    if (two == null) return null;
+    //    if (two.IsWithin(one)) return one;
+    //    if (one.IsWithin(two)) return two;
 
-        UIBaseWindow? p = one.Parent;
-        while (p != null)
-        {
-            if (two.IsWithin(p)) return p;
-            p = p.Parent;
-        }
+    //    UIBaseWindow? p = one.Parent;
+    //    while (p != null)
+    //    {
+    //        if (two.IsWithin(p)) return p;
+    //        p = p.Parent;
+    //    }
 
-        return null;
-    }
+    //    return null;
+    //}
 
-    protected static UIBaseWindow? FindInputFocusable(UIBaseWindow wnd)
-    {
-        if (!wnd.Visible) return null;
+    //protected static UIBaseWindow? FindInputFocusable(UIBaseWindow wnd)
+    //{
+    //    if (!wnd.Visible) return null;
 
-        if (wnd.Children != null && wnd.ChildrenHandleInput)
-            for (int i = wnd.Children.Count - 1; i >= 0; i--)
-            {
-                UIBaseWindow win = wnd.Children[i];
-                if (win.ChildrenHandleInput && win.Visible)
-                {
-                    UIBaseWindow? found = FindInputFocusable(win);
-                    if (found != null) return found;
-                }
-            }
+    //    if (wnd.Children != null && wnd.ChildrenHandleInput)
+    //        for (int i = wnd.Children.Count - 1; i >= 0; i--)
+    //        {
+    //            UIBaseWindow win = wnd.Children[i];
+    //            if (win.ChildrenHandleInput && win.Visible)
+    //            {
+    //                UIBaseWindow? found = FindInputFocusable(win);
+    //                if (found != null) return found;
+    //            }
+    //        }
 
-        return wnd.HandleInput ? wnd : null;
-    }
+    //    return wnd.HandleInput ? wnd : null;
+    //}
 
     #endregion
 }
