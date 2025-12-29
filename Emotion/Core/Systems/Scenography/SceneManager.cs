@@ -5,6 +5,7 @@
 using System.Runtime.CompilerServices;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Core.Utility.Threading;
+using Emotion.Editor;
 
 #endregion
 
@@ -56,7 +57,7 @@ public class SceneManager
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void Update()
     {
-        Current.UpdateScene(Engine.DeltaTime);
+        Current.UpdateScene(EngineEditor.IsOpen ? 0 : Engine.DeltaTime);
     }
 
     /// <summary>

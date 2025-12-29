@@ -71,15 +71,6 @@ public static partial class EngineEditor
         Engine.Input.SuppressMouseFirstPersonMode(true, "Editor");
         Engine.Host.OnKey.BlockListenersOfType(KeyListenerType.Game);
 
-        _workflowParent = new UIBaseWindow()
-        {
-            Layout =
-            {
-                SizingX = UISizing.Fit()
-            }
-        };
-        _editorUIHorizontalParent.AddChild(_workflowParent);
-
         _editorBars = new UIBaseWindow();
         _editorUIHorizontalParent.AddChild(_editorBars);
 
@@ -92,21 +83,30 @@ public static partial class EngineEditor
         };
         _editorBars.AddChild(barContainer);
         barContainer.AddChild(new EditorTopBar());
-        barContainer.AddChild(new MapEditorViewMode());
 
-        SetupDebugCameraUI(barContainer);
-        SetupGameEditorVisualizations(barContainer);
+        _workflowParent = new UIBaseWindow()
+        {
+            Layout =
+            {
+                SizingX = UISizing.Grow(),
+                SizingY = UISizing.Grow(),
+            },
+            OrderInParent = 10
+        };
+        barContainer.AddChild(_workflowParent);
+        SetWorkflow(new DefaultWorkflow());
 
         _perfText = new UIText
         {
             Layout =
             {
                 AnchorAndParentAnchor = UIAnchor.TopRight,
-                Margins = new UISpacing(0, 50, 5, 0)
+                Margins = new UISpacing(0, 5, 5, 0)
             },
 
             FontSize = 25,
-            Effect = TextEffect.Outline(Color.Black, 2)
+            Effect = TextEffect.Outline(Color.Black, 2),
+            OrderInParent = 100,
         };
         _editorBars.AddChild(_perfText);
 
@@ -122,9 +122,6 @@ public static partial class EngineEditor
         AssertNotNull(_editorBars);
         _editorUIHorizontalParent.RemoveChild(_editorBars);
         _editorBars = null;
-
-        AssertNotNull(_workflowParent);
-        _editorUIHorizontalParent.RemoveChild(_workflowParent);
         _workflowParent = null;
 
         SetMapEditorMode(MapEditorMode.Off);
@@ -137,6 +134,7 @@ public static partial class EngineEditor
     {
         if (!IsOpen) return;
         UpdateMapEditor();
+        CurrentWorkflow?.Update();
     }
 
     public static void RenderEditor(Renderer c)
@@ -191,37 +189,6 @@ public static partial class EngineEditor
     private static float GetDebugCameraSpeed()
     {
         return _editorCamera is Camera2D cam2D ? cam2D.MovementSpeed : (_editorCamera is Camera3D cam3D ? cam3D.MovementSpeed : 0f);
-    }
-
-    private static void SetupDebugCameraUI(UIBaseWindow barContainer)
-    {
-        var container = new ContainerVisibleInEditorMode
-        {
-            Layout =
-            {
-                LayoutMethod = UILayoutMethod.VerticalList(5),
-                Margins = new UISpacing(10, 5, 0, 0)
-            },
-
-            VisibleIn = MapEditorMode.TwoDee | MapEditorMode.ThreeDee,
-        };
-        barContainer.AddChild(container);
-
-        // View game camera
-        UIBaseWindow viewGameCamera = TypeEditor.CreateCustomWithLabel("View Game Camera", _debugCameraOptionOn, SetDebugCameraOption, LabelStyle.MapEditor);
-        container.AddChild(viewGameCamera);
-
-        // Camera speed
-        UIBaseWindow cameraSpeed = TypeEditor.CreateCustomWithLabel("Camera Speed", (float)0, SetDebugCameraSpeed, LabelStyle.MapEditor);
-        cameraSpeed.Layout.MaxSizeX = 220;
-        container.OnModeChanged = (_) =>
-        {
-            // The speed changes when the camera changes, so we need to update it on mode changed.
-            float currentSpeed = GetDebugCameraSpeed();
-            var camSpeedTypeEditor = cameraSpeed.GetWindowById<TypeEditor>("Editor");
-            camSpeedTypeEditor?.SetValue(currentSpeed);
-        };
-        container.AddChild(cameraSpeed);
     }
 
     private static void RenderGameCameraBound(Renderer c)
@@ -297,7 +264,6 @@ public static partial class EngineEditor
 
     private static List<EditorVisualizationBase> _editorVisualization = new();
     private static List<EditorVisualizationText> _editorTextVisualization = new();
-    private static EditorLabel? _textVisualization;
 
     public static void AddEditorVisualization(object owningObject, string name, Action<Renderer> func)
     {
@@ -328,61 +294,16 @@ public static partial class EngineEditor
             if (visualization is EditorVisualizationRender visRender)
                 visRender.RenderFunc(c);
         }
-
-        // This is really bad allocation wise, but its for debug so whatever
-        if (_textVisualization != null && IsOpen && MapEditorMode == MapEditorMode.Off)
-        {
-            StringBuilder? b = _editorTextVisualization.Count > 0 ? new StringBuilder() : null;
-            foreach (var visualization in _editorTextVisualization)
-            {
-                b!.AppendLine(visualization.GetText());
-            }
-            if (b != null)
-                _textVisualization.Text = b.ToString();
-        }
     }
 
-    private static void SetupGameEditorVisualizations(UIBaseWindow barContainer)
+    private static string? GetEditorTextDebugVisualizations()
     {
-        UIBaseWindow? oldContainer = barContainer.GetWindowById("GameEditorVisualizations");
-        oldContainer?.Close();
-
-        var container = new UIBaseWindow
+        StringBuilder? b = _editorTextVisualization.Count > 0 ? new StringBuilder() : null;
+        foreach (EditorVisualizationText visualization in _editorTextVisualization)
         {
-            Name = "GameEditorVisualizations",
-            Layout =
-            {
-                LayoutMethod = UILayoutMethod.VerticalList(5),
-                Margins = new UISpacing(10, 15, 0, 0)
-            }
-        };
-        barContainer.AddChild(container);
-
-        var textVisualizationContainer = new ContainerVisibleInEditorMode
-        {
-            VisibleIn = MapEditorMode.Off
-        };
-        container.AddChild(textVisualizationContainer);
-        EditorLabel textVisualization = EditorLabel.GetLabel(LabelStyle.MapEditor, "");
-        textVisualizationContainer.AddChild(textVisualization);
-        _textVisualization = textVisualization;
-
-        object? lastOwningObject = null;
-        foreach (EditorVisualizationBase visualization in _editorVisualization)
-        {
-            // Assumes items with the same owning object follow each other.
-            object owningObject = visualization.OwningObject;
-            if (owningObject != lastOwningObject)
-            {
-                EditorLabel objSeparator = EditorLabel.GetLabel(LabelStyle.MapEditor, owningObject.ToString() + "\n-------------");
-                objSeparator.Margins = new Primitives.Rectangle(0, lastOwningObject != null ? 30 : 0, 0, 0);
-                container.AddChild(objSeparator);
-                lastOwningObject = owningObject;
-            }
-
-            UIBaseWindow visualizationCheckbox = TypeEditor.CreateCustomWithLabel(visualization.Name, visualization.Enabled, (val) => visualization.Enabled = val, LabelStyle.MapEditor);
-            container.AddChild(visualizationCheckbox);
+            b!.AppendLine(visualization.GetText());
         }
+        return b?.ToString();
     }
 
     #endregion

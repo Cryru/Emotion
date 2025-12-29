@@ -1,7 +1,5 @@
 ﻿#nullable enable
 
-using Emotion.Game.Systems.UI;
-
 namespace Emotion.Editor.EditorUI.Components;
 
 [DontSerialize]

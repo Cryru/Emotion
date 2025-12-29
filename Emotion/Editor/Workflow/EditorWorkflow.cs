@@ -15,4 +15,9 @@ public class EditorWorkflow
     {
 
     }
+
+    public virtual void Update()
+    {
+
+    }
 }
