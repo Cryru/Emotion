@@ -15,7 +15,8 @@ public class WoWMovementController
     private GameObject? _character;
     private string? _idleAnim;
     private string? _walkAnim;
-    private string? _splitBodyBone;
+    private string? _strafeLegBone;
+    private string? _strafeTorsoBone;
     private string? _walkBackAnim;
 
     private WoWCamera _camera = new WoWCamera(Vector3.Zero);
@@ -43,7 +44,7 @@ public class WoWMovementController
         Engine.Host.OnKey.RemoveListener(KeyHandler);
     }
 
-    public void SetCharacter(GameObject obj, string idleAnim, string walkAnim, string walkBackAnim, string splitBodyBone)
+    public void SetCharacter(GameObject obj, string idleAnim, string walkAnim, string walkBackAnim, string strafeLegBone, string strafeTorsoBone)
     {
         _camera.SetTarget(obj, new Vector3(0, 0, 2));
 
@@ -51,7 +52,8 @@ public class WoWMovementController
         _idleAnim = idleAnim;
         _walkAnim = walkAnim;
         _walkBackAnim = walkBackAnim;
-        _splitBodyBone = splitBodyBone;
+        _strafeLegBone = strafeLegBone;
+        _strafeTorsoBone = strafeTorsoBone;
     }
 
     public void Update(float dt)
@@ -108,6 +110,7 @@ public class WoWMovementController
         right = _character.RotateVectorToObjectFacing(right);
         bool walkingRight = Vector2.Dot(wasd, right) > 0;
         bool walkingLeft = Vector2.Dot(wasd, -right) > 0;
+        float walkingLeftRight = Vector2.Dot(wasd, right);
 
         float movementSpeed = WalkingSpeed;
         if (walkingBack) movementSpeed /= 2f;
@@ -151,10 +154,36 @@ public class WoWMovementController
         //if (wasd.X > 0) animToSet = _strafeRightAnim;
         if (walkingBack) animToSet = _walkBackAnim;
 
-        if (animToSet != null && _character.GetComponent<MeshComponent>(out MeshComponent? meshComponent))
+        _character.GetComponent<MeshComponent>(out MeshComponent? meshComponent);
+        if (meshComponent != null)
         {
-            if (animToSet != meshComponent.GetCurrentAnimation())
+            if (animToSet != null && animToSet != meshComponent.GetCurrentAnimation())
+            {
                 meshComponent.SetAnimation(animToSet);
+            }
+
+            // The logic here is very controversial xd
+            float strafeAngle = Maths.DegreesToRadians(50.0f);
+            float leanAngle = Maths.DegreesToRadians(10.0f);
+
+            float walkingLeftRightTilt = walkingLeftRight;
+            if (walkingBack) walkingLeftRightTilt *= -1;
+            if (_strafeLegBone != null)
+            {
+                meshComponent.RenderState.SetCustomTransformForJoint(_strafeLegBone,
+                    Matrix4x4.CreateRotationY(strafeAngle * walkingLeftRightTilt)
+               );
+            }
+            if (_strafeTorsoBone != null)
+            {
+                float actualLean = leanAngle * walkingLeftRightTilt;
+                if (walkingBack) actualLean *= 0.5f;
+
+                meshComponent.RenderState.SetCustomTransformForJoint(_strafeTorsoBone,
+                    Matrix4x4.CreateRotationX(actualLean) * 
+                    Matrix4x4.CreateRotationY(-strafeAngle * walkingLeftRightTilt)
+                );
+            }
         }
     }
 
