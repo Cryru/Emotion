@@ -2,12 +2,11 @@
 
 #region Using
 
-using System.Threading.Tasks;
-using Emotion.Core.Systems.IO;
 using Emotion.Game.Systems.Animation.ThreeDee;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Shader;
 using Emotion.Graphics.Shading;
+using System.Threading.Tasks;
 
 #endregion
 
@@ -78,7 +77,7 @@ public class MeshEntityMetaState
                     Vector4 boneIds = data.BoneIds;
                     for (int b = 0; b < 4; b++)
                     {
-                        int jointRef = (int) boneIds[b];
+                        int jointRef = (int)boneIds[b];
                         if (jointRef > largestBoneIdUsed) largestBoneIdUsed = jointRef;
                     }
                 }
@@ -106,6 +105,8 @@ public class MeshEntityMetaState
             _boneMatricesPerMesh[meshIdx] = matrices;
         }
     }
+
+    #region Bones and Animation
 
     public Matrix4x4[] GetBoneMatricesForMesh(int meshIdx)
     {
@@ -156,6 +157,11 @@ public class MeshEntityMetaState
                 parentMatrix = animRigMatrices[parentIdx];
 
             Matrix4x4 matrixForNode = currentMatrix * parentMatrix;
+
+            // Check for custom transformations (todo: blend layers)
+            if (_customBoneTransforms?.TryGetValue(nodeIdx, out Matrix4x4 customTrans) ?? false)
+                matrixForNode = customTrans * matrixForNode;
+
             animRigMatrices[nodeIdx] = matrixForNode;
         }
 
@@ -179,6 +185,30 @@ public class MeshEntityMetaState
             }
         }
     }
+
+    private Dictionary<int, Matrix4x4>? _customBoneTransforms;
+
+    public void SetCustomTransformForJoint(string jointName, Matrix4x4 matrix)
+    {
+        int jointIdx = -1;
+
+        SkeletonAnimRigNode[] animRig = _entity.AnimationRig;
+        for (int i = 0; i < animRig.Length; i++)
+        {
+            SkeletonAnimRigNode rigNode = animRig[i];
+            if (rigNode.Name == jointName)
+            {
+                jointIdx = i;
+                break;
+            }
+        }
+        if (jointIdx == -1) return;
+
+        _customBoneTransforms ??= new Dictionary<int, Matrix4x4>();
+        _customBoneTransforms[jointIdx] = matrix;
+    }
+
+    #endregion
 
     public Task SetShader(string path)
     {
