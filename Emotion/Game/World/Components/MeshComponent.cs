@@ -263,7 +263,7 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
         CylinderMeshGenerator coneMeshGenerator = new CylinderMeshGenerator
         {
             RadiusTop = 0,
-            RadiusBottom = 1.25f,
+            RadiusBottom = 0.05f,
             Sides = 4
         };
         List<Mesh> visualizationMeshes = new List<Mesh>();
@@ -301,11 +301,8 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
             float rotationAngle = MathF.Acos(Vector3.Dot(meshDefaultLook, dir) / meshDefaultLook.Length() / dir.Length());
             Matrix4x4 rotationMatrix = Matrix4x4.CreateFromAxisAngle(rotationAxis, rotationAngle);
 
-            Mesh coneMesh = coneMeshGenerator.GenerateMesh().TransformMeshVertices(
-                   Object.GetModelMatrixScale().Inverted() *
-                   rotationMatrix *
-                   Matrix4x4.CreateTranslation(conePos)
-               );
+            Matrix4x4 boneMeshMatrix = Object.GetModelMatrixScale().Inverted() * rotationMatrix * Matrix4x4.CreateTranslation(conePos);
+            Mesh coneMesh = coneMeshGenerator.GenerateMesh().TransformMeshVertices(boneMeshMatrix);
             coneMesh.Material = skeletonVisualizationMaterial;
             visualizationMeshes.Add(coneMesh);
         }
@@ -318,6 +315,39 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
         }
         c.PopModelMatrix();
 
+        c.SetUseViewMatrix(false);
+        for (int i = 0; i < rig.Length; i++)
+        {
+            SkeletonAnimRigNode rigNode = rig[i];
+            Matrix4x4 nodeMatrix = RenderState.GetMatrixForAnimationRigNode(i);
+            Vector3 bonePos = Vector3.Transform(Vector3.Zero, nodeMatrix);
+
+            Vector3 parentBonePos = Vector3.Zero;
+            int parent = rigNode.ParentIdx;
+            if (parent == -1) continue;
+
+            Matrix4x4 parentMatrix = RenderState.GetMatrixForAnimationRigNode(parent);
+            parentBonePos = Vector3.Transform(Vector3.Zero, parentMatrix);
+
+            // Look at params
+            Vector3 conePos = parentBonePos;
+            Vector3 lookTowards = bonePos;
+            Vector3 meshDefaultLook = Vector3.UnitZ;
+
+            // Look at
+            Vector3 dir = Vector3.Normalize(lookTowards - conePos);
+            Vector3 rotationAxis = Vector3.Cross(meshDefaultLook, dir);
+            float rotationAngle = MathF.Acos(Vector3.Dot(meshDefaultLook, dir) / meshDefaultLook.Length() / dir.Length());
+            Matrix4x4 rotationMatrix = Matrix4x4.CreateFromAxisAngle(rotationAxis, rotationAngle);
+
+            Matrix4x4 boneMeshMatrix = Object.GetModelMatrixScale().Inverted() * rotationMatrix * Matrix4x4.CreateTranslation(conePos);
+            Vector3 screenBonePos = c.Camera.WorldToScreen(Vector3.Transform(Vector3.Zero, boneMeshMatrix * Object.GetModelMatrix())).ToVec3();
+            Vector3 screenBonePosLabel = screenBonePos + new Vector3((i % 10) * 10, (i % 10) * 10, 0);
+            c.RenderString(screenBonePosLabel, rigNode.Name, 15);
+            c.RenderLine(screenBonePos, screenBonePosLabel, Color.White * 0.5f, 1f);
+        }
+
+        c.SetUseViewMatrix(true);
         c.SetDepthTest(true);
     }
 }
