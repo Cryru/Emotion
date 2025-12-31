@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using Emotion.Editor;
+
 namespace Emotion.Graphics.Camera;
 
 public class Camera3D : CameraBase
@@ -92,7 +94,10 @@ public class Camera3D : CameraBase
 
     protected override bool CameraKeyHandler(Key key, KeyState status)
     {
-        if (key == DragKey)
+        // Hack: Editor camera workaround for laptops with touchpads.
+        bool editorCameraWorkaround = EngineEditor.IsOpen && DragKey == Key.MouseKeyMiddle && key == Key.MouseKeyLeft && Engine.Host.IsCtrlModifierHeld();
+
+        if (key == DragKey || editorCameraWorkaround)
         {
             if (status == KeyState.Down)
             {

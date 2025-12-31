@@ -11,6 +11,8 @@ public partial class LevelDesignWorkflow : EditorWorkflow
 {
     public override string Name { get; } = "Level Design";
 
+    private GameObject? _objectUnderMouse = null;
+
     public override void Init(UIBaseWindow parent)
     {
         base.Init(parent);
@@ -23,15 +25,85 @@ public partial class LevelDesignWorkflow : EditorWorkflow
             },
             Layout =
             {
-                SizingX = UISizing.Fit(),
-                LayoutMethod = UILayoutMethod.VerticalList(0),
-                Padding = new UISpacing(5, 0, 5, 0)
+                SizingX = UISizing.Grow(),
+                SizingY = UISizing.Fit(),
+                LayoutMethod = UILayoutMethod.HorizontalList(0),
+                Padding = new UISpacing(5, 5, 5, 5)
             }
         };
         parent.AddChild(controls);
+        parent.AddChild(new ObjectSelection(this));
 
-        MapGridDisplay mapLayerDisplay = new MapGridDisplay();
+        var mapLayerDisplay = new MapGridDisplay();
         controls.AddChild(mapLayerDisplay);
+
+        var cameraViewMode = new MapEditorViewMode();
+        cameraViewMode.Layout.AnchorAndParentAnchor = UIAnchor.BottomLeft;
+        cameraViewMode.Layout.Margins = new UISpacing(0, 0, 0, 10);
+        parent.AddChild(cameraViewMode);
+    }
+
+    public override void Render(Renderer r)
+    {
+        if (_objectUnderMouse != null)
+        {
+            var bound = _objectUnderMouse.GetBoundingCube();
+            r.SetUseViewMatrix(true);
+            bound.RenderOutline(r, Color.PrettyYellow, 0.03f);
+            r.SetUseViewMatrix(false);
+        }
+    }
+}
+
+public partial class LevelDesignWorkflow
+{
+    private class ObjectSelection : UIBaseWindow
+    {
+        private LevelDesignWorkflow _workFlow;
+
+        public ObjectSelection(LevelDesignWorkflow workflow)
+        {
+            HandleInput = true;
+            _workFlow = workflow;
+        }
+
+        public override void OnMouseEnter(Vector2 mousePos)
+        {
+            base.OnMouseEnter(mousePos);
+            UpdateSelection();
+        }
+
+        public override void OnMouseMove(Vector2 mousePos)
+        {
+            base.OnMouseMove(mousePos);
+            UpdateSelection();
+        }
+
+        public override void OnMouseLeft(Vector2 mousePos)
+        {
+            base.OnMouseLeft(mousePos);
+            UpdateSelection(true);
+        }
+
+        private void UpdateSelection(bool clear = false)
+        {
+            var mouseRay = Engine.Renderer.Camera.GetCameraMouseRay();
+            var map = EngineEditor.GetCurrentMap();
+            if (map == null) return; // huh?
+
+            GameObject? newSel = null;
+
+            if (!clear)
+            {
+                if (map.CollideWithRayFirst(mouseRay, out newSel))
+                {
+                    bool a = true;
+                }
+            }
+
+            //newSel.
+            _workFlow._objectUnderMouse = newSel;
+        }
     }
 }
 

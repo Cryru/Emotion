@@ -146,6 +146,7 @@ public static partial class EngineEditor
 
         c.SetUseViewMatrix(true);
         RenderGameCameraBound(c);
+        CurrentWorkflow?.Render(c);
         c.SetUseViewMatrix(false);
 
         string perfReadoutStr = $"<right>FPS: {PerformanceMetrics.FpsLastSecond}\nDCF: {PerformanceMetrics.DrawCallsLastFrame:00}";

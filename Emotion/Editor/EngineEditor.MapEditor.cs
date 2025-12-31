@@ -34,6 +34,7 @@ public static partial class EngineEditor
         OnMapEditorModeChanged?.Invoke(MapEditorMode);
     }
 
+    public static CameraBase? CameraOutsideEditor { get => _cameraOutsideEditor; }
     private static CameraBase? _cameraOutsideEditor;
     private static CameraBase? _editorCamera;
     private static Vector2 _gridTileSize;
@@ -67,8 +68,8 @@ public static partial class EngineEditor
                 FarZ = 10_000
             };
 
-            var bottomBar = new Editor2DBottomBar();
-            EditorUI.AddChild(bottomBar);
+            //var bottomBar = new Editor2DBottomBar();
+            //EditorUI.AddChild(bottomBar);
 
             //GameMap? map = GetCurrentMap();
             //if (map?.TerrainGrid != null)
@@ -84,8 +85,8 @@ public static partial class EngineEditor
                 ZoomAllowed = true
             };
 
-            var bottomBar = new Editor2DBottomBar();
-            EditorUI.AddChild(bottomBar);
+            //var bottomBar = new Editor2DBottomBar();
+            //EditorUI.AddChild(bottomBar);
 
             _enableDragWithMiddleMouse = true;
 
@@ -133,9 +134,9 @@ public static partial class EngineEditor
     {
         if (MapEditorMode == MapEditorMode.Off) return;
 
-        Rectangle grid = new Primitives.Rectangle(0, 0, 10_000, 10_000);
-        grid.Center = c.Camera.Position2;
-        c.RenderGrid(grid.PositionZ(0.1f), grid.Size, _gridTileSize, Color.White.SetAlpha(125), c.Camera.Position2);
+        //Rectangle grid = new Primitives.Rectangle(0, 0, 10_000, 10_000);
+        //grid.Center = c.Camera.Position2;
+        //c.RenderGrid(grid.PositionZ(0.1f), grid.Size, _gridTileSize, Color.White.SetAlpha(125), c.Camera.Position2);
     }
 
     public static void SetGridSize(Vector2 size)

@@ -20,4 +20,9 @@ public class EditorWorkflow
     {
 
     }
+
+    public virtual void Render(Renderer r)
+    {
+
+    }
 }
