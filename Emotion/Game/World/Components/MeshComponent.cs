@@ -4,6 +4,7 @@ using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Game.Systems.Animation.ThreeDee;
 using Emotion.Game.World.ThreeDee;
+using Emotion.Graphics.Data;
 using Emotion.Standard.MeshGenerators;
 
 namespace Emotion.Game.World.Components;
@@ -350,4 +351,202 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
         c.SetUseViewMatrix(true);
         c.SetDepthTest(true);
     }
+
+    #region Collision
+
+    public bool IntersectRay(Ray3D ray,
+        out Mesh? collidedMesh,
+        out Vector3 collisionPoint,
+        out Vector3 normal,
+        out int triangleIndex,
+        bool closestMesh = false
+    )
+    {
+        collidedMesh = null;
+        collisionPoint = Vector3.Zero;
+        normal = Vector3.Zero;
+        triangleIndex = -1;
+
+        // Optimize mesh collider check with a sphere collider first.
+        Sphere boundSphere = GetBoundingSphere(Object);
+        if (!ray.IntersectWithSphere(boundSphere, out Vector3 _, out Vector3 _)) return false;
+
+        Mesh[] meshes = Entity.Meshes;
+        if (meshes == null) return false;
+
+        float closestDist = float.MaxValue;
+        for (var i = 0; i < meshes.Length; i++)
+        {
+            Mesh mesh = meshes[i];
+            if (!IntersectRayWithMesh(ray, mesh, out Vector3 meshCollisionPoint, out Vector3 collisionNormal, out int collisionTriIndex)) continue;
+
+            if (closestMesh)
+            {
+                float distance = Vector3.DistanceSquared(ray.Start, collisionPoint);
+                if (closestDist == float.MaxValue || distance < closestDist)
+                {
+                    closestDist = distance;
+                    collidedMesh = mesh;
+
+                    collisionPoint = meshCollisionPoint;
+                    normal = collisionNormal;
+                    triangleIndex = collisionTriIndex;
+                }
+            }
+            else
+            {
+                collisionPoint = meshCollisionPoint;
+                normal = collisionNormal;
+                triangleIndex = collisionTriIndex;
+
+                collidedMesh = mesh;
+                break;
+            }
+        }
+
+        return collidedMesh != null;
+    }
+
+    private bool IntersectRayWithMesh(Ray3D ray, Mesh mesh, out Vector3 collisionPoint, out Vector3 collisionNormal, out int collisionTriIndex)
+    {
+        collisionPoint = Vector3.Zero;
+        collisionNormal = Vector3.Zero;
+        collisionTriIndex = -1;
+
+        if (mesh.BoneData != null)
+        {
+            return IntersectRayWithMesh_Animation(ray, mesh, out collisionPoint, out collisionNormal, out collisionTriIndex);
+        }
+
+        return IntersectRayWithMesh_NoAnimation(ray, mesh, out collisionPoint, out collisionNormal, out collisionTriIndex);
+    }
+
+    private bool IntersectRayWithMesh_Animation(Ray3D ray, Mesh mesh, out Vector3 collisionPoint, out Vector3 collisionNormal, out int collisionTriIndex)
+    {
+        collisionPoint = Vector3.Zero;
+        collisionNormal = Vector3.Zero;
+        collisionTriIndex = -1;
+
+        int meshIdx = Entity.Meshes.IndexOf(mesh);
+        Matrix4x4[] boneMatrices = RenderState.GetBoneMatricesForMesh(meshIdx);
+
+        var closestDistance = float.MaxValue;
+        var intersectionFound = false;
+
+        ushort[] meshIndices = mesh.Indices;
+        VertexData[] verts = mesh.Vertices;
+        Mesh3DVertexDataBones[]? boneData = mesh.BoneData;
+        AssertNotNull(boneData);
+
+        Matrix4x4 modelMatrixInverse = RenderState.ModelMatrix.Inverted();
+
+        // Tranform the ray to the inverse of the model matrix so we don't have to transform
+        // each vertex of the mesh.
+        Ray3D transformedRay = new Ray3D(
+            Vector3.Transform(ray.Start, modelMatrixInverse),
+            Vector3.TransformNormal(ray.Direction, modelMatrixInverse)
+        );
+        static Vector3 CalcVertexAnimatedPos(Vector3 vert, Mesh3DVertexDataBones boneData, Matrix4x4[] boneMatrices)
+        {
+            Matrix4x4 matTotal = Matrix4x4.Identity;
+            for (int i = 0; i < 4; i++)
+            {
+                float bone = boneData.BoneIds[i];
+                Matrix4x4 mat = boneMatrices[(int)bone];
+                float weight = boneData.BoneWeights[i];
+
+                if (i == 0)
+                    matTotal = mat * weight;
+                else
+                    matTotal = matTotal + mat * weight;
+            }
+
+            return Vector3.Transform(vert, matTotal);
+        }
+
+        for (var i = 0; i < meshIndices.Length; i += 3)
+        {
+            ushort idx1 = meshIndices[i];
+            ushort idx2 = meshIndices[i + 1];
+            ushort idx3 = meshIndices[i + 2];
+
+            Vector3 v1 = verts[idx1].Vertex;
+            Vector3 v2 = verts[idx2].Vertex;
+            Vector3 v3 = verts[idx3].Vertex;
+
+            Mesh3DVertexDataBones boneData1 = boneData[idx1];
+            v1 = CalcVertexAnimatedPos(v1, boneData1, boneMatrices);
+
+            Mesh3DVertexDataBones boneData2 = boneData[idx2];
+            v2 = CalcVertexAnimatedPos(v2, boneData2, boneMatrices);
+
+            Mesh3DVertexDataBones boneData3 = boneData[idx3];
+            v3 = CalcVertexAnimatedPos(v3, boneData3, boneMatrices);
+
+            Triangle tri = new Triangle(v1, v2, v3);
+            if (!transformedRay.IntersectsTriangle(tri, out float t)) continue;
+
+            if (t < closestDistance)
+            {
+                closestDistance = t;
+                collisionNormal = tri.Normal;
+                collisionTriIndex = i;
+                intersectionFound = true;
+            }
+        }
+
+        if (intersectionFound) collisionPoint = ray.Start + ray.Direction * closestDistance;
+
+        return intersectionFound;
+    }
+
+    private bool IntersectRayWithMesh_NoAnimation(Ray3D ray, Mesh mesh, out Vector3 collisionPoint, out Vector3 collisionNormal, out int collisionTriIndex)
+    {
+        collisionPoint = Vector3.Zero;
+        collisionNormal = Vector3.Zero;
+        collisionTriIndex = -1;
+
+        var closestDistance = float.MaxValue;
+        var intersectionFound = false;
+
+        ushort[] meshIndices = mesh.Indices;
+        VertexData[] verts = mesh.Vertices;
+
+        Matrix4x4 modelMatrixInverse = RenderState.ModelMatrix.Inverted();
+
+        // Tranform the ray to the inverse of the model matrix so we don't have to transform
+        // each vertex of the mesh.
+        Ray3D transformedRay = new Ray3D(
+            Vector3.Transform(ray.Start, modelMatrixInverse),
+            Vector3.TransformNormal(ray.Direction, modelMatrixInverse)
+        );
+
+        for (var i = 0; i < meshIndices.Length; i += 3)
+        {
+            ushort idx1 = meshIndices[i];
+            ushort idx2 = meshIndices[i + 1];
+            ushort idx3 = meshIndices[i + 2];
+
+            Vector3 v1 = verts[idx1].Vertex;
+            Vector3 v2 = verts[idx2].Vertex;
+            Vector3 v3 = verts[idx3].Vertex;
+
+            Triangle tri = new Triangle(v1, v2, v3);
+            if (!transformedRay.IntersectsTriangle(tri, out float t)) continue;
+
+            if (t < closestDistance)
+            {
+                closestDistance = t;
+                collisionNormal = tri.Normal;
+                collisionTriIndex = i;
+                intersectionFound = true;
+            }
+        }
+
+        if (intersectionFound) collisionPoint = ray.Start + ray.Direction * closestDistance;
+
+        return intersectionFound;
+    }
+
+    #endregion
 }

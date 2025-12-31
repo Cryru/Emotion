@@ -39,6 +39,7 @@ public struct Ray3D
         return Start + distance * Direction;
     }
 
+    // todo
     public bool IntersectWithObject(GameObject obj, MeshComponent meshComponent,
         out Mesh? collidedMesh, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex, bool closest = false)
     {
@@ -47,54 +48,7 @@ public struct Ray3D
         normal = Vector3.Zero;
         triangleIndex = -1;
 
-        Mesh[] meshes = meshComponent.Entity.Meshes;
-        if (meshes == null) return false;
-
-        Sphere boundSphere = obj.GetBoundingSphere();
-        if (!IntersectWithSphere(boundSphere, out Vector3 _, out Vector3 _)) return false;
-
-        // Used when closest == true
-        float closestDist = float.MaxValue;
-        Vector3 closestNormal = Vector3.Zero;
-        Vector3 closestCollisionPoint = Vector3.Zero;
-        int closestTriangleIndex = 0;
-
-        for (var i = 0; i < meshes.Length; i++)
-        {
-            Mesh mesh = meshes[i];
-            if (IntersectWithObjectMesh(obj, meshComponent, i, out collisionPoint, out normal, out triangleIndex))
-            {
-                if (closest)
-                {
-                    float distance = Vector3.Distance(Start, collisionPoint);
-                    if (closestDist == float.MaxValue || distance < closestDist)
-                    {
-                        closestDist = distance;
-                        collidedMesh = mesh;
-
-                        closestCollisionPoint = collisionPoint;
-                        closestNormal = normal;
-                        closestTriangleIndex = triangleIndex;
-                    }
-                }
-                else
-                {
-                    collidedMesh = mesh;
-                    return true;
-                }
-            }
-        }
-
-        if (closest && collidedMesh != null)
-        {
-            collisionPoint = closestCollisionPoint;
-            normal = closestNormal;
-            triangleIndex = closestTriangleIndex;
-
-            return true;
-        }
-
-        return false;
+        return meshComponent.IntersectRay(this, out collidedMesh, out collisionPoint, out normal, out triangleIndex, closest);
     }
 
     public bool IntersectWithVertices(ushort[] indices, VertexDataAllocation vertices, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
@@ -134,58 +88,6 @@ public struct Ray3D
         return intersectionFound;
     }
 
-    private bool IntersectWithObjectMesh(GameObject obj, MeshComponent meshComponent,
-        int meshIdx, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
-    {
-        collisionPoint = Vector3.Zero;
-        normal = Vector3.Zero;
-        triangleIndex = -1;
-
-        Mesh[] meshes = meshComponent.Entity.Meshes;
-        Mesh mesh = meshes[meshIdx];
-
-        var closestDistance = float.MaxValue;
-        var intersectionFound = false;
-
-        ushort[] meshIndices = mesh.Indices;
-        VertexData[] verts = mesh.Vertices;
-
-        Matrix4x4 modelMatrixInverse = obj.GetModelMatrix().Inverted();
-
-        // Tranform the ray to the inverse of the model matrix so we don't have to transform
-        // each vertex of the mesh.
-        Ray3D transformedRay = new Ray3D(
-            Vector3.Transform(Start, modelMatrixInverse),
-            Vector3.Transform(Direction, obj.GetModelMatrixRotation().Inverted())
-        );
-
-        for (var i = 0; i < meshIndices.Length; i += 3)
-        {
-            ushort idx1 = meshIndices[i];
-            ushort idx2 = meshIndices[i + 1];
-            ushort idx3 = meshIndices[i + 2];
-
-            Vector3 v1 = verts[idx1].Vertex;
-            Vector3 v2 = verts[idx2].Vertex;
-            Vector3 v3 = verts[idx3].Vertex;
-
-            Triangle tri = new Triangle(v1, v2, v3);
-            if (!transformedRay.IntersectsTriangle(tri, out float t)) continue;
-
-            if (t < closestDistance)
-            {
-                closestDistance = t;
-                normal = tri.Normal;
-                triangleIndex = i;
-                intersectionFound = true;
-            }
-        }
-
-        if (intersectionFound) collisionPoint = Start + Direction * closestDistance;
-
-        return intersectionFound;
-    }
-
     public bool IntersectsTriangle(Triangle tri, out float distance)
     {
         // Check if the ray is parallel to the triangle
@@ -214,7 +116,7 @@ public struct Ray3D
         float triangleArea = 0.5f * Vector3.Cross(edge1, edge2).Length();
 
         // Degenerate triangle, area is too small.
-        if (triangleArea < 0.001f) return false;
+        if (triangleArea < 0.0001f) return false;
 
         Vector3 intersectionPoint = Start + distance * Direction;
         Vector3 c = intersectionPoint - tri.A;
