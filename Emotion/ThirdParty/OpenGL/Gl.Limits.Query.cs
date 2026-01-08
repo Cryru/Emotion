@@ -89,6 +89,14 @@ public partial class Gl
                     {
                         object[] @params = {graphicsLimitAttribute.EnumValue, obj};
                         getMethod.Invoke(null, @params);
+                        
+                        // Some drivers report some kind of virtual texture values,
+                        // what we're generally looking for is the maximum safe allocation size.
+                        if (graphicsLimitAttribute.EnumValue == Gl.MAX_TEXTURE_SIZE)
+                        {
+                            @params[1] = Math.Min((int) @params[1], 8192);
+                        }
+
                         field.SetValue(graphicsLimits, @params[1]);
                     }
                     catch (TargetInvocationException exception)
