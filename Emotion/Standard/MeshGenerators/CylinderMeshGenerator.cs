@@ -125,6 +125,7 @@ public class CylinderMeshGenerator
             v1.Vertex = new Vector3(0, 0, Height);
             v1.UV = new Vector2(0, 1); // todo
             v1.Color = Color.WhiteUint;
+            meshData[vtxStart].Normal = Renderer.Up;
 
             // Cap on top
             int idxStart = Sides * 6;
@@ -144,6 +145,7 @@ public class CylinderMeshGenerator
             v2.Vertex = new Vector3(0, 0, 0);
             v2.UV = new Vector2(0, 0); // todo
             v2.Color = Color.Red.ToUint();
+            meshData[vtxStart + 1].Normal = -Renderer.Up;
 
             // Cap on bottom
             idxStart += Sides * 3;
