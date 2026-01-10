@@ -83,7 +83,8 @@ public abstract class SceneWithMap : Scene
     {
         Status = SceneStatus.Loading;
         yield return InternalLoadSceneRoutineAsync();
-        yield return Map.InitRoutine();
+        if (Map.State != GameMapState.Initialized)
+            yield return Map.InitRoutine();
         yield return SceneUI.WaitLoadingRoutine();
 
         Status = SceneStatus.Loaded;
