@@ -1,0 +1,100 @@
+﻿<Project ToolsVersion="Current">
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <TargetFramework>net10.0-android</TargetFramework>
+        <NuspecFile>./Emotion.nuspec</NuspecFile>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <NoWarn>1701;1702;1591;1734;IDE0001;IDE0002;IDE0049</NoWarn>
+        <Configurations>Debug;Release</Configurations>
+        <Platforms>AnyCPU</Platforms>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        
+         <!--You should use Emotion's deserialization anyway, but just in case you use the built in one. -->
+        <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
+    </PropertyGroup>
+
+    <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+    <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+    
+    <ItemGroup>
+        <ProjectReference Include="..\Emotion.SourceGeneration\Emotion.SourceGeneration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+        <DebugType>full</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+        <DocumentationFile />
+        <Optimize>false</Optimize>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)'=='Release'">
+        <Optimize>True</Optimize>
+    </PropertyGroup>
+
+    <!-- Android -->
+    <PropertyGroup>
+        <DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <TargetFramework>net10.0-android</TargetFramework>
+        <SupportedOSPlatformVersion>28.0</SupportedOSPlatformVersion>
+        <RuntimeIdentifiers>android-arm;android-arm64;android-x86;android-x64</RuntimeIdentifiers>
+    </PropertyGroup>
+    
+    <!-- todo -->
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Android'">
+      <IsTrimmable>False</IsTrimmable>
+      <IsAotCompatible>False</IsAotCompatible>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Android'">
+      <IsTrimmable>False</IsTrimmable>
+      <IsAotCompatible>False</IsAotCompatible>
+      <DebugType>embedded</DebugType>
+    </PropertyGroup>
+    
+    <ItemGroup>
+         <!-- Workaround for a stupid bug where Android assumes .so means it should include it -->
+        <AndroidNativeLibrary Remove="AssetsNativeLibs\GLFW\linux\glfw.so" />
+        <AndroidNativeLibrary Remove="AssetsNativeLibs\OpenAL\linux\openal32.so" />
+        <AndroidNativeLibrary Remove="AssetsNativeLibs\OpenAL\linux\libsndio.so.6.1" />
+    </ItemGroup>
+
+    <!-- Don't include other platform files -->
+    <ItemGroup>
+        <Compile Remove="Core\Platform\Implementation\Web\**\*.cs" />
+        <None Remove="Core\Platform\Implementation\Web\**\*.razor" />
+    </ItemGroup>
+    
+    <!-- Libraries Code Include -->
+    <ItemGroup Condition="!$(DefineConstants.Contains('OpenAL'))">
+        <Compile Remove="Core\Platform\Implementation\OpenAL\**\*.cs" />
+    </ItemGroup>
+    <ItemGroup Condition="!$(DefineConstants.Contains('GLFW'))">
+        <Compile Remove="Core\Platform\Implementation\GlfwImplementation\**\*.cs" />
+    </ItemGroup>
+    <ItemGroup Condition="!$(DefineConstants.Contains('ANGLE'))">
+        <Compile Remove="Core\Platform\Implementation\EglAngle\**\*.cs" />
+    </ItemGroup>
+    <ItemGroup Condition="!$(DefineConstants.Contains('ANDROID'))">
+        <Compile Remove="Core\Platform\Implementation\Android\**\*.cs" />
+    </ItemGroup>
+    <ItemGroup Condition="!$(DefineConstants.Contains('MORE_MESH_TYPES'))">
+        <Compile Remove="Standard\Parsers\Assimp\**\*.cs" />
+    </ItemGroup>
+    <ItemGroup Condition="!$(DefineConstants.Contains('CSHARP_SCRIPTING'))">
+        <Compile Remove="Core\Systems\Scripting\**\*.cs" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <!-- All engine assets are embedded -->
+        <EmbeddedResource Include="Assets\**\*.*">
+            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+        </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Silk.NET.Assimp" Version="2.22.0" Condition="$(DefineConstants.Contains('MORE_MESH_TYPES'))" />
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" Condition="$(DefineConstants.Contains('MORE_IMAGE_TYPES'))" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.12.0" Condition="$(DefineConstants.Contains('CSHARP_SCRIPTING'))" />
+        <PackageReference Include="System.Text.Json" Version="9.0.3" />
+    </ItemGroup>
+</Project>

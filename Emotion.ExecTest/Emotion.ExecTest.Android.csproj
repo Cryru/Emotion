@@ -1,0 +1,69 @@
+﻿<Project ToolsVersion="Current">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0-android</TargetFramework>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <Platforms>AnyCPU</Platforms>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    </PropertyGroup>
+    
+    <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+        <DebugType>full</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+        <DocumentationFile />
+        <Optimize>false</Optimize>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)'=='Release'">
+        <Optimize>True</Optimize>
+    </PropertyGroup>
+    
+    <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+    <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+    
+    <!-- Reflector Support -->
+    <ItemGroup>
+        <ProjectReference Include="..\Emotion.SourceGeneration\Emotion.SourceGeneration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="..\Emotion\Emotion.Android.csproj" />
+    </ItemGroup>
+
+    <!-- Android -->
+    <PropertyGroup>
+        <DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <SupportedOSPlatformVersion>28.0</SupportedOSPlatformVersion>
+        <RuntimeIdentifiers>android-arm;android-arm64;android-x86;android-x64</RuntimeIdentifiers>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <AndroidResource Include="AndroidResources\layout\activity_main.xml" />
+      <AndroidResource Include="AndroidResources\mipmap-anydpi-v26\appicon.png" />
+      <AndroidResource Include="AndroidResources\values\strings.xml" />
+    </ItemGroup>
+    
+    <!-- Don't include other platform files -->
+    <ItemGroup>
+        <Compile Remove="Web\**\*.cs" />
+    </ItemGroup>
+    
+     <!-- Temp -->
+    <ItemGroup>
+      <Compile Remove="ExamplesOne\TimerDemoScene.cs" />
+      <Compile Remove="Examples\ComplexPolygonContours.cs" />
+      <Compile Remove="Examples\FrameBufferSampling.cs" />
+      <Compile Remove="Examples\GeneratedCurveMeshExample.cs" />
+      <Compile Remove="Examples\PackingDisplay.cs" />
+      <Compile Remove="Examples\Pathfinding.cs" />
+      <Compile Remove="Examples\PngSuiteExample.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="ExamplesOne\TimerDemoScene.cs" />
+      <None Include="Examples\ComplexPolygonContours.cs" />
+      <None Include="Examples\FrameBufferSampling.cs" />
+      <None Include="Examples\GeneratedCurveMeshExample.cs" />
+      <None Include="Examples\PackingDisplay.cs" />
+      <None Include="Examples\Pathfinding.cs" />
+      <None Include="Examples\PngSuiteExample.cs" />
+    </ItemGroup>
+
+</Project>

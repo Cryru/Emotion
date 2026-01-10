@@ -1,0 +1,16 @@
+<Solution>
+    <Configurations>
+        <Platform Name="AnyCPU" />
+        <BuildType Name="Debug" />
+        <BuildType Name="Release" />
+    </Configurations>
+    <Project Path="Emotion.SourceGeneration\Emotion.SourceGeneration.csproj">
+
+    </Project>
+    <Project Path="Emotion\Emotion.Android.csproj">
+
+    </Project>
+    <Project Path="Emotion.ExecTest\Emotion.ExecTest.Android.csproj">
+        
+    </Project>
+</Solution>

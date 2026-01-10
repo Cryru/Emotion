@@ -2,10 +2,10 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <_LastSelectedProfileId>V:\Dev\Projects\Emotion\Emotion.ExecTest\Properties\PublishProfiles\Win64.pubxml</_LastSelectedProfileId>
-    <ActiveDebugProfile>Emotion.ExecTest</ActiveDebugProfile>
+    <ActiveDebugProfile>Google Pixel 9a (Android 16.0 - API 36)</ActiveDebugProfile>
     <AndroidDesignerPreferredTheme>Theme.NoTitleBar.Fullscreen</AndroidDesignerPreferredTheme>
     <AndroidDesignerPreferredDevice>7.3in Foldable</AndroidDesignerPreferredDevice>
-    <SelectedDevice>OnePlus EB2103</SelectedDevice>
+    <SelectedDevice>Google Pixel 9a</SelectedDevice>
     <SelectedPlatformGroup>PhysicalDevice</SelectedPlatformGroup>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

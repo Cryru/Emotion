@@ -1,8 +1,6 @@
 <Solution>
     <Configurations>
         <Platform Name="Win64" />
-        <Platform Name="Android" />
-        <Platform Name="Web" />
         <BuildType Name="Autobuild" />
         <BuildType Name="Debug" />
         <BuildType Name="Release" />
