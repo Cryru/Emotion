@@ -36,6 +36,8 @@ public class InputManager
     private int _eventsThisTick = 0;
 
     protected bool[] _keyState;
+    private Lock _eventLock = new Lock();
+    private bool _processingEvents = false;
 
     public InputManager()
     {
@@ -45,64 +47,82 @@ public class InputManager
 
     public void ReportMouseMove(Vector2 movedTo)
     {
-        if (_eventsThisTick == MAX_EVENTS_PER_TICK) return;
-
         movedTo = WindowPointToViewportPoint(movedTo);
 
-        ref InputEvent nextEvent = ref _events[_eventsThisTick];
-        nextEvent.MouseMoved = true;
-        nextEvent.MousePosition = movedTo;
-        _eventsThisTick++;
+        lock (_eventLock)
+        {
+            if (_eventsThisTick == MAX_EVENTS_PER_TICK) return;
+            Assert(!_processingEvents);
+            if (_processingEvents) return;
+
+            ref InputEvent nextEvent = ref _events[_eventsThisTick];
+            nextEvent.MouseMoved = true;
+            nextEvent.MousePosition = movedTo;
+            _eventsThisTick++;
+        }
     }
 
     public void ReportKeyInput(Key key, KeyState state)
     {
-        if (_eventsThisTick == MAX_EVENTS_PER_TICK) return;
+        lock (_eventLock)
+        {
+            if (_eventsThisTick == MAX_EVENTS_PER_TICK) return;
+            Assert(!_processingEvents);
+            if (_processingEvents) return;
 
-        ref InputEvent nextEvent = ref _events[_eventsThisTick];
-        nextEvent.MouseMoved = false;
-        nextEvent.Key = key;
-        nextEvent.State = state;
-        _eventsThisTick++;
+            ref InputEvent nextEvent = ref _events[_eventsThisTick];
+            nextEvent.MouseMoved = false;
+            nextEvent.Key = key;
+            nextEvent.State = state;
+            _eventsThisTick++;
+        }
     }
 
     private void FlushEventsForTick()
     {
-        for (int i = 0; i < _eventsThisTick; i++)
+        lock (_eventLock)
         {
-            ref InputEvent ev = ref _events[i];
+            _processingEvents = true;
+            for (int i = 0; i < _eventsThisTick; i++)
+            {
+                ref InputEvent ev = ref _events[i];
 
-            if (ev.MouseMoved)
-            {
-                OnMouseMove?.Invoke(MousePosition, ev.MousePosition);
-                MousePosition = ev.MousePosition;
-            }
-            else if (ev.Key == Key.MouseWheel)
-            {
-                OnKey.Invoke(ev.Key, ev.State);
-            }
-            else
-            {
-                Key key = ev.Key;
-                var keyIndex = (short)key;
-                if (keyIndex < 0 || keyIndex >= _keyState.Length)
+                if (ev.MouseMoved)
                 {
-                    Engine.Log.Warning($"Got event for unknown key - {key}/{keyIndex}", MessageSource.Platform);
-                    return;
+                    OnMouseMove?.Invoke(MousePosition, ev.MousePosition);
+                    MousePosition = ev.MousePosition;
                 }
-
-                bool down = ev.State == KeyState.Down;
-                bool wasDown = _keyState[keyIndex];
-                _keyState[keyIndex] = down;
-
-                // Make sure we don't get double down/double up
-                bool letGo = wasDown && !down;
-                bool pressed = !wasDown && down;
-                if (letGo || pressed)
+                else if (ev.Key == Key.MouseWheel)
+                {
                     OnKey.Invoke(ev.Key, ev.State);
+                }
+                else
+                {
+                    // Check for junk memory
+                    Assert(ev.State == KeyState.Down || ev.State == KeyState.Up);
+
+                    Key key = ev.Key;
+                    var keyIndex = (short)key;
+                    if (keyIndex < 0 || keyIndex >= _keyState.Length)
+                    {
+                        Engine.Log.Warning($"Got event for unknown key - {key}/{keyIndex}", MessageSource.Platform);
+                        continue;
+                    }
+
+                    bool down = ev.State == KeyState.Down;
+                    bool wasDown = _keyState[keyIndex];
+                    _keyState[keyIndex] = down;
+
+                    // Make sure we don't get double down/double up
+                    bool letGo = wasDown && !down;
+                    bool pressed = !wasDown && down;
+                    if (letGo || pressed)
+                        OnKey.Invoke(ev.Key, ev.State);
+                }
             }
+            _eventsThisTick = 0;
+            _processingEvents = false;
         }
-        _eventsThisTick = 0;
     }
 
     private static Vector2 WindowPointToViewportPoint(Vector2 pos)

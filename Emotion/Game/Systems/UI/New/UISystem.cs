@@ -119,7 +119,7 @@ public class UISystem : UIBaseWindow
 
     private void Host_MouseMove(Vector2 old, Vector2 nu)
     {
-        UpdateMouseFocus();
+        UpdateMouseFocus(nu);
         _mouseMovedThisTick = true;
     }
 
@@ -131,11 +131,11 @@ public class UISystem : UIBaseWindow
     private void UpdateInput()
     {
         if (_needsFocusUpdate) UpdateInputFocus();
-        if (!_mouseMovedThisTick) UpdateMouseFocus();
+        if (!_mouseMovedThisTick) UpdateMouseFocus(Engine.Host.MousePosition);
         _mouseMovedThisTick = false;
     }
 
-    private void UpdateMouseFocus()
+    private void UpdateMouseFocus(Vector2 mousePos)
     {
         if (Engine.Host.HostPaused)
         {
@@ -150,7 +150,6 @@ public class UISystem : UIBaseWindow
             return;
         }
 
-        Vector2 mousePos = Engine.Input.MousePosition;
         UIBaseWindow? focus = FindWindowUnderMouse(mousePos);
         SetMouseFocus(focus);
     }
