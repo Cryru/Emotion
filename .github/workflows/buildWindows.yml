@@ -16,7 +16,7 @@ jobs:
           10.x.x
     - name: Build Everything
       run: |
-        dotnet build -c Autobuild /p:Platform=Win64
+        dotnet build Emotion.slnx -c Autobuild /p:Platform=Win64
     - name: Run Tests
       run: |
         cd .\Tests\bin\Default\Release\net10.0
