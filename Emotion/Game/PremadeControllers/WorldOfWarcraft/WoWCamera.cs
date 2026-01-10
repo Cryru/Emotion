@@ -28,7 +28,7 @@ public class WoWCamera : Camera3D
         if (target != null)
         {
             LookAtPoint(target.Position3D);
-            _yawRollPitch = new Vector3(180, 0, 45);
+            _yawRollPitch = new Vector3(180, 0, 25);
         }
     }
 

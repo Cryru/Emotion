@@ -167,7 +167,13 @@ public class WoWMovementController
             float leanAngle = Maths.DegreesToRadians(10.0f);
 
             float walkingLeftRightTilt = walkingLeftRight;
-            if (walkingBack) walkingLeftRightTilt *= -1;
+            if (walkingBack)
+            {
+                walkingLeftRightTilt *= -1;
+                strafeAngle *= 0.5f;
+                leanAngle *= 0.5f;
+            }
+
             if (_strafeLegBone != null)
             {
                 meshComponent.RenderState.SetCustomTransformForJoint(_strafeLegBone,
@@ -176,11 +182,8 @@ public class WoWMovementController
             }
             if (_strafeTorsoBone != null)
             {
-                float actualLean = leanAngle * walkingLeftRightTilt;
-                if (walkingBack) actualLean *= 0.5f;
-
                 meshComponent.RenderState.SetCustomTransformForJoint(_strafeTorsoBone,
-                    Matrix4x4.CreateRotationX(actualLean) * 
+                    Matrix4x4.CreateRotationX(leanAngle * walkingLeftRightTilt) * 
                     Matrix4x4.CreateRotationY(-strafeAngle * walkingLeftRightTilt)
                 );
             }
