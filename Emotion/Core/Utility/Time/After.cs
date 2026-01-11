@@ -11,6 +11,7 @@ using Emotion.Core.Utility.Coroutines;
 
 namespace Emotion.Core.Utility.Time
 {
+    [Obsolete("Use Timer or ValueTimer")]
     public class After : ITimer, IRoutineWaiter
     {
         public virtual float Delay { get; set; }

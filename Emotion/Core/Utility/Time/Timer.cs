@@ -1,50 +1,84 @@
 ﻿#nullable enable
 
-using Emotion;
+#region Using
+
+using Emotion.Core.Utility.Coroutines;
+
+#endregion
 
 namespace Emotion.Core.Utility.Time;
 
-public struct Timer
+public class Timer : IRoutineWaiter
 {
     public float Duration { get; private set; }
     public FactorMethod Method { get; private set; }
     public FactorType Type { get; private set; }
 
-    public bool Finished { get; private set; }
+    public bool Finished { get => TimePassed >= Duration; }
     public float TimePassed { get; private set; }
 
-    public Timer(float milliseconds, FactorMethod method = FactorMethod.Linear, FactorType type = FactorType.In)
+#if DEBUG
+    private readonly Guid _dbgTimerId;
+    private float _dbgLastUpdate;
+#endif
+
+    public Timer(float duration, FactorMethod method = FactorMethod.Linear, FactorType type = FactorType.In)
     {
-        Duration = milliseconds;
+        Duration = duration;
         Method = method;
         Type = type;
+
+#if DEBUG
+        _dbgTimerId = Guid.NewGuid();
+#endif
     }
 
-    public void Update(float ms)
+    public void Update(float timeToAdd)
     {
-        TimePassed += ms;
-        if (TimePassed >= Duration) Finished = true;
+        TimePassed = Math.Min(TimePassed + timeToAdd, Duration);
+
+#if DEBUG
+        if (_dbgLastUpdate == Engine.TotalTime)
+            Engine.Log.Warning($"Timer {_dbgTimerId} is being updated twice in one tick.", nameof(Timer), true);
+        _dbgLastUpdate = Engine.TotalTime;
+#endif
+    }
+
+    public void End()
+    {
+        TimePassed = Duration;
     }
 
     public void Reset()
     {
         TimePassed = 0;
-        Finished = false;
     }
 
     public float GetFactor()
     {
-        return GetFactorInternal(TimePassed / Duration);
+        if (TimePassed >= Duration) return 1.0f; // Handles delay of zero and other weird values.
+        return Timer.GetInterpolationFactor(TimePassed / Duration, Method, Type);
     }
 
-    public float GetFactorClamped()
+    #region Routine Waiter API
+
+    public void Update()
     {
-        return GetFactorInternal(Maths.Clamp01(TimePassed / Duration));
+        Update(Engine.DeltaTime);
     }
 
-    private float GetFactorInternal(float t)
+    #endregion
+
+    public override string ToString()
     {
-        switch (Type)
+        return $"Duration: {Duration}, Progress: {Math.Round(GetFactor(), 2)}, Finished: {Finished}";
+    }
+
+    #region Static API
+
+    public static float GetInterpolationFactor(float t, FactorMethod method, FactorType type)
+    {
+        switch (type)
         {
             case FactorType.In:
 #pragma warning disable CS1717 // Assignment made to same variable
@@ -62,7 +96,7 @@ public struct Timer
                 break;
         }
 
-        switch (Method)
+        switch (method)
         {
             case FactorMethod.Linear:
 #pragma warning disable CS1717 // Assignment made to same variable
@@ -89,4 +123,6 @@ public struct Timer
 
         return t;
     }
+
+    #endregion
 }
