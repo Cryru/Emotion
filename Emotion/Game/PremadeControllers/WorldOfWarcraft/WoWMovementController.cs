@@ -1,12 +1,39 @@
 ﻿#nullable enable
 
 using Emotion.Game.World.Terrain.MeshGridStreaming;
-using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Camera;
 using Emotion.Game.World.Terrain;
 using Emotion.Game.World.Components;
+using Emotion.Core.Utility.Coroutines;
 
 namespace Emotion.Game.PremadeControllers.WorldOfWarcraft;
+
+public class WoWMovementControllerComponent : IGameObjectComponent, IUpdateableComponent
+{
+    private WoWMovementController _controller;
+
+    public WoWMovementControllerComponent(WoWMovementController controller)
+    {
+        _controller = controller;
+    }
+
+    public void Done(GameObject obj)
+    {
+        _controller.Dettach();
+    }
+
+    public Coroutine? Init(GameObject obj)
+    {
+        _controller.SetCharacter(obj);
+        _controller.Attach();
+        return null;
+    }
+
+    public void Update(float dt)
+    {
+        _controller.Update(dt);
+    }
+}
 
 public class WoWMovementController
 {
@@ -33,6 +60,15 @@ public class WoWMovementController
     private float _gravityPerMs = -4.26666629E-05f;
     private float _airTimeMaxPosiveVelMod = 0.6f;
 
+    public WoWMovementController(string idleAnim, string walkAnim, string walkBackAnim, string strafeLegBone, string strafeTorsoBone)
+    {
+        _idleAnim = idleAnim;
+        _walkAnim = walkAnim;
+        _walkBackAnim = walkBackAnim;
+        _strafeLegBone = strafeLegBone;
+        _strafeTorsoBone = strafeTorsoBone;
+    }
+
     public void Attach()
     {
         Engine.Host.OnKey.AddListener(KeyHandler, KeyListenerType.Game);
@@ -44,16 +80,10 @@ public class WoWMovementController
         Engine.Host.OnKey.RemoveListener(KeyHandler);
     }
 
-    public void SetCharacter(GameObject obj, string idleAnim, string walkAnim, string walkBackAnim, string strafeLegBone, string strafeTorsoBone)
+    public void SetCharacter(GameObject obj)
     {
         _camera.SetTarget(obj, new Vector3(0, 0, 2));
-
         _character = obj;
-        _idleAnim = idleAnim;
-        _walkAnim = walkAnim;
-        _walkBackAnim = walkBackAnim;
-        _strafeLegBone = strafeLegBone;
-        _strafeTorsoBone = strafeTorsoBone;
     }
 
     public void Update(float dt)
