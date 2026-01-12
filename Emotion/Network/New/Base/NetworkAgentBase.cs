@@ -128,6 +128,7 @@ public abstract class NetworkAgentBase
         _functions.TryGetValue(typ, out NetworkFunction? func);
         return func;
     }
+
     protected void CallNetFunc(ServerPlayer? sender, NetworkMessageData msg)
     {
         uint msgType = msg.Type;

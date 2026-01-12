@@ -6,6 +6,8 @@ public class CoroutineManagerGameTime : CoroutineManager
 {
     //public float GameTimeFactor = 1;
 
+    public float DeltaTime { get; protected set; }
+
     public float GameTimeAdvanceLimit = -1;
     public float GameTimeMaxTimeBehindLimit = 100;
 
@@ -18,6 +20,7 @@ public class CoroutineManagerGameTime : CoroutineManager
     {
         if (GameTimeAdvanceLimit == -1)
         {
+            DeltaTime = dt;
             base.Update(dt);
         }
         else
@@ -27,7 +30,9 @@ public class CoroutineManagerGameTime : CoroutineManager
             if (newTime + GameTimeMaxTimeBehindLimit < GameTimeAdvanceLimit) newTime = GameTimeAdvanceLimit;
 
             float diff = newTime - Time;
-            base.Update(MathF.Floor(diff));
+            float deltaAllowed = MathF.Floor(diff); // hmm
+            DeltaTime = deltaAllowed;
+            base.Update(deltaAllowed);
         }
     }
 

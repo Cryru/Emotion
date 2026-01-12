@@ -26,7 +26,7 @@ public class ServerGameRoom
         Active = false;
     }
 
-    #region MembersHip
+    #region MemberShip
 
     public void UserJoin(ServerPlayer user)  
     {

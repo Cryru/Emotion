@@ -34,7 +34,7 @@ public class TickingServerGameRoom : ServerGameRoom
         }
     }
 
-    protected virtual void OnGameplayTick(float dt)
+    protected virtual void OnGameplayTick(int dt)
     {
 
     }
