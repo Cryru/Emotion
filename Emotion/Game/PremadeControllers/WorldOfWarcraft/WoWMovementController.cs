@@ -1,41 +1,15 @@
 ﻿#nullable enable
 
+using Emotion.Core.Utility.Coroutines;
+using Emotion.Game.Systems.UI;
+using Emotion.Game.World.Components;
+using Emotion.Game.World.Terrain;
 using Emotion.Game.World.Terrain.MeshGridStreaming;
 using Emotion.Graphics.Camera;
-using Emotion.Game.World.Terrain;
-using Emotion.Game.World.Components;
-using Emotion.Core.Utility.Coroutines;
 
 namespace Emotion.Game.PremadeControllers.WorldOfWarcraft;
 
-public class WoWMovementControllerComponent : IGameObjectComponent, IUpdateableComponent
-{
-    private WoWMovementController _controller;
-
-    public WoWMovementControllerComponent(WoWMovementController controller)
-    {
-        _controller = controller;
-    }
-
-    public void Done(GameObject obj)
-    {
-        _controller.Dettach();
-    }
-
-    public Coroutine? Init(GameObject obj)
-    {
-        _controller.SetCharacter(obj);
-        _controller.Attach();
-        return null;
-    }
-
-    public void Update(float dt)
-    {
-        _controller.Update(dt);
-    }
-}
-
-public class WoWMovementController
+public class WoWMovementController : IGameObjectComponent, IUpdateableComponent
 {
     public float WalkingSpeed = 0.007f; // Per millisecond
 
@@ -248,4 +222,20 @@ public class WoWMovementController
 
         return true;
     }
+
+    #region Component API
+
+    public void Done(GameObject obj)
+    {
+        Dettach();
+    }
+
+    public Coroutine? Init(GameObject obj)
+    {
+        SetCharacter(obj);
+        Attach();
+        return null;
+    }
+
+    #endregion
 }
