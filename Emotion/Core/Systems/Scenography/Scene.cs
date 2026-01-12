@@ -93,6 +93,7 @@ public abstract class SceneWithMap : Scene
 
     public override IEnumerator UnloadSceneRoutineAsync()
     {
+        Map.Dispose();
         _mapOwner.Done();
         Status = SceneStatus.Disposed;
         yield break;

@@ -82,7 +82,11 @@ public partial class GameObject
     /// </summary>
     public virtual void Done()
     {
-
+        foreach ((Type typ, IGameObjectComponent component) in _components)
+        {
+            component.Done(this);
+        }
+        _components.Clear();
     }
 
     public virtual void Update(float dt)

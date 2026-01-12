@@ -6,6 +6,7 @@ using Emotion.Game.World.Components;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Game.World.TileMap;
 using Emotion.Graphics.Camera;
+using Emotion.Primitives;
 using Emotion.Standard.Serialization.XML;
 
 namespace Emotion.Game.World;
@@ -204,6 +205,11 @@ public partial class GameMap : IDisposable
         }
 
         _tileMapData?.Done();
+
+        foreach (GameObject obj in ForEachObject())
+        {
+            obj.Done();
+        }
     }
 
     #region Grids
