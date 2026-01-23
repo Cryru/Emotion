@@ -15,7 +15,7 @@ public class ServerBase : NetworkAgentBase
     public List<ServerPlayer> ConnectedUsers = new();
     public ConcurrentDictionary<IPEndPoint, ServerPlayer> IPToUser = new();
 
-    protected ServerBase(int hostingPort) : base()
+    public ServerBase(int hostingPort) : base()
     {
         Ip = IPAddress.Loopback;
         Port = hostingPort;
