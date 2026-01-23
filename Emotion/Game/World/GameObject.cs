@@ -25,6 +25,9 @@ public partial class GameObject
     /// </summary>
     public string Name = DEFAULT_OBJECT_NAME;
 
+    [DontSerialize]
+    public uint ObjectId { get; private set; }
+
     public GameMap? Map { get => _adapter?.Map; }
 
     [DontSerialize]
@@ -37,6 +40,7 @@ public partial class GameObject
     /// </summary>
     public IEnumerator InitRoutine(ObjectFriendAdapter adapter)
     {
+        ObjectId = adapter.GetNextObjectId();
         _adapter = adapter;
 
         Coroutine?[]? componentRoutines = null;
@@ -47,7 +51,7 @@ public partial class GameObject
                 _transformProvider = transformProvider;
 
             Coroutine? coroutine = component.Init(this);
-            if (coroutine != null)
+            if (coroutine != null && coroutine != Coroutine.CompletedRoutine)
             {
                 componentRoutines ??= ArrayPool<Coroutine?>.Shared.Rent(_components.Count);
                 componentRoutines[componentIdx] = coroutine;

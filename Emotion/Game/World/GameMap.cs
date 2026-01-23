@@ -77,6 +77,13 @@ public partial class GameMap : IDisposable
     {
         public GameMap Map = map;
 
+        private uint _nextObjectId = 1;
+
+        public uint GetNextObjectId()
+        {
+            return _nextObjectId++;
+        }
+
         public void OnObjectComponentAdded<TComponent>(GameObject obj) where TComponent : class, IGameObjectComponent
         {
 
@@ -110,7 +117,7 @@ public partial class GameMap : IDisposable
         //    obj.OnRotate += OnObjectMoved;
         //}
 
-        _enumeration.AddObject(obj);
+        _objectStorage.AddObject(obj);
     }
 
     public void AddObject(GameObject obj)
@@ -133,7 +140,7 @@ public partial class GameMap : IDisposable
         //    _octTree.Remove(obj);
         //}
 
-        _enumeration.RemoveObject(obj); // Will call obj.Done()
+        _objectStorage.RemoveObject(obj); // Will call obj.Done()
     }
 
     private void OnObjectMoved(GameObject obj)
@@ -166,6 +173,8 @@ public partial class GameMap : IDisposable
             obj.Update(dt);
             obj.ForEachComponentOfType<IUpdateableComponent, float>(static (component, dt) => component.Update(dt), dt);
         }
+
+        _objectStorage.AssertNoActiveEnumerations();
     }
 
     public void Render(Renderer r)

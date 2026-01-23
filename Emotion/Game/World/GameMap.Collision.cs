@@ -10,7 +10,7 @@ namespace Emotion.Game.World;
 public partial class GameMap
 {
     //private OctTree<GameObject> _octTree = new();
-    private readonly ObjectEnumerationSystem _enumeration = new();
+    private readonly ObjectEnumerationSystem _objectStorage = new();
 
     public bool CollideWithRayFirst<T>(Ray2D ray, GameObject? exclude, out GameObject? hit, out Vector2 collisionPoint)
        where T : GameObject
@@ -120,24 +120,38 @@ public partial class GameMap
 
     public ObjectEnumerator ForEachObject()
     {
-        return _enumeration.GetEnumerator();
+        return _objectStorage.GetEnumerator();
     }
 
-    public IEnumerable<T> ForEachObject<T>(bool includeNonLoaded = false) where T : GameObject
+    public GameObject? GetObjectById(uint id)
     {
+        Assert(id > 0);
+
+        // todo;
         foreach (GameObject obj in ForEachObject())
         {
-            if (obj is T objT)
-                yield return objT;
+            if (obj.ObjectId == id)
+                return obj;
         }
 
-        if (includeNonLoaded)
-        {
-            foreach (GameObject obj in _objectsToLoad)
-            {
-                if (obj is T objT)
-                    yield return objT;
-            }
-        }
+        return null;
     }
+
+    //public IEnumerable<T> ForEachObject<T>(bool includeNonLoaded = false) where T : GameObject
+    //{
+    //    foreach (GameObject obj in ForEachObject())
+    //    {
+    //        if (obj is T objT)
+    //            yield return objT;
+    //    }
+
+    //    if (includeNonLoaded)
+    //    {
+    //        foreach (GameObject obj in _objectsToLoad)
+    //        {
+    //            if (obj is T objT)
+    //                yield return objT;
+    //        }
+    //    }
+    //}
 }
