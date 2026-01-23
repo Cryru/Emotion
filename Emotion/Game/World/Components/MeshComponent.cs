@@ -22,13 +22,13 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
     [DontSerialize]
     public MeshEntityMetaState RenderState { get; private set; } = null!;
 
-    public MeshComponent(MeshReference entity)
+    public MeshComponent(MeshReference? entity)
     {
         _entityOwner.SetOnChangeCallback(static (_, component) => (component as MeshComponent)?.OnEntityChanged(), this);
-        _entityOwner.Set(entity, true);
+        _entityOwner.Set(entity ?? MeshReference.Invalid, true);
     }
 
-    public MeshComponent()
+    protected MeshComponent()
     {
 
     }

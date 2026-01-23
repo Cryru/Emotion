@@ -12,7 +12,7 @@ public class SkyBoxComponent : MeshComponent
     private AssetOwner<TextureCubemapAsset, TextureCubemap> _cubeTextureOwner = new();
     private TextureCubemap? _texture;
 
-    public SkyBoxComponent(CubeMapTextureReference cubeMapTexture)
+    public SkyBoxComponent(CubeMapTextureReference cubeMapTexture) : base()
     {
         _cubeTextureOwner = new();
         _cubeTextureOwner.SetOnChangeCallback(static (_, component) => (component as SkyBoxComponent)?.OnTextureChanged(), this);
