@@ -20,6 +20,7 @@ using Emotion.Core.Utility.Threading;
 using Emotion.Editor;
 using Emotion.Game.Systems.UI.New;
 using Emotion.Graphics.Shading;
+using Emotion.Network;
 using Emotion.Standard.Reflector;
 using OpenGL;
 
@@ -105,7 +106,13 @@ public static class Engine
     /// Global UI system.
     /// [Setup Module]
     /// </summary>
-    public static UISystem UI;
+    public static UISystem UI { get; private set; }
+
+    /// <summary>
+    /// Manages multiplayer communication.
+    /// [Setup Module]
+    /// </summary>
+    public static MultiplayerSystem Multiplayer { get; private set; }
 
     #endregion
 
@@ -299,6 +306,7 @@ public static class Engine
         // Now "game-mode" modules can be created.
         SceneManager = new SceneManager();
         UI = new UISystem();
+        Multiplayer = new MultiplayerSystem();
 
         // Load game data.
         GameDatabase.Initialize();

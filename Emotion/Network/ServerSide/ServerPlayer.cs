@@ -1,23 +1,19 @@
 ﻿#nullable enable
 
+using Emotion;
 using System.Net;
 
-namespace Emotion.Network.New.ServerSide;
+namespace Emotion.Network.ServerSide;
 
 [DontSerialize]
-public abstract class ServerPlayer
+public class ServerPlayer
 {
     public IPEndPoint? UserIp;
     public int SendMessageIndex = 1;
     public int ReceiveMessageIndex = 1;
     public int Id = -1;
-}
 
-[DontSerialize]
-public class ServerPlayer<TRoomType> : ServerPlayer
-    where TRoomType : ServerGameRoom, new()
-{
-    public TRoomType? InRoom;
+    public ServerRoom? InRoom;
 
     public override string ToString()
     {

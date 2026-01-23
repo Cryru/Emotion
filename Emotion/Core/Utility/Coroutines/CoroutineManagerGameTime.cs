@@ -9,7 +9,7 @@ public class CoroutineManagerGameTime : CoroutineManager
     public float DeltaTime { get; protected set; }
 
     public float GameTimeAdvanceLimit = -1;
-    public float GameTimeMaxTimeBehindLimit = 100;
+    public float GameTimeMaxTimeBehindLimit = 1000;
 
     public CoroutineManagerGameTime() : base(false)
     {

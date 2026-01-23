@@ -1,99 +1,197 @@
 ﻿#nullable enable
 
 using Emotion.Network.Base;
-using Emotion.Network.ServerSide.Gameplay;
+using Emotion.Network.Base.Invocation;
+using Emotion.Network.New.Base;
+using System.Runtime.InteropServices;
+using NetworkMessage = Emotion.Network.Base.NetworkMessage;
 
 namespace Emotion.Network.ServerSide;
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct ServerRoomInfo
+{
+    // Rooms with a lot of players probably shouldn't send out all player ids since then its more of a "mmo" type of deal
+    public const int MAX_PLAYERS_IN_ROOM = 10;// (NetworkMessage.MaxContentSize - sizeof(uint) - sizeof(int) - sizeof(int)) / sizeof(int);
+
+    public uint RoomId;
+    public int HostId;
+    public int PlayerCount;
+    public fixed int PlayerIds[MAX_PLAYERS_IN_ROOM];
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct ServerGameInfoList
+{
+    public const int MAX_ROOMS_IN_LIST = 10;
+
+    public int RoomCount;
+
+    public fixed uint RoomIds[10];
+    public fixed int HostIds[10];
+    public fixed int PlayerCounts[10];
+}
 
 [DontSerialize]
 public class ServerRoom
 {
-    public static ObjectPool<ServerRoom> Shared = new ObjectPool<ServerRoom>((r) => r.Reset(), 10);
+    public ServerBase Server { get; init; }
+    public ServerPlayer? Host { get; init; } // If null the room is hosted by the server.
+    public uint Id { get; init; }
 
-    public bool Active = false;
-    public int Id = -1;
-    public ServerUser? Host;
-    public List<ServerUser> UsersInside = new List<ServerUser>();
+    public bool Disposed = false;
+    public List<ServerPlayer> UsersInside = new List<ServerPlayer>();
 
-    public ServerRoomGameplay? ServerGameplay;
-
-    public void Reset()
+    public ServerRoom(ServerBase server, ServerPlayer? host, uint roomId)
     {
-        Id = -1;
-        UsersInside.Clear();
-        Host = null;
-        ServerGameplay = null;
-        Active = true;
+        Server = server;
+        Host = host;
+        Id = roomId;
     }
 
-    public void UserJoin(Server server, ServerUser user)
+    public virtual void Dispose()
     {
-        user.InRoom = this;
+        Disposed = true;
+    }
+
+    #region MemberShip
+
+    public virtual bool CanBeJoined(ServerPlayer user)
+    {
+        return !Disposed;
+    }
+
+    public void UserJoin(ServerPlayer user)  
+    {
         UsersInside.Add(user);
-        server.SendMessageToUser(user, NetworkMessageType.RoomJoined, GetRoomInfo());
 
-        for (int i = 0; i < UsersInside.Count; i++)
-        {
-            ServerUser otherUser = UsersInside[i];
-            if (otherUser != user)
-                server.SendMessageToUser(otherUser, NetworkMessageType.UserJoinedRoom, GetRoomInfo());
-        }
+        ServerRoomInfo roomInfo = GetRoomInfo();
+        Server.SendMessageToPlayer(user, NetworkMessageType.RoomJoined, roomInfo);
+        SendMessageToAll(NetworkMessageType.UserJoinedRoom, roomInfo, user);
 
-        Engine.Log.Info($"User {user.Id} joined room {Id}", server.LogTag);
-        ServerGameplay?.OnUserJoined(user);
+        Engine.Log.Info($"User {user.Id} joined room {Id}", Server!.LogTag);
+        OnUserJoined(user);
     }
 
-    public void UserLeave(Server server, ServerUser user)
+    public void UserLeave(ServerPlayer user)
     {
-        user.InRoom = null;
         UsersInside.Remove(user);
 
         for (int i = 0; i < UsersInside.Count; i++)
         {
-            ServerUser otherUser = UsersInside[i];
-            NotifyUserLeft(server, otherUser, user);
+            ServerPlayer otherUser = UsersInside[i];
+            NotifyUserLeft(otherUser, user);
         }
 
-        if (user == Host)
-        {
-            Active = false;
-            for (int i = 0; i < UsersInside.Count; i++)
-            {
-                ServerUser otherUser = UsersInside[i];
-                otherUser.InRoom = null;
-                NotifyUserKicked(server, otherUser);
-            }
-            Reset();
-        }
-
-        Engine.Log.Info($"User {user.Id} left room {Id}", server.LogTag);
+        Engine.Log.Info($"User {user.Id} left room {Id}", Server!.LogTag);
+        OnUserLeft(user);
     }
 
-    protected void NotifyUserLeft(Server server, ServerUser userToNotify, ServerUser userWhoLeft)
+    protected void NotifyUserLeft(ServerPlayer userToNotify, ServerPlayer userWhoLeft)
     {
 
     }
 
-    protected void NotifyUserKicked(Server server, ServerUser userToNotify)
+    public unsafe ServerRoomInfo GetRoomInfo()
     {
-
-    }
-
-    public ServerRoomInfo GetRoomInfo()
-    {
-        int[] otherUserIds = new int[UsersInside.Count];
-        for (int i = 0; i < UsersInside.Count; i++)
-        {
-            ServerUser user = UsersInside[i];
-            otherUserIds[i] = user.Id;
-        }
-
         ServerRoomInfo info = new ServerRoomInfo()
         {
-            Id = Id,
-            HostUser = Host == null ? -1: Host.Id,
-            UsersInside = otherUserIds
+            RoomId = Id,
+            HostId = Host?.Id ?? -1,
+            PlayerCount = UsersInside.Count
         };
+
+        int usersToReport = Math.Min(UsersInside.Count, ServerRoomInfo.MAX_PLAYERS_IN_ROOM);
+        for (int i = 0; i < usersToReport; i++)
+        {
+            info.PlayerIds[i] = UsersInside[i].Id;
+        }
+
         return info;
     }
+
+    #endregion
+
+    #region API
+
+    protected virtual void OnUserJoined(ServerPlayer newUser)
+    {
+
+    }
+
+    protected virtual void OnUserLeft(ServerPlayer oldUser)
+    {
+
+    }
+
+    #endregion
+
+    public void SendMessageToAll<TData>(TData data, ServerPlayer? except = null)
+        where TData : unmanaged, INetworkMessageStruct
+    {
+        for (int i = 0; i < UsersInside.Count; i++)
+        {
+            ServerPlayer user = UsersInside[i];
+            if (user == except) continue;
+            Server.SendMessageToPlayer(user, data);
+        }
+    }
+
+    public void SendMessageToAll<TEnum, TData>(TEnum messageType, TData data, ServerPlayer? except = null)
+        where TEnum : unmanaged
+        where TData : unmanaged
+    {
+        for (int i = 0; i < UsersInside.Count; i++)
+        {
+            ServerPlayer user = UsersInside[i];
+            if (user == except) continue;
+            Server.SendMessageToPlayer(user, messageType, data);
+        }
+    }
+
+    public void SendMessageToAllWithoutData<TEnum>(TEnum messageType, ServerPlayer? except = null)
+        where TEnum : unmanaged
+    {
+        for (int i = 0; i < UsersInside.Count; i++)
+        {
+            ServerPlayer user = UsersInside[i];
+            if (user == except) continue;
+            Server.SendMessageToPlayerWithoutData(user, messageType);
+        }
+    }
+
+    #region Network Functions
+
+    protected static NetworkFunctionInvoker<ServerRoom, ServerPlayer> _netFuncs = new();
+
+    static ServerRoom()
+    {
+        RegisterFunctions(_netFuncs);
+    }
+
+    private static void RegisterFunctions(NetworkFunctionInvoker<ServerRoom, ServerPlayer> invoker)
+    {
+
+    }
+
+    public bool ProcessMessage(ServerBase server, ServerPlayer sender, in NetworkMessage msg)
+    {
+        uint messageType = msg.Type;
+        NetworkFunctionBase<ServerRoom, ServerPlayer>? netFunc = _netFuncs.GetFunctionFromMessageType(messageType);
+        if (netFunc != null)
+        {
+            if (!netFunc.TryInvoke(this, sender, msg))
+            {
+                Engine.Log.Warning($"Error executing function of message type {messageType}", nameof(ServerRoom));
+            }
+        }
+        else
+        {
+            Engine.Log.Warning($"Unknown message type {messageType}", nameof(ServerRoom), true);
+        }
+
+        return true;
+    }
+
+    #endregion
 }

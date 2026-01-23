@@ -231,6 +231,18 @@
         <AndroidNativeLibrary Remove="AssetsNativeLibs\OpenAL\linux\openal32.so" />
         <AndroidNativeLibrary Remove="AssetsNativeLibs\OpenAL\linux\libsndio.so.6.1" />
     </ItemGroup>
+    <ItemGroup>
+      <Compile Remove="Network\_Old\MsgBrokerTimeSyncGameplay.cs" />
+      <Compile Remove="Network\_Old\NetworkFunction.cs" />
+      <Compile Remove="Network\_Old\TimeHashPair.cs" />
+      <Compile Remove="Network\_Old\TimeSyncClient.cs" />
+    </ItemGroup>
+    <ItemGroup>
+      <None Include="Network\_Old\MsgBrokerTimeSyncGameplay.cs" />
+      <None Include="Network\_Old\NetworkFunction.cs" />
+      <None Include="Network\_Old\TimeHashPair.cs" />
+      <None Include="Network\_Old\TimeSyncClient.cs" />
+    </ItemGroup>
 
     <!-- Libraries Binaries -->
     <ItemGroup>

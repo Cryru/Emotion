@@ -1,12 +1,13 @@
 ﻿#nullable enable
 
+using Emotion;
 using System.Net;
 
-namespace Emotion.Network.New.Base;
+namespace Emotion.Network.Base;
 
 [DontSerialize]
 public struct MessagePair
 {
     public IPEndPoint Recipient;
-    public NetworkMessageData Message;
+    public NetworkMessage Message;
 }
