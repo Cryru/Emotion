@@ -5,53 +5,76 @@ namespace Emotion.Game.World.Enumeration;
 public class ObjectEnumerationSystem
 {
     private List<GameObject> _objects = new List<GameObject>();
-    private List<GameObject> _objectsToRemove = new List<GameObject>();
+    private Queue<GameObject> _objectsToRemove = new Queue<GameObject>();
+    private Queue<GameObject> _objectsToAdd = new Queue<GameObject>();
     private int _activeEnumerators = 0;
 
-    private readonly Lock _objectDeletionLock = new Lock();
+    private readonly Lock _objectMutationLock = new Lock();
 
     public ObjectEnumerator GetEnumerator()
     {
-        Interlocked.Increment(ref _activeEnumerators);
-        return new ObjectEnumerator(this);
+        lock (_objectMutationLock)
+        {
+            _activeEnumerators++;
+            return new ObjectEnumerator(this);
+        }
     }
 
     public void OnEnumeratorOver()
     {
-        if (Interlocked.Decrement(ref _activeEnumerators) == 0 && _objectsToRemove.Count > 0)
+        lock (_objectMutationLock)
         {
-            lock (_objectDeletionLock)
+            _activeEnumerators--;
+            TryUpdateObjectList();
+        }
+    }
+
+    private void TryUpdateObjectList()
+    {
+        lock (_objectMutationLock)
+        {
+            if (_activeEnumerators == 0 && (_objectsToRemove.Count != 0 || _objectsToAdd.Count != 0))
             {
-                foreach (GameObject obj in _objectsToRemove)
+                while (_objectsToRemove.TryDequeue(out GameObject? obj))
                 {
                     _objects.Remove(obj);
                     obj.Done();
                 }
-                _objectsToRemove.Clear();
+
+                while (_objectsToAdd.TryDequeue(out GameObject? obj))
+                {
+                    _objects.Add(obj);
+                }
             }
         }
     }
 
+    public void AssertNoActiveEnumerations()
+    {
+        Assert(_activeEnumerators == 0);
+    }
+
     public void AddObject(GameObject obj)
     {
-        lock (_objectDeletionLock)
+        lock (_objectMutationLock)
         {
-            _objects.Add(obj);
+            _objectsToAdd.Enqueue(obj);
         }
+        TryUpdateObjectList();
     }
 
     public void RemoveObject(GameObject obj)
     {
-        lock (_objectDeletionLock)
+        lock (_objectMutationLock)
         {
-            _objectsToRemove.Add(obj);
+            _objectsToRemove.Enqueue(obj);
         }
+        TryUpdateObjectList();
     }
 
-    public struct ObjectEnumerator : IEnumerator<GameObject>
+    public ref struct ObjectEnumerator
     {
         public readonly GameObject Current => _system._objects[_idx];
-        readonly object IEnumerator.Current => Current;
 
         private ObjectEnumerationSystem _system;
         private int _idx;
