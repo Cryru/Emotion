@@ -72,12 +72,12 @@ public static class XMLSerialization
         return typeHandler.ParseFromXML<T>(ref reader);
     }
 
-    public static string To<T>(T obj)
+    public static string To<T>(in T obj)
     {
         return To(obj, new XMLConfig());
     }
 
-    public static string To<T>(T obj, XMLConfig config)
+    public static string To<T>(in T obj, XMLConfig config)
     {
         var builder = new StringBuilder();
         var reader = new ValueStringWriter(builder);
@@ -85,19 +85,19 @@ public static class XMLSerialization
         return builder.ToString();
     }
 
-    public static int To<T>(T obj, XMLConfig config, Span<char> xmlDataUtf16)
+    public static int To<T>(in T obj, XMLConfig config, Span<char> xmlDataUtf16)
     {
         var reader = new ValueStringWriter(xmlDataUtf16);
         return To(obj, config, ref reader);
     }
 
-    public static int To<T>(T obj, XMLConfig config, Span<byte> xmlDataUtf8)
+    public static int To<T>(in T obj, XMLConfig config, Span<byte> xmlDataUtf8)
     {
         var reader = new ValueStringWriter(xmlDataUtf8);
         return To(obj, config, ref reader);
     }
 
-    public static int To<T>(T obj, XMLConfig config, ref ValueStringWriter writer)
+    public static int To<T>(in T obj, XMLConfig config, ref ValueStringWriter writer)
     {
         if (config.UseXMLHeader)
         {
