@@ -186,6 +186,9 @@ public sealed class Coroutine : IRoutineWaiter
             case int timeWaiting when Parent.SupportsTime:
                 CurrentWaiter_Time = timeWaiting;
                 break;
+            case uint timeWaitingU when Parent.SupportsTime:
+                CurrentWaiter_Time = timeWaitingU;
+                break;
             case float timeWaitingF when Parent.SupportsTime:
                 CurrentWaiter_Time = timeWaitingF;
                 break;
