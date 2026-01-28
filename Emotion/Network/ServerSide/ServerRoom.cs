@@ -92,7 +92,7 @@ public class ServerRoom
 
     }
 
-    public unsafe ServerRoomInfo GetRoomInfo()
+    public virtual unsafe ServerRoomInfo GetRoomInfo()
     {
         ServerRoomInfo info = new ServerRoomInfo()
         {
@@ -182,7 +182,7 @@ public class ServerRoom
         {
             if (!netFunc.TryInvoke(this, sender, msg))
             {
-                Engine.Log.Warning($"Error executing function of message type {messageType}", nameof(ServerRoom));
+                Engine.Log.Warning($"Error executing function of message type {messageType}", nameof(ServerRoom), true);
             }
         }
         else

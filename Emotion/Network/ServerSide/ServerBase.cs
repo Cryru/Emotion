@@ -1,6 +1,5 @@
 ﻿#nullable enable
 
-using Emotion;
 using Emotion.Network.Base;
 using Emotion.Network.Base.Invocation;
 using Emotion.Network.New.Base;
@@ -15,7 +14,7 @@ public class ServerBase : NetworkAgentBase
     public List<ServerPlayer> ConnectedUsers = new();
     public ConcurrentDictionary<IPEndPoint, ServerPlayer> IPToUser = new();
 
-    public ServerBase(int hostingPort) : base()
+    public ServerBase(int hostingPort) : base(IPAddress.Loopback, hostingPort, new IPEndPoint(IPAddress.Any, hostingPort), "Server")
     {
         Ip = IPAddress.Loopback;
         Port = hostingPort;
@@ -49,9 +48,9 @@ public class ServerBase : NetworkAgentBase
             return;
         }
 
-        if (sender.ReceiveMessageIndex > msg.MessageIndex)
+        if (sender.ReceiveMessageIndex - msg.MessageIndex != -1)
         {
-            Engine.Log.Trace($"Received old message from {sender.Id}. Discarding!", LogTag);
+            Engine.Log.Trace($"Received old/future message from {sender.Id}. Discarding!", LogTag);
             return;
         }
         sender.ReceiveMessageIndex = msg.MessageIndex;
@@ -61,7 +60,7 @@ public class ServerBase : NetworkAgentBase
         {
             if (!netFunc.TryInvoke(this, sender, msg))
             {
-                Engine.Log.Warning($"Error executing function of message type {messageType}", LogTag);
+                Engine.Log.Warning($"Error executing function of message type {messageType}", LogTag, true);
             }
         }
         else if (sender.InRoom == null || !sender.InRoom.ProcessMessage(this, sender, msg))
@@ -71,6 +70,15 @@ public class ServerBase : NetworkAgentBase
     }
 
     #region Sender Helpers
+
+    public void SendMessageToPlayerRaw(ServerPlayer player, in NetworkMessage msg)
+    {
+        IPEndPoint? ip = player.UserIp;
+        if (ip == null) return;
+
+        SendMessageToIPRaw(ip, msg, player.SendMessageIndex);
+        player.SendMessageIndex++;
+    }
 
     public void SendMessageToPlayer<TData>(ServerPlayer player, in TData data)
         where TData : unmanaged, INetworkMessageStruct
@@ -259,7 +267,7 @@ public class ServerBase : NetworkAgentBase
         self.SendMessageToPlayer(sender, NetworkMessageType.RoomList, roomList);
     }
 
-    private static void Msg_JoinRoom(ServerBase self, ServerPlayer sender, int roomId)
+    private static void Msg_JoinRoom(ServerBase self, ServerPlayer sender, in int roomId)
     {
         if (!self.UsersCanManageRooms) return;
 

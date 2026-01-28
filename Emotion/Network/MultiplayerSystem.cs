@@ -10,6 +10,8 @@ namespace Emotion.Network;
 
 public class MultiplayerSystem
 {
+    public int PlayerId { get => Client?.PlayerId ?? 0; }
+
     public ClientBase? Client { get; private set; }
 
     public void ConnectToServer(ClientBase client)
@@ -87,7 +89,7 @@ public class MultiplayerSystem
             }
         }
         Engine.CoroutineManager.StartCoroutine(SecondPlayerLoop(secondPlayerManager));
-        ClientBase secondPlayerClient = createFunc("127.0.0.1:1337", secondPlayerManager);
+        ClientBase secondPlayerClient = createFunc(Client.EndPoint.ToString(), secondPlayerManager);
         secondPlayerClient.ConnectIfNotConnected();
         secondPlayerClient.SendMessageToServer(NetworkMessageType.JoinRoom, room.RoomId);
     }

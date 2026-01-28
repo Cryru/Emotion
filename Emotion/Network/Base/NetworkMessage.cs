@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using System.Runtime.InteropServices;
+
 namespace Emotion.Network.Base;
 
 [DontSerialize]
@@ -20,5 +22,21 @@ public unsafe struct NetworkMessage
     public uint Reserved;
 
     public int ContentLength;
-    public fixed byte Content[NetworkMessage.MaxContentSize]; // Not the whole thing will be copied into the buffer :)
+    public fixed byte Content[NetworkMessage.MaxContentSize];
+
+    public static bool GetContentAs<TMsg>(in NetworkMessage msg, out TMsg castStruct) where TMsg : unmanaged
+    {
+        castStruct = default;
+
+        int contentLength = msg.ContentLength;
+        if (contentLength > NetworkMessage.MaxContentSize) return false;
+        if (contentLength != sizeof(TMsg)) return false; // Huh?
+
+        fixed (byte* msgContentPtr = msg.Content)
+        {
+            var data = new Span<byte>(msgContentPtr, contentLength);
+            castStruct = MemoryMarshal.Read<TMsg>(data);
+            return true;
+        }
+    }
 }

@@ -1,6 +1,6 @@
-﻿namespace Emotion.Network.New.Base;
+﻿#nullable enable
 
-#nullable enable
+namespace Emotion.Network.New.Base;
 
 public enum NetworkMessageType : uint
 {
@@ -28,7 +28,10 @@ public enum NetworkMessageType : uint
     TimeSyncHashDebug,    // <string> hash
 
     // Specials (Server -> Client)
-    NIY_AdvanceTime,
+    ServerTick,
+
+    // Implementations
+    PlayerControlledSyncObjectComponent_ObjectMoved,
 
     Last
 }

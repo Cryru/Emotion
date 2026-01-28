@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Core.Utility.Coroutines;
+using Emotion.Network.New.Base;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
@@ -23,9 +24,13 @@ public abstract class NetworkAgentBase
 
     public int MetricBytesDownloadedSec { get; protected set; }
 
+    public string MetricText { get => $"U:{Helpers.FormatByteAmountAsString(MetricBytesUploadedSec)}\\D:{Helpers.FormatByteAmountAsString(MetricBytesDownloadedSec)}"; }
+
     public int MetricMessagesSec { get; protected set; }
 
     private int _currentSecond = 0;
+    private int _bytesUploadedThisSecond = 0;
+    private int _bytesDownloadedThisSecond = 0;
 
     #endregion
 
@@ -33,7 +38,7 @@ public abstract class NetworkAgentBase
 
     protected int Port { get; init; }
 
-    protected IPEndPoint EndPoint { get; init; }
+    public IPEndPoint EndPoint { get; init; }
 
     public string LogTag { get; init; }
 
@@ -58,8 +63,17 @@ public abstract class NetworkAgentBase
 
     private bool _bufferMessageReceiving;
 
-    protected NetworkAgentBase()
+    protected NetworkAgentBase(IPEndPoint endPoint, string logTag) : this(endPoint.Address, endPoint.Port, endPoint, logTag)
     {
+    }
+
+    protected NetworkAgentBase(IPAddress ip, int port, IPEndPoint endPoint, string logTag)
+    {
+        Ip = ip;
+        Port = port;
+        EndPoint = endPoint;
+        LogTag = logTag;
+
         _receiveEventArgs = new SocketAsyncEventArgs();
         _receiveEventArgs.RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
         _receiveEventArgs.SetBuffer(_receiveBuffer, 0, _receiveBuffer.Length);
@@ -86,8 +100,10 @@ public abstract class NetworkAgentBase
             int timeNowSecond = (int)(Engine.TotalTime / 1000);
             if (timeNowSecond != _currentSecond)
             {
-                MetricBytesUploadedSec = 0;
-                MetricBytesDownloadedSec = 0;
+                MetricBytesUploadedSec = _bytesUploadedThisSecond;
+                MetricBytesDownloadedSec = _bytesDownloadedThisSecond;
+                _bytesUploadedThisSecond = 0;
+                _bytesDownloadedThisSecond = 0;
                 MetricMessagesSec = 0;
                 _currentSecond = timeNowSecond;
             }
@@ -130,7 +146,7 @@ public abstract class NetworkAgentBase
 
                 // Convert the message to bytes
                 Span<NetworkMessage> msgAsSpan = new Span<NetworkMessage>(ref msg);
-                Span<byte> msgAsBytes = MemoryMarshal.Cast<NetworkMessage, byte>(msgAsSpan);
+                Span<byte> msgAsBytes = MemoryMarshal.AsBytes<NetworkMessage>(msgAsSpan);
                 msgAsBytes = msgAsBytes.Slice(0, messageLength);
 
                 // Hash the message
@@ -147,7 +163,7 @@ public abstract class NetworkAgentBase
                 if (!willRaiseEvent)
                     MessageSent(_socket, _sendEventArgs);
 
-                MetricBytesUploadedSec += messageLength;
+                _bytesUploadedThisSecond += messageLength;
             }
             _sendQueueIdx = 0;
         }
@@ -162,8 +178,8 @@ public abstract class NetworkAgentBase
                 ref MessagePair msgPair = ref _receivingQueue[i];
                 ref NetworkMessage msg = ref msgPair.Message;
 
-                // Already processed, happens when buffering is turned on via a message,
-                // and then turned off.
+                // Already processed, happens when buffering is
+                // turned on via a message callback and then turned off.
                 if (msg.Hash == MESSAGE_PROCESSED)
                     continue;
 
@@ -230,7 +246,7 @@ public abstract class NetworkAgentBase
 
         Span<byte> receivedBytes = buffer.AsSpan().Slice(0, bytesTransferred);
 
-        MetricBytesDownloadedSec += bytesTransferred;
+        _bytesDownloadedThisSecond += bytesTransferred;
         MetricMessagesSec++;
 
         Assert(Status == NetworkAgentStatus.None || Status == NetworkAgentStatus.Listening);
@@ -270,34 +286,46 @@ public abstract class NetworkAgentBase
 
         var msg = new NetworkMessage
         {
-            Type = Unsafe.As<TEnum, uint>(ref messageType)
+            Type = Unsafe.As<TEnum, uint>(ref messageType),
+            Magic = NetworkMessage.MagicNumber
         };
         return msg;
     }
 
-    private unsafe static NetworkMessage CreateMessage<TEnum, TData>(TEnum messageType, in TData data)
-        where TEnum : unmanaged
-        where TData : unmanaged
+    public unsafe static NetworkMessage CreateMessage<TEnum, TData>(TEnum messageType, in TData data)
+       where TEnum : unmanaged
+       where TData : unmanaged
     {
-        var msg = new NetworkMessage
-        {
-            Type = Unsafe.As<TEnum, uint>(ref messageType)
-        };
-
         Assert(sizeof(TData) <= NetworkMessage.MaxContentSize);
-
         AssertSequentialLayout<TData>();
-        Span<byte> contentSpan = new Span<byte>(msg.Content, NetworkMessage.MaxContentSize);
         ReadOnlySpan<TData> dataAsSpan = new ReadOnlySpan<TData>(in data);
         ReadOnlySpan<byte> dataAsBytes = MemoryMarshal.AsBytes(dataAsSpan);
-        if (!dataAsBytes.TryCopyTo(contentSpan))
+        return CreateMessage<TEnum>(messageType, dataAsBytes);
+    }
+
+    public unsafe static NetworkMessage CreateMessage<TEnum>(TEnum messageType, ReadOnlySpan<byte> dataAsBytes)
+        where TEnum : unmanaged
+    {
+        Assert(dataAsBytes.Length <= NetworkMessage.MaxContentSize);
+
+        var msg = new NetworkMessage
+        {
+            Type = Unsafe.As<TEnum, uint>(ref messageType),
+            Magic = NetworkMessage.MagicNumber
+        };
+
+        if (dataAsBytes.Length > NetworkMessage.MaxContentSize)
         {
             // todo: some sort of invalid msg?
+            msg.Type = (uint) NetworkMessageType.None;
             msg.ContentLength = 0;
             return msg;
         }
-        
+
+        Span<byte> contentSpan = new Span<byte>(msg.Content, NetworkMessage.MaxContentSize);
+        dataAsBytes.CopyTo(contentSpan);
         msg.ContentLength = dataAsBytes.Length;
+
         return msg;
     }
 
@@ -305,34 +333,8 @@ public abstract class NetworkAgentBase
 
     #region Sending
 
-    public void SendMessageToIP<TData>(IPEndPoint ip, in TData data, int messageIdx = 1)
-        where TData : unmanaged, INetworkMessageStruct
+    public void SendMessageToIPRaw(IPEndPoint ip, in NetworkMessage msg, int messageIdx = 1)
     {
-        uint messageType = TData.MessageType;
-        NetworkMessage msg = CreateMessage(messageType, data);
-        InternalSendMessageToIP(ip, ref msg, messageIdx);
-    }
-
-    public void SendMessageToIP<TEnum, TData>(IPEndPoint ip, TEnum messageType, in TData data, int messageIdx = 1)
-        where TEnum : unmanaged
-        where TData : unmanaged
-    {
-        NetworkMessage msg = CreateMessage(messageType, data);
-        InternalSendMessageToIP(ip, ref msg, messageIdx);
-    }
-
-    public void SendMessageToIPWithoutData<TEnum>(IPEndPoint ip, TEnum messageType, int messageIdx = 1)
-        where TEnum : unmanaged
-    {
-        NetworkMessage msg = CreateMessageWithoutData(messageType);
-        InternalSendMessageToIP(ip, ref msg, messageIdx);
-    }
-
-    private unsafe void InternalSendMessageToIP(IPEndPoint ip, ref NetworkMessage msg, int messageIdx = 1)
-    {
-        msg.Magic = NetworkMessage.MagicNumber;
-        msg.MessageIndex = messageIdx;
-
         lock (_sendLock)
         {
             if (_sendQueueIdx >= _sendingQueue.Length)
@@ -343,9 +345,33 @@ public abstract class NetworkAgentBase
 
             ref MessagePair sendPair = ref _sendingQueue[_sendQueueIdx];
             sendPair.Message = msg; // Copy :/
+            sendPair.Message.MessageIndex = messageIdx;
             sendPair.Recipient = ip;
             _sendQueueIdx++;
         }
+    }
+
+    public void SendMessageToIP<TData>(IPEndPoint ip, in TData data, int messageIdx = 1)
+        where TData : unmanaged, INetworkMessageStruct
+    {
+        uint messageType = TData.MessageType;
+        NetworkMessage msg = CreateMessage(messageType, data);
+        SendMessageToIPRaw(ip, msg, messageIdx);
+    }
+
+    public void SendMessageToIP<TEnum, TData>(IPEndPoint ip, TEnum messageType, in TData data, int messageIdx = 1)
+        where TEnum : unmanaged
+        where TData : unmanaged
+    {
+        NetworkMessage msg = CreateMessage(messageType, data);
+        SendMessageToIPRaw(ip, msg, messageIdx);
+    }
+
+    public void SendMessageToIPWithoutData<TEnum>(IPEndPoint ip, TEnum messageType, int messageIdx = 1)
+        where TEnum : unmanaged
+    {
+        NetworkMessage msg = CreateMessageWithoutData(messageType);
+        SendMessageToIPRaw(ip, msg, messageIdx);
     }
 
     #endregion

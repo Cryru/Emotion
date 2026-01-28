@@ -1,13 +1,14 @@
 ﻿#nullable enable
 
-using Emotion;
 using Emotion.Core.Utility.Coroutines;
+using Emotion.Network.New.Base;
 
 namespace Emotion.Network.ServerSide;
 
 public class TickingServerRoom : ServerRoom
 {
-    public int GameTickSpeed = 20;
+    public uint GameTime { get; protected set; } = 0;
+    public uint GameTickSpeed = 50;
 
     private Coroutine _updateRoutine = Coroutine.CompletedRoutine;
 
@@ -28,10 +29,12 @@ public class TickingServerRoom : ServerRoom
         {
             yield return GameTickSpeed;
             OnGameplayTick(GameTickSpeed);
+            GameTime += GameTickSpeed;
+            SendMessageToAll(NetworkMessageType.ServerTick, GameTime);
         }
     }
 
-    protected virtual void OnGameplayTick(int dt)
+    protected virtual void OnGameplayTick(uint dt)
     {
 
     }
