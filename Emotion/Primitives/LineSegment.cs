@@ -281,16 +281,16 @@ public struct LineSegment : IEquatable<LineSegment>
     /// If the ray doesn't hit the line 0,0 is returned.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector2 GetIntersectionPoint(ref Ray2D ray)
+    public Vector2 GetIntersectionPoint(in Ray2D ray)
     {
-        return GetIntersectionPointAndDistance(ref ray, out float _);
+        return GetIntersectionPointAndDistance(ray, out float _);
     }
 
     /// <summary>
     /// Find the point of intersection between a ray and this line segment, and the distance of intersection.
     /// If the ray doesn't hit the line 0,0 is returned.
     /// </summary>
-    public Vector2 GetIntersectionPointAndDistance(ref Ray2D ray, out float dist)
+    public Vector2 GetIntersectionPointAndDistance(in Ray2D ray, out float dist)
     {
         dist = float.MaxValue;
 

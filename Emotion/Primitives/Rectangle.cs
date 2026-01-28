@@ -434,16 +434,16 @@ public struct Rectangle : IEquatable<Rectangle>, IShape
     /// and the distance. If the ray doesn't intersect with the rect Vector2.Zero is returned.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector2 GetIntersectionPoint(ref Ray2D ray)
+    public Vector2 GetIntersectionPoint(in Ray2D ray)
     {
-        return GetIntersectionPointAndDistance(ref ray, out float _);
+        return GetIntersectionPointAndDistance(ray, out float _);
     }
 
     /// <summary>
     /// Find the closest point of intersection between the ray and the rectangle's surfaces,
     /// and the distance. If the ray doesn't intersect with the rect Vector2.Zero is returned.
     /// </summary>
-    public Vector2 GetIntersectionPointAndDistance(ref Ray2D ray, out float distance)
+    public Vector2 GetIntersectionPointAndDistance(in Ray2D ray, out float distance)
     {
         Vector2 closestPoint = Vector2.Zero;
         distance = float.MaxValue;
@@ -451,7 +451,7 @@ public struct Rectangle : IEquatable<Rectangle>, IShape
         GetLineSegments(surfaces);
         for (var i = 0; i < surfaces.Length; i++)
         {
-            Vector2 surfacePoint = surfaces[i].GetIntersectionPointAndDistance(ref ray, out float dist);
+            Vector2 surfacePoint = surfaces[i].GetIntersectionPointAndDistance(ray, out float dist);
             if (surfacePoint == Vector2.Zero || !(dist < distance)) continue;
             distance = dist;
             closestPoint = surfacePoint;
