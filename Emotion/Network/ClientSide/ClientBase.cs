@@ -3,6 +3,7 @@
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Network.Base;
 using Emotion.Network.Base.Invocation;
+using Emotion.Network.LockStep;
 using Emotion.Network.New.Base;
 using Emotion.Network.ServerSide;
 using System.Net;
@@ -22,8 +23,6 @@ public class ClientBase : NetworkAgentBase
         GameTimeCoroutineManager = gameTimeCoroutineManager ?? Engine.CoroutineManagerGameTime;
     }
 
-    public static NetworkMessage PEPEGICH;
-
     protected override void ProcessMessage(IPEndPoint from, ref Base.NetworkMessage msg)
     {
         if (_receiveMessageIndex - msg.MessageIndex != -1)
@@ -35,14 +34,13 @@ public class ClientBase : NetworkAgentBase
         _receiveMessageIndex = msg.MessageIndex;
 
         uint messageType = msg.Type;
-        NetworkFunctionBase<ClientBase, int>? netFunc = _netFuncs.GetFunctionFromMessageType(messageType);
+        NetworkFunctionBase<ClientBase, uint>? netFunc = _netFuncs.GetFunctionFromMessageType(messageType);
         if (netFunc != null)
         {
-            if (!netFunc.TryInvoke(this, 0, ref msg))
+            if (!netFunc.TryInvoke(this, msg.GameTime, in msg))
             {
                 Engine.Log.Warning($"Error executing function of message type {messageType}", LogTag, true);
             }
-            PEPEGICH = msg;
         }
         else
         {
@@ -100,16 +98,10 @@ public class ClientBase : NetworkAgentBase
     #region Room
 
     public ServerRoomInfo? InRoom;
-    public event Action? OnServerTick;
-
+    
     //public Action<ServerRoomInfo>? OnRoomJoined;
     //public Action<ServerRoomInfo, int>? OnPlayerJoinedRoom;
     //public Action<List<ServerRoomInfo>>? OnRoomListReceived;
-
-    protected virtual void InternalOnServerTick(uint gameTime)
-    {
-        OnServerTick?.Invoke();
-    }
 
     #endregion
 
@@ -127,14 +119,21 @@ public class ClientBase : NetworkAgentBase
         _netFuncs.Register<NetworkMessageType, int>(NetworkMessageType.Connected, Msg_Connected);
         _netFuncs.Register<NetworkMessageType, ServerRoomInfo>(NetworkMessageType.RoomJoined, Msg_RoomJoined);
         _netFuncs.Register<NetworkMessageType, ServerRoomInfo>(NetworkMessageType.UserJoinedRoom, Msg_UserJoinedRoom);
-        _netFuncs.Register<NetworkMessageType, uint>(NetworkMessageType.ServerTick, Msg_OnServerTick);
+        _netFuncs.RegisterLockStepFunc(NetworkMessageType.ServerTick, Msg_OnServerTick);
+    }
+
+    public static LockStepNetworkFunction? IsLockStepMessage(uint messageType)
+    {
+        NetworkFunctionBase<ClientBase, uint>? func = _netFuncs.GetFunctionFromMessageType(messageType);
+        if (func is LockStepNetworkFunction lockStepFunc) return lockStepFunc;
+        return null;
     }
 
     #endregion
 
     #region Message Handlers
 
-    private static void Msg_Connected(ClientBase self, int senderId, in int playerId)
+    private static void Msg_Connected(ClientBase self, uint _, in int playerId)
     {
         self._sendMessageIndex = 1;
         self.PlayerId = playerId;
@@ -143,19 +142,20 @@ public class ClientBase : NetworkAgentBase
         self.OnConnectionChanged?.Invoke(true);
     }
 
-    private static void Msg_RoomJoined(ClientBase self, int senderId, in ServerRoomInfo roomInfo)
+    private static void Msg_RoomJoined(ClientBase self, uint _, in ServerRoomInfo roomInfo)
     {
         self.InRoom = roomInfo;
     }
 
-    private static void Msg_UserJoinedRoom(ClientBase self, int senderId, in ServerRoomInfo roomInfo)
+    private static void Msg_UserJoinedRoom(ClientBase self, uint _, in ServerRoomInfo roomInfo)
     {
         self.InRoom = roomInfo;
     }
 
-    private static void Msg_OnServerTick(ClientBase self, int senderId, in uint gameTime)
+    private static void Msg_OnServerTick(ClientBase self, uint gameTime)
     {
-        self.InternalOnServerTick(gameTime);
+        Assert(self == Engine.Multiplayer.Client);
+        Engine.Multiplayer.ServerTickReceived();
     }
 
     #endregion

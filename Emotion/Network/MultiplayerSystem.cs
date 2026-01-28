@@ -1,9 +1,8 @@
 ﻿#nullable enable
 
-using Emotion.Core.Utility.Coroutines;
 using Emotion.Network.Base;
+using Emotion.Network.Base.Invocation;
 using Emotion.Network.ClientSide;
-using Emotion.Network.New.Base;
 using Emotion.Network.ServerSide;
 
 namespace Emotion.Network;
@@ -11,6 +10,16 @@ namespace Emotion.Network;
 public class MultiplayerSystem
 {
     public int PlayerId { get => Client?.PlayerId ?? 0; }
+
+    public string MetricText
+    {
+        get
+        {
+            if (Client != null)
+                return $"({Client.MetricText}) {Engine.CoroutineManagerGameTime.GameTimeAdvanceLimit - Engine.CoroutineManagerGameTime.Time}";
+            return "Offline";
+        }
+    }
 
     public ClientBase? Client { get; private set; }
 
@@ -41,24 +50,57 @@ public class MultiplayerSystem
 
     #region LockStep
 
-    public void SendSyncMessage<TData>(in TData data)
+    public void SendLockStepMessage<TData>(in TData data, NetworkFunc<ClientBase, uint, TData> offlineFunc)
            where TData : unmanaged, INetworkMessageStruct
     {
-        SendMessageToServer(data);
+        if (Client != null)
+        {
+            SendMessageToServer(data);
+            return;
+        }
+        Engine.CoroutineManagerGameTime.StartCoroutine(LockStepFuncOfflineExec(data, offlineFunc));
     }
 
-    public void SendSyncMessage<TEnum, TData>(TEnum messageType, in TData data)
+    public void SendLockStepMessage<TEnum, TData>(TEnum messageType, in TData data, NetworkFunc<ClientBase, uint, TData> offlineFunc)
         where TEnum : unmanaged
         where TData : unmanaged
     {
-        SendMessageToServer(messageType, data);
+        if (Client != null)
+        {
+            SendMessageToServer(messageType, data);
+            return;
+        }
+        Engine.CoroutineManagerGameTime.StartCoroutine(LockStepFuncOfflineExec(data, offlineFunc));
     }
 
-    public void SendSyncMessageWithoutData<TEnum>(TEnum messageType)
+    public void SendLockStepMessageWithoutData<TEnum>(TEnum messageType, NetworkFunc<ClientBase, uint> offlineFunc)
         where TEnum : unmanaged
     {
-        SendMessageToServerWithoutData(messageType);
+        if (Client != null)
+        {
+            SendMessageToServerWithoutData(messageType);
+            return;
+        }
+        Engine.CoroutineManagerGameTime.StartCoroutine(LockStepFuncOfflineExecWithoutData(offlineFunc));
     }
+
+    private static IEnumerator LockStepFuncOfflineExec<TData>(TData data, NetworkFunc<ClientBase, uint, TData> offlineFunc)
+    {
+        offlineFunc(null, 0, data);
+        yield break;
+    }
+
+    private static IEnumerator LockStepFuncOfflineExecWithoutData(NetworkFunc<ClientBase, uint> offlineFunc)
+    {
+        offlineFunc(null, 0);
+        yield break;
+    }
+
+    #endregion
+
+    #region Events
+
+    public event Action? OnServerTick;
 
     #endregion
 
@@ -70,27 +112,16 @@ public class MultiplayerSystem
         _server = server;
     }
 
-    [Conditional("DEBUG")]
-    public void DebugAddFakePlayerToRoom(Func<string, CoroutineManagerGameTime, ClientBase> createFunc)
+    internal void ServerTickReceived()
     {
-        if (Client == null) return;
-        if (Client.InRoom == null) return;
+        OnServerTick?.Invoke();
+    }
 
-        ServerRoomInfo room = Client.InRoom.Value;
-        if (room.HostId != Client.PlayerId) return;
-
-        CoroutineManagerGameTime secondPlayerManager = new CoroutineManagerGameTime();
-        static IEnumerator SecondPlayerLoop(CoroutineManagerGameTime manager)
+    public void Update()
+    {
+        if (Client == null)
         {
-            while (true)
-            {
-                manager.Update(Engine.DeltaTime);
-                yield return null;
-            }
+            ServerTickReceived();
         }
-        Engine.CoroutineManager.StartCoroutine(SecondPlayerLoop(secondPlayerManager));
-        ClientBase secondPlayerClient = createFunc(Client.EndPoint.ToString(), secondPlayerManager);
-        secondPlayerClient.ConnectIfNotConnected();
-        secondPlayerClient.SendMessageToServer(NetworkMessageType.JoinRoom, room.RoomId);
     }
 }

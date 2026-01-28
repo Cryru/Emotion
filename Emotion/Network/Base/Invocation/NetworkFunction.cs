@@ -1,9 +1,5 @@
 ﻿#nullable enable
 
-using Emotion.Network.ClientSide;
-using System;
-using System.Reflection;
-
 namespace Emotion.Network.Base.Invocation;
 
 public abstract class NetworkFunctionBase<TThis, TSenderType>
@@ -14,7 +10,7 @@ public abstract class NetworkFunctionBase<TThis, TSenderType>
 public class NetworkFunction<TThis, TSenderType> : NetworkFunctionBase<TThis, TSenderType>
 {
     public uint MessageType { get; init; }
-    private NetworkFunc<TThis, TSenderType> _func;
+    protected NetworkFunc<TThis, TSenderType> _func;
 
     public NetworkFunction(uint messageType, NetworkFunc<TThis, TSenderType> func)
     {
@@ -70,30 +66,5 @@ public class NetworkFunction<TThis, TSenderType, TMsg> : NetworkFunctionBase<TTh
             return true;
         }
         return false;
-    }
-}
-
-public class SyncNetworkFunction<TMsg> : NetworkFunction<ClientBase, int, TMsg> where TMsg : unmanaged
-{
-    public SyncNetworkFunction(uint messageType, NetworkFunc<ClientBase, int, TMsg> func) : base(messageType, func)
-    {
-    }
-
-    public override bool TryInvoke(ClientBase self, int sender, in NetworkMessage msg)
-    {
-        if (NetworkMessage.GetContentAs(in msg, out TMsg msgData))
-        {
-            self.GameTimeCoroutineManager.StartCoroutine(ExecuteSyncFunction(self, msg.GameTime, msgData, _func));
-            return true;
-        }
-        return false;
-    }
-
-    private static IEnumerator ExecuteSyncFunction(ClientBase self, uint gameTime, TMsg msgData, NetworkFunc<ClientBase, int, TMsg> func)
-    {
-        uint diff = gameTime - (uint)self.GameTimeCoroutineManager.Time;
-        if (diff > 0)
-            yield return diff;
-        func(self, 0, msgData);
     }
 }

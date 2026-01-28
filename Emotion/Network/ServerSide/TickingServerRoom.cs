@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Core.Utility.Coroutines;
+using Emotion.Network.Base;
 using Emotion.Network.New.Base;
 
 namespace Emotion.Network.ServerSide;
@@ -8,7 +9,7 @@ namespace Emotion.Network.ServerSide;
 public class TickingServerRoom : ServerRoom
 {
     public uint GameTime { get; protected set; } = 0;
-    public uint GameTickSpeed = 50;
+    public uint GameTimeTickInterval = 50;
 
     private Coroutine _updateRoutine = Coroutine.CompletedRoutine;
 
@@ -25,12 +26,20 @@ public class TickingServerRoom : ServerRoom
 
     private IEnumerator GameplayTickRoutine()
     {
+        NetworkMessage serverTickMsg = NetworkAgentBase.CreateMessageWithoutData(NetworkMessageType.ServerTick);
+
         while (!Disposed)
         {
-            yield return GameTickSpeed;
-            OnGameplayTick(GameTickSpeed);
-            GameTime += GameTickSpeed;
-            SendMessageToAll(NetworkMessageType.ServerTick, GameTime);
+            yield return GameTimeTickInterval;
+            OnGameplayTick(GameTimeTickInterval);
+            GameTime += GameTimeTickInterval;
+
+            // Add server tick msg
+            serverTickMsg.GameTime = GameTime;
+            foreach (ServerPlayer user in UsersInside)
+            {
+                Server.SendMessageToPlayerRaw(user, in serverTickMsg);
+            }
         }
     }
 

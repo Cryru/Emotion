@@ -279,7 +279,7 @@ public abstract class NetworkAgentBase
 
     #region Message Creators
 
-    private static NetworkMessage CreateMessageWithoutData<TEnum>(TEnum messageType)
+    public static NetworkMessage CreateMessageWithoutData<TEnum>(TEnum messageType)
         where TEnum : unmanaged
     {
         Assert(Enum.GetUnderlyingType(typeof(TEnum)) == typeof(uint));

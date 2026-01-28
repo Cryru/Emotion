@@ -7,13 +7,14 @@ using Emotion.Game.World.Components;
 using Emotion.Network.Base;
 using Emotion.Network.Base.Invocation;
 using Emotion.Network.ClientSide;
+using Emotion.Network.LockStep;
 using Emotion.Network.New.Base;
 using Emotion.Network.ServerSide;
 using System.Runtime.InteropServices;
 
 namespace Emotion.Network.World;
 
-public class PlayerControlledSyncObjectComponent : IGameObjectComponent, IRenderableComponent, IUpdateableComponent
+public class PlayerControlledObjectLockStepComponent : IGameObjectComponent, IRenderableComponent, IUpdateableComponent
 {
     public int PlayerId { get; init; }
     public Vector3 SyncPosition { get; private set; }
@@ -21,7 +22,7 @@ public class PlayerControlledSyncObjectComponent : IGameObjectComponent, IRender
     private Vector3 _nextSyncPos;
     private GameObject? _obj;
 
-    public PlayerControlledSyncObjectComponent(int playerId)
+    public PlayerControlledObjectLockStepComponent(int playerId)
     {
         PlayerId = playerId;
     }
@@ -31,14 +32,14 @@ public class PlayerControlledSyncObjectComponent : IGameObjectComponent, IRender
         _obj = obj;
         SyncPosition = obj.Position3D;
         _nextSyncPos = SyncPosition;
-        Engine.Multiplayer.Client.OnServerTick += Client_OnServerTick;
+        Engine.Multiplayer.OnServerTick += Client_OnServerTick;
 
         return null;
     }
 
     public void Done(GameObject obj)
     {
-        Engine.Multiplayer.Client.OnServerTick -= Client_OnServerTick;
+        Engine.Multiplayer.OnServerTick -= Client_OnServerTick;
     }
 
     private void Client_OnServerTick()
@@ -55,24 +56,24 @@ public class PlayerControlledSyncObjectComponent : IGameObjectComponent, IRender
             ObjectId = _obj.ObjectId,
             NewPosition = _obj.Position3D
         };
-        Engine.Multiplayer.SendSyncMessage(msg);
+        Engine.Multiplayer.SendLockStepMessage(msg, OnMsg_ObjectPositionUpdate);
     }
 
     public static void RegisterFunctionsServer(NetworkFunctionInvoker<ServerRoom, ServerPlayer> invoker)
     {
-        LockStepGameRoom.RegisterSyncEvent(invoker, MessageObjectPositionUpdate.MessageType);
+        LockStepGameRoom.RegisterLockStepEvent(invoker, MessageObjectPositionUpdate.MessageType);
     }
 
     public static void RegisterFunctions(ClientNetworkFunctionInvoker invoker)
     {
-        invoker.RegisterSync<MessageObjectPositionUpdate>(OnMsg_ObjectPositionUpdate);
+        invoker.RegisterLockStepFunc<MessageObjectPositionUpdate>(OnMsg_ObjectPositionUpdate);
     }
 
-    private static void OnMsg_ObjectPositionUpdate(ClientBase self, int sender, in MessageObjectPositionUpdate moved)
+    private static void OnMsg_ObjectPositionUpdate(ClientBase _, uint __, in MessageObjectPositionUpdate moved)
     {
         SceneWithMap? currentGame = Engine.SceneManager.Current as SceneWithMap;
         GameObject? obj = currentGame?.Map.GetObjectById(moved.ObjectId);
-        PlayerControlledSyncObjectComponent? syncComponent = obj?.GetComponent<PlayerControlledSyncObjectComponent>();
+        PlayerControlledObjectLockStepComponent? syncComponent = obj?.GetComponent<PlayerControlledObjectLockStepComponent>();
         syncComponent?._nextSyncPos = moved.NewPosition;
     }
 

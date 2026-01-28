@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Network.ClientSide;
+using Emotion.Network.LockStep;
 using System.Runtime.CompilerServices;
 
 namespace Emotion.Network.Base.Invocation;
@@ -8,26 +9,36 @@ namespace Emotion.Network.Base.Invocation;
 public delegate void NetworkFunc<TThis, TSenderType, TMsg>(TThis self, TSenderType sender, in TMsg msg);
 public delegate void NetworkFunc<TThis, TSenderType>(TThis self, TSenderType sender);
 
-public class ClientNetworkFunctionInvoker : NetworkFunctionInvoker<ClientBase, int>
+public class ClientNetworkFunctionInvoker : NetworkFunctionInvoker<ClientBase, uint>
 {
-    public void RegisterSync<TEnum, TMsg>(TEnum messageType, NetworkFunc<ClientBase, int, TMsg> func)
+    public void RegisterLockStepFunc<TEnum, TMsg>(TEnum messageType, NetworkFunc<ClientBase, uint, TMsg> func)
         where TEnum : unmanaged, Enum
         where TMsg : unmanaged
     {
         uint typAsUint = Unsafe.As<TEnum, uint>(ref messageType);
 
         if (GetFunctionFromMessageType(typAsUint) != null) return;
-        var netFunc = new SyncNetworkFunction<TMsg>(typAsUint, func);
+        var netFunc = new LockStepNetworkFunction<TMsg>(typAsUint, func);
         _functions.Add(typAsUint, netFunc);
     }
 
-    public void RegisterSync<TMsg>(NetworkFunc<ClientBase, int, TMsg> func)
+    public void RegisterLockStepFunc<TMsg>(NetworkFunc<ClientBase, uint, TMsg> func)
         where TMsg : unmanaged, INetworkMessageStruct
     {
         uint typAsUint = TMsg.MessageType;
 
         if (GetFunctionFromMessageType(typAsUint) != null) return;
-        var netFunc = new SyncNetworkFunction<TMsg>(typAsUint, func);
+        var netFunc = new LockStepNetworkFunction<TMsg>(typAsUint, func);
+        _functions.Add(typAsUint, netFunc);
+    }
+
+    public void RegisterLockStepFunc<TEnum>(TEnum messageType, NetworkFunc<ClientBase, uint> func)
+        where TEnum : unmanaged, Enum
+    {
+        uint typAsUint = Unsafe.As<TEnum, uint>(ref messageType);
+
+        if (GetFunctionFromMessageType(typAsUint) != null) return;
+        var netFunc = new LockStepNetworkFunction(typAsUint, func);
         _functions.Add(typAsUint, netFunc);
     }
 }

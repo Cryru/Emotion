@@ -129,34 +129,32 @@ public class ServerRoom
     public void SendMessageToAll<TData>(TData data, ServerPlayer? except = null)
         where TData : unmanaged, INetworkMessageStruct
     {
-        for (int i = 0; i < UsersInside.Count; i++)
-        {
-            ServerPlayer user = UsersInside[i];
-            if (user == except) continue;
-            Server.SendMessageToPlayer(user, data);
-        }
+        uint messageType = TData.MessageType;
+        SendMessageToAll(messageType, data, except);
     }
 
     public void SendMessageToAll<TEnum, TData>(TEnum messageType, TData data, ServerPlayer? except = null)
         where TEnum : unmanaged
         where TData : unmanaged
     {
+        NetworkMessage msg = NetworkAgentBase.CreateMessage(messageType, data);
         for (int i = 0; i < UsersInside.Count; i++)
         {
             ServerPlayer user = UsersInside[i];
             if (user == except) continue;
-            Server.SendMessageToPlayer(user, messageType, data);
+            Server.SendMessageToPlayerRaw(user, in msg);
         }
     }
 
     public void SendMessageToAllWithoutData<TEnum>(TEnum messageType, ServerPlayer? except = null)
         where TEnum : unmanaged
     {
+        NetworkMessage msg = NetworkAgentBase.CreateMessageWithoutData(messageType);
         for (int i = 0; i < UsersInside.Count; i++)
         {
             ServerPlayer user = UsersInside[i];
             if (user == except) continue;
-            Server.SendMessageToPlayerWithoutData(user, messageType);
+            Server.SendMessageToPlayerRaw(user, in msg);
         }
     }
 
