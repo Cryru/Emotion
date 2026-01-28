@@ -133,6 +133,9 @@ public static class Engine
     /// </summary>
     public static float CurrentGameTime => CoroutineManagerGameTime.Time;
 
+    public static float CurrentRealTime => _realTimeTracker.ElapsedMilliseconds;
+    private static Stopwatch _realTimeTracker = new Stopwatch();
+
     /// <summary>
     /// The total time passed since the start of the engine, in milliseconds.
     /// </summary>
@@ -346,6 +349,7 @@ public static class Engine
         if (targetStep <= 0) targetStep = 60;
         TargetStep(targetStep);
 
+        _realTimeTracker.Start();
         Status = EngineState.Running;
 
         // Start the entry async entry point as a job, and start the loop.
@@ -358,7 +362,7 @@ public static class Engine
         }
 
         Log.Info("Starting loop...", MessageSource.Engine);
-        Configuration.LoopFactory(RunTickIfNeeded, RunFrame);
+        Configuration.LoopFactory(RunMainLoopTick, RunFrame);
     }
 
     /// <summary>
@@ -456,7 +460,7 @@ public static class Engine
         DeltaTime = (float) _targetTime;
     }
 
-    private static void RunTickIfNeeded()
+    private static void RunMainLoopTick()
     {
         double curTime = _updateTimer.ElapsedMilliseconds;
         double deltaTime = curTime - _lastTick;
@@ -475,7 +479,7 @@ public static class Engine
         byte updates = 0;
         while (_accumulator > _targetTimeFuzzyUpper)
         {
-            RunTickInternal();
+            RunSimulationTick();
             _accumulator -= _targetTime;
 
             if (_accumulator < _targetTimeFuzzyLower - _targetTime) _accumulator = 0;
@@ -489,15 +493,17 @@ public static class Engine
         }
     }
 
-    private static void RunTickInternal()
+    private static void RunSimulationTick()
     {
         TotalTime += DeltaTime;
         TickCount++;
 
         PerformanceMetrics.TickStart();
-
+        
         Input.Update();
-        Host.UpdateInput(); // This refers to the IM input only. Event based input will update on loop tick, not simulation tick.
+        Host.UpdateInput(); // This refers to the IM input only. Event based input will update on main loop tick, not simulation tick.
+
+        Multiplayer.Update();
         CoroutineManager.Update(DeltaTime);
         CoroutineManagerGameTime.Update(DeltaTime);
 
