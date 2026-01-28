@@ -9,7 +9,7 @@ public class CoroutineManagerGameTime : CoroutineManager
     public float DeltaTime { get; protected set; }
 
     public float GameTimeAdvanceLimit = -1;
-    public float GameTimeMaxTimeBehindLimit = 1000;
+    public float GameTimeBehindLimitSpeedUp = 50;
 
     public CoroutineManagerGameTime() : base(false)
     {
@@ -25,10 +25,11 @@ public class CoroutineManagerGameTime : CoroutineManager
         }
         else
         {
-            float newTime = Time + dt;
-            if (newTime > GameTimeAdvanceLimit) newTime = GameTimeAdvanceLimit;
-            if (newTime + GameTimeMaxTimeBehindLimit < GameTimeAdvanceLimit) newTime = GameTimeAdvanceLimit;
+            float factor = 1f;
+            if (GameTimeAdvanceLimit - Time > GameTimeBehindLimitSpeedUp) factor = 1.1f;
+            dt *= factor;
 
+            float newTime = Math.Min(Time + dt, GameTimeAdvanceLimit);
             float diff = newTime - Time;
             float deltaAllowed = MathF.Floor(diff); // hmm
             DeltaTime = deltaAllowed;
