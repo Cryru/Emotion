@@ -50,7 +50,7 @@ public class MultiplayerSystem
 
     #region LockStep
 
-    public void SendLockStepMessage<TData>(in TData data, NetworkFunc<ClientBase, uint, TData> offlineFunc)
+    public void SendLockStepMessage<TData>(in TData data, NetworkFunc<TData> offlineFunc)
            where TData : unmanaged, INetworkMessageStruct
     {
         if (Client != null)
@@ -61,7 +61,7 @@ public class MultiplayerSystem
         Engine.CoroutineManagerGameTime.StartCoroutine(LockStepFuncOfflineExec(data, offlineFunc));
     }
 
-    public void SendLockStepMessage<TEnum, TData>(TEnum messageType, in TData data, NetworkFunc<ClientBase, uint, TData> offlineFunc)
+    public void SendLockStepMessage<TEnum, TData>(TEnum messageType, in TData data, NetworkFunc<TData> offlineFunc)
         where TEnum : unmanaged
         where TData : unmanaged
     {
@@ -73,7 +73,7 @@ public class MultiplayerSystem
         Engine.CoroutineManagerGameTime.StartCoroutine(LockStepFuncOfflineExec(data, offlineFunc));
     }
 
-    public void SendLockStepMessageWithoutData<TEnum>(TEnum messageType, NetworkFunc<ClientBase, uint> offlineFunc)
+    public void SendLockStepMessageWithoutData<TEnum>(TEnum messageType, NetworkFunc offlineFunc)
         where TEnum : unmanaged
     {
         if (Client != null)
@@ -84,15 +84,15 @@ public class MultiplayerSystem
         Engine.CoroutineManagerGameTime.StartCoroutine(LockStepFuncOfflineExecWithoutData(offlineFunc));
     }
 
-    private static IEnumerator LockStepFuncOfflineExec<TData>(TData data, NetworkFunc<ClientBase, uint, TData> offlineFunc)
+    private static IEnumerator LockStepFuncOfflineExec<TData>(TData data, NetworkFunc<TData> offlineFunc)
     {
-        offlineFunc(null, 0, data);
+        offlineFunc(data);
         yield break;
     }
 
-    private static IEnumerator LockStepFuncOfflineExecWithoutData(NetworkFunc<ClientBase, uint> offlineFunc)
+    private static IEnumerator LockStepFuncOfflineExecWithoutData(NetworkFunc offlineFunc)
     {
-        offlineFunc(null, 0);
+        offlineFunc();
         yield break;
     }
 

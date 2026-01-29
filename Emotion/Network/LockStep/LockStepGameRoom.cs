@@ -1,7 +1,6 @@
 ﻿#nullable enable
 
 using Emotion.Network.Base;
-using Emotion.Network.Base.Invocation;
 using Emotion.Network.ServerSide;
 
 namespace Emotion.Network.LockStep;
@@ -21,13 +20,13 @@ public class LockStepGameRoom : TickingServerRoom
         _lastTickRealTime = Engine.CurrentRealTime;
     }
 
-    public static void RegisterLockStepEvent<TEnum>(NetworkFunctionInvoker<ServerRoom, ServerPlayer> invoker, TEnum messageType)
+    public static void RegisterLockStepEvent<TEnum>(ServerNetworkFunctionInvoker<ServerRoom, ServerPlayer> invoker, TEnum messageType)
         where TEnum : unmanaged, Enum
     {
         invoker.RegisterDirect(messageType, Msg_LockStep);
     }
 
-    public static void RegisterLockStepEvent(NetworkFunctionInvoker<ServerRoom, ServerPlayer> invoker, uint messageType)
+    public static void RegisterLockStepEvent(ServerNetworkFunctionInvoker<ServerRoom, ServerPlayer> invoker, uint messageType)
     {
         invoker.RegisterDirect(messageType, Msg_LockStep);
     }

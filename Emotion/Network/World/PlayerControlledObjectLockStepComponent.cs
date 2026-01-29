@@ -5,7 +5,6 @@ using Emotion.Core.Utility.Coroutines;
 using Emotion.Core.Utility.Time;
 using Emotion.Game.World.Components;
 using Emotion.Network.Base;
-using Emotion.Network.Base.Invocation;
 using Emotion.Network.ClientSide;
 using Emotion.Network.LockStep;
 using Emotion.Network.New.Base;
@@ -59,7 +58,7 @@ public class PlayerControlledObjectLockStepComponent : IGameObjectComponent, IRe
         Engine.Multiplayer.SendLockStepMessage(msg, OnMsg_ObjectPositionUpdate);
     }
 
-    public static void RegisterFunctionsServer(NetworkFunctionInvoker<ServerRoom, ServerPlayer> invoker)
+    public static void RegisterFunctionsServer(ServerNetworkFunctionInvoker<ServerRoom, ServerPlayer> invoker)
     {
         LockStepGameRoom.RegisterLockStepEvent(invoker, MessageObjectPositionUpdate.MessageType);
     }
@@ -69,7 +68,7 @@ public class PlayerControlledObjectLockStepComponent : IGameObjectComponent, IRe
         invoker.RegisterLockStepFunc<MessageObjectPositionUpdate>(OnMsg_ObjectPositionUpdate);
     }
 
-    private static void OnMsg_ObjectPositionUpdate(ClientBase _, uint __, in MessageObjectPositionUpdate moved)
+    private static void OnMsg_ObjectPositionUpdate(in MessageObjectPositionUpdate moved)
     {
         SceneWithMap? currentGame = Engine.SceneManager.Current as SceneWithMap;
         GameObject? obj = currentGame?.Map.GetObjectById(moved.ObjectId);

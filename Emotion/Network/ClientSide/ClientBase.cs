@@ -2,7 +2,6 @@
 
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Network.Base;
-using Emotion.Network.Base.Invocation;
 using Emotion.Network.LockStep;
 using Emotion.Network.New.Base;
 using Emotion.Network.ServerSide;
@@ -34,10 +33,10 @@ public class ClientBase : NetworkAgentBase
         _receiveMessageIndex = msg.MessageIndex;
 
         uint messageType = msg.Type;
-        NetworkFunctionBase<ClientBase, uint>? netFunc = _netFuncs.GetFunctionFromMessageType(messageType);
+        NetworkFunctionBase? netFunc = _netFuncs.GetFunctionFromMessageType(messageType);
         if (netFunc != null)
         {
-            if (!netFunc.TryInvoke(this, msg.GameTime, in msg))
+            if (!netFunc.TryInvoke(in msg))
             {
                 Engine.Log.Warning($"Error executing function of message type {messageType}", LogTag, true);
             }
@@ -124,7 +123,7 @@ public class ClientBase : NetworkAgentBase
 
     public static LockStepNetworkFunction? IsLockStepMessage(uint messageType)
     {
-        NetworkFunctionBase<ClientBase, uint>? func = _netFuncs.GetFunctionFromMessageType(messageType);
+        NetworkFunctionBase? func = _netFuncs.GetFunctionFromMessageType(messageType);
         if (func is LockStepNetworkFunction lockStepFunc) return lockStepFunc;
         return null;
     }
@@ -133,8 +132,11 @@ public class ClientBase : NetworkAgentBase
 
     #region Message Handlers
 
-    private static void Msg_Connected(ClientBase self, uint _, in int playerId)
+    private static void Msg_Connected(in int playerId)
     {
+        ClientBase? self = Engine.Multiplayer.Client;
+        if (self == null) return;
+
         self._sendMessageIndex = 1;
         self.PlayerId = playerId;
         self.ConnectedToServer = true;
@@ -142,19 +144,24 @@ public class ClientBase : NetworkAgentBase
         self.OnConnectionChanged?.Invoke(true);
     }
 
-    private static void Msg_RoomJoined(ClientBase self, uint _, in ServerRoomInfo roomInfo)
+    private static void Msg_RoomJoined(in ServerRoomInfo roomInfo)
     {
+        ClientBase? self = Engine.Multiplayer.Client;
+        if (self == null) return;
+
         self.InRoom = roomInfo;
     }
 
-    private static void Msg_UserJoinedRoom(ClientBase self, uint _, in ServerRoomInfo roomInfo)
+    private static void Msg_UserJoinedRoom(in ServerRoomInfo roomInfo)
     {
+        ClientBase? self = Engine.Multiplayer.Client;
+        if (self == null) return;
+
         self.InRoom = roomInfo;
     }
 
-    private static void Msg_OnServerTick(ClientBase self, uint gameTime)
+    private static void Msg_OnServerTick()
     {
-        Assert(self == Engine.Multiplayer.Client);
         Engine.Multiplayer.ServerTickReceived();
     }
 

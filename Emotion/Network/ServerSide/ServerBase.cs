@@ -1,7 +1,6 @@
 ﻿#nullable enable
 
 using Emotion.Network.Base;
-using Emotion.Network.Base.Invocation;
 using Emotion.Network.New.Base;
 using System.Collections.Concurrent;
 using System.Net;
@@ -205,14 +204,14 @@ public class ServerBase : NetworkAgentBase
 
     #region Network Functions
 
-    protected static NetworkFunctionInvoker<ServerBase, ServerPlayer> _netFuncs = new();
+    protected static ServerNetworkFunctionInvoker<ServerBase, ServerPlayer> _netFuncs = new();
 
     static ServerBase()
     {
         RegisterFunctions(_netFuncs);
     }
 
-    private static void RegisterFunctions(NetworkFunctionInvoker<ServerBase, ServerPlayer> invoker)
+    private static void RegisterFunctions(ServerNetworkFunctionInvoker<ServerBase, ServerPlayer> invoker)
     {
         invoker.Register(NetworkMessageType.HostRoom, Msg_HostRoom);
         invoker.Register(NetworkMessageType.GetRoomInfo, Msg_GetRoomInfo);

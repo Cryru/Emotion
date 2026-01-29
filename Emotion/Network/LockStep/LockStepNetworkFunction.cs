@@ -6,62 +6,66 @@ using Emotion.Network.ClientSide;
 
 namespace Emotion.Network.LockStep;
 
-public class LockStepNetworkFunction<TMsg> : NetworkFunction<ClientBase, uint, TMsg> where TMsg : unmanaged
+public class LockStepNetworkFunction<TMsg> : NetworkFunction<TMsg> where TMsg : unmanaged
 {
-    public LockStepNetworkFunction(uint messageType, NetworkFunc<ClientBase, uint, TMsg> func) : base(messageType, func)
+    public LockStepNetworkFunction(uint messageType, NetworkFunc<TMsg> func) : base(messageType, func)
     {
     }
 
-    public override bool TryInvoke(ClientBase self, uint gameTime, in NetworkMessage msg)
+    public override bool TryInvoke(in NetworkMessage msg)
     {
+        var gameTime = msg.GameTime;
+
         // Update limit with the newest message
-        if (gameTime <= self.GameTimeCoroutineManager.GameTimeAdvanceLimit)
+        if (gameTime <= Engine.CoroutineManagerGameTime.GameTimeAdvanceLimit)
         {
             Engine.Log.Warning($"Got a lockstep message from the past?", nameof(LockStepNetworkFunction<>), true);
             return false;
         }
-        self.GameTimeCoroutineManager.SetGameTimeAdvanceLimit(gameTime);
+        Engine.CoroutineManagerGameTime.SetGameTimeAdvanceLimit(gameTime);
 
         if (!NetworkMessage.GetContentAs(in msg, out TMsg msgData)) return false;
-        self.GameTimeCoroutineManager.StartCoroutine(ExecuteSyncFunction(self, msg.GameTime, msgData, _func));
+        Engine.CoroutineManagerGameTime.StartCoroutine(ExecuteSyncFunction(msg.GameTime, msgData, _func));
         return true;
     }
 
-    private static IEnumerator ExecuteSyncFunction(ClientBase self, uint gameTime, TMsg msgData, NetworkFunc<ClientBase, uint, TMsg> func)
+    private static IEnumerator ExecuteSyncFunction(uint gameTime, TMsg msgData, NetworkFunc<TMsg> func)
     {
-        uint diff = gameTime - (uint)self.GameTimeCoroutineManager.Time;
+        uint diff = gameTime - (uint)Engine.CoroutineManagerGameTime.Time;
         if (diff > 0)
             yield return diff;
-        func(self, gameTime, msgData);
+        func(msgData);
     }
 }
 
-public class LockStepNetworkFunction : NetworkFunction<ClientBase, uint>
+public class LockStepNetworkFunction : NetworkFunction
 {
-    public LockStepNetworkFunction(uint messageType, NetworkFunc<ClientBase, uint> func) : base(messageType, func)
+    public LockStepNetworkFunction(uint messageType, NetworkFunc func) : base(messageType, func)
     {
     }
 
-    public override bool TryInvoke(ClientBase self, uint gameTime, in NetworkMessage msg)
+    public override bool TryInvoke(in NetworkMessage msg)
     {
+        uint gameTime = msg.GameTime;
+
         // Update limit with the newest message
-        if (gameTime <= self.GameTimeCoroutineManager.GameTimeAdvanceLimit)
+        if (gameTime <= Engine.CoroutineManagerGameTime.GameTimeAdvanceLimit)
         {
             Engine.Log.Warning($"Got a lockstep message from the past?", nameof(LockStepNetworkFunction<>), true);
             return false;
         }
-        self.GameTimeCoroutineManager.SetGameTimeAdvanceLimit(gameTime);
+        Engine.CoroutineManagerGameTime.SetGameTimeAdvanceLimit(gameTime);
 
-        self.GameTimeCoroutineManager.StartCoroutine(ExecuteSyncFunction(self, msg.GameTime, _func));
+        Engine.CoroutineManagerGameTime.StartCoroutine(ExecuteSyncFunction(msg.GameTime, _func));
         return true;
     }
 
-    private static IEnumerator ExecuteSyncFunction(ClientBase self, uint gameTime, NetworkFunc<ClientBase, uint> func)
+    private static IEnumerator ExecuteSyncFunction(uint gameTime, NetworkFunc func)
     {
-        uint diff = gameTime - (uint)self.GameTimeCoroutineManager.Time;
+        uint diff = gameTime - (uint)Engine.CoroutineManagerGameTime.Time;
         if (diff > 0)
             yield return diff;
-        func(self, gameTime);
+        func();
     }
 }
 

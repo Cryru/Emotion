@@ -1,7 +1,6 @@
 ﻿#nullable enable
 
 using Emotion.Network.Base;
-using Emotion.Network.Base.Invocation;
 using Emotion.Network.New.Base;
 using System.Runtime.InteropServices;
 using NetworkMessage = Emotion.Network.Base.NetworkMessage;
@@ -160,14 +159,14 @@ public class ServerRoom
 
     #region Network Functions
 
-    protected static NetworkFunctionInvoker<ServerRoom, ServerPlayer> _netFuncs = new();
+    protected static ServerNetworkFunctionInvoker<ServerRoom, ServerPlayer> _netFuncs = new();
 
     static ServerRoom()
     {
         RegisterFunctions(_netFuncs);
     }
 
-    private static void RegisterFunctions(NetworkFunctionInvoker<ServerRoom, ServerPlayer> invoker)
+    private static void RegisterFunctions(ServerNetworkFunctionInvoker<ServerRoom, ServerPlayer> invoker)
     {
 
     }
