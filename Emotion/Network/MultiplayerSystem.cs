@@ -1,27 +1,28 @@
 ﻿#nullable enable
 
 using Emotion.Network.Base;
-using Emotion.Network.Base.Invocation;
 using Emotion.Network.ClientSide;
+using Emotion.Network.LockStep;
 using Emotion.Network.ServerSide;
 
 namespace Emotion.Network;
 
 public class MultiplayerSystem
 {
-    public int PlayerId { get => Client?.PlayerId ?? 0; }
+    public ServerRoomInfo? InRoom { get; internal set; }
 
-    public string MetricText
+    public int PlayerId { get; internal set; }
+
+    public ClientBase? Client { get; private set; }
+
+    public string DebugMetricText
     {
         get
         {
-            if (Client != null)
-                return $"({Client.MetricText}) {Engine.CoroutineManagerGameTime.GameTimeAdvanceLimit - Engine.CoroutineManagerGameTime.Time}";
-            return "Offline";
+            if (Client == null) return "Offline";
+            return $"({Client.MetricText}) {Engine.CoroutineManagerGameTime.GameTimeAdvanceLimit - Engine.CoroutineManagerGameTime.Time}";
         }
     }
-
-    public ClientBase? Client { get; private set; }
 
     public void ConnectToServer(ClientBase client)
     {
@@ -50,18 +51,21 @@ public class MultiplayerSystem
 
     #region LockStep
 
-    public void SendLockStepMessage<TData>(in TData data, NetworkFunc<TData> offlineFunc)
-           where TData : unmanaged, INetworkMessageStruct
+    public void SendLockStepMessage<TData>(in TData data)
+        where TData : unmanaged, INetworkMessageStruct
     {
         if (Client != null)
         {
             SendMessageToServer(data);
             return;
         }
-        Engine.CoroutineManagerGameTime.StartCoroutine(LockStepFuncOfflineExec(data, offlineFunc));
+
+        NetworkFunctionBase? func = ClientBase.NetworkFunctions.GetFunctionFromMessageType(TData.MessageType);
+        if (func is LockStepNetworkFunction<TData> lockStepFunc)
+            lockStepFunc.InvokeOffline(data);
     }
 
-    public void SendLockStepMessage<TEnum, TData>(TEnum messageType, in TData data, NetworkFunc<TData> offlineFunc)
+    public void SendLockStepMessage<TEnum, TData>(TEnum messageType, in TData data)
         where TEnum : unmanaged
         where TData : unmanaged
     {
@@ -70,10 +74,13 @@ public class MultiplayerSystem
             SendMessageToServer(messageType, data);
             return;
         }
-        Engine.CoroutineManagerGameTime.StartCoroutine(LockStepFuncOfflineExec(data, offlineFunc));
+
+        NetworkFunctionBase? func = ClientBase.NetworkFunctions.GetFunctionFromMessageType(messageType);
+        if (func is LockStepNetworkFunction<TData> lockStepFunc)
+            lockStepFunc.InvokeOffline(data);
     }
 
-    public void SendLockStepMessageWithoutData<TEnum>(TEnum messageType, NetworkFunc offlineFunc)
+    public void SendLockStepMessageWithoutData<TEnum>(TEnum messageType)
         where TEnum : unmanaged
     {
         if (Client != null)
@@ -81,19 +88,10 @@ public class MultiplayerSystem
             SendMessageToServerWithoutData(messageType);
             return;
         }
-        Engine.CoroutineManagerGameTime.StartCoroutine(LockStepFuncOfflineExecWithoutData(offlineFunc));
-    }
 
-    private static IEnumerator LockStepFuncOfflineExec<TData>(TData data, NetworkFunc<TData> offlineFunc)
-    {
-        offlineFunc(data);
-        yield break;
-    }
-
-    private static IEnumerator LockStepFuncOfflineExecWithoutData(NetworkFunc offlineFunc)
-    {
-        offlineFunc();
-        yield break;
+        NetworkFunctionBase? func = ClientBase.NetworkFunctions.GetFunctionFromMessageType(messageType);
+        if (func is LockStepNetworkFunction lockStepFunc)
+            lockStepFunc.InvokeOffline();
     }
 
     #endregion
@@ -106,8 +104,7 @@ public class MultiplayerSystem
 
     private ServerBase? _server;
 
-    [Conditional("DEBUG")]
-    public void DebugSelfHost(ServerBase server)
+    public void Debug_StartSelfHostedServer(ServerBase server)
     {
         _server = server;
     }
@@ -119,9 +116,8 @@ public class MultiplayerSystem
 
     public void Update()
     {
+        // If offline emulate server ticks being received.
         if (Client == null)
-        {
             ServerTickReceived();
-        }
     }
 }

@@ -159,22 +159,12 @@ public class ServerRoom
 
     #region Network Functions
 
-    protected static ServerNetworkFunctionInvoker<ServerRoom, ServerPlayer> _netFuncs = new();
-
-    static ServerRoom()
-    {
-        RegisterFunctions(_netFuncs);
-    }
-
-    private static void RegisterFunctions(ServerNetworkFunctionInvoker<ServerRoom, ServerPlayer> invoker)
-    {
-
-    }
+    public static ServerNetworkFunctionInvoker<ServerRoom, ServerPlayer> NetworkFunctions { get; } = new();
 
     public bool ProcessMessage(ServerBase server, ServerPlayer sender, in NetworkMessage msg)
     {
         uint messageType = msg.Type;
-        NetworkFunctionBase<ServerRoom, ServerPlayer>? netFunc = _netFuncs.GetFunctionFromMessageType(messageType);
+        NetworkFunctionBase<ServerRoom, ServerPlayer>? netFunc = NetworkFunctions.GetFunctionFromMessageType(messageType);
         if (netFunc != null)
         {
             if (!netFunc.TryInvoke(this, sender, msg))

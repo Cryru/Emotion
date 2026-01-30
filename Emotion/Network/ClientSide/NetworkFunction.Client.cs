@@ -1,6 +1,5 @@
 ﻿#nullable enable
 
-using Emotion;
 using Emotion.Network.Base;
 using Emotion.Network.Base.Invocation;
 

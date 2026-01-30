@@ -14,7 +14,7 @@ public class LockStepNetworkFunction<TMsg> : NetworkFunction<TMsg> where TMsg : 
 
     public override bool TryInvoke(in NetworkMessage msg)
     {
-        var gameTime = msg.GameTime;
+        uint gameTime = msg.GameTime;
 
         // Update limit with the newest message
         if (gameTime <= Engine.CoroutineManagerGameTime.GameTimeAdvanceLimit)
@@ -35,6 +35,17 @@ public class LockStepNetworkFunction<TMsg> : NetworkFunction<TMsg> where TMsg : 
         if (diff > 0)
             yield return diff;
         func(msgData);
+    }
+
+    public void InvokeOffline(in TMsg msgData)
+    {
+        Engine.CoroutineManagerGameTime.StartCoroutine(ExecuteSyncFunctionOffline(msgData, _func));
+    }
+
+    private static IEnumerator ExecuteSyncFunctionOffline(TMsg msgData, NetworkFunc<TMsg> func)
+    {
+        func(msgData);
+        yield break;
     }
 }
 
@@ -66,6 +77,17 @@ public class LockStepNetworkFunction : NetworkFunction
         if (diff > 0)
             yield return diff;
         func();
+    }
+
+    public void InvokeOffline()
+    {
+        Engine.CoroutineManagerGameTime.StartCoroutine(ExecuteSyncFunctionOffline(_func));
+    }
+
+    private static IEnumerator ExecuteSyncFunctionOffline(NetworkFunc func)
+    {
+        func();
+        yield break;
     }
 }
 

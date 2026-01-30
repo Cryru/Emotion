@@ -38,6 +38,14 @@ public class NetworkFunctionInvoker
         _functions.TryGetValue(messageType, out NetworkFunctionBase? func);
         return func;
     }
+
+    public NetworkFunctionBase? GetFunctionFromMessageType<TEnum>(TEnum messageType)
+        where TEnum : unmanaged
+    {
+        uint typAsUint = Unsafe.As<TEnum, uint>(ref messageType);
+        _functions.TryGetValue(typAsUint, out NetworkFunctionBase? func);
+        return func;
+    }
 }
 
 public class ClientNetworkFunctionInvoker : NetworkFunctionInvoker

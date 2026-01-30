@@ -54,7 +54,7 @@ public class ServerBase : NetworkAgentBase
         }
         sender.ReceiveMessageIndex = msg.MessageIndex;
 
-        NetworkFunctionBase<ServerBase, ServerPlayer>? netFunc = _netFuncs.GetFunctionFromMessageType(messageType);
+        NetworkFunctionBase<ServerBase, ServerPlayer>? netFunc = NetworkFunctions.GetFunctionFromMessageType(messageType);
         if (netFunc != null)
         {
             if (!netFunc.TryInvoke(this, sender, msg))
@@ -139,14 +139,16 @@ public class ServerBase : NetworkAgentBase
     protected List<ServerRoom> _rooms { get; } = new();
     private static uint _nextFreeRoomId = 1;
 
-    protected virtual ServerRoom CreateNewRoomImplementation(ServerPlayer? host, uint newRoomId)
+    protected virtual ServerRoom? PlayerHostedRoomCreateInstance(ServerPlayer? host, uint newRoomId)
     {
         return new ServerRoom(this, host, newRoomId);
     }
 
-    private void CreateNewRoom(ServerPlayer? host)
+    private void CreateNewRoomHostedByPlayer(ServerPlayer host)
     {
-        ServerRoom newRoom = CreateNewRoomImplementation(host, _nextFreeRoomId);
+        ServerRoom? newRoom = PlayerHostedRoomCreateInstance(host, _nextFreeRoomId);
+        if (newRoom == null) return;
+
         _rooms.Add(newRoom);
         Engine.Log.Info($"New room created: {newRoom.Id}", LogTag);
         _nextFreeRoomId++;
@@ -204,19 +206,14 @@ public class ServerBase : NetworkAgentBase
 
     #region Network Functions
 
-    protected static ServerNetworkFunctionInvoker<ServerBase, ServerPlayer> _netFuncs = new();
+    public static ServerNetworkFunctionInvoker<ServerBase, ServerPlayer> NetworkFunctions { get; } = new();
 
     static ServerBase()
     {
-        RegisterFunctions(_netFuncs);
-    }
-
-    private static void RegisterFunctions(ServerNetworkFunctionInvoker<ServerBase, ServerPlayer> invoker)
-    {
-        invoker.Register(NetworkMessageType.HostRoom, Msg_HostRoom);
-        invoker.Register(NetworkMessageType.GetRoomInfo, Msg_GetRoomInfo);
-        invoker.Register(NetworkMessageType.GetRooms, Msg_GetRooms);
-        invoker.Register<NetworkMessageType, int>(NetworkMessageType.JoinRoom, Msg_JoinRoom);
+        NetworkFunctions.Register(NetworkMessageType.HostRoom, Msg_HostRoom);
+        NetworkFunctions.Register(NetworkMessageType.GetRoomInfo, Msg_GetRoomInfo);
+        NetworkFunctions.Register(NetworkMessageType.GetRooms, Msg_GetRooms);
+        NetworkFunctions.Register<NetworkMessageType, int>(NetworkMessageType.JoinRoom, Msg_JoinRoom);
     }
 
     private static void Msg_HostRoom(ServerBase self, ServerPlayer sender)
@@ -224,7 +221,7 @@ public class ServerBase : NetworkAgentBase
         if (!self.UsersCanManageRooms) return;
 
         self.RemovePlayerFromRoom(sender);
-        self.CreateNewRoom(sender);
+        self.CreateNewRoomHostedByPlayer(sender);
     }
 
     private static void Msg_GetRoomInfo(ServerBase self, ServerPlayer sender)

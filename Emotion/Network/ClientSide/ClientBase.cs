@@ -1,6 +1,5 @@
 ﻿#nullable enable
 
-using Emotion.Core.Utility.Coroutines;
 using Emotion.Network.Base;
 using Emotion.Network.LockStep;
 using Emotion.Network.New.Base;
@@ -12,14 +11,11 @@ namespace Emotion.Network.ClientSide;
 
 public class ClientBase : NetworkAgentBase
 {
-    public CoroutineManagerGameTime GameTimeCoroutineManager { get; init; }
-
     private int _sendMessageIndex = 1;
     private int _receiveMessageIndex = 0;
 
-    public ClientBase(string serverIpAndPort, CoroutineManagerGameTime? gameTimeCoroutineManager) : base(IPEndPoint.Parse(serverIpAndPort), "Client")
+    public ClientBase(string serverIpAndPort) : base(IPEndPoint.Parse(serverIpAndPort), "Client")
     {
-        GameTimeCoroutineManager = gameTimeCoroutineManager ?? Engine.CoroutineManagerGameTime;
     }
 
     protected override void ProcessMessage(IPEndPoint from, ref Base.NetworkMessage msg)
@@ -33,7 +29,7 @@ public class ClientBase : NetworkAgentBase
         _receiveMessageIndex = msg.MessageIndex;
 
         uint messageType = msg.Type;
-        NetworkFunctionBase? netFunc = _netFuncs.GetFunctionFromMessageType(messageType);
+        NetworkFunctionBase? netFunc = NetworkFunctions.GetFunctionFromMessageType(messageType);
         if (netFunc != null)
         {
             if (!netFunc.TryInvoke(in msg))
@@ -79,8 +75,6 @@ public class ClientBase : NetworkAgentBase
 
     public bool ConnectedToServer { get; protected set; }
 
-    public int PlayerId { get; protected set; }
-
     public void ConnectIfNotConnected()
     {
         if (ConnectedToServer) return;
@@ -96,7 +90,7 @@ public class ClientBase : NetworkAgentBase
 
     #region Room
 
-    public ServerRoomInfo? InRoom;
+
     
     //public Action<ServerRoomInfo>? OnRoomJoined;
     //public Action<ServerRoomInfo, int>? OnPlayerJoinedRoom;
@@ -106,24 +100,19 @@ public class ClientBase : NetworkAgentBase
 
     #region Network Functions
 
-    protected static ClientNetworkFunctionInvoker _netFuncs = new();
+    public static ClientNetworkFunctionInvoker NetworkFunctions { get; } = new();
 
     static ClientBase()
     {
-        RegisterFunctions(_netFuncs);
-    }
-
-    private static void RegisterFunctions(ClientNetworkFunctionInvoker invoker)
-    {
-        _netFuncs.Register<NetworkMessageType, int>(NetworkMessageType.Connected, Msg_Connected);
-        _netFuncs.Register<NetworkMessageType, ServerRoomInfo>(NetworkMessageType.RoomJoined, Msg_RoomJoined);
-        _netFuncs.Register<NetworkMessageType, ServerRoomInfo>(NetworkMessageType.UserJoinedRoom, Msg_UserJoinedRoom);
-        _netFuncs.RegisterLockStepFunc(NetworkMessageType.ServerTick, Msg_OnServerTick);
+        NetworkFunctions.Register<NetworkMessageType, int>(NetworkMessageType.Connected, Msg_Connected);
+        NetworkFunctions.Register<NetworkMessageType, ServerRoomInfo>(NetworkMessageType.RoomJoined, Msg_RoomJoined);
+        NetworkFunctions.Register<NetworkMessageType, ServerRoomInfo>(NetworkMessageType.UserJoinedRoom, Msg_UserJoinedRoom);
+        NetworkFunctions.RegisterLockStepFunc(NetworkMessageType.ServerTick, Msg_OnServerTick);
     }
 
     public static LockStepNetworkFunction? IsLockStepMessage(uint messageType)
     {
-        NetworkFunctionBase? func = _netFuncs.GetFunctionFromMessageType(messageType);
+        NetworkFunctionBase? func = NetworkFunctions.GetFunctionFromMessageType(messageType);
         if (func is LockStepNetworkFunction lockStepFunc) return lockStepFunc;
         return null;
     }
@@ -137,8 +126,8 @@ public class ClientBase : NetworkAgentBase
         ClientBase? self = Engine.Multiplayer.Client;
         if (self == null) return;
 
-        self._sendMessageIndex = 1;
-        self.PlayerId = playerId;
+        self._sendMessageIndex = 1; // Reset message index after connection (connection request msg doesn't count)
+        Engine.Multiplayer.PlayerId = playerId;
         self.ConnectedToServer = true;
         Engine.Log.Info($"Connected to server as user {playerId}", self.LogTag);
         self.OnConnectionChanged?.Invoke(true);
@@ -146,18 +135,12 @@ public class ClientBase : NetworkAgentBase
 
     private static void Msg_RoomJoined(in ServerRoomInfo roomInfo)
     {
-        ClientBase? self = Engine.Multiplayer.Client;
-        if (self == null) return;
-
-        self.InRoom = roomInfo;
+        Engine.Multiplayer.InRoom = roomInfo;
     }
 
     private static void Msg_UserJoinedRoom(in ServerRoomInfo roomInfo)
     {
-        ClientBase? self = Engine.Multiplayer.Client;
-        if (self == null) return;
-
-        self.InRoom = roomInfo;
+        Engine.Multiplayer.InRoom = roomInfo;
     }
 
     private static void Msg_OnServerTick()

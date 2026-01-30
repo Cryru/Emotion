@@ -55,17 +55,13 @@ public class PlayerControlledObjectLockStepComponent : IGameObjectComponent, IRe
             ObjectId = _obj.ObjectId,
             NewPosition = _obj.Position3D
         };
-        Engine.Multiplayer.SendLockStepMessage(msg, OnMsg_ObjectPositionUpdate);
+        Engine.Multiplayer.SendLockStepMessage(msg);
     }
 
-    public static void RegisterFunctionsServer(ServerNetworkFunctionInvoker<ServerRoom, ServerPlayer> invoker)
+    public static void RegisterNetFunctions()
     {
-        LockStepGameRoom.RegisterLockStepEvent(invoker, MessageObjectPositionUpdate.MessageType);
-    }
-
-    public static void RegisterFunctions(ClientNetworkFunctionInvoker invoker)
-    {
-        invoker.RegisterLockStepFunc<MessageObjectPositionUpdate>(OnMsg_ObjectPositionUpdate);
+        ServerRoom.NetworkFunctions.RegisterLockStepEvent(MessageObjectPositionUpdate.MessageType);
+        ClientBase.NetworkFunctions.RegisterLockStepFunc<MessageObjectPositionUpdate>(OnMsg_ObjectPositionUpdate);
     }
 
     private static void OnMsg_ObjectPositionUpdate(in MessageObjectPositionUpdate moved)
