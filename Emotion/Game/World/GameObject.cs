@@ -17,6 +17,7 @@ public enum GameObjectState
 public partial class GameObject
 {
     public bool AlwaysRender;
+    public bool Visible = true;
 
     public const string DEFAULT_OBJECT_NAME = "Unnamed Object";
 
@@ -35,13 +36,27 @@ public partial class GameObject
 
     private ObjectFriendAdapter? _adapter;
 
+    public GameObject()
+    {
+
+    }
+
+    public GameObject(ObjectFriendAdapter adapter)
+    {
+        ObjectId = adapter.GetNextObjectId();
+        _adapter = adapter;
+    }
+
     /// <summary>
     /// Called by the map when the object is initialized.
     /// </summary>
     public IEnumerator InitRoutine(ObjectFriendAdapter adapter)
     {
-        ObjectId = adapter.GetNextObjectId();
-        _adapter = adapter;
+        if (_adapter == null)
+        {
+            ObjectId = adapter.GetNextObjectId();
+            _adapter = adapter;
+        }
 
         Coroutine?[]? componentRoutines = null;
         int componentIdx = 0;
@@ -95,7 +110,7 @@ public partial class GameObject
 
     public virtual void Update(float dt)
     {
-
+        UpdateTransformInterpolations(dt);
     }
 
     public void RemoveFromMap()
@@ -185,6 +200,14 @@ public partial class GameObject
     #endregion
 
     #region Helper Constructors
+
+    public static GameObject NewMeshObject(GameMap map, string entityFile)
+    {
+        GameObject gameObject = map.CreateObject();
+        gameObject.Name = entityFile;
+        gameObject.AddComponent<MeshComponent>(new MeshComponent(entityFile));
+        return gameObject;
+    }
 
     public static GameObject NewMeshObject(string entityFile)
     {

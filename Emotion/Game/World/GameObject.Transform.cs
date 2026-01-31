@@ -1,7 +1,10 @@
 ﻿#nullable enable
 
+using Emotion.Core.Utility.Time;
 using Emotion.Editor;
 using Emotion.Game.World.Components;
+using Emotion.Network.LockStep;
+using Emotion.Network.New.Base;
 using Emotion.Primitives.DataStructures.OctTree;
 using System.Runtime.CompilerServices;
 
@@ -20,13 +23,12 @@ public partial class GameObject : IOctTreeStorable
     [DontSerialize]
     public float X
     {
-        get => _x;
+        get => GetPosition3D().X;
         set
         {
-            if (_x == value) return;
-
-            _x = value;
-            Moved();
+            Vector3 pos = GetPosition3D();
+            pos.X = value;
+            SetPosition3D(pos, 0);
         }
     }
 
@@ -36,13 +38,12 @@ public partial class GameObject : IOctTreeStorable
     [DontSerialize]
     public float Y
     {
-        get => _y;
+        get => GetPosition3D().Y;
         set
         {
-            if (_y == value) return;
-
-            _y = value;
-            Moved();
+            Vector3 pos = GetPosition3D();
+            pos.Y = value;
+            SetPosition3D(pos, 0);
         }
     }
 
@@ -52,13 +53,12 @@ public partial class GameObject : IOctTreeStorable
     [DontSerialize]
     public float Z
     {
-        get => _z;
+        get => GetPosition3D().Z;
         set
         {
-            if (_z == value) return;
-
-            _z = value;
-            Moved();
+            Vector3 pos = GetPosition3D();
+            pos.Z = value;
+            SetPosition3D(pos, 0);
         }
     }
 
@@ -153,17 +153,8 @@ public partial class GameObject : IOctTreeStorable
     /// </summary>
     public Vector3 Position3D
     {
-        get => new Vector3(_x, _y, _z);
-        set
-        {
-            if (_x == value.X && _y == value.Y && _z == value.Z) return;
-
-            _x = value.X;
-            _y = value.Y;
-            _z = value.Z;
-
-            Moved();
-        }
+        get => GetPosition3D();
+        set => SetPosition3D(value, 0);
     }
 
     /// <summary>
@@ -172,16 +163,8 @@ public partial class GameObject : IOctTreeStorable
     [DontSerialize]
     public Vector2 Position2D
     {
-        get => new Vector2(_x, _y);
-        set
-        {
-            if (_x == value.X && _y == value.Y) return;
-
-            _x = value.X;
-            _y = value.Y;
-
-            Moved();
-        }
+        get => GetPosition3D().ToVec2();
+        set => SetPosition3D(value.ToVec3(Z), 0);
     }
 
     /// <summary>
@@ -268,9 +251,6 @@ public partial class GameObject : IOctTreeStorable
 
     #region Private Holders
 
-    protected float _x;
-    protected float _y;
-    protected float _z;
     protected float _scaleX = 1;
     protected float _scaleY = 1;
     protected float _scaleZ = 1;
@@ -382,7 +362,7 @@ public partial class GameObject : IOctTreeStorable
 
     public Vector3 GetForwardModelSpace()
     {
-        return _transformProvider.GetForwardModelSpace(); 
+        return _transformProvider.GetForwardModelSpace();
     }
 
     public void RotateToFacePoint(Vector3 pt)
@@ -391,11 +371,71 @@ public partial class GameObject : IOctTreeStorable
 
         Vector3 direction = Vector3.Normalize(pt - Position3D);
         float angle = MathF.Atan2(direction.Y, direction.X) + MathF.Atan2(forward.Y, forward.X);
-        if (float.IsNaN(angle)) angle = 0;
+        if (float.IsNaN(angle)) return;
 
         Vector3 rotation = Rotation;
         rotation.Z = angle;
         Rotation = rotation;
+    }
+
+    #endregion
+
+    #region Interpolators
+
+    private Vector3 _currentPos;
+
+    private bool _interpPos;
+    private Vector3 _interpStartPos;
+    private Vector3 _interpTargetPos;
+    private ValueTimer _interpPosTimer = new ValueTimer(0);
+
+    public Vector3 GetPosition3D()
+    {
+        if (_interpPos)
+            return Vector3.Lerp(_interpStartPos, _interpTargetPos, _interpPosTimer.GetFactor());
+        return _currentPos;
+    }
+
+    public void SetPosition3D(Vector3 pos, float time = 0)
+    {
+        if (time <= 0) // Teleport
+        {
+            if (!_interpPos && _currentPos == pos)
+                _currentPos = pos;
+
+            _currentPos = pos;
+            _interpPos = false;
+            Moved();
+            return;
+        }
+
+        _interpStartPos = GetPosition3D();
+        _interpTargetPos = pos;
+
+        if (_interpStartPos == _interpTargetPos)
+        {
+            _currentPos = _interpStartPos;
+            _interpPos = false;
+            Moved();
+            return;
+        }
+
+        _interpPosTimer = new ValueTimer(time);
+        _interpPos = true;
+    }
+
+    private void UpdateTransformInterpolations(float dt)
+    {
+        if (_interpPos)
+        {
+            _interpPosTimer.Update(dt);
+            if (_interpPosTimer.Finished)
+            {
+                _currentPos = GetPosition3D();
+                _interpPos = false;
+            }
+            Moved();
+        }
     }
 
     #endregion

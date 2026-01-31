@@ -130,6 +130,13 @@ public partial class GameMap : IDisposable
         yield return LoadSingularObjectRoutine(obj);
     }
 
+    public GameObject CreateObject()
+    {
+        GameObject obj = new GameObject(_gameObjectFriendAdapter);
+        AddObject(obj);
+        return obj;
+    }
+
     public void RemoveObject(GameObject obj)
     {
         //lock (_octTree)
@@ -191,6 +198,7 @@ public partial class GameMap : IDisposable
             Rectangle rect = culling.Rect2D;
             foreach (GameObject obj in ForEachObject())
             {
+                if (!obj.Visible) continue;
                 if (!obj.AlwaysRender && !obj.GetBoundingRect().Intersects(rect)) continue;
                 obj.ForEachComponentOfType<IRenderableComponent, Renderer>(static (component, r) => component.Render(r), r);
             }
@@ -200,6 +208,7 @@ public partial class GameMap : IDisposable
             Frustum frustum = culling.Frustum;
             foreach (GameObject obj in ForEachObject())
             {
+                if (!obj.Visible) continue;
                 if (!obj.AlwaysRender && !frustum.IntersectsOrContainsCube(obj.GetBoundingCube())) continue;
                 obj.ForEachComponentOfType<IRenderableComponent, Renderer>(static (component, r) => component.Render(r), r);
             }
