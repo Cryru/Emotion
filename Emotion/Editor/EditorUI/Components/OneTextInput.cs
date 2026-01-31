@@ -1,11 +1,13 @@
 ﻿#nullable enable
 
-using Emotion.Graphics.Text.TextUpdate;
-
 namespace Emotion.Editor.EditorUI.Components;
 
 public class OneTextInput : UIBaseWindow
 {
+    public string Text { get => _input.Text; }
+    public Action<string>? OnSubmit { get => _input.OnSubmit; set => _input.OnSubmit = value; }
+    private UITextInput _input;
+
     public OneTextInput(string placeholder = "Type something", bool multiLine = true)
     {
         Visuals = new UIWindowVisualConfig()
@@ -37,6 +39,7 @@ public class OneTextInput : UIBaseWindow
             MultiLine = multiLine
         };
         textContainer.AddChild(input);
+        _input = input;
 
         var line = new UIBaseWindow()
         {
