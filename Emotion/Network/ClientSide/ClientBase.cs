@@ -34,7 +34,7 @@ public class ClientBase : NetworkAgentBase
         {
             if (!netFunc.TryInvoke(in msg))
             {
-                Engine.Log.Warning($"Error executing function of message type {messageType}", LogTag, true);
+                Engine.Log.Warning($"Error executing function of message type {messageType} ({netFunc})", LogTag, true);
             }
         }
         else
@@ -91,10 +91,9 @@ public class ClientBase : NetworkAgentBase
     #region Room
 
 
-    
     //public Action<ServerRoomInfo>? OnRoomJoined;
     //public Action<ServerRoomInfo, int>? OnPlayerJoinedRoom;
-    //public Action<List<ServerRoomInfo>>? OnRoomListReceived;
+
 
     #endregion
 
@@ -107,6 +106,7 @@ public class ClientBase : NetworkAgentBase
         NetworkFunctions.Register<NetworkMessageType, int>(NetworkMessageType.Connected, Msg_Connected);
         NetworkFunctions.Register<NetworkMessageType, ServerRoomInfo>(NetworkMessageType.RoomJoined, Msg_RoomJoined);
         NetworkFunctions.Register<NetworkMessageType, ServerRoomInfo>(NetworkMessageType.UserJoinedRoom, Msg_UserJoinedRoom);
+        NetworkFunctions.Register<NetworkMessageType, ServerGameInfoList>(NetworkMessageType.RoomList, Msg_RoomListReceived);
         NetworkFunctions.RegisterLockStepFunc(NetworkMessageType.ServerTick, Msg_OnServerTick);
     }
 
@@ -141,6 +141,11 @@ public class ClientBase : NetworkAgentBase
     private static void Msg_UserJoinedRoom(in ServerRoomInfo roomInfo)
     {
         Engine.Multiplayer.InRoom = roomInfo;
+    }
+
+    private static void Msg_RoomListReceived(in ServerGameInfoList roomInfo)
+    {
+        Engine.Multiplayer.OnRoomListReceived?.Invoke(roomInfo);
     }
 
     private static void Msg_OnServerTick()

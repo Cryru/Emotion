@@ -2,7 +2,6 @@
 
 using Emotion.Core.Systems.Scenography;
 using Emotion.Core.Utility.Coroutines;
-using Emotion.Core.Utility.Time;
 using Emotion.Game.World.Components;
 using Emotion.Network.Base;
 using Emotion.Network.ClientSide;
@@ -13,24 +12,22 @@ using System.Runtime.InteropServices;
 
 namespace Emotion.Network.World;
 
-public class PlayerControlledObjectLockStepComponent : IGameObjectComponent, IRenderableComponent, IUpdateableComponent
+public abstract class PlayerControlledObjectLockStepComponent<T> : IGameObjectComponent
+    where T : unmanaged, INetworkMessageStruct, IPlayerControlledObjectLockStepComponentData<T>
 {
     public int PlayerId { get; init; }
-    public Vector3 SyncPosition { get; private set; }
+    protected uint _syncObjectId;
+    protected GameObject? _obj;
 
-    private Vector3 _nextSyncPos;
-    private GameObject? _obj;
-
-    public PlayerControlledObjectLockStepComponent(int playerId)
+    public PlayerControlledObjectLockStepComponent(int playerId, uint syncObjectId)
     {
         PlayerId = playerId;
+        _syncObjectId = syncObjectId;
     }
 
     public Coroutine? Init(GameObject obj)
     {
         _obj = obj;
-        SyncPosition = obj.Position3D;
-        _nextSyncPos = SyncPosition;
         Engine.Multiplayer.OnServerTick += Client_OnServerTick;
 
         return null;
@@ -47,48 +44,63 @@ public class PlayerControlledObjectLockStepComponent : IGameObjectComponent, IRe
         if (PlayerId != Engine.Multiplayer.PlayerId)
             return;
 
-        AssertNotNull(_obj);
-        if (_obj.ObjectId == 0) return;
+        // Object not added yet?
+        if (_obj == null || _obj.ObjectId == 0)
+            return;
 
-        var msg = new MessageObjectPositionUpdate()
-        {
-            ObjectId = _obj.ObjectId,
-            NewPosition = _obj.Position3D
-        };
-        Engine.Multiplayer.SendLockStepMessage(msg);
+        Engine.Multiplayer.SendLockStepMessage(GetPayload());
     }
 
     public static void RegisterNetFunctions()
     {
-        ServerRoom.NetworkFunctions.RegisterLockStepEvent(MessageObjectPositionUpdate.MessageType);
-        ClientBase.NetworkFunctions.RegisterLockStepFunc<MessageObjectPositionUpdate>(OnMsg_ObjectPositionUpdate);
+        ServerRoom.NetworkFunctions.RegisterLockStepEvent(T.MessageType);
+        ClientBase.NetworkFunctions.RegisterLockStepFunc<T>(T.ProcessPayload);
     }
 
-    private static void OnMsg_ObjectPositionUpdate(in MessageObjectPositionUpdate moved)
+    protected abstract T GetPayload();
+}
+
+public class PlayerControlledObjectLockStepComponent : PlayerControlledObjectLockStepComponent<MessageObjectPositionUpdate>
+{
+    public PlayerControlledObjectLockStepComponent(int playerId, uint syncObjectId) : base(playerId, syncObjectId)
     {
-        SceneWithMap? currentGame = Engine.SceneManager.Current as SceneWithMap;
-        GameObject? obj = currentGame?.Map.GetObjectById(moved.ObjectId);
-        PlayerControlledObjectLockStepComponent? syncComponent = obj?.GetComponent<PlayerControlledObjectLockStepComponent>();
-        syncComponent?._nextSyncPos = moved.NewPosition;
     }
 
-    public void Render(Renderer r)
+    protected override MessageObjectPositionUpdate GetPayload()
     {
-        r.RenderLine(SyncPosition, SyncPosition + new Vector3(0, 0, 5), Color.Red, 0.2f);
-    }
+        AssertNotNull(_obj);
 
-    public void Update(float dt)
-    {
-        SyncPosition = Interpolation.SmoothLerp(SyncPosition, _nextSyncPos, 5, dt);
+        var msg = new MessageObjectPositionUpdate()
+        {
+            ObjectId = _syncObjectId,
+            NewPosition = _obj.Position3D
+        };
+        return msg;
     }
 }
 
+public interface IPlayerControlledObjectLockStepComponentData<T>
+{
+    public abstract static void ProcessPayload(in T data);
+}
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct MessageObjectPositionUpdate : INetworkMessageStruct
+public struct MessageObjectPositionUpdate : INetworkMessageStruct, IPlayerControlledObjectLockStepComponentData<MessageObjectPositionUpdate>
 {
     public static uint MessageType => (uint)NetworkMessageType.PlayerControlledSyncObjectComponent_ObjectMoved;
 
     public uint ObjectId;
     public Vector3 NewPosition;
+
+    public static void ProcessPayload(in MessageObjectPositionUpdate moved)
+    {
+        ServerRoomInfo? room = Engine.Multiplayer.InRoom;
+        if (room == null) return;
+
+        SceneWithMap? currentGame = Engine.SceneManager.Current as SceneWithMap;
+        GameObject? obj = currentGame?.Map.GetObjectById(moved.ObjectId);
+        if (obj == null) return;
+        obj.RotateToFacePoint(moved.NewPosition);
+        obj.SetPosition3D(moved.NewPosition, room.Value.TickInterval);
+    }
 }

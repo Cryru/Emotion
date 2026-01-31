@@ -12,7 +12,8 @@ public unsafe struct ServerRoomInfo
 {
     // Rooms with a lot of players probably shouldn't send out all player ids since then its more of a "mmo" type of deal
     public const int MAX_PLAYERS_IN_ROOM = 10;// (NetworkMessage.MaxContentSize - sizeof(uint) - sizeof(int) - sizeof(int)) / sizeof(int);
-
+    
+    public int TickInterval { get => 50; }
     public uint RoomId;
     public int HostId;
     public int PlayerCount;
@@ -29,6 +30,11 @@ public unsafe struct ServerGameInfoList
     public fixed uint RoomIds[10];
     public fixed int HostIds[10];
     public fixed int PlayerCounts[10];
+
+    public uint GetRoomId(int idx)
+    {
+        return RoomIds[idx];
+    }
 }
 
 [DontSerialize]
@@ -41,11 +47,15 @@ public class ServerRoom
     public bool Disposed = false;
     public List<ServerPlayer> UsersInside = new List<ServerPlayer>();
 
+    protected DateTime _createdAt;
+
     public ServerRoom(ServerBase server, ServerPlayer? host, uint roomId)
     {
         Server = server;
         Host = host;
         Id = roomId;
+
+        _createdAt = DateTime.UtcNow;
     }
 
     public virtual void Dispose()
@@ -169,7 +179,7 @@ public class ServerRoom
         {
             if (!netFunc.TryInvoke(this, sender, msg))
             {
-                Engine.Log.Warning($"Error executing function of message type {messageType}", nameof(ServerRoom), true);
+                Engine.Log.Warning($"Error executing function of message type {messageType} ({netFunc})", nameof(ServerRoom), true);
             }
         }
         else

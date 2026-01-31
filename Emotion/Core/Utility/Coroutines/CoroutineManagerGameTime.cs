@@ -29,16 +29,20 @@ public class CoroutineManagerGameTime : CoroutineManager
         {
             DeltaTime = dt;
             base.Update(dt);
+            return;
         }
-        else
-        {
-            float factor = 1f;
-            if (GameTimeAdvanceLimit - Time > GameTimeBehindLimitSpeedUp) factor = 1.1f;
-            dt *= factor;
 
+        // We are suffering the consequences of having time as a float in the past :/
+        Assert(Time == MathF.Floor(Time));
+
+        bool tooMuchBehind = GameTimeAdvanceLimit - Time > GameTimeBehindLimitSpeedUp;
+        int loops = tooMuchBehind ? 2 : 1;
+
+        for (int i = 0; i < loops; i++)
+        {
             float newTime = Math.Min(Time + dt, GameTimeAdvanceLimit);
             float diff = newTime - Time;
-            float deltaAllowed = MathF.Round(diff); // hmm
+            float deltaAllowed = MathF.Round(diff); // hmm?
             DeltaTime = deltaAllowed;
             base.Update(deltaAllowed);
         }

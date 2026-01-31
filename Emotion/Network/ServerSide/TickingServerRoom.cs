@@ -8,13 +8,21 @@ namespace Emotion.Network.ServerSide;
 
 public class TickingServerRoom : ServerRoom
 {
-    public uint GameTime { get; protected set; } = 0;
+    public uint GameTime { get; private set; } = 0;
     public uint GameTimeTickInterval = 50;
 
     private Coroutine _updateRoutine = Coroutine.CompletedRoutine;
 
     public TickingServerRoom(ServerBase server, ServerPlayer? host, uint roomId) : base(server, host, roomId)
     {
+        StartGameTimeRoutine();
+    }
+
+    protected virtual void StartGameTimeRoutine()
+    {
+        _updateRoutine.RequestStop();
+
+        GameTime = 0;
         _updateRoutine = Engine.CoroutineManager.StartCoroutine(GameplayTickRoutine());
     }
 

@@ -3,6 +3,7 @@
 using Emotion.Network.Base;
 using Emotion.Network.ClientSide;
 using Emotion.Network.LockStep;
+using Emotion.Network.New.Base;
 using Emotion.Network.ServerSide;
 
 namespace Emotion.Network;
@@ -99,6 +100,7 @@ public class MultiplayerSystem
     #region Events
 
     public event Action? OnServerTick;
+    public Action<ServerGameInfoList>? OnRoomListReceived;
 
     #endregion
 
@@ -111,6 +113,7 @@ public class MultiplayerSystem
 
     internal void ServerTickReceived()
     {
+        Engine.Multiplayer.SendMessageToServer(NetworkMessageType.LockStepVerify, new LockStepVerify("ServerTick"));
         OnServerTick?.Invoke();
     }
 

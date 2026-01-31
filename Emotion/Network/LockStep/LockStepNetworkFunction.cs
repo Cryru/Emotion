@@ -3,6 +3,7 @@
 using Emotion.Network.Base;
 using Emotion.Network.Base.Invocation;
 using Emotion.Network.ClientSide;
+using Emotion.Network.New.Base;
 
 namespace Emotion.Network.LockStep;
 
@@ -17,24 +18,27 @@ public class LockStepNetworkFunction<TMsg> : NetworkFunction<TMsg> where TMsg : 
         uint gameTime = msg.GameTime;
 
         // Update limit with the newest message
-        if (gameTime <= Engine.CoroutineManagerGameTime.GameTimeAdvanceLimit)
+        if (gameTime < Engine.CoroutineManagerGameTime.GameTimeAdvanceLimit)
         {
             Engine.Log.Warning($"Got a lockstep message from the past?", nameof(LockStepNetworkFunction<>), true);
-            return false;
+            return true;
         }
         Engine.CoroutineManagerGameTime.SetGameTimeAdvanceLimit(gameTime);
 
         if (!NetworkMessage.GetContentAs(in msg, out TMsg msgData)) return false;
-        Engine.CoroutineManagerGameTime.StartCoroutine(ExecuteSyncFunction(msg.GameTime, msgData, _func));
+        Engine.CoroutineManagerGameTime.StartCoroutine(ExecuteSyncFunction(msg.GameTime, msgData, this));
         return true;
     }
 
-    private static IEnumerator ExecuteSyncFunction(uint gameTime, TMsg msgData, NetworkFunc<TMsg> func)
+    private static IEnumerator ExecuteSyncFunction(uint gameTime, TMsg msgData, LockStepNetworkFunction<TMsg> registeredFunc)
     {
         uint diff = gameTime - (uint)Engine.CoroutineManagerGameTime.Time;
         if (diff > 0)
             yield return diff;
-        func(msgData);
+
+        Engine.Multiplayer.SendMessageToServer(NetworkMessageType.LockStepVerify, new LockStepVerify($"{registeredFunc}"));
+
+        registeredFunc._func(msgData);
     }
 
     public void InvokeOffline(in TMsg msgData)
@@ -60,23 +64,26 @@ public class LockStepNetworkFunction : NetworkFunction
         uint gameTime = msg.GameTime;
 
         // Update limit with the newest message
-        if (gameTime <= Engine.CoroutineManagerGameTime.GameTimeAdvanceLimit)
+        if (gameTime < Engine.CoroutineManagerGameTime.GameTimeAdvanceLimit)
         {
             Engine.Log.Warning($"Got a lockstep message from the past?", nameof(LockStepNetworkFunction<>), true);
-            return false;
+            return true;
         }
         Engine.CoroutineManagerGameTime.SetGameTimeAdvanceLimit(gameTime);
 
-        Engine.CoroutineManagerGameTime.StartCoroutine(ExecuteSyncFunction(msg.GameTime, _func));
+        Engine.CoroutineManagerGameTime.StartCoroutine(ExecuteSyncFunction(msg.GameTime, this));
         return true;
     }
 
-    private static IEnumerator ExecuteSyncFunction(uint gameTime, NetworkFunc func)
+    private static IEnumerator ExecuteSyncFunction(uint gameTime, LockStepNetworkFunction registeredFunc)
     {
         uint diff = gameTime - (uint)Engine.CoroutineManagerGameTime.Time;
         if (diff > 0)
             yield return diff;
-        func();
+
+        Engine.Multiplayer.SendMessageToServer(NetworkMessageType.LockStepVerify, new LockStepVerify($"{registeredFunc}"));
+
+        registeredFunc._func();
     }
 
     public void InvokeOffline()

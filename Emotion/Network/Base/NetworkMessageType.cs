@@ -23,11 +23,11 @@ public enum NetworkMessageType : uint
     RoomInfo,       // from GetRoomInfo                     <ServerRoomInfo>
     RoomList,       // from GetRooms                        <ServerGameInfoList>
 
-    // Specials (Client -> Server)
-    TimeSyncHash,        // <int> hash
-    TimeSyncHashDebug,    // <string> hash
+    // LockStep (Client -> Server)
+    LockStepVerify,        // <int> hash
+    SyncObjectAdded,     // <int> objectId
 
-    // Specials (Server -> Client)
+    // Gameplay (Server -> Client)
     ServerTick,
 
     // Implementations
