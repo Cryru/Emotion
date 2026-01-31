@@ -344,13 +344,10 @@ public static class Engine
         // Sanity check.
         if (Host == null) return;
 
-        // todo: these settings and objects might not be needed when using a non-default loop.
-        byte targetStep = Configuration.DesiredStep;
-        if (targetStep <= 0) targetStep = 60;
-        TargetStep(targetStep);
-
-        _realTimeTracker.Start();
         Status = EngineState.Running;
+
+        // Start running real time.
+        _realTimeTracker.Start();
 
         // Start the entry async entry point as a job, and start the loop.
         Jobs.Add(entryPointAsyncRoutine());
@@ -362,7 +359,8 @@ public static class Engine
         }
 
         Log.Info("Starting loop...", MessageSource.Engine);
-        Configuration.LoopFactory(RunMainLoopTick, RunFrame);
+        CoroutineManager.StartCoroutine(MainLoopRoutine());
+        Configuration.LoopFactory(MainLoopTick, RunFrame);
     }
 
     /// <summary>
@@ -384,6 +382,9 @@ public static class Engine
                 Log?.Info("Host was closed.", MessageSource.Engine);
                 break;
             }
+
+            // Update modules that are outside the simulation tick.
+            AssetLoader.Update();
 
             tick();
             // After tick, as it might close the host.
@@ -435,77 +436,57 @@ public static class Engine
         Renderer.ApplySettings();
     }
 
-    private static byte _desiredStep;
-    private static Stopwatch _updateTimer;
-    private static double _targetTime;
-    private static double _accumulator;
-    private static double _lastTick;
-    private static double _targetTimeFuzzyLower;
-    private static double _targetTimeFuzzyUpper;
+    private static long _lastTickAt;
 
-    // Setup some loop timing settings and objects.
-    private static void TargetStep(byte step)
+    private static void MainLoopTick()
     {
-        _desiredStep = step;
-        _updateTimer = Stopwatch.StartNew();
-        _targetTime = 1000f / _desiredStep;
-        _accumulator = 0;
-        _lastTick = 0;
+        long curTime = _realTimeTracker.ElapsedMilliseconds;
+        long deltaTime = curTime - _lastTickAt;
+        _lastTickAt = curTime;
 
-        // Fuzzy time tracking, as no system has that kind of perfect timing.
-        _targetTimeFuzzyLower = 1000d / (_desiredStep - 1);
-        _targetTimeFuzzyUpper = 1000d / (_desiredStep + 1);
-
-        // Keep delta time constant.
-        DeltaTime = (float) _targetTime;
+        CoroutineManager.Update(deltaTime);
     }
 
-    private static void RunMainLoopTick()
+    private static IEnumerator MainLoopRoutine()
     {
-        double curTime = _updateTimer.ElapsedMilliseconds;
-        double deltaTime = curTime - _lastTick;
-        _lastTick = curTime;
+        int desiredStepMs = (int)Math.Floor(1000f / Configuration.DesiredTicksPerSecond);
+        desiredStepMs = Math.Max(1, desiredStepMs);
+        DeltaTime = desiredStepMs;
 
-        // Snap delta.
-        if (Math.Abs(_targetTime - deltaTime) <= 1) deltaTime = _targetTime;
+        Coroutine gameTimeRoutine = Engine.CoroutineManagerGameTime.StartCoroutine(SimulationTickRoutine(desiredStepMs));
 
-        // Add to the accumulator.
-        _accumulator += deltaTime;
-
-        // Update modules that are outside the simulation tick.
-        AssetLoader.Update();
-
-        // Update as many times as needed.
-        byte updates = 0;
-        while (_accumulator > _targetTimeFuzzyUpper)
+        while (Engine.Status == EngineState.Running)
         {
-            RunSimulationTick();
-            _accumulator -= _targetTime;
+            // Resetting game time will stop all routines...
+            // This should probably be managed by the SceneManager by registering different routines for different scenes?
+            if (gameTimeRoutine.Stopped)
+            {
+                gameTimeRoutine = Engine.CoroutineManagerGameTime.StartCoroutine(SimulationTickRoutine(desiredStepMs));
+            }
 
-            if (_accumulator < _targetTimeFuzzyLower - _targetTime) _accumulator = 0;
-            updates++;
-
-            // Max updates are 5 - to prevent large spikes.
-            // This does somewhat break the simulation - but these shouldn't happen except as a last resort.
-            if (updates <= 5) continue;
-            _accumulator = 0;
-            break;
+            RunMainLoopTick();
+            yield return desiredStepMs;
         }
     }
 
-    private static void RunSimulationTick()
+    private static IEnumerator SimulationTickRoutine(int desiredStepMs)
+    {
+        while (Engine.Status == EngineState.Running)
+        {
+            SceneManager.Update(desiredStepMs);
+            yield return desiredStepMs;
+        }
+    }
+
+    private static void RunMainLoopTick()
     {
         TotalTime += DeltaTime;
         TickCount++;
 
         PerformanceMetrics.TickStart();
-        
-        Input.Update();
-        Host.UpdateInput(); // This refers to the IM input only. Event based input will update on main loop tick, not simulation tick.
 
-        Multiplayer.Update();
-        CoroutineManager.Update(DeltaTime);
-        CoroutineManagerGameTime.Update(DeltaTime);
+        Input.Update();
+        Host.UpdateInput(); // This refers to the legacy IM input only, event based input is on Input.Update()
 
 #if DEBUG || AUTOBUILD
         if (Configuration.UpdateUIAutomatically)
@@ -513,9 +494,15 @@ public static class Engine
 #else
         UI.UpdateSystem();
 #endif
-        SceneManager.Update();
         EngineEditor.UpdateEditor();
-        Renderer.UpdateCamera(); // Done after game logic to apply the new movement.
+
+        Multiplayer.Update();
+        CoroutineManagerGameTime.Update(DeltaTime); // This will run SceneManagerTick
+
+        // Updates camera input and target tracking
+        // todo: split these, input should be probably outside simulation for least latency,
+        // and the target tracking should be in the renderer probably.
+        Renderer.UpdateCamera();
 
         PerformanceMetrics.TickEnd();
     }
@@ -598,7 +585,7 @@ public static class Engine
         PerformanceMetrics.RegisterFrame();
     }
 
-#endregion
+    #endregion
 
     /// <summary>
     /// Stop running the engine.

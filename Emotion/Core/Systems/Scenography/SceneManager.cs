@@ -55,26 +55,10 @@ public class SceneManager
     /// Run the scene's update code.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void Update()
+    internal void Update(float dt)
     {
-        float dt;
-
         if (EngineEditor.IsOpen)
-        {
-            dt = 0;
-        }
-        else
-        {
-            const bool USE_GAME_TIME = true;
-            if (USE_GAME_TIME)
-            {
-                dt = Engine.CoroutineManagerGameTime.DeltaTime;
-            }
-            else
-            {
-                dt = Engine.DeltaTime;
-            }
-        }
+            dt = 0; // todo: do this via game time stop
 
         Current.UpdateScene(dt);
     }

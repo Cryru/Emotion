@@ -96,11 +96,9 @@ public sealed class Configurator
     #region Loop
 
     /// <summary>
-    /// The desired tps. 60 by default.
-    /// You don't want the true time between ticks as that will cause an uneven delta time and hiccups.
-    /// This setting applies only if using the default loop.
+    /// How many ticks of simulation you want in a second, this determines the tick taken between ticks.
     /// </summary>
-    public byte DesiredStep { get; set; } = 60;
+    public byte DesiredTicksPerSecond { get; set; } = 60;
 
     /// <summary>
     /// The function to run as a loop.
