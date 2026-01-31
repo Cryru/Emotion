@@ -25,6 +25,8 @@ public class NetIOAsyncLogger : LoggingProvider
     private Thread? _logThread;
     private bool _logThreadRun = true;
 
+    public bool ExcludeExtraData = false;
+
     /// <summary>
     /// Create a default logger.
     /// </summary>
@@ -88,28 +90,31 @@ public class NetIOAsyncLogger : LoggingProvider
         {
             if (_logQueue.TryDequeue(out (MessageType type, string line) logItem))
             {
-                switch (logItem.type)
+                if (!ExcludeExtraData)
                 {
-                    case MessageType.Error:
-                        stdOut?.Write("\x1b[38;5;0045m[ERR]\x1b[38;5;0015m ");
-                        currentFileStream?.Write("[ERR] ");
-                        break;
-                    case MessageType.Info:
-                        stdOut?.Write("\x1b[38;5;0007m[INF]\x1b[38;5;0015m ");
-                        currentFileStream?.Write("[INF] ");
-                        break;
-                    case MessageType.Trace:
-                        stdOut?.Write("\x1b[38;5;0008m[DBG]\x1b[38;5;0015m ");
-                        currentFileStream?.Write("[DBG] ");
-                        break;
-                    case MessageType.Warning:
-                        stdOut?.Write("\x1b[38;5;0011m[WRN]\x1b[38;5;0015m ");
-                        currentFileStream?.Write("[WRN] ");
-                        break;
-                    default:
-                        stdOut?.WriteAsync("[???] ");
-                        currentFileStream?.Write("[???] ");
-                        break;
+                    switch (logItem.type)
+                    {
+                        case MessageType.Error:
+                            stdOut?.Write("\x1b[38;5;0045m[ERR]\x1b[38;5;0015m ");
+                            currentFileStream?.Write("[ERR] ");
+                            break;
+                        case MessageType.Info:
+                            stdOut?.Write("\x1b[38;5;0007m[INF]\x1b[38;5;0015m ");
+                            currentFileStream?.Write("[INF] ");
+                            break;
+                        case MessageType.Trace:
+                            stdOut?.Write("\x1b[38;5;0008m[DBG]\x1b[38;5;0015m ");
+                            currentFileStream?.Write("[DBG] ");
+                            break;
+                        case MessageType.Warning:
+                            stdOut?.Write("\x1b[38;5;0011m[WRN]\x1b[38;5;0015m ");
+                            currentFileStream?.Write("[WRN] ");
+                            break;
+                        default:
+                            stdOut?.WriteAsync("[???] ");
+                            currentFileStream?.Write("[???] ");
+                            break;
+                    }
                 }
 
                 string line = logItem.line;
@@ -148,7 +153,14 @@ public class NetIOAsyncLogger : LoggingProvider
 
         int sourceLengthMax = 8;
         int sourcePadding = source.Length < sourceLengthMax ? sourceLengthMax - source.Length : 0;
-        _logQueue.Enqueue((type, $"{Engine.TotalTime:00000} [{source}]{new string(' ', sourcePadding)} [{Thread.CurrentThread.ManagedThreadId:D2}:{threadName}] {message}"));
+        Span<char> padding = stackalloc char[sourcePadding];
+        padding.Fill(' ');
+
+        if (ExcludeExtraData)
+            _logQueue.Enqueue((type, $"[{source}]{padding} {message}"));
+        else
+            _logQueue.Enqueue((type, $"{Engine.TotalTime:00000} [{source}]{padding} [{Thread.CurrentThread.ManagedThreadId:D2}:{threadName}] {message}"));
+
         _queueEvent.Set();
     }
 
@@ -158,5 +170,20 @@ public class NetIOAsyncLogger : LoggingProvider
         _logThreadRun = false;
         _queueEvent.Set();
         _logThread?.Join(TimeSpan.FromMinutes(1));
+    }
+}
+
+public class NetUIAsyncLoggerSingleFile : NetIOAsyncLogger
+{
+    private string _fileName;
+
+    public NetUIAsyncLoggerSingleFile(string folder, string fileName) : base(false, folder)
+    {
+        _fileName = fileName;
+    }
+
+    protected override string GenerateLogName()
+    {
+        return $"{_logFolder}{Path.DirectorySeparatorChar}{_fileName}";
     }
 }
