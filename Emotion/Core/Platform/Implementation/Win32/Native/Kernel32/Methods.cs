@@ -74,7 +74,7 @@ public static class Kernel32
     public static extern nint GetConsoleWindow();
 
     [DllImport(LibraryName, ExactSpelling = true)]
-    public static extern nint GetStdHandle(uint nStdHandle);
+    public static extern nint GetStdHandle(StdHandle nStdHandle);
 
     [DllImport(LibraryName, ExactSpelling = true)]
     public static extern bool SetStdHandle(uint nStdHandle, nint hHandle);
@@ -86,8 +86,13 @@ public static class Kernel32
     public static extern uint GetConsoleTitle(StringBuilder lpConsoleTitle, uint nSize);
 
     [DllImport(LibraryName, ExactSpelling = true)]
-    public static extern bool SetConsoleWindowInfo(nint hConsoleOutput, int bAbsolute,
-        [In] ref RectS lpConsoleWindow);
+    public static extern bool SetConsoleWindowInfo(nint hConsoleOutput, int bAbsolute, in RectS lpConsoleWindow);
+
+    [DllImport(LibraryName, SetLastError = true)]
+    public static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+
+    [DllImport(LibraryName, SetLastError = true)]
+    public static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
 
     #endregion
 

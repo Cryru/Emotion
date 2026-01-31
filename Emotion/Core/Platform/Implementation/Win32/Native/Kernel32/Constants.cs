@@ -2,8 +2,6 @@
 
 #pragma warning disable 1591 // Documentation for this file is found at msdn
 
-using Emotion;
-
 namespace Emotion.Core.Platform.Implementation.Win32.Native.Kernel32;
 
 public enum Month
@@ -60,22 +58,22 @@ public enum ProcessArchitecture
     PROCESSOR_ARCHITECTURE_UNKNOWN = 0xFFFF
 }
 
-public enum StdHandle
+public enum StdHandle : uint
 {
     /// <summary>
     /// The standard input device. Initially, this is the console input buffer, CONIN$.
     /// </summary>
-    STD_INPUT_HANDLE = unchecked((int) (uint) -10),
+    STD_INPUT_HANDLE = unchecked((uint) -10),
 
     /// <summary>
     /// The standard output device. Initially, this is the active console screen buffer, CONOUT$.
     /// </summary>
-    STD_OUTPUT_HANDLE = unchecked((int) (uint) -11),
+    STD_OUTPUT_HANDLE = unchecked((uint) -11),
 
     /// <summary>
     /// The standard error device. Initially, this is the active console screen buffer, CONOUT$.
     /// </summary>
-    STD_ERROR_HANDLE = unchecked((int) (uint) -12)
+    STD_ERROR_HANDLE = unchecked((uint) -12)
 }
 
 public enum SecurityImpersonationLevel

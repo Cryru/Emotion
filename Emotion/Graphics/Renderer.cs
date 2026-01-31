@@ -3,6 +3,7 @@
 #region Using
 
 using System.Runtime.CompilerServices;
+using System.Text.Unicode;
 using Emotion.Core.Systems.Input;
 using Emotion.Core.Systems.Logging;
 using Emotion.Core.Utility.Coroutines;
@@ -652,23 +653,26 @@ public sealed partial class Renderer
 
     private static unsafe void GlDebugCallback(DebugSource source, DebugType msgType, uint id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
     {
-        var stringMessage = new string((sbyte*) message, 0, length);
+        ReadOnlySpan<byte> utf8Str = new ReadOnlySpan<byte>((byte*) message, length);
+        Span<char> stringAsUtf16 = stackalloc char[length];
+        Utf8.ToUtf16(utf8Str, stringAsUtf16, out int _, out int charsWritten);
+        stringAsUtf16 = stringAsUtf16.Slice(0, charsWritten);
 
         // NVidia drivers love to spam the debug log with how your buffers will be mapped in the system heap.
-        if (msgType == DebugType.DebugTypeOther && stringMessage.Contains("SYSTEM HEAP")) return;
-        if (msgType == DebugType.DebugTypeOther && stringMessage.Contains("will use VIDEO memory")) return;
-        if (msgType == DebugType.DebugTypeOther && stringMessage.Contains("Based on the usage hint and actual usage")) return;
+        if (msgType == DebugType.DebugTypeOther && stringAsUtf16.IndexOf("SYSTEM HEAP") != -1) return;
+        if (msgType == DebugType.DebugTypeOther && stringAsUtf16.IndexOf("will use VIDEO memory") != -1) return;
+        if (msgType == DebugType.DebugTypeOther && stringAsUtf16.IndexOf("Based on the usage hint and actual usage") != -1) return;
 
         switch (severity)
         {
             case DebugSeverity.DebugSeverityHigh:
-                Engine.Log.Warning(stringMessage, $"GL_{msgType}_{source}");
+                Engine.Log.ONE_Warning($"GL_{msgType}_{source}", stringAsUtf16);
                 break;
             case DebugSeverity.DebugSeverityMedium:
-                Engine.Log.Info(stringMessage, $"GL_{msgType}_{source}");
+                Engine.Log.ONE_Info($"GL_{msgType}_{source}", stringAsUtf16);
                 break;
             default:
-                Engine.Log.Trace(stringMessage, $"GL_{msgType}_{source}");
+                Engine.Log.ONE_Trace($"GL_{msgType}_{source}", stringAsUtf16);
                 break;
         }
     }

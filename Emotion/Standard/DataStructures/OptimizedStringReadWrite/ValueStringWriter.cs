@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using System.Globalization;
 using System.Text;
 
 namespace Emotion.Standard.DataStructures.OptimizedStringReadWrite;
@@ -134,6 +135,20 @@ public ref struct ValueStringWriter
         // This can be optimized to not allocate this ToString()
         // but would require switching over all number types :P
         return WriteString(number.ToString() ?? string.Empty);
+    }
+
+    public bool WriteNumber<TNumber>(TNumber number, string format) where TNumber : INumber<TNumber>
+    {
+        if (Type != StringType.DefaultUTF16) return false;
+
+        int idx = _position;
+        Span<char> span = _dataUTF16.Slice(idx);
+        if (number.TryFormat(span, out int written, "00000", CultureInfo.InvariantCulture))
+        {
+            _position += written;
+            BytesWritten += written * 2;
+        }
+        return true;
     }
 
     #region Indent

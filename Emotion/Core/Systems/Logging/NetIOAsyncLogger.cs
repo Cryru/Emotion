@@ -2,9 +2,14 @@
 
 #region Using
 
-using System.Collections.Concurrent;
+using Emotion.Core.Platform.Implementation.Win32.Native.Kernel32;
+using System.Buffers;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Channels;
+using System.Threading.Tasks;
 
 #endregion
 
@@ -18,14 +23,11 @@ public class NetIOAsyncLogger : LoggingProvider
     private const int MAX_LOG_FILES = 10;
     private const int MAX_LOG_SIZE = 10000000;
 
-    private ConcurrentQueue<(MessageType, string)> _logQueue = new ConcurrentQueue<(MessageType, string)>();
-    private AutoResetEvent _queueEvent = new AutoResetEvent(true);
     private bool _stdOut;
     protected string _logFolder;
-    private Thread? _logThread;
-    private bool _logThreadRun = true;
 
-    public bool ExcludeExtraData = false;
+    private readonly Channel<LogEntry> _logChannel;
+    private readonly Task _loggingThread = Task.CompletedTask;
 
     /// <summary>
     /// Create a default logger.
@@ -35,8 +37,17 @@ public class NetIOAsyncLogger : LoggingProvider
     public NetIOAsyncLogger(bool stdOut, string? logFolder = null)
     {
         _stdOut = stdOut;
+        if (_stdOut) TryEnableVirtualTerminalProcessing();
+
         logFolder ??= Path.Join(".", "Logs");
         _logFolder = logFolder;
+
+        _logChannel = Channel.CreateUnbounded<LogEntry>(new UnboundedChannelOptions
+        {
+            SingleReader = true,
+            SingleWriter = false
+        });
+
         try
         {
             // Keep only the last 10 logs.
@@ -60,8 +71,7 @@ public class NetIOAsyncLogger : LoggingProvider
                 }
             }
 
-            _logThread = new Thread(LogThread);
-            _logThread.Start();
+            _loggingThread = Task.Factory.StartNew(ConsumerLoopAsync, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
         catch (Exception)
         {
@@ -74,103 +84,120 @@ public class NetIOAsyncLogger : LoggingProvider
         return $"{_logFolder}{Path.DirectorySeparatorChar}{DateTime.Now:MM-dd-yyyy_HH-mm-ss}";
     }
 
-    private void LogThread()
-    {
-        int logCount = 0;
-        string logFileName = GenerateLogName();
-        string fileName = $"{logFileName}.log";
-        string? fileDirectory = Path.GetDirectoryName(fileName);
-        if (fileDirectory != null) Directory.CreateDirectory(fileDirectory);
-
-        TextWriter currentFileStream = File.CreateText(fileName);
-        var fileSizeCounter = 0;
-        TextWriter? stdOut = _stdOut ? Console.Out : null;
-
-        while (_logThreadRun || _logQueue.Count > 0)
-        {
-            if (_logQueue.TryDequeue(out (MessageType type, string line) logItem))
-            {
-                if (!ExcludeExtraData)
-                {
-                    switch (logItem.type)
-                    {
-                        case MessageType.Error:
-                            stdOut?.Write("\x1b[38;5;0045m[ERR]\x1b[38;5;0015m ");
-                            currentFileStream?.Write("[ERR] ");
-                            break;
-                        case MessageType.Info:
-                            stdOut?.Write("\x1b[38;5;0007m[INF]\x1b[38;5;0015m ");
-                            currentFileStream?.Write("[INF] ");
-                            break;
-                        case MessageType.Trace:
-                            stdOut?.Write("\x1b[38;5;0008m[DBG]\x1b[38;5;0015m ");
-                            currentFileStream?.Write("[DBG] ");
-                            break;
-                        case MessageType.Warning:
-                            stdOut?.Write("\x1b[38;5;0011m[WRN]\x1b[38;5;0015m ");
-                            currentFileStream?.Write("[WRN] ");
-                            break;
-                        default:
-                            stdOut?.WriteAsync("[???] ");
-                            currentFileStream?.Write("[???] ");
-                            break;
-                    }
-                }
-
-                string line = logItem.line;
-                currentFileStream?.WriteLine(line);
-                currentFileStream?.Flush();
-                stdOut?.WriteLine(line);
-                fileSizeCounter += line.Length;
-
-                if (fileSizeCounter <= MAX_LOG_SIZE) continue;
-                logCount++;
-                fileName = $"{logFileName}_{logCount}.log";
-                currentFileStream = File.CreateText(fileName);
-                fileSizeCounter = 0;
-            }
-            else
-            {
-                _queueEvent.WaitOne();
-            }
-        }
-
-        currentFileStream?.Flush();
-        currentFileStream?.Close();
-    }
-
     /// <inheritdoc />
     public override void Log(MessageType type, string source, string message)
     {
-        if (ShouldFilterLine(source))
-        {
-            _queueEvent.Set();
-            return;
-        }
-
-        string threadName = Thread.CurrentThread.Name ?? "Thread";
-        if (threadName == ".NET ThreadPool Worker") threadName = "Worker";
-
-        int sourceLengthMax = 8;
-        int sourcePadding = source.Length < sourceLengthMax ? sourceLengthMax - source.Length : 0;
-        Span<char> padding = stackalloc char[sourcePadding];
-        padding.Fill(' ');
-
-        if (ExcludeExtraData)
-            _logQueue.Enqueue((type, $"[{source}]{padding} {message}"));
-        else
-            _logQueue.Enqueue((type, $"{Engine.TotalTime:00000} [{source}]{padding} [{Thread.CurrentThread.ManagedThreadId:D2}:{threadName}] {message}"));
-
-        _queueEvent.Set();
+        LogSpan(type, source, message);
     }
 
     /// <inheritdoc />
     public override void Dispose()
     {
-        _logThreadRun = false;
-        _queueEvent.Set();
-        _logThread?.Join(TimeSpan.FromMinutes(1));
+        _logChannel.Writer.Complete();
+        _loggingThread.Wait(TimeSpan.FromSeconds(30));
     }
+
+    #region Log Queue Management
+
+    protected override void SubmitLogDataForWriting(MessageType type, char[] buffer, int length)
+    {
+        if (!_logChannel.Writer.TryWrite(new LogEntry(type, buffer, length)))
+            ArrayPool<char>.Shared.Return(buffer);
+    }
+
+    private readonly struct LogEntry
+    {
+        public readonly MessageType Type;
+        public readonly char[] Buffer;
+        public readonly int Length;
+
+        public LogEntry(MessageType type, char[] buffer, int length)
+        {
+            Type = type;
+            Buffer = buffer;
+            Length = length;
+        }
+    }
+
+    private async Task ConsumerLoopAsync()
+    {
+        string logFileNameBase = GenerateLogName();
+        int logCount = 0;
+        int currentFileBytes = 0;
+
+        StreamWriter fileWriter = new StreamWriter($"{logFileNameBase}.log", false, Encoding.UTF8);
+        TextWriter? consoleWriter = _stdOut ? Console.Out : null;
+
+        await foreach (LogEntry entry in _logChannel.Reader.ReadAllAsync())
+        {
+            // 1. File Write (Plain)
+            fileWriter.Write(GetPlainTag(entry.Type));
+            fileWriter.Write(entry.Buffer, 0, entry.Length);
+            fileWriter.WriteLine();
+
+            // 2. Console Write (Colored)
+            if (consoleWriter != null)
+            {
+                consoleWriter.Write(GetColorTag(entry.Type));
+                consoleWriter.Write(entry.Buffer, 0, entry.Length);
+                consoleWriter.WriteLine("\x1b[0m"); // Reset color
+            }
+
+            currentFileBytes += entry.Length + 10;
+            ArrayPool<char>.Shared.Return(entry.Buffer);
+
+            if (currentFileBytes > MAX_LOG_SIZE)
+            {
+                fileWriter.Dispose();
+                logCount++;
+                fileWriter = new StreamWriter($"{logFileNameBase}_{logCount}.log", false, Encoding.UTF8);
+                currentFileBytes = 0;
+            }
+        }
+
+        fileWriter.Dispose();
+    }
+
+    #endregion
+
+    #region Metadata
+
+    private static string GetColorTag(MessageType type) => type switch
+    {
+        MessageType.Error => "\x1b[38;5;0045m[ERR]\x1b[38;5;0015m ",
+        MessageType.Info => "\x1b[38;5;0007m[INF]\x1b[38;5;0015m ",
+        MessageType.Trace => "\x1b[38;5;0008m[DBG]\x1b[38;5;0015m ",
+        MessageType.Warning => "\x1b[38;5;0011m[WRN]\x1b[38;5;0015m ",
+        _ => "[???] "
+    };
+
+    private static string GetPlainTag(MessageType type) => type switch
+    {
+        MessageType.Error => "[ERR] ",
+        MessageType.Info => "[INF] ",
+        MessageType.Trace => "[DBG] ",
+        MessageType.Warning => "[WRN] ",
+        _ => "[???] "
+    };
+
+    #endregion
+
+    #region Win32 ANSI Terminal Enable
+
+    private static void TryEnableVirtualTerminalProcessing()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
+
+        IntPtr handle = Kernel32.GetStdHandle(StdHandle.STD_OUTPUT_HANDLE);
+        if (handle == IntPtr.Zero || handle == new IntPtr(-1)) return;
+        if (!Kernel32.GetConsoleMode(handle, out uint mode)) return;
+
+        const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
+        if ((mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) != 0) return; // Already set
+        Kernel32.SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    }
+
+    #endregion
 }
 
 public class NetUIAsyncLoggerSingleFile : NetIOAsyncLogger
