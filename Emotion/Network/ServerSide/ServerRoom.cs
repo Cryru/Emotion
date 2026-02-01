@@ -16,6 +16,7 @@ public unsafe struct ServerRoomInfo
     public int TickInterval { get => 50; }
     public uint RoomId;
     public int HostId;
+    public uint RoomRandom;
     public int PlayerCount;
     public fixed int PlayerIds[MAX_PLAYERS_IN_ROOM];
 }
@@ -48,6 +49,7 @@ public class ServerRoom
     public List<ServerPlayer> UsersInside = new List<ServerPlayer>();
 
     protected DateTime _createdAt;
+    protected uint _roomRandom;
 
     public ServerRoom(ServerBase server, ServerPlayer? host, uint roomId)
     {
@@ -56,6 +58,7 @@ public class ServerRoom
         Id = roomId;
 
         _createdAt = DateTime.UtcNow;
+        _roomRandom = (uint)(uint.MaxValue * Helpers.GenerateRandomFloat());
     }
 
     public virtual void Dispose()
@@ -101,13 +104,14 @@ public class ServerRoom
 
     }
 
-    public virtual unsafe ServerRoomInfo GetRoomInfo()
+    public unsafe ServerRoomInfo GetRoomInfo()
     {
         ServerRoomInfo info = new ServerRoomInfo()
         {
             RoomId = Id,
             HostId = Host?.Id ?? -1,
-            PlayerCount = UsersInside.Count
+            PlayerCount = UsersInside.Count,
+            RoomRandom = _roomRandom
         };
 
         int usersToReport = Math.Min(UsersInside.Count, ServerRoomInfo.MAX_PLAYERS_IN_ROOM);

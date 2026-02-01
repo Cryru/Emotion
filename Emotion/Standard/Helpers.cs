@@ -6,8 +6,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using Emotion.Core.Systems.Input;
-
 
 #endregion
 
@@ -57,17 +55,11 @@ public static class Helpers
     }
 
     /// <summary>
-    /// Global generator to be used for generating randomness to prevent
-    /// allocation from GenerateRandomNumber
-    /// </summary>
-    private static Random _generator = new Random();
-
-    /// <summary>
     /// Set the seed of the global random generator.
     /// </summary>
     public static void SetRandomGenSeed(int seed)
     {
-        _generator = new Random(seed);
+        LocalRand.SetRandomGenSeed(seed);
     }
 
     /// <summary>
@@ -75,7 +67,7 @@ public static class Helpers
     /// </summary>
     public static void SetRandomGenSeed(string seed)
     {
-        SetRandomGenSeed(seed.GetStableHashCode());
+        LocalRand.SetRandomGenSeed(seed);
     }
 
     /// <summary>
@@ -85,8 +77,7 @@ public static class Helpers
     /// <param name="max">The highest number that can be generated.</param>
     public static int GenerateRandomNumber(int min = 0, int max = 100)
     {
-        //We add one because Random.Next does not include max.
-        return _generator.NextInclusive(min, max);
+        return LocalRand.Int(min, max);
     }
 
     /// <summary>
@@ -94,7 +85,7 @@ public static class Helpers
     /// </summary>
     public static float GenerateRandomFloat()
     {
-        return (float) _generator.NextDouble();
+        return LocalRand.Float();
     }
 
     /// <summary>
@@ -102,9 +93,13 @@ public static class Helpers
     /// </summary>
     public static T? GetRandomArrayItem<T>(T[] array)
     {
-        if (array.Length == 0) return default;
-        var num = GenerateRandomNumber(0, array.Length - 1);
-        return array[num];
+        return LocalRand.ArrayItem(array);
+    }
+
+    /// <inheritdoc cref="GetRandomArrayItem{T}(T[])" />
+    public static T? GetRandomArrayItem<T>(IList<T> array)
+    {
+        return LocalRand.ArrayItem(array);
     }
 
     /// <inheritdoc cref="GetRandomArrayItem{T}(T[])" />
@@ -115,14 +110,6 @@ public static class Helpers
 
         int rand = rng.Next(0, array.Length);
         return array[rand];
-    }
-
-    /// <inheritdoc cref="GetRandomArrayItem{T}(T[])" />
-    public static T? GetRandomArrayItem<T>(IList<T> array)
-    {
-        if (array.Count == 0) return default;
-        var num = GenerateRandomNumber(0, array.Count - 1);
-        return array[num];
     }
 
     /// <inheritdoc cref="GetRandomArrayItem{T}(T[])" />
@@ -184,7 +171,7 @@ public static class Helpers
     /// </summary>
     public static int GenerateRandomNumber(string idForUnique, int min = 0, int max = 100)
     {
-        int num = _generator.NextInclusive(min, max);
+        int num = LocalRand.Int(min, max);
         if (_repeatRandomMap.TryGetValue(idForUnique, out int lastRolled) && num == lastRolled)
         {
             num++;
