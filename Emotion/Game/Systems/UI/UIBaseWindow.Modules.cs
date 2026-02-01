@@ -307,6 +307,9 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         Assert(child.State != UIWindowState.Open, "Adding a child that is already attached to the UI system.");
         if (child.State == UIWindowState.Open) return;
 
+        Assert(child.Parent == null, "Adding a child that is parented to another window?");
+        if (child.Parent != null) return;
+
         // Check for duplicate ids
         if (Engine.Configuration.DebugMode && !string.IsNullOrEmpty(child.Name))
         {

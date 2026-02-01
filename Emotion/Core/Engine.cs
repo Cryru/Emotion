@@ -167,7 +167,7 @@ public static class Engine
     /// Perform light setup - no platform is created. Only the logger and critical systems are initialized.
     /// </summary>
     /// <param name="configurator">Optional engine configuration.</param>
-    private static void LightSetup(Configurator configurator = null)
+    private static void LightSetup(Configurator? configurator = null)
     {
         if (Status >= EngineState.LightSetup) return;
         PerfProfiler.ProfilerEventStart("LightSetup", "Loading");
@@ -270,7 +270,7 @@ public static class Engine
     /// Perform engine setup.
     /// </summary>
     /// <param name="configurator">An optional engine configuration - will be passed to the light setup.</param>
-    private static void Setup(Configurator configurator = null)
+    private static void Setup(Configurator? configurator = null)
     {
         // Call light setup if needed.
         if (Status < EngineState.LightSetup) LightSetup(configurator);
