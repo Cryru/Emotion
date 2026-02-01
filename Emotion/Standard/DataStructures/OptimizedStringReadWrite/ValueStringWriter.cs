@@ -143,7 +143,7 @@ public ref struct ValueStringWriter
 
         int idx = _position;
         Span<char> span = _dataUTF16.Slice(idx);
-        if (number.TryFormat(span, out int written, "00000", CultureInfo.InvariantCulture))
+        if (number.TryFormat(span, out int written, format, CultureInfo.InvariantCulture))
         {
             _position += written;
             BytesWritten += written * 2;
