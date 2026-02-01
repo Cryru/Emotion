@@ -134,6 +134,7 @@ public class NetIOAsyncLogger : LoggingProvider
             fileWriter.Write(GetPlainTag(entry.Type));
             fileWriter.Write(entry.Buffer, 0, entry.Length);
             fileWriter.WriteLine();
+            await fileWriter.FlushAsync();
 
             // 2. Console Write (Colored)
             if (consoleWriter != null)
