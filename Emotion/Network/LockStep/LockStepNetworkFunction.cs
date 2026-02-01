@@ -25,18 +25,18 @@ public class LockStepNetworkFunction<TMsg> : NetworkFunction<TMsg> where TMsg : 
         }
         Engine.CoroutineManagerGameTime.SetGameTimeAdvanceLimit(gameTime);
 
-        if (!NetworkMessage.GetContentAs(in msg, out TMsg msgData)) return false;
-        Engine.CoroutineManagerGameTime.StartCoroutine(ExecuteSyncFunction(msg.GameTime, msgData, this));
+        if (!NetworkMessage.GetContentAs(in msg, out TMsg msgData, out int msgDataHash)) return false;
+        Engine.CoroutineManagerGameTime.StartCoroutine(ExecuteSyncFunction(msg.GameTime, msgData, msgDataHash, this));
         return true;
     }
 
-    private static IEnumerator ExecuteSyncFunction(uint gameTime, TMsg msgData, LockStepNetworkFunction<TMsg> registeredFunc)
+    private static IEnumerator ExecuteSyncFunction(uint gameTime, TMsg msgData, int msgDataHash, LockStepNetworkFunction<TMsg> registeredFunc)
     {
         uint diff = gameTime - (uint)Engine.CoroutineManagerGameTime.Time;
         if (diff > 0)
             yield return diff;
 
-        Engine.Multiplayer.SendMessageToServer(NetworkMessageType.LockStepVerify, new LockStepVerify($"{registeredFunc}"));
+        Engine.Multiplayer.SendMessageToServer(NetworkMessageType.LockStepVerify, new LockStepVerify($"{registeredFunc.FriendlyString} {msgDataHash}"));
 
         registeredFunc._func(msgData);
     }
@@ -81,7 +81,7 @@ public class LockStepNetworkFunction : NetworkFunction
         if (diff > 0)
             yield return diff;
 
-        Engine.Multiplayer.SendMessageToServer(NetworkMessageType.LockStepVerify, new LockStepVerify($"{registeredFunc}"));
+        Engine.Multiplayer.SendMessageToServer(NetworkMessageType.LockStepVerify, new LockStepVerify(registeredFunc.FriendlyString));
 
         registeredFunc._func();
     }

@@ -24,9 +24,10 @@ public unsafe struct NetworkMessage
     public int ContentLength;
     public fixed byte Content[NetworkMessage.MaxContentSize];
 
-    public static bool GetContentAs<TMsg>(in NetworkMessage msg, out TMsg castStruct) where TMsg : unmanaged
+    public static bool GetContentAs<TMsg>(in NetworkMessage msg, out TMsg castStruct, out int contentHash) where TMsg : unmanaged
     {
         castStruct = default;
+        contentHash = 0;
 
         int contentLength = msg.ContentLength;
         if (contentLength > NetworkMessage.MaxContentSize) return false;
@@ -35,6 +36,7 @@ public unsafe struct NetworkMessage
         fixed (byte* msgContentPtr = msg.Content)
         {
             var data = new Span<byte>(msgContentPtr, contentLength);
+            contentHash = data.GetStableHashCode();
             castStruct = MemoryMarshal.Read<TMsg>(data);
             return true;
         }

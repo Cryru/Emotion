@@ -42,7 +42,7 @@ public class NetworkFunction<TThis, TSenderType, TMsg> : NetworkFunctionBase<TTh
 
     public override bool TryInvoke(TThis self, TSenderType sender, in NetworkMessage msg)
     {
-        if (NetworkMessage.GetContentAs(in msg, out TMsg msgData))
+        if (NetworkMessage.GetContentAs(in msg, out TMsg msgData, out _))
         {
             _func(self, sender, msgData);
             return true;

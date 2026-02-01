@@ -13,12 +13,14 @@ public abstract class NetworkFunctionBase
 public class NetworkFunction : NetworkFunctionBase
 {
     public uint MessageType { get; init; }
+    public string FriendlyString { get; init; }
     protected NetworkFunc _func;
 
     public NetworkFunction(uint messageType, NetworkFunc func)
     {
         MessageType = messageType;
         _func = func;
+        FriendlyString = _func.Method.Name.ToString() ?? "Unknown";
     }
 
     public override bool TryInvoke(in NetworkMessage msg)
@@ -32,17 +34,19 @@ public class NetworkFunction<TMsg> : NetworkFunctionBase
     where TMsg : unmanaged
 {
     public uint MessageType { get; init; }
+    public string FriendlyString { get; init; }
     protected NetworkFunc<TMsg> _func;
 
     public NetworkFunction(uint messageType, NetworkFunc<TMsg> func)
     {
         MessageType = messageType;
         _func = func;
+        FriendlyString = _func.Method.Name.ToString() ?? "Unknown";
     }
 
     public override bool TryInvoke(in NetworkMessage msg)
     {
-        if (NetworkMessage.GetContentAs(in msg, out TMsg msgData))
+        if (NetworkMessage.GetContentAs(in msg, out TMsg msgData, out _))
         {
             _func(msgData);
             return true;

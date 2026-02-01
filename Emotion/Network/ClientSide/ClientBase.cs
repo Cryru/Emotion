@@ -90,10 +90,8 @@ public class ClientBase : NetworkAgentBase
 
     #region Room
 
-
     //public Action<ServerRoomInfo>? OnRoomJoined;
     //public Action<ServerRoomInfo, int>? OnPlayerJoinedRoom;
-
 
     #endregion
 
@@ -135,7 +133,7 @@ public class ClientBase : NetworkAgentBase
 
     private static void Msg_RoomJoined(in ServerRoomInfo roomInfo)
     {
-        Engine.Multiplayer.InRoom = roomInfo;
+        Engine.Multiplayer.ClientRoomJoined(in roomInfo);
     }
 
     private static void Msg_UserJoinedRoom(in ServerRoomInfo roomInfo)

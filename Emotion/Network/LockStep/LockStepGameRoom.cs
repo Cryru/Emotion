@@ -126,7 +126,7 @@ public class LockStepGameRoom : TickingServerRoom
         if (_loggers.TryGetValue(player, out LoggingProvider? logger))
         {
             Span<char> hashSpan = hash.GetSpan();
-            logger.ONE_Info(hashSpan.ToString(), hash.GameTime.ToString());
+            logger.ONE_Info(hash.GameTime.ToString(), hashSpan);
         }
 
         // Add player to first hash group in which they are missing.
