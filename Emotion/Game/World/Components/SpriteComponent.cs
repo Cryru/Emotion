@@ -30,7 +30,7 @@ public class SpriteComponent : IRenderableComponent, IGameObjectComponent, IGame
 
     }
 
-    public virtual Coroutine? Init(GameObject obj)
+    public virtual IRoutineWaiter? Init(GameObject obj)
     {
         Object = obj;
         return _entityOwner.GetCurrentLoading();

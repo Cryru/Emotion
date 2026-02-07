@@ -3,6 +3,7 @@
 using Emotion.Network.Base;
 using Emotion.Network.ClientSide;
 using Emotion.Network.LockStep;
+using Emotion.Network.New.Base;
 using Emotion.Network.ServerSide;
 
 namespace Emotion.Network;
@@ -92,6 +93,11 @@ public class MultiplayerSystem
         NetworkFunctionBase? func = ClientBase.NetworkFunctions.GetFunctionFromMessageType(messageType);
         if (func is LockStepNetworkFunction lockStepFunc)
             lockStepFunc.InvokeOffline();
+    }
+
+    public void LockStepVerify(ReadOnlySpan<char> str)
+    {
+        SendMessageToServer(NetworkMessageType.LockStepVerify, new LockStepVerify(str));
     }
 
     #endregion

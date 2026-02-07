@@ -15,7 +15,7 @@ public class SolidColorComponent : IRenderableComponent, IGameObjectComponent
         Color = color;
     }
 
-    public Coroutine? Init(GameObject obj)
+    public IRoutineWaiter? Init(GameObject obj)
     {
         Object = obj;
         return null;

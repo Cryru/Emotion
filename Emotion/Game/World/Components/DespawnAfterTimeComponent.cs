@@ -8,11 +8,11 @@ namespace Emotion.Game.World.Components;
 public class DespawnAfterTimeComponent : IGameObjectComponent, IUpdateableComponent
 {
     private GameObject? _objectAttachedTo;
-    private After _timer;
+    private ValueTimer _timer;
 
     public DespawnAfterTimeComponent(int time)
     {
-        _timer = new After(time);
+        _timer = new ValueTimer(time);
     }
 
     public void Done(GameObject obj)
@@ -20,7 +20,7 @@ public class DespawnAfterTimeComponent : IGameObjectComponent, IUpdateableCompon
 
     }
 
-    public Coroutine? Init(GameObject obj)
+    public IRoutineWaiter? Init(GameObject obj)
     {
         _objectAttachedTo = obj;
         return null;

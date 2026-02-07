@@ -25,7 +25,7 @@ public abstract class PlayerControlledObjectLockStepComponent<T> : IGameObjectCo
         _syncObjectId = syncObjectId;
     }
 
-    public Coroutine? Init(GameObject obj)
+    public IRoutineWaiter? Init(GameObject obj)
     {
         _obj = obj;
         Engine.Multiplayer.OnServerTick += Client_OnServerTick;

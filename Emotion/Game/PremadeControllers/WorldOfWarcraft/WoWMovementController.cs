@@ -230,7 +230,7 @@ public class WoWMovementController : IGameObjectComponent, IUpdateableComponent
         Dettach();
     }
 
-    public Coroutine? Init(GameObject obj)
+    public IRoutineWaiter? Init(GameObject obj)
     {
         SetCharacter(obj);
         Attach();

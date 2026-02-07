@@ -6,8 +6,6 @@ using Emotion.Game.World.Components;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Game.World.TileMap;
 using Emotion.Graphics.Camera;
-using Emotion.Primitives;
-using Emotion.Standard.Serialization.XML;
 
 namespace Emotion.Game.World;
 
@@ -64,7 +62,16 @@ public partial class GameMap : IDisposable
         //    _objectsToLoad.Enqueue(obj);
         //}
 
-        yield return LoadPendingObjectsRoutine();
+        // Load pending objects, and wait for them to fully initialize
+        foreach (GameObject obj in _objectsToLoad)
+        {
+            obj.Init(_gameObjectFriendAdapter);
+        }
+        while (_objectsToLoad.TryDequeue(out GameObject? obj))
+        {
+            while (obj.State != GameObjectState.Initialized)
+                yield return null;
+        }
 
         State = GameMapState.Initialized;
 
@@ -93,32 +100,14 @@ public partial class GameMap : IDisposable
         {
 
         }
-    }
 
-    private ObjectFriendAdapter _gameObjectFriendAdapter;
-
-    private IEnumerator LoadPendingObjectsRoutine()
-    {
-        while (_objectsToLoad.TryDequeue(out GameObject? obj))
+        public void ObjectInitialized(GameObject obj)
         {
-            yield return LoadSingularObjectRoutine(obj);
+            Map._objectStorage.AddObject(obj);
         }
     }
 
-    private IEnumerator LoadSingularObjectRoutine(GameObject obj)
-    {
-        yield return obj.InitRoutine(_gameObjectFriendAdapter);
-
-        //lock (_octTree)
-        //{
-        //    _octTree.Add(obj);
-        //    obj.OnMove += OnObjectMoved;
-        //    obj.OnResize += OnObjectMoved;
-        //    obj.OnRotate += OnObjectMoved;
-        //}
-
-        _objectStorage.AddObject(obj);
-    }
+    private ObjectFriendAdapter _gameObjectFriendAdapter;
 
     public void AddObject(GameObject obj)
     {
@@ -127,7 +116,9 @@ public partial class GameMap : IDisposable
 
     public IEnumerator AddAndInitObject(GameObject obj)
     {
-        yield return LoadSingularObjectRoutine(obj);
+        obj.Init(_gameObjectFriendAdapter);
+        while (obj.State != GameObjectState.Initialized)
+            yield return null;
     }
 
     public GameObject CreateObject()
@@ -160,19 +151,17 @@ public partial class GameMap : IDisposable
 
     #endregion
 
-    private IRoutineWaiter _loadNewObjectsRoutine = Coroutine.CompletedRoutine;
-
     public void Update(float dt)
     {
+        // Load objects waiting to be loaded
+        while (_objectsToLoad.TryDequeue(out GameObject? obj))
+        {
+            obj.Init(_gameObjectFriendAdapter);
+        }
+
         foreach (IMapGrid grid in Grids)
         {
             grid.Update(dt);
-        }
-
-        // Load objects waiting to be loaded
-        if (_loadNewObjectsRoutine.Finished && _objectsToLoad.Count > 0)
-        {
-            _loadNewObjectsRoutine = Engine.Jobs.Add(LoadPendingObjectsRoutine());
         }
 
         foreach (GameObject obj in ForEachObject())

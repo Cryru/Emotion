@@ -33,7 +33,7 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
 
     }
 
-    public virtual Coroutine? Init(GameObject obj)
+    public virtual IRoutineWaiter? Init(GameObject obj)
     {
         Object = obj;
         return _entityOwner.GetCurrentLoading();

@@ -6,7 +6,7 @@ namespace Emotion.Game.World.Components;
 
 public interface IGameObjectComponent
 {
-    public Coroutine? Init(GameObject obj);
+    public IRoutineWaiter? Init(GameObject obj);
 
     public void Done(GameObject obj);
 }

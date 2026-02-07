@@ -19,11 +19,11 @@ public class SkyBoxComponent : MeshComponent
         _cubeTextureOwner.Set(cubeMapTexture);
     }
 
-    public override Coroutine? Init(GameObject obj)
+    public override IRoutineWaiter? Init(GameObject obj)
     {
-        Coroutine? r = base.Init(obj);
-        Coroutine? r2 = _cubeTextureOwner.GetCurrentLoading();
-        return Coroutine.CombineRoutines(r, r2);
+        IRoutineWaiter? r = base.Init(obj);
+        IRoutineWaiter? r2 = _cubeTextureOwner.GetCurrentLoading();
+        return new CombineWait(r, r2);
     }
 
     public override void Done(GameObject obj)

@@ -12,19 +12,24 @@ using System.Runtime.InteropServices;
 
 namespace Emotion.Network.World;
 
-public class SyncObjectCheckComponent : IGameObjectComponent
+public class LockStepObjectComponent : IGameObjectComponent, IRoutineWaiter
 {
     public bool SyncAdded = false;
 
     private GameObject _obj = null!;
 
-    public Coroutine? Init(GameObject obj)
+    public IRoutineWaiter? Init(GameObject obj)
     {
+        bool alreadyInit = obj.State == GameObjectState.Uninitialized;
+        Assert(alreadyInit, "An object can have the lock step component added only before being initialized");
+        if (alreadyInit) return null;
+
         _obj = obj;
+
         Engine.Multiplayer.OnServerTick += Client_OnServerTick;
         Engine.Multiplayer.SendLockStepMessage(new SyncObjectAddedMessageData() { ObjectId = obj.ObjectId });
 
-        return null;
+        return this;
     }
 
     public void Done(GameObject obj)
@@ -53,7 +58,7 @@ public class SyncObjectCheckComponent : IGameObjectComponent
 
         SceneWithMap? currentGame = Engine.SceneManager.Current as SceneWithMap;
         GameObject? obj = currentGame?.Map.GetObjectById(added.ObjectId);
-        SyncObjectCheckComponent? component = obj?.GetComponent<SyncObjectCheckComponent>();
+        LockStepObjectComponent? component = obj?.GetComponent<LockStepObjectComponent>();
         if (component == null) return;
 
         component.SyncAdded = true;
@@ -64,6 +69,16 @@ public class SyncObjectCheckComponent : IGameObjectComponent
         if (self is not LockStepGameRoom lockStepRoom) return;
         lockStepRoom.PlayerReportedHash(sender, hash);
     }
+
+    #region IRoutineWaiter
+
+    public bool Finished => SyncAdded;
+
+    public void Update()
+    {
+    }
+
+    #endregion
 }
 
 

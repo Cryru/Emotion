@@ -11,7 +11,8 @@ namespace Emotion.Game.World;
 public enum GameObjectState
 {
     Uninitialized,
-    Initialized
+    InitializingAsync,
+    Initialized,
 }
 
 public partial class GameObject
@@ -36,6 +37,8 @@ public partial class GameObject
 
     private ObjectFriendAdapter? _adapter;
 
+    private IRoutineWaiter?[]? _initLoadingComponentRoutines;
+
     public GameObject()
     {
 
@@ -50,7 +53,7 @@ public partial class GameObject
     /// <summary>
     /// Called by the map when the object is initialized.
     /// </summary>
-    public IEnumerator InitRoutine(ObjectFriendAdapter adapter)
+    public void Init(ObjectFriendAdapter adapter)
     {
         if (_adapter == null)
         {
@@ -58,18 +61,20 @@ public partial class GameObject
             _adapter = adapter;
         }
 
-        Coroutine?[]? componentRoutines = null;
+        State = GameObjectState.InitializingAsync;
+
+        IRoutineWaiter?[]? componentRoutines = null;
         int componentIdx = 0;
         foreach ((Type _, IGameObjectComponent component) in _components)
         {
             if (component is IGameObjectTransformProvider transformProvider)
                 _transformProvider = transformProvider;
 
-            Coroutine? coroutine = component.Init(this);
-            if (coroutine != null && coroutine != Coroutine.CompletedRoutine)
+            IRoutineWaiter? waiter = component.Init(this);
+            if (waiter != null && waiter != Coroutine.CompletedRoutine)
             {
                 componentRoutines ??= ArrayPool<Coroutine?>.Shared.Rent(_components.Count);
-                componentRoutines[componentIdx] = coroutine;
+                componentRoutines[componentIdx] = waiter;
             }
             componentIdx++;
         }
@@ -77,17 +82,52 @@ public partial class GameObject
         // Wait for all routines
         if (componentRoutines != null)
         {
-            for (int i = 0; i < _components.Count; i++)
-            {
-                Coroutine? routine = componentRoutines[i];
-                if (routine != null)
-                    yield return routine;
-            }
-            ArrayPool<Coroutine?>.Shared.Return(componentRoutines);
+            _initLoadingComponentRoutines = componentRoutines;
+            Engine.CoroutineManagerGameTime.StartCoroutine(CheckInitializedRoutine());
+        }
+        else
+        {
+            InitComplete();
+        }
+    }
+
+    private void InitComplete()
+    {
+        if (_initLoadingComponentRoutines != null)
+        {
+            ArrayPool<IRoutineWaiter?>.Shared.Return(_initLoadingComponentRoutines);
+            _initLoadingComponentRoutines = null;
         }
 
         InternalOnInit();
         State = GameObjectState.Initialized;
+        _adapter!.ObjectInitialized(this);
+    }
+
+    private IEnumerator CheckInitializedRoutine()
+    {
+        bool initReady;
+        while (_initLoadingComponentRoutines != null)
+        {
+            Assert(State == GameObjectState.InitializingAsync);
+
+            initReady = true;
+            foreach (Coroutine? componentRoutine in _initLoadingComponentRoutines)
+            {
+                if (componentRoutine != null && !componentRoutine.Finished)
+                {
+                    initReady = false;
+                }
+            }
+
+            if (initReady)
+            {
+                InitComplete();
+                yield break;
+            }
+
+            yield return null;
+        }
     }
 
     protected virtual void InternalOnInit()
@@ -142,13 +182,14 @@ public partial class GameObject
         return false;
     }
 
-    public TComponent AddComponent<TComponent>(TComponent component, out Coroutine componentInitRoutine) where TComponent : class, IGameObjectComponent
+    public TComponent AddComponent<TComponent>(TComponent component, out IRoutineWaiter componentInitRoutine) where TComponent : class, IGameObjectComponent
     {
         componentInitRoutine = Coroutine.CompletedRoutine;
 
         if (_components.TryAdd(typeof(TComponent), component))
         {
-            if (State == GameObjectState.Initialized) // Object is already initialized, we have to initialize the component now.
+            // If the object is already initialized, we have to initialize the component now.
+            if (State == GameObjectState.Initialized || State == GameObjectState.InitializingAsync)
             {
                 AssertNotNull(_adapter);
                 _adapter.OnObjectComponentAdded<TComponent>(this);
@@ -235,4 +276,9 @@ public partial class GameObject
     }
 
     #endregion
+
+    public override string ToString()
+    {
+        return $"GameObject[{ObjectId}] {Name}";
+    }
 }
