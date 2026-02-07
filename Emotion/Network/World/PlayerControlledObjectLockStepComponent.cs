@@ -94,13 +94,15 @@ public struct MessageObjectPositionUpdate : INetworkMessageStruct, IPlayerContro
 
     public static void ProcessPayload(in MessageObjectPositionUpdate moved)
     {
+        int tickInterval = 50;
         ServerRoomInfo? room = Engine.Multiplayer.InRoom;
-        if (room == null) return;
+        if (room != null)
+            tickInterval = room.Value.TickInterval;
 
         SceneWithMap? currentGame = Engine.SceneManager.Current as SceneWithMap;
         GameObject? obj = currentGame?.Map.GetObjectById(moved.ObjectId);
         if (obj == null) return;
         obj.RotateToFacePoint(moved.NewPosition);
-        obj.SetPosition3D(moved.NewPosition, room.Value.TickInterval);
+        obj.SetPosition3D(moved.NewPosition, tickInterval);
     }
 }
