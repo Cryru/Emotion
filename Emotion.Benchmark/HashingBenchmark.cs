@@ -1,8 +1,9 @@
 ﻿#region Using
 
 using BenchmarkDotNet.Attributes;
-using Emotion.Common;
-using Emotion.IO;
+using Emotion.Core;
+using Emotion.Core.Systems.IO;
+using Emotion.Standard.Extensions;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 

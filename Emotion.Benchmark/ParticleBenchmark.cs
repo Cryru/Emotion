@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 using BenchmarkDotNet.Attributes;
-using Emotion.Common;
-using Emotion.Game.Particles;
-using Emotion.Game.Particles.ParticleShape;
-using Emotion.IO;
+using Emotion.Game.Systems.Particles;
+using Emotion.Game.Systems.Particles.ParticleShape;
 using Emotion.Primitives;
 
 namespace Emotion.Benchmark;

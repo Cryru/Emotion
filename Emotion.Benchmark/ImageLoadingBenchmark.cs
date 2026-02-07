@@ -1,10 +1,10 @@
 ﻿#region Using
 
 using BenchmarkDotNet.Attributes;
-using Emotion.Common;
-using Emotion.IO;
-using Emotion.Standard.Image.ImgBin;
-using Emotion.Standard.Image.PNG;
+using Emotion.Core;
+using Emotion.Core.Systems.IO;
+using Emotion.Standard.Parsers.Image.ImgBin;
+using Emotion.Standard.Parsers.Image.PNG;
 
 #endregion
 

@@ -1,13 +1,13 @@
 ﻿#region Using
 
 using BenchmarkDotNet.Attributes;
-using Emotion.Common;
-using Emotion.Serialization.JSON;
-using Emotion.Serialization.XML;
-using Emotion.Standard.GLTF;
-using Emotion.Standard.XML;
+using Emotion.Core;
+using Emotion.Standard;
+using Emotion.Standard.Parsers.GLTF;
+using Emotion.Standard.Parsers.XML;
+using Emotion.Standard.Serialization.Json;
+using Emotion.Standard.Serialization.XML;
 using Emotion.Testing;
-using Emotion.Utility;
 
 #endregion
 

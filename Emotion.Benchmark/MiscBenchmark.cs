@@ -1,14 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
-using Emotion.Audio;
-using Emotion.Common;
-using Emotion.IO;
-using Emotion.Standard.Audio;
-using Emotion.Utility;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Emotion.Standard;
 
 namespace Emotion.Benchmark;
 

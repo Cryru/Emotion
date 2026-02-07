@@ -1,12 +1,12 @@
 ﻿#region Using
 
 using BenchmarkDotNet.Attributes;
-using Emotion.Common;
-using Emotion.Common.Threading;
+using Emotion.Core;
+using Emotion.Core.Systems.IO;
+using Emotion.Graphics.Assets;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
-using Emotion.IO;
-using Emotion.Utility;
+using Emotion.Standard.Memory;
 
 #endregion
 
@@ -73,26 +73,5 @@ public class Benchmarks
         }
 
         _atlas.RemapBatchUVs(_atlasMemory, (uint) _atlasMemorySize, (uint) VertexData.SizeInBytes, 12);
-    }
-
-    private int DoWork(string a, string b, string c)
-    {
-        a = a + b + c;
-        return a.Length;
-    }
-
-    [Benchmark]
-    public void ThreadInvocationScheduleOld()
-    {
-        var resp = 0;
-        GLThread.ExecuteGLThread(() => { resp = DoWork("adsad", "gegwe", "hhrhr"); });
-        if (resp != 15) throw new Exception("whaa");
-    }
-
-    [Benchmark]
-    public void ThreadInvocationScheduleNew()
-    {
-        int resp = GLThread.ExecuteGLThread(DoWork, "adsad", "gegwe", "hhrhr");
-        if (resp != 15) throw new Exception("whaa");
     }
 }
