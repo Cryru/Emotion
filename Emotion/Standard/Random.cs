@@ -73,6 +73,26 @@ public static class LocalRand
         int rand = Int(0, array.Count- 1);
         return array[rand];
     }
+
+    public static T? ListItemAndRemove<T>(IList<T> list, bool keepOrder = false)
+    {
+        if (list.Count == 0) return default;
+
+        int rand = Int(0, list.Count - 1);
+        T item = list[rand];
+
+        if (keepOrder)
+        {
+            list.RemoveAt(rand);
+        }
+        else
+        {
+            (list[^1], list[rand]) = (list[rand], list[^1]);
+            list.RemoveAt(list.Count - 1);
+        }
+        
+        return item;
+    }
 }
 
 public static class NetworkRand
