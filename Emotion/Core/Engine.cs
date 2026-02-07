@@ -123,16 +123,19 @@ public static class Engine
 
     /// <summary>
     /// The time you should assume passed between ticks (in milliseconds), for smoothest operation.
-    /// Depends on the Configuration's TPS, and should always be constant.
+    /// Depends on the Configuration's TPS, and will be a constant as the engine runs at a fixed step.
     /// </summary>
     public static float DeltaTime { get; set; }
 
     /// <summary>
-    /// The current game time. The meaning of this is a bit dependant on the game, but is
-    /// the time within the CoroutineManagerGameTime.
+    /// The current game time, is also the time within the CoroutineManagerGameTime.
+    /// This is the simulation time - for instance if the game is paused this should be paused too.
     /// </summary>
     public static float CurrentGameTime => CoroutineManagerGameTime.Time;
 
+    /// <summary>
+    /// The current actual time.
+    /// </summary>
     public static float CurrentRealTime => _realTimeTracker.ElapsedMilliseconds;
     private static Stopwatch _realTimeTracker = new Stopwatch();
 
@@ -153,14 +156,24 @@ public static class Engine
 
     static Engine()
     {
+        AssetLoader = null!;
+        Host = null!;
+        Renderer = null!;
+        Audio = null!;
+        SceneManager = null!;
+        Jobs = null!;
+        UI = null!;
+        Multiplayer = null!;
+
         // This is the assembly which called this function. Should be the game.
-        Helpers.AddAssociatedAssembly(Assembly.GetCallingAssembly());
+        AddAssociatedAssembly(Assembly.GetCallingAssembly());
 
-        // Is the engine.
-        Helpers.AddAssociatedAssembly(Assembly.GetExecutingAssembly());
+        // The Emotion assembly
+        AddAssociatedAssembly(typeof(Engine).Assembly);
 
-        // Is game or debugger. Some platforms don't provide this.
-        Helpers.AddAssociatedAssembly(Assembly.GetEntryAssembly());
+        // The assembly which started the program, could be a game or debugger, or platform.
+        // Some platforms don't provide this.
+        AddAssociatedAssembly(Assembly.GetEntryAssembly());
     }
 
     /// <summary>
@@ -635,4 +648,21 @@ public static class Engine
     {
         _logExceptions = !suppress;
     }
+
+    #region Associated Assembly
+
+    /// <summary>
+    /// The assemblies of the program running (game, engine, main method containing assembly etc).
+    /// Used to find embedded resources from, types referenced in serialization etc.
+    /// </summary>
+    public static Assembly[] AssociatedAssemblies = Array.Empty<Assembly>();
+
+    public static void AddAssociatedAssembly(Assembly? ass)
+    {
+        if (ass == null) return;
+        if (AssociatedAssemblies.IndexOf(ass) != -1) return;
+        AssociatedAssemblies = AssociatedAssemblies.AddToArray(ass);
+    }
+
+    #endregion
 }

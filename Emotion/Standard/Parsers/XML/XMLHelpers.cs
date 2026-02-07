@@ -123,9 +123,9 @@ public static class XMLHelpers
         // However we can assume that it exists and it is assignable to the type the user specified, so we
         // can find it if we look for it.
         if (!typeName.Contains('.'))
-            for (var i = 0; i < Helpers.AssociatedAssemblies.Length; i++)
+            for (var i = 0; i < Engine.AssociatedAssemblies.Length; i++)
             {
-                Assembly? assembly = Helpers.AssociatedAssemblies[i];
+                Assembly? assembly = Engine.AssociatedAssemblies[i];
                 Type[] allTypes = assembly.GetTypes();
                 for (var j = 0; j < allTypes.Length; j++)
                 {
@@ -142,9 +142,9 @@ public static class XMLHelpers
 
     private static Type? GetTypeByNameFactory(string typeName)
     {
-        for (var i = 0; i < Helpers.AssociatedAssemblies.Length; i++)
+        for (var i = 0; i < Engine.AssociatedAssemblies.Length; i++)
         {
-            Assembly? assembly = Helpers.AssociatedAssemblies[i];
+            Assembly? assembly = Engine.AssociatedAssemblies[i];
             Type? type = assembly.GetType(typeName, false, true);
             if (type == null) continue;
             return type;
@@ -159,7 +159,7 @@ public static class XMLHelpers
 
             // If we found the type in a domain assembly, add it to the
             // associated assemblies list as it seems the user wants to use stuff from it.
-            Helpers.AssociatedAssemblies.AddToArray(assembly);
+            Engine.AssociatedAssemblies.AddToArray(assembly);
             return type;
         }
 

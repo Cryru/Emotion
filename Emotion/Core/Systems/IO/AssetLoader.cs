@@ -48,7 +48,7 @@ public partial class AssetLoader
     internal static AssetLoader CreateDefaultAssetLoader()
     {
         var loader = new AssetLoader();
-        foreach (Assembly ass in Helpers.AssociatedAssemblies)
+        foreach (Assembly ass in Engine.AssociatedAssemblies)
         {
             loader.MountEmbeddedAssets(ass, "Assets", string.Empty);
         }

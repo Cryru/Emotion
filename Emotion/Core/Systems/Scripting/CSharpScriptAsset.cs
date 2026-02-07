@@ -43,8 +43,8 @@ public sealed class CSharpScriptAsset : Asset
         if (_scriptingEnvironment == null)
         {
             var options = ScriptOptions.Default;
-            options = options.AddReferences(Helpers.AssociatedAssemblies);
-            for (var i = 0; i < Helpers.AssociatedAssemblies.Length; i++)
+            options = options.AddReferences(Engine.AssociatedAssemblies);
+            for (var i = 0; i < Engine.AssociatedAssemblies.Length; i++)
             {
                 // ONE
                 //Assembly? assembly = Helpers.AssociatedAssemblies[i];

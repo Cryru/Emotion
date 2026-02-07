@@ -17,19 +17,6 @@ namespace Emotion.Standard;
 public static class Helpers
 {
     /// <summary>
-    /// The assemblies of the program running (game, engine, main method containing assembly etc).
-    /// Used to find embedded resources from, types referenced in serialization etc.
-    /// </summary>
-    public static Assembly[] AssociatedAssemblies = Array.Empty<Assembly>();
-
-    public static void AddAssociatedAssembly(Assembly? ass)
-    {
-        if (ass == null) return;
-        if (AssociatedAssemblies.IndexOf(ass) != -1) return;
-        AssociatedAssemblies = AssociatedAssemblies.AddToArray(ass);
-    }
-
-    /// <summary>
     /// Regex for capturing Windows line endings.
     /// </summary>
     private static readonly Regex _newlineRegex = new Regex("\r\n", RegexOptions.Compiled);
@@ -43,20 +30,18 @@ public static class Helpers
     }
 
     /// <summary>
-    /// Safely parses the text to an int. If the parse fails returns a default value.
+    /// Try to parse a string to an int, if invalid the default value is returned instead.
     /// </summary>
-    /// <param name="text">The text to parse to an int.</param>
-    /// <param name="invalidValue">The value to return if the parsing fails. 0 by default.</param>
-    /// <returns>The text parsed as an int, or a default value.</returns>
-    public static int StringToInt(string text, int invalidValue = 0)
+    public static int TryParseIntOrDefault(string text, int defaultVal = 0)
     {
         bool parsed = int.TryParse(text, out int result);
-        return parsed ? result : invalidValue;
+        return parsed ? result : defaultVal;
     }
 
     /// <summary>
     /// Set the seed of the global random generator.
     /// </summary>
+    [Obsolete("Use LocalRand.SetRandomGenSeed")]
     public static void SetRandomGenSeed(int seed)
     {
         LocalRand.SetRandomGenSeed(seed);
@@ -65,6 +50,7 @@ public static class Helpers
     /// <summary>
     /// Set the seed of the global random generator.
     /// </summary>
+    [Obsolete("Use LocalRand.SetRandomGenSeed")]
     public static void SetRandomGenSeed(string seed)
     {
         LocalRand.SetRandomGenSeed(seed);
@@ -75,6 +61,7 @@ public static class Helpers
     /// </summary>
     /// <param name="min">The lowest number that can be generated.</param>
     /// <param name="max">The highest number that can be generated.</param>
+    [Obsolete("Use LocalRand.Int or NetworkRand.Int")]
     public static int GenerateRandomNumber(int min = 0, int max = 100)
     {
         return LocalRand.Int(min, max);
@@ -83,6 +70,7 @@ public static class Helpers
     /// <summary>
     /// Returns a randomly generated float between 0 and 1
     /// </summary>
+    [Obsolete("Use LocalRand.Float or NetworkRand.Float")]
     public static float GenerateRandomFloat()
     {
         return LocalRand.Float();
@@ -91,18 +79,21 @@ public static class Helpers
     /// <summary>
     /// Returns a random item from the array.
     /// </summary>
+    [Obsolete("Use LocalRand.ArrayItem or NetworkRand.ArrayItem")]
     public static T? GetRandomArrayItem<T>(T[] array)
     {
         return LocalRand.ArrayItem(array);
     }
 
     /// <inheritdoc cref="GetRandomArrayItem{T}(T[])" />
+    [Obsolete("Use LocalRand.ArrayItem or NetworkRand.ArrayItem")]
     public static T? GetRandomArrayItem<T>(IList<T> array)
     {
         return LocalRand.ArrayItem(array);
     }
 
     /// <inheritdoc cref="GetRandomArrayItem{T}(T[])" />
+    [Obsolete("Use LocalRand.ArrayItem or NetworkRand.ArrayItem")]
 
     public static T? GetRandomArrayItem<T>(T[] array, Random rng)
     {
@@ -113,14 +104,15 @@ public static class Helpers
     }
 
     /// <inheritdoc cref="GetRandomArrayItem{T}(T[])" />
+    [Obsolete("Use LocalRand.ArrayItem or NetworkRand.ArrayItem")]
 
-    public static T? GetRandomArrayItem<T>(IList<T> array, Random rng, bool eject = false)
+    public static T? GetRandomArrayItem<T>(IList<T> list, Random rng, bool eject = false)
     {
-        if (array.Count == 0) return default;
+        if (list.Count == 0) return default;
 
-        int rand = rng.Next(0, array.Count);
-        T item = array[rand];
-        if (eject) array.RemoveAt(rand);
+        int rand = rng.Next(0, list.Count);
+        T item = list[rand];
+        if (eject) list.RemoveAt(rand);
         return item;
     }
 
@@ -190,13 +182,9 @@ public static class Helpers
     /// <param name="compare">The bytes to compare.</param>
     public static bool BytesEqual(ReadOnlySpan<byte> bytes, ReadOnlySpan<byte> compare)
     {
-        // ReSharper disable once LoopCanBeConvertedToQuery
-        for (var i = 0; i < compare.Length; i++)
-        {
-            if (compare[i] != bytes[i]) return false;
-        }
-
-        return true;
+        if (compare.Length > bytes.Length) return false;
+        ReadOnlySpan<byte> srcSliced = bytes.Slice(0, compare.Length);
+        return srcSliced.SequenceEqual(compare);
     }
 
     private static int _oneKb = 1000;
@@ -268,9 +256,26 @@ public static class Helpers
         return sum / arr.Length;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool AreObjectsEqual<T>(T a, T b)
     {
         return EqualityComparer<T>.Default.Equals(a, b);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T? GetIndexOrDefault<T>(this IList<T> list, int idx)
+        where T : class
+    {
+        if (idx < 0 || idx >= list.Count) return null;
+        return list[idx];
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T? GetIndexOrDefault<T>(this T[] arr, int idx)
+        where T : class
+    {
+        if (idx < 0 || idx >= arr.Length) return null;
+        return arr[idx];
     }
 
     /// <summary>
@@ -292,23 +297,21 @@ public static class Helpers
 
     public static string GetRandomReadableString(int length)
     {
-        Random randomness = new Random();
-        StringBuilder builder = new StringBuilder();
+        Span<char> span = stackalloc char[length];
         for (int i = 0; i < length; i++)
         {
-            char ch = (char)randomness.NextInclusive(97, 122);
-            if (randomness.NextInclusive(0, 1) == 0)
+            char ch = (char)LocalRand.Int(97, 122);
+            if (LocalRand.Int(0, 1) == 0)
                 ch = char.ToUpperInvariant(ch);
-            builder.Append(ch);
+            span[i] = ch;
         }
-        return builder.ToString();
+        return span.ToString();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T[] SafeForEachArray<T>(T[]? arr)
     {
-        if (arr == null) return Array.Empty<T>();
-        return arr;
+        return arr ?? Array.Empty<T>();
     }
 
     public static readonly UTF8Encoding UTF8Encoder = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);

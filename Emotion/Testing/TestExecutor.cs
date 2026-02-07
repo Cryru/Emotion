@@ -120,7 +120,7 @@ public static class TestExecutor
         // Find all test functions in test classes.
         var testFunctions = new List<MethodInfo>();
         var testFunctionsDebugOnly = new List<MethodInfo>();
-        foreach (Assembly ass in Helpers.AssociatedAssemblies)
+        foreach (Assembly ass in Engine.AssociatedAssemblies)
         {
             IEnumerable<Type> classTypes = ass.GetTypes().Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0);
             foreach (Type classType in classTypes)
@@ -145,7 +145,7 @@ public static class TestExecutor
         var testScenes = new List<Type>();
         var testScenesWithMethods = new Dictionary<Type, List<MethodInfo>>();
         var testScenesWithMethodsDebugThis = new Dictionary<Type, List<MethodInfo>>();
-        foreach (Assembly ass in Helpers.AssociatedAssemblies)
+        foreach (Assembly ass in Engine.AssociatedAssemblies)
         {
             IEnumerable<Type> sceneTypes = ass.GetTypes().Where(x => x.IsSubclassOf(typeof(TestingScene)));
             foreach (Type sceneType in sceneTypes)
