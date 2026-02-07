@@ -11,6 +11,7 @@ namespace Emotion.Game.World;
 public enum GameObjectState
 {
     Uninitialized,
+    Initializing,
     InitializingAsync,
     Initialized,
 }
@@ -61,7 +62,7 @@ public partial class GameObject
             _adapter = adapter;
         }
 
-        State = GameObjectState.InitializingAsync;
+        State = GameObjectState.Initializing;
 
         IRoutineWaiter?[]? componentRoutines = null;
         int componentIdx = 0;
@@ -73,7 +74,7 @@ public partial class GameObject
             IRoutineWaiter? waiter = component.Init(this);
             if (waiter != null && waiter != Coroutine.CompletedRoutine)
             {
-                componentRoutines ??= ArrayPool<Coroutine?>.Shared.Rent(_components.Count);
+                componentRoutines ??= ArrayPool<IRoutineWaiter?>.Shared.Rent(_components.Count);
                 componentRoutines[componentIdx] = waiter;
             }
             componentIdx++;
@@ -82,6 +83,7 @@ public partial class GameObject
         // Wait for all routines
         if (componentRoutines != null)
         {
+            State = GameObjectState.InitializingAsync;
             _initLoadingComponentRoutines = componentRoutines;
             Engine.CoroutineManagerGameTime.StartCoroutine(CheckInitializedRoutine());
         }
@@ -189,7 +191,7 @@ public partial class GameObject
         if (_components.TryAdd(typeof(TComponent), component))
         {
             // If the object is already initialized, we have to initialize the component now.
-            if (State == GameObjectState.Initialized || State == GameObjectState.InitializingAsync)
+            if (State != GameObjectState.Uninitialized)
             {
                 AssertNotNull(_adapter);
                 _adapter.OnObjectComponentAdded<TComponent>(this);

@@ -20,9 +20,9 @@ public class LockStepObjectComponent : IGameObjectComponent, IRoutineWaiter
 
     public IRoutineWaiter? Init(GameObject obj)
     {
-        bool alreadyInit = obj.State == GameObjectState.Uninitialized;
-        Assert(alreadyInit, "An object can have the lock step component added only before being initialized");
-        if (alreadyInit) return null;
+        bool initializing = obj.State == GameObjectState.Initializing; // As opposed to Initialized or InitializingAsync
+        Assert(initializing, "An object can have the lock step component added only before being initialized");
+        if (initializing) return null;
 
         _obj = obj;
 
