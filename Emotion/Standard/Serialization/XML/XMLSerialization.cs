@@ -99,6 +99,11 @@ public static class XMLSerialization
 
     public static int To<T>(in T obj, XMLConfig config, ref ValueStringWriter writer)
     {
+        return To(obj?.GetType() ?? typeof(T), obj, config, ref writer);
+    }
+
+    public static int To<T>(Type typ, in T obj, XMLConfig config, ref ValueStringWriter writer)
+    {
         if (config.UseXMLHeader)
         {
             writer.WriteString(XMLHeader);
@@ -107,7 +112,7 @@ public static class XMLSerialization
                 writer.WriteChar('\n');
         }
 
-        ReflectorTypeHandlerBase<T>? typeHandler = ReflectorEngine.GetTypeHandler<T>();
+        IGenericReflectorTypeHandler? typeHandler = ReflectorEngine.GetTypeHandler(typ);
         if (typeHandler == null) return 0;
 
         writer.SetIndentSize(config.Indentation);
