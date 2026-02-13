@@ -11,9 +11,10 @@ public class CoroutineManagerGameTime : CoroutineManager
     public float GameTimeAdvanceLimit { get; protected set; } = -1;
     public float GameTimeBehindLimitSpeedUp = 100;
 
+    private float _accumulatedTime;
+
     public CoroutineManagerGameTime() : base(false)
     {
-
     }
 
     public void SetGameTimeAdvanceLimit(float newLimit, bool force = false)
@@ -25,15 +26,13 @@ public class CoroutineManagerGameTime : CoroutineManager
 
     public override void Update(float dt)
     {
+        DeltaTime = dt;
+
         if (GameTimeAdvanceLimit == -1)
         {
-            DeltaTime = dt;
             base.Update(dt);
             return;
         }
-
-        // We are suffering the consequences of having time as a float in the past :/
-        Assert(Time == MathF.Floor(Time));
 
         bool tooMuchBehind = GameTimeAdvanceLimit - Time > GameTimeBehindLimitSpeedUp;
         int loops = tooMuchBehind ? 2 : 1;
@@ -42,9 +41,14 @@ public class CoroutineManagerGameTime : CoroutineManager
         {
             float newTime = Math.Min(Time + dt, GameTimeAdvanceLimit);
             float diff = newTime - Time;
-            float deltaAllowed = MathF.Round(diff); // hmm?
-            DeltaTime = deltaAllowed;
-            base.Update(deltaAllowed);
+            _accumulatedTime += diff;
+        }
+
+        // We don't want to change the timestep size even when limited.
+        while (_accumulatedTime >= dt)
+        {
+            base.Update(dt);
+            _accumulatedTime -= dt;
         }
     }
 
