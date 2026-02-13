@@ -1,7 +1,9 @@
 ﻿#nullable enable
 
 using Emotion.Network.Base;
+using Emotion.Network.New.Base;
 using Emotion.Network.ServerSide;
+using Emotion.Network.World;
 using System.Runtime.InteropServices;
 
 namespace Emotion.Network.LockStep;
@@ -203,6 +205,17 @@ public class LockStepGameRoom : TickingServerRoom
     }
 
     #endregion
+
+    public static void RegisterNetFunctions()
+    {
+        ServerRoom.NetworkFunctions.Register<NetworkMessageType, LockStepVerify>(NetworkMessageType.LockStepVerify, OnTimeSyncHash);
+    }
+
+    private static void OnTimeSyncHash(ServerRoom self, ServerPlayer sender, in LockStepVerify hash)
+    {
+        if (self is not LockStepGameRoom lockStepRoom) return;
+        lockStepRoom.PlayerReportedHash(sender, hash);
+    }
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]

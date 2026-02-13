@@ -25,7 +25,7 @@ public enum NetworkMessageType : uint
 
     // LockStep (Client -> Server)
     LockStepVerify,        // <int> hash
-    SyncObjectAdded,     // <int> objectId
+    LockStepObjectAdded,   // <int> objectId
 
     // Gameplay (Server -> Client)
     ServerTick,

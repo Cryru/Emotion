@@ -45,7 +45,7 @@ public abstract class PlayerControlledObjectLockStepComponent<T> : IGameObjectCo
             return;
 
         // Object not added yet?
-        if (_obj == null || _obj.ObjectId == 0)
+        if (_obj?.State != GameObjectState.Initialized)
             return;
 
         Engine.Multiplayer.SendLockStepMessage(GetPayload());
