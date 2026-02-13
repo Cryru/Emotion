@@ -126,15 +126,8 @@ public partial class GameMap
     public GameObject? GetObjectById(uint id)
     {
         Assert(id > 0);
-
-        // todo;
-        foreach (GameObject obj in ForEachObject())
-        {
-            if (obj.ObjectId == id)
-                return obj;
-        }
-
-        return null;
+        _idToGameObject.TryGetValue(id, out GameObject? obj);
+        return obj;
     }
 
     //public IEnumerable<T> ForEachObject<T>(bool includeNonLoaded = false) where T : GameObject

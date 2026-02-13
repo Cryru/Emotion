@@ -40,6 +40,8 @@ public partial class GameObject
 
     private IRoutineWaiter?[]? _initLoadingComponentRoutines;
 
+    private bool _gameInitCalled;
+
     public GameObject()
     {
 
@@ -47,7 +49,7 @@ public partial class GameObject
 
     public GameObject(ObjectFriendAdapter adapter)
     {
-        ObjectId = adapter.GetNextObjectId();
+        ObjectId = adapter.GetNextObjectId(this);
         _adapter = adapter;
     }
 
@@ -58,7 +60,7 @@ public partial class GameObject
     {
         if (_adapter == null)
         {
-            ObjectId = adapter.GetNextObjectId();
+            ObjectId = adapter.GetNextObjectId(this);
             _adapter = adapter;
         }
 
@@ -85,7 +87,7 @@ public partial class GameObject
         {
             State = GameObjectState.InitializingAsync;
             _initLoadingComponentRoutines = componentRoutines;
-            Engine.CoroutineManagerGameTime.StartCoroutine(CheckInitializedRoutine());
+            Engine.CoroutineManager.StartCoroutine(CheckInitializedRoutine());
         }
         else
         {
@@ -95,6 +97,8 @@ public partial class GameObject
 
     private void InitComplete()
     {
+        AssertNotNull(_adapter);
+
         if (_initLoadingComponentRoutines != null)
         {
             ArrayPool<IRoutineWaiter?>.Shared.Return(_initLoadingComponentRoutines);
@@ -103,7 +107,7 @@ public partial class GameObject
 
         InternalOnInit();
         State = GameObjectState.Initialized;
-        _adapter!.ObjectInitialized(this);
+        _adapter.AddObjectToWorld(this);
     }
 
     private IEnumerator CheckInitializedRoutine()
@@ -114,12 +118,10 @@ public partial class GameObject
             Assert(State == GameObjectState.InitializingAsync);
 
             initReady = true;
-            foreach (Coroutine? componentRoutine in _initLoadingComponentRoutines)
+            foreach (IRoutineWaiter? initializeWait in _initLoadingComponentRoutines)
             {
-                if (componentRoutine != null && !componentRoutine.Finished)
-                {
+                if (initializeWait != null && !initializeWait.Finished)
                     initReady = false;
-                }
             }
 
             if (initReady)
@@ -152,6 +154,15 @@ public partial class GameObject
 
     public virtual void Update(float dt)
     {
+        if (!_gameInitCalled)
+        {
+            foreach ((Type _, IGameObjectComponent component) in _components)
+            {
+                component.GameInit();
+            }
+            _gameInitCalled = true;
+        }
+
         UpdateTransformInterpolations(dt);
     }
 

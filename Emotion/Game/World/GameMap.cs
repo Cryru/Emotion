@@ -80,15 +80,22 @@ public partial class GameMap : IDisposable
 
     #region Object Management
 
+    private Dictionary<uint, GameObject> _idToGameObject = new(); 
+
     public class ObjectFriendAdapter(GameMap map)
     {
         public GameMap Map = map;
 
         private uint _nextObjectId = 1;
 
-        public uint GetNextObjectId()
+        public uint GetNextObjectId(GameObject obj)
         {
-            return _nextObjectId++;
+            uint id = _nextObjectId;
+            _nextObjectId++;
+
+            Map._idToGameObject.Add(id, obj);
+
+            return id;
         }
 
         public void OnObjectComponentAdded<TComponent>(GameObject obj) where TComponent : class, IGameObjectComponent
@@ -101,7 +108,7 @@ public partial class GameMap : IDisposable
 
         }
 
-        public void ObjectInitialized(GameObject obj)
+        public void AddObjectToWorld(GameObject obj)
         {
             Map._objectStorage.AddObject(obj);
         }
@@ -114,12 +121,12 @@ public partial class GameMap : IDisposable
         _objectsToLoad.Enqueue(obj);
     }
 
-    public IEnumerator AddAndInitObject(GameObject obj)
-    {
-        obj.Init(_gameObjectFriendAdapter);
-        while (obj.State != GameObjectState.Initialized)
-            yield return null;
-    }
+    //public IEnumerator AddAndInitObject(GameObject obj)
+    //{
+    //    obj.Init(_gameObjectFriendAdapter);
+    //    while (obj.State != GameObjectState.Initialized)
+    //        yield return null;
+    //}
 
     public GameObject CreateObject()
     {
@@ -138,6 +145,7 @@ public partial class GameMap : IDisposable
         //    _octTree.Remove(obj);
         //}
 
+        _idToGameObject.Remove(obj.ObjectId);
         _objectStorage.RemoveObject(obj); // Will call obj.Done()
     }
 

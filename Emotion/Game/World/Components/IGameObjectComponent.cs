@@ -8,5 +8,13 @@ public interface IGameObjectComponent
 {
     public IRoutineWaiter? Init(GameObject obj);
 
+    /// <summary>
+    /// Called on the first update
+    /// </summary>
+    public virtual void GameInit()
+    {
+
+    }
+
     public void Done(GameObject obj);
 }
