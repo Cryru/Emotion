@@ -19,15 +19,7 @@ public class SceneManager
     #region Properties
 
     /// <summary>
-    /// Whether currently loading.
-    /// </summary>
-    public bool Loading
-    {
-        get => Current == LoadingScreen;
-    }
-
-    /// <summary>
-    /// The current scene. If a scene is loading this is the loading scene.
+    /// The current scene.
     /// </summary>
     public Scene Current { get; private set; }
 
@@ -35,11 +27,6 @@ public class SceneManager
     /// The loading scene. This scene is active while another loads/unloads.
     /// </summary>
     public Scene LoadingScreen { get; private set; }
-
-    /// <summary>
-    /// When the scene changes.
-    /// </summary>
-    public event Action? OnSceneChanged;
 
     #endregion
 
@@ -60,7 +47,10 @@ public class SceneManager
         if (EngineEditor.IsOpen)
             dt = 0; // todo: do this via game time stop
 
-        Current.UpdateScene(dt);
+        if (Current.Status == SceneStatus.Active)
+            Current.UpdateScene(dt);
+        else
+            LoadingScreen.UpdateScene(dt);
     }
 
     /// <summary>
@@ -69,7 +59,10 @@ public class SceneManager
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void Draw(Renderer composer)
     {
-        Current.RenderScene(composer);
+        if (Current.Status == SceneStatus.Active)
+            Current.RenderScene(composer);
+        else
+            LoadingScreen.RenderScene(composer);
     }
 
     #endregion
@@ -89,45 +82,32 @@ public class SceneManager
     {
         Engine.Log.Info($"Loading scene [{scene}].", MessageSource.SceneManager);
 
-        // Set the loading screen as the current scene.
-        // This will unload the previous scene as well.
-
+        // Change the current scene
         // We want to do this in a coroutine so that the scene swap
         // happens in between updates (on the main thread) and to avoid async troubles.
-        yield return Engine.CoroutineManager.StartCoroutine(SceneSwapSynchronized(LoadingScreen));
+        Scene oldCurrent = Current;
+        yield return Engine.CoroutineManager.StartCoroutine(SceneSwapSynchronized(scene));
 
+        // Start loading the new scene
         yield return scene.LoadSceneRoutineAsync();
-
-        // We're in a loading screen - might as well wait for all assets to load :P
-        yield return Engine.AssetLoader.WaitForAllAssetsToLoadRoutine();
-
-        // Swap current to new scene.
-        Engine.CoroutineManager.StartCoroutine(SceneSwapSynchronized(scene));
+        yield return scene.Attach();
 
         Engine.Log.Info($"Loaded scene [{scene}].", MessageSource.SceneManager);
+
+        // Start job of cleaning up old scene
+        // We do this after the loading of the new one to allow reference counts to transfer ownership.
+        Engine.Jobs.Add(oldCurrent.UnloadSceneRoutineAsync());
     }
 
     // Ensure the scene swap happens safely while the scene isn't executing.
     private IEnumerator SceneSwapSynchronized(Scene scene)
     {
-        // yield once to avoid eager routines running us another thread
+        // yield once to avoid eager routines running us on another thread
         yield return null;
         Assert(GLThread.IsGLThread());
 
-        Scene oldScene = Current;
-        if (oldScene is SceneWithMap oldSceneWithMap)
-            oldSceneWithMap.SceneUI.Close();
+        Current.Detach();
         Current = scene;
-        if (scene is SceneWithMap newSceneWithMap)
-            Engine.UI.AddChild(newSceneWithMap.SceneUI);
-
-        OnSceneChanged?.Invoke();
-
-        // Start job of cleaning up old scene.
-        if (oldScene != LoadingScreen)
-            Engine.Jobs.Add(oldScene.UnloadSceneRoutineAsync());
-
-        yield break;
     }
 
     private IEnumerator InternalLoadLoadingScreenRoutineAsync(Scene scene)
@@ -140,10 +120,6 @@ public class SceneManager
     {
         Scene loadingLoadingScreen = LoadingScreen;
         LoadingScreen = scene;
-
-        if (Current == loadingLoadingScreen)
-            Current = scene;
-
         Engine.Jobs.Add(loadingLoadingScreen.UnloadSceneRoutineAsync());
 
         yield break;

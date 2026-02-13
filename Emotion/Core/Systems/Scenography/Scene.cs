@@ -2,7 +2,7 @@
 
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
-using Emotion.Game.Systems.UI;
+using Emotion.Core.Utility.Threading;
 
 namespace Emotion.Core.Systems.Scenography;
 
@@ -11,6 +11,7 @@ public enum SceneStatus
     None,
     Loading,
     Loaded,
+    Active,
     Disposed
 }
 
@@ -18,6 +19,17 @@ public enum SceneStatus
 public abstract class Scene
 {
     public SceneStatus Status { get; protected set; } = SceneStatus.None;
+
+    public virtual IEnumerator Attach()
+    {
+        Status = SceneStatus.Active;
+        yield break;
+    }
+
+    public virtual void Detach()
+    {
+        Status = SceneStatus.Loaded;
+    }
 
     public virtual IEnumerator LoadSceneRoutineAsync()
     {
@@ -79,24 +91,38 @@ public abstract class SceneWithMap : Scene
         }, this);
     }
 
+    public override IEnumerator Attach()
+    {
+        yield return GLThread.ExecuteOnGLThreadAsync(static (ui) => Engine.UI.AddChild(ui), SceneUI);
+        yield return SceneUI.WaitLoadingRoutine();
+        yield return Engine.AssetLoader.WaitForAllAssetsToLoadRoutine();
+
+        yield return base.Attach();
+    }
+
+    public override void Detach()
+    {
+        base.Detach();
+        SceneUI.Close();
+    }
+
     public override IEnumerator LoadSceneRoutineAsync()
     {
         Status = SceneStatus.Loading;
         yield return InternalLoadSceneRoutineAsync();
         if (Map.State != GameMapState.Initialized)
             yield return Map.InitRoutine();
-        yield return SceneUI.WaitLoadingRoutine();
-
-        Status = SceneStatus.Loaded;
+        yield return base.LoadSceneRoutineAsync();
     }
+
     protected abstract IEnumerator InternalLoadSceneRoutineAsync();
 
     public override IEnumerator UnloadSceneRoutineAsync()
     {
         Map.Dispose();
         _mapOwner.Done();
-        Status = SceneStatus.Disposed;
-        yield break;
+
+        yield return base.UnloadSceneRoutineAsync();
     }
 
     public override void UpdateScene(float dt)
