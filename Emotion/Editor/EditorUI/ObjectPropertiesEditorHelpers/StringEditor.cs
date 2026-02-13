@@ -1,4 +1,5 @@
-﻿using Emotion.Game.Systems.UI;
+﻿using Emotion.Editor.EditorUI.Components;
+using Emotion.Game.Systems.UI;
 
 #nullable enable
 
@@ -10,35 +11,17 @@ public class StringEditor : TypeEditor
 
     public StringEditor()
     {
-        var inputBackground = new UISolidColor
+        var textInput = new OneTextInput()
         {
-            WindowColor = Color.Black * 0.5f,
-            Paddings = new Rectangle(5, 3, 5, 3)
+            Name = "TextInput"
         };
-        AddChild(inputBackground);
-
-        UITextInput input = new UITextInput
-        {
-            Name = "TextInput",
-
-            FontSize = EditorColorPalette.EditorButtonTextSize,
-            Layout =
-            {
-                MinSizeX = 100,
-                AnchorAndParentAnchor = UIAnchor.CenterLeft
-            },
-            IgnoreParentColor = true,
-
-            SubmitOnEnter = true,
-            SubmitOnFocusLoss = true,
-            OnSubmit = OnTextInputChanged
-        };
-        inputBackground.AddChild(input);
+        textInput.OnSubmit = OnTextInputChanged;
+        AddChild(textInput);
     }
 
     public override void SetValue(object? value)
     {
-        UITextInput? textInput = GetWindowById<UITextInput>("TextInput");
+        OneTextInput? textInput = GetWindowById<OneTextInput>("TextInput");
         AssertNotNull(textInput);
         if (value == null)
             _text = "<null>";

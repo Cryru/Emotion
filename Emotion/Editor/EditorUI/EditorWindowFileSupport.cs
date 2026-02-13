@@ -78,6 +78,7 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
             {
                 LayoutMethod = UILayoutMethod.HorizontalList(5),
                 Padding = new UISpacing(5, 5, 5, 5),
+                SizingY = UISizing.Fit()
             },
             OrderInParent = -5
         };

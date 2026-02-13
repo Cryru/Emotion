@@ -233,7 +233,8 @@ public class ObjectPropertyWindow : UIBaseWindow
         {
             Layout =
             {
-                LayoutMethod = UILayoutMethod.HorizontalListWrap(5, 5)
+                LayoutMethod = UILayoutMethod.HorizontalListWrap(5, 5),
+                SizingY = UISizing.Fit()
             },
             Visuals =
             {

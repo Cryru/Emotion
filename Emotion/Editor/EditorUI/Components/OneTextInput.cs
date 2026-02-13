@@ -4,7 +4,7 @@ namespace Emotion.Editor.EditorUI.Components;
 
 public class OneTextInput : UIBaseWindow
 {
-    public string Text { get => _input.Text; }
+    public string Text { get => _input.Text; set => _input.Text = value; }
     public Action<string>? OnSubmit { get => _input.OnSubmit; set => _input.OnSubmit = value; }
     private UITextInput _input;
 
