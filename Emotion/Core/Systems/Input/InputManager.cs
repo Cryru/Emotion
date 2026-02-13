@@ -37,7 +37,6 @@ public class InputManager
 
     protected bool[] _keyState;
     private Lock _eventLock = new Lock();
-    private bool _processingEvents = false;
 
     public InputManager()
     {
@@ -52,8 +51,6 @@ public class InputManager
         lock (_eventLock)
         {
             if (_eventsThisTick == MAX_EVENTS_PER_TICK) return;
-            Assert(!_processingEvents);
-            if (_processingEvents) return;
 
             ref InputEvent nextEvent = ref _events[_eventsThisTick];
             nextEvent.MouseMoved = true;
@@ -67,8 +64,6 @@ public class InputManager
         lock (_eventLock)
         {
             if (_eventsThisTick == MAX_EVENTS_PER_TICK) return;
-            Assert(!_processingEvents);
-            if (_processingEvents) return;
 
             ref InputEvent nextEvent = ref _events[_eventsThisTick];
             nextEvent.MouseMoved = false;
@@ -82,7 +77,6 @@ public class InputManager
     {
         lock (_eventLock)
         {
-            _processingEvents = true;
             for (int i = 0; i < _eventsThisTick; i++)
             {
                 ref InputEvent ev = ref _events[i];
@@ -121,7 +115,6 @@ public class InputManager
                 }
             }
             _eventsThisTick = 0;
-            _processingEvents = false;
         }
     }
 
