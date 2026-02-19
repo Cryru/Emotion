@@ -25,14 +25,23 @@ public class AssetHandleEditor<T> : TypeEditor where T : Asset, new()
         EditorLabel label = new EditorLabel
         {
             Name = "Label",
-            Margins = new Rectangle(0, 0, 5, 0)
+            Layout =
+            {
+                Margins = new UISpacing(0, 0, 5, 0)
+            }
         };
         container.AddChild(label);
 
         var inputBackground = new UISolidColor
         {
-            WindowColor = Color.Black * 0.5f,
-            Paddings = new Rectangle(5, 3, 5, 3)
+            Visuals =
+            {
+                BackgroundColor = Color.Black * 0.5f
+            },
+            Layout =
+            {
+                Padding = new UISpacing(5, 3, 5, 3)
+            }
         };
         container.AddChild(inputBackground);
 

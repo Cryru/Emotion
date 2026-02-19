@@ -257,7 +257,7 @@ end:
                 EngineEditor.ReportChange_ListItemMoved(_items, _items[_currentIndex], _currentIndex, this);
             }
         };
-        moveUpButton.Texture.SetRotation(180);
+        moveUpButton.Texture.FlipY = true;
         buttonsContainer.AddChild(moveUpButton);
         _moveUpButton = moveUpButton;
 

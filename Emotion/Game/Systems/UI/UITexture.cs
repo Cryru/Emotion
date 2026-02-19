@@ -180,20 +180,20 @@ public class UITexture : UISolidColor
     //    }
     //}
 
-    protected override Vector2 InternalMeasure(Vector2 space)
-    {
-        CalculateUV();
+    //protected override Vector2 InternalMeasure(Vector2 space)
+    //{
+    //    CalculateUV();
 
-        float scale = GetScale();
-        Vector2 size;
-        if (RenderSize != null)
-            size = GetRenderSizeProcessed(space);
-        else
-            size = _uv.Size * scale;
+    //    float scale = GetScale();
+    //    Vector2 size;
+    //    if (RenderSize != null)
+    //        size = GetRenderSizeProcessed(space);
+    //    else
+    //        size = _uv.Size * scale;
 
-        if (ImageScale != null) size *= ImageScale.Value;
-        return size;
-    }
+    //    if (ImageScale != null) size *= ImageScale.Value;
+    //    return size;
+    //}
 
 //#if !NEW_UI
 //    protected override Vector2 NEW_InternalMeasure(Vector2 space)

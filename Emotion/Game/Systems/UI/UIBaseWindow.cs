@@ -5,6 +5,7 @@
 using System.Threading.Tasks;
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
+using Emotion.Core.Utility.Time;
 using Emotion.Standard.Parsers.XML;
 
 #endregion
@@ -49,39 +50,6 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
     protected bool _overlayWindow;
 
     /// <summary>
-    /// Margins push the window in one of the four directions, only if it is against another window.
-    /// This is applied after alignment, but before the anchor.
-    /// </summary>
-    public Rectangle Margins
-    {
-        get => _margins;
-        set
-        {
-            if (_margins == value) return;
-            _margins = value;
-            InvalidateLayout();
-        }
-    }
-
-    private Rectangle _margins;
-
-    /// <summary>
-    /// Paddings push children windows if they are inside the parent.
-    /// </summary>
-    public Rectangle Paddings
-    {
-        get => _paddings;
-        set
-        {
-            if (_paddings == value) return;
-            _paddings = value;
-            InvalidateLayout();
-        }
-    }
-
-    private Rectangle _paddings;
-
-    /// <summary>
     /// Position relative to another window in the same controller.
     /// </summary>
     public string? RelativeTo
@@ -97,7 +65,8 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
 
     private string? _relativeTo;
 
-    protected virtual void AfterLayout()
+    [Obsolete("delete")]
+    protected virtual void DELETEME_AfterLayout()
     {
         // nop - to be overriden
     }
@@ -110,18 +79,8 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
     /// This color should be mixed in with the rendering of the window somehow.
     /// Used to control opacity as well.
     /// </summary>
-    public Color WindowColor
-    {
-        get => _windowColor;
-        set
-        {
-            if (_windowColor == value) return;
-            _windowColor = value;
-            InvalidateColor();
-        }
-    }
-
-    private Color _windowColor = Color.White;
+    [Obsolete("Visuals.BackgroundColor")]
+    public Color WindowColor;
 
     /// <summary>
     /// If set to true then this window will not mix its color with its parent's.
@@ -129,304 +88,81 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
     public bool IgnoreParentColor = false;
 
     protected Color _calculatedColor;
-    protected bool _updateColor = true;
 
-    public void InvalidateColor()
-    {
-        _updateColor = true;
-        if (Children == null) return;
-        for (var i = 0; i < Children.Count; i++)
-        {
-            UIBaseWindow child = Children[i];
-            child.InvalidateColor();
-        }
-    }
+    protected Coroutine? _alphaRoutine;
+    private ValueTimer _alphaTimer;
 
-    protected Coroutine? _alphaTweenRoutine;
-    private ITimer? _alphaTweenTimer;
-
-    private IEnumerator AlphaTweenRoutine(ITimer alphaTween, byte startingAlpha, byte targetAlpha, bool? setVisible)
+    private IEnumerator AlphaTweenRoutine(byte startingAlpha, byte targetAlpha, bool? setVisible)
     {
         while (true)
         {
-            alphaTween.Update(Engine.DeltaTime);
-            var current = (byte) Maths.Lerp(startingAlpha, targetAlpha, alphaTween.Progress);
-            WindowColor = WindowColor.SetAlpha(current);
+            _alphaTimer.Update(Engine.DeltaTime);
+            var current = (byte) Maths.Lerp(startingAlpha, targetAlpha, _alphaTimer.GetFactor());
+            Visuals.BackgroundColor = Visuals.BackgroundColor.SetAlpha(current);
 
             // If fading in we need to set visible from the get go.
             if (setVisible != null && setVisible.Value && !Visible) Visible = true;
 
-            if (alphaTween.Finished)
+            if (_alphaTimer.Finished)
             {
-                Assert(WindowColor.A == targetAlpha);
+                Assert(Visuals.BackgroundColor.A == targetAlpha);
                 if (setVisible != null) Visible = setVisible.Value;
                 yield break;
             }
 
-            InvalidateColor();
             yield return null;
         }
     }
 
-    public void SetAlpha(byte value, ITimer? tween = null)
+    public void SetAlpha(byte value, float ms = 0)
     {
-        Engine.CoroutineManager.StopCoroutine(_alphaTweenRoutine);
-        _alphaTweenTimer?.End();
-        _alphaTweenTimer = null;
+        Engine.CoroutineManager.StopCoroutine(_alphaRoutine);
+        _alphaTimer.Reset();
 
-        if (tween == null)
+        if (ms == 0)
         {
-            WindowColor = WindowColor.SetAlpha(value);
+            Visuals.BackgroundColor = Visuals.BackgroundColor.SetAlpha(value);
             return;
         }
 
-        if (WindowColor.A == value)
+        if (Visuals.BackgroundColor.A == value)
         {
-            tween.End();
-            _alphaTweenRoutine = null;
+            _alphaRoutine = null;
             return;
         }
 
-        _alphaTweenTimer = tween;
-        _alphaTweenRoutine = Engine.CoroutineManager.StartCoroutine(AlphaTweenRoutine(tween, WindowColor.A, value, null));
+        _alphaTimer = new ValueTimer(ms);
+        _alphaRoutine = Engine.CoroutineManager.StartCoroutine(AlphaTweenRoutine(Visuals.BackgroundColor.A, value, null));
     }
 
-    public void SetVisible(bool val, ITimer? tween = null)
+    public IRoutineWaiter SetVisible(bool val, float ms = 0)
     {
-        SetVisibleFade(val, tween);
-    }
-
-    public IRoutineWaiter SetVisibleFade(bool val, ITimer? tween = null)
-    {
-        Engine.CoroutineManager.StopCoroutine(_alphaTweenRoutine);
-        _alphaTweenTimer?.End();
-        _alphaTweenTimer = null;
+        Engine.CoroutineManager.StopCoroutine(_alphaRoutine);
 
         var targetAlpha = (byte) (val ? 255 : 0);
-        if (tween == null)
+        if (ms == 0)
         {
-            WindowColor = WindowColor.SetAlpha(targetAlpha);
-            Visible = val;
+            Visuals.BackgroundColor = Visuals.BackgroundColor.SetAlpha(targetAlpha);
+            Visuals.Visible = val;
             return Coroutine.CompletedRoutine;
         }
 
         if (Visible == val && WindowColor.A == targetAlpha)
         {
-            tween.End();
-            _alphaTweenRoutine = null;
+            _alphaRoutine = null;
             return Coroutine.CompletedRoutine;
         }
 
-        _alphaTweenTimer = tween;
-        _alphaTweenRoutine = Engine.CoroutineManager.StartCoroutine(AlphaTweenRoutine(tween, WindowColor.A, targetAlpha, Visible == val ? null : val));
-        return _alphaTweenRoutine;
-    }
-
-    protected virtual void CalculateColor()
-    {
-        if (Parent == null || IgnoreParentColor)
-            _calculatedColor = WindowColor;
-        else
-            _calculatedColor = WindowColor * Parent._calculatedColor.A;
-
-        if (Children == null) return;
-        for (var i = 0; i < Children.Count; i++)
-        {
-            UIBaseWindow child = Children[i];
-            child.CalculateColor();
-        }
+        _alphaTimer = new ValueTimer(ms);
+        _alphaRoutine = Engine.CoroutineManager.StartCoroutine(AlphaTweenRoutine(Visuals.BackgroundColor.A, targetAlpha, Visible == val ? null : val));
+        return _alphaRoutine;
     }
 
     #endregion
-
-    #region Input
-
-    /// <summary>
-    /// Find a window that handles input in this parent.
-    /// Could be either a child window or the parent itself.
-    /// </summary>
-    public UIBaseWindow? FindInputFocusable()
-    {
-        if (!Visible) return null;
-
-        if (Children != null && ChildrenHandleInput)
-            for (int i = Children.Count - 1; i >= 0; i--)
-            {
-                UIBaseWindow win = Children[i];
-                if (win.Visible)
-                {
-                    UIBaseWindow? found = win.FindInputFocusable();
-                    if (found != null) return found;
-                }
-            }
-
-        return HandleInput ? this : null;
-    }
 
     public virtual void InputFocusChanged(bool haveFocus)
     {
     }
-
-    #endregion
-
-    #region Animations
-
-    /// <summary>
-    /// Ignore the displacements on the parent, otherwise the displacements of this window are multiplied by the parent's.
-    /// </summary>
-    public bool IgnoreParentDisplacement { get; set; }
-
-    /// <summary>
-    /// List of affine transformations to apply to this window and its children.
-    /// </summary>
-    [DontSerialize]
-    public NamedTransformationStack TransformationStack
-    {
-        get => _transformationStackBacking ??= new NamedTransformationStack();
-    }
-
-    protected NamedTransformationStack? _transformationStackBacking;
-
-    protected void MarkChildrenMatricesAsDirty()
-    {
-        if (Children == null) return;
-        for (int i = 0; i < Children.Count; i++)
-        {
-            UIBaseWindow child = Children[i];
-            if (child.IgnoreParentDisplacement) continue;
-            if (child._transformationStackBacking != null)
-                child._transformationStackBacking.MatrixDirty = true;
-            child.MarkChildrenMatricesAsDirty();
-        }
-    }
-
-    /// <summary>
-    /// Displace the position of a UI window over time.
-    /// At the end of the tween the window will remain displaced.
-    /// </summary>
-    public IEnumerator TranslationDisplacement(Vector3 position, ITimer tween, string id = "translation")
-    {
-        while (true)
-        {
-            tween.Update(Engine.DeltaTime);
-            Vector3 current = Vector3.Lerp(Vector3.Zero, position, tween.Progress);
-            TransformationStack.AddOrUpdate(id, Matrix4x4.CreateTranslation(current.X, current.Y, 0));
-            if (tween.Finished) yield break;
-
-            yield return null;
-        }
-    }
-
-    public IEnumerator PositionDisplacement(Vector3 position, ITimer tween, string id = "translation")
-    {
-        while (true)
-        {
-            tween.Update(Engine.DeltaTime);
-            Vector3 current = Vector3.Lerp(Position / GetScale(), position, tween.Progress);
-            TransformationStack.AddOrUpdate(id, Matrix4x4.CreateTranslation(current.X, current.Y, 0), true, MatrixSpecialFlag.TranslationPositionReplace);
-            if (tween.Finished) break;
-
-            yield return null;
-        }
-    }
-
-    public IEnumerator ScaleDisplacement(float scaleStart, float scaleTarget, ITimer tween, string id = "scale")
-    {
-        while (true)
-        {
-            tween.Update(Engine.DeltaTime);
-            float current = Maths.Lerp(scaleStart, scaleTarget, tween.Progress);
-            TransformationStack.AddOrUpdate(id,
-                Matrix4x4.CreateScale(current, current, 1f), true, MatrixSpecialFlag.ScaleBoundsCenter);
-            if (tween.Finished) break;
-
-            yield return null;
-        }
-    }
-
-
-    /// <summary>
-    /// The window's rotation around its center, in degrees.
-    /// </summary>
-    public float Rotation
-    {
-        get => _rotation;
-        set
-        {
-            if (_rotation == value) return;
-            SetRotation(value);
-        }
-    }
-
-    private float _rotation;
-
-    private Coroutine? _rotationRoutineCurrent;
-    private ITimer? _rotationTweenCurrent;
-
-    /// <summary>
-    /// Set a rotation (in degrees) for this window around its center.
-    /// </summary>
-    public void SetRotation(float degrees, ITimer? tween = null)
-    {
-        if (_rotationRoutineCurrent != null && !_rotationRoutineCurrent.Finished)
-            Engine.CoroutineManager.StopCoroutine(_rotationRoutineCurrent);
-        _rotationRoutineCurrent = Engine.CoroutineManager.StartCoroutine(RotationDisplacement(_rotation, degrees, tween));
-    }
-
-    /// <summary>
-    /// Rotate a UI window around its center. Optionally over time.
-    /// </summary>
-    private IEnumerator RotationDisplacement(float fromDegrees, float toDegrees, ITimer? tween = null, string id = "rotation")
-    {
-        if (tween == null)
-        {
-            _rotation = toDegrees;
-            TransformationStack.AddOrUpdate(id, Matrix4x4.CreateRotationZ(Maths.DegreesToRadians(toDegrees)), true, MatrixSpecialFlag.RotateBoundsCenter);
-            yield break;
-        }
-
-        while (true)
-        {
-            tween.Update(Engine.DeltaTime);
-            float current = Maths.LerpAngle(fromDegrees, toDegrees, tween.Progress);
-            _rotation = current;
-            TransformationStack.AddOrUpdate(id, Matrix4x4.CreateRotationZ(Maths.DegreesToRadians(current)), true, MatrixSpecialFlag.RotateBoundsCenter);
-            if (tween.Finished) yield break;
-
-            yield return null;
-        }
-    }
-
-    #endregion
-
-    #region Enum
-
-    public IEnumerator<UIBaseWindow> GetEnumerator()
-    {
-        for (var i = 0; i < Children?.Count; i++)
-        {
-            UIBaseWindow cur = Children[i];
-
-            // Get children.
-            var childrenLists = new Queue<List<UIBaseWindow>>();
-            if (cur.Children != null) childrenLists.Enqueue(cur.Children);
-            yield return cur;
-
-            while (childrenLists.Count > 0)
-            {
-                List<UIBaseWindow> list = childrenLists.Dequeue();
-                for (var j = 0; j < list.Count; j++)
-                {
-                    UIBaseWindow child = list[j];
-                    // Get grandchildren if any.
-                    if (child.Children?.Count > 0) childrenLists.Enqueue(child.Children);
-                    yield return child;
-                }
-            }
-        }
-    }
-
-    #endregion
 
     #region Rollover Functionality
 

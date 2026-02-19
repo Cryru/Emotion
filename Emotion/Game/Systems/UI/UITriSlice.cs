@@ -20,9 +20,9 @@ public class UITriSlice : UITexture
 
     private Vector2 _tileDrawAreaSize;
 
-    protected override void AfterLayout()
+    protected override void DELETEME_AfterLayout()
     {
-        base.AfterLayout();
+        base.DELETEME_AfterLayout();
         if (TextureAsset == null) return;
 
         Vector2 imageScale = (ImageScale ?? Vector2.One) * GetScale();
@@ -44,7 +44,7 @@ public class UITriSlice : UITexture
         _tileDrawSize = new Vector2(Width - leftSize - rightSize, Height);
         _tileDrawAreaSize = new Vector2(Width - leftSize - rightSize, Height);
 
-        base.AfterLayout();
+        base.DELETEME_AfterLayout();
     }
 
     private void DrawTiledInside(Renderer composer, Vector3 startPos, Vector2 tileSize, Vector2 tileArea, Rectangle uv)
@@ -61,18 +61,6 @@ public class UITriSlice : UITexture
             composer.RenderSprite(new Vector3(x, startPos.Y, Z), new Vector2(widthLeft, tileSize.Y), _calculatedColor, TextureAsset.Texture, tileUv);
         }
     }
-
-    protected override Vector2 InternalMeasure(Vector2 space)
-    {
-        return Vector2.Zero;
-    }
-
-//#if !NEW_UI
-//    protected override Vector2 NEW_InternalMeasure(Vector2 space)
-//    {
-//        return InternalMeasure(space);
-//    }
-//#endif
 
     protected override bool RenderInternal(Renderer composer)
     {

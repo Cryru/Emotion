@@ -294,12 +294,6 @@ public class UITextInput : UIText
         EnsureSelectionValid();
     }
 
-    protected override Vector2 InternalMeasure(Vector2 space)
-    {
-        Vector2 textSize = base.InternalMeasure(space);
-        return textSize;// new Vector2(space.X, MultiLine ? space.Y : textSize.Y);
-    }
-
     protected override bool UpdateInternal()
     {
         _blinkingTimer.Update(Engine.DeltaTime);

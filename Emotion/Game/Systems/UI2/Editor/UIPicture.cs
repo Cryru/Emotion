@@ -95,6 +95,7 @@ public class UIPicture : UIBaseWindow
     public Vector2 RowAndColumnSpacing = Vector2.Zero;
 
     public bool FlipX;
+    public bool FlipY;
 
     protected Rectangle? _renderWithUV;
 
@@ -166,6 +167,6 @@ public class UIPicture : UIBaseWindow
     protected override void InternalRender(Renderer r)
     {
         base.InternalRender(r);
-        r.RenderSprite(CalculatedMetrics.Position.ToVec3(), CalculatedMetrics.Size.ToVec2(), ImageColor, _assetOwner.GetCurrentObject(), _renderWithUV, FlipX);
+        r.RenderSprite(CalculatedMetrics.Position.ToVec3(), CalculatedMetrics.Size.ToVec2(), ImageColor, _assetOwner.GetCurrentObject(), _renderWithUV, FlipX, FlipY);
     }
 }

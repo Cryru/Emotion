@@ -42,7 +42,7 @@ public sealed class TileEditorTileTextureSelector : EditorScrollArea
     public TileEditorTileTextureSelector(TileEditorWindow editor)
     {
         HandleInput = true;
-        Paddings = new Primitives.Rectangle(5, 5, 5, 5);
+        Layout.Padding = new UISpacing(5, 5, 5, 5);
     }
 
     public override bool OnKey(Key key, KeyState status, Vector2 mousePos)

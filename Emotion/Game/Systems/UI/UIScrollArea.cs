@@ -53,8 +53,14 @@ public class UIScrollArea : UIBaseWindow
         var scrollHorz = new EditorScrollBarHorizontal
         {
             OnScroll = ScrollBarCallbackHorizontal,
-            Margins = new Rectangle(0, 0, 20, 0),
-            DontTakeSpaceWhenHidden = true
+            Layout =
+            {
+                Margins = new UISpacing(0, 0, 20, 0)
+            },
+            Visuals =
+            {
+                DontTakeSpaceWhenHidden = true
+            }
         };
         AddChild(scrollHorz);
         _horizontalScroll = scrollHorz;
@@ -110,8 +116,7 @@ public class UIScrollArea : UIBaseWindow
             verticalVisible = _verticalScroll.TotalArea > _content.Height;
         _verticalScroll.SetVisible(verticalVisible);
 
-        Rectangle paddings = new Rectangle(0, 0, verticalVisible ? 20 : 0, horizontalVisible ? 20 : 0);
-        _content.Margins = paddings;
+        _content.Layout.Margins = new UISpacing(0, 0, verticalVisible ? 20 : 0, horizontalVisible ? 20 : 0);
     }
 
     protected void ScrollBarCallbackVertical(float amount)
@@ -162,9 +167,9 @@ public class UIScrollArea : UIBaseWindow
         SyncScrollbar();
     }
 
-    protected override void AfterLayout()
+    protected override void DELETEME_AfterLayout()
     {
-        base.AfterLayout();
+        base.DELETEME_AfterLayout();
         SyncScrollbar();
     }
 
@@ -203,9 +208,9 @@ public class UIScrollArea : UIBaseWindow
         //    base.Layout_SetLayoutEngineDimensions(layoutEngine, pos, size, scale);
         //}
 
-        protected override void AfterLayout()
+        protected override void DELETEME_AfterLayout()
         {
-            base.AfterLayout();
+            base.DELETEME_AfterLayout();
             MaxScroll = Vector2.Max(Size, _measureChildrenUsedSpace);
             CurrentScroll = Vector2.Clamp(CurrentScroll, Vector2.Zero, MaxScroll - Size);
             ScrollTranslationMatrix = Matrix4x4.CreateTranslation(-CurrentScroll.X, -CurrentScroll.Y, 0);

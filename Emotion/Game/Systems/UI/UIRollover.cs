@@ -9,8 +9,8 @@ public class UIRollover : UIBaseWindow
     public UIRollover()
     {
         RelativeTo = SPECIAL_WIN_ID_MOUSE_FOCUS;
-        StretchX = true;
-        StretchY = true;
+        Layout.SizingX = UISizing.Fit();
+        Layout.SizingY = UISizing.Fit();
         OverlayWindow = true;
 
         OrderInParent = 99;

@@ -11,8 +11,6 @@ namespace Emotion.Editor.Tools.SpriteEntityTool;
 
 public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UIViewport, ObjectPropertyWindow, SpriteEntity>
 {
-    private UIList _list = null!;
-
     private SpriteEntityMetaState? _entityMetaState;
     private SpriteAnimation? _selectedAnim;
 

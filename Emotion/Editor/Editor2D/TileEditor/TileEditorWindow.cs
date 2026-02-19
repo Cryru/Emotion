@@ -143,7 +143,10 @@ public sealed class TileEditorWindow : GridEditorWindow
         {
             sidePanel.AddChild(new EditorLabel("Tilesets")
             {
-                Margins = new Primitives.Rectangle(5, 0, 0, 0)
+                Layout =
+                {
+                    Margins = new UISpacing(5, 0, 0, 0)
+                }
             });
 
             var tilesetChoose = new DropdownChoiceEditor<TileMapTileset>();

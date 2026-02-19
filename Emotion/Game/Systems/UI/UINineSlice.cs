@@ -50,9 +50,9 @@ public class UINineSlice : UITexture
     private Vector2 _horizontalBarBottomDrawSize;
     private Vector2 _horizontalBarBottomTileArea;
 
-    protected override void AfterLayout()
+    protected override void DELETEME_AfterLayout()
     {
-        base.AfterLayout();
+        base.DELETEME_AfterLayout();
         if (TextureAsset == null) return;
 
         //Vector2 imageScale = ImageScale ?? Vector2.One;
@@ -98,7 +98,7 @@ public class UINineSlice : UITexture
         _horizontalBarBottomDraw = new Vector3(_bottomLeftDraw.X + _bottomLeftDrawSize.X, _bottomLeftDraw.Y, Z);
         _horizontalBarBottomTileArea = new Vector2(Width - _topLeftDrawSize.X - _topRightDrawSize.X, 0);
 
-        base.AfterLayout();
+        base.DELETEME_AfterLayout();
     }
 
     private void DrawTileVertical(Renderer composer, Vector3 startPos, Vector2 tileSize, Vector2 tileArea, Rectangle uv)
@@ -130,18 +130,6 @@ public class UINineSlice : UITexture
             composer.RenderSprite(new Vector3(x, startPos.Y, Z), new Vector2(widthLeft, tileSize.Y), _calculatedColor, TextureAsset.Texture, tileUv);
         }
     }
-
-    protected override Vector2 InternalMeasure(Vector2 space)
-    {
-        return space;
-    }
-
-//#if !NEW_UI
-//    protected override Vector2 NEW_InternalMeasure(Vector2 space)
-//    {
-//        return Vector2.Zero;// base.InternalMeasure(space);
-//    }
-//#endif
 
     protected override bool RenderInternal(Renderer composer)
     {

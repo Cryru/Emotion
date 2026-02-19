@@ -1396,5 +1396,30 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         return GetEnumerator();
     }
 
+    public IEnumerator<UIBaseWindow> GetEnumerator()
+    {
+        for (var i = 0; i < Children?.Count; i++)
+        {
+            UIBaseWindow cur = Children[i];
+
+            // Get children.
+            var childrenLists = new Queue<List<UIBaseWindow>>();
+            if (cur.Children != null) childrenLists.Enqueue(cur.Children);
+            yield return cur;
+
+            while (childrenLists.Count > 0)
+            {
+                List<UIBaseWindow> list = childrenLists.Dequeue();
+                for (var j = 0; j < list.Count; j++)
+                {
+                    UIBaseWindow child = list[j];
+                    // Get grandchildren if any.
+                    if (child.Children?.Count > 0) childrenLists.Enqueue(child.Children);
+                    yield return child;
+                }
+            }
+        }
+    }
+
     #endregion
 }

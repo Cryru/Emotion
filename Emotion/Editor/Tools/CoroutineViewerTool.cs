@@ -8,7 +8,7 @@ namespace Emotion.Editor.Tools;
 
 public class CoroutineViewerTool : EditorWindow
 {
-    private UIList _list = null!;
+    // private UIList _list = null!;
     private HashSet<Coroutine> _coroutinesShown = new();
 
     public CoroutineViewerTool() : base("Coroutines")
@@ -21,14 +21,14 @@ public class CoroutineViewerTool : EditorWindow
 
         UIBaseWindow contentParent = GetContentParent();
 
-        _list = new UIList()
-        {
-            Layout =
-            {
-                LayoutMethod = UILayoutMethod.VerticalList(5)
-            }
-        };
-        contentParent.AddChild(_list);
+        //_list = new UIList()
+        //{
+        //    Layout =
+        //    {
+        //        LayoutMethod = UILayoutMethod.VerticalList(5)
+        //    }
+        //};
+        //contentParent.AddChild(_list);
 
         Engine.CoroutineManager.StartCoroutine(Testche());
         UpdateCoroutines();
@@ -68,7 +68,7 @@ public class CoroutineViewerTool : EditorWindow
         {
             Coroutine newRoutine = newRoutines[i];
             _coroutinesShown.Add(newRoutine);
-            _list.AddChild(new CoroutineViewerEntry(newRoutine));
+            //_list.AddChild(new CoroutineViewerEntry(newRoutine));
         }
     }
 

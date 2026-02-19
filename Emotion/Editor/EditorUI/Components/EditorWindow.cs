@@ -509,7 +509,7 @@ public class EditorWindow : UIBaseWindow
         _dragButton?.Close();
         _dragButton = null;
 
-        _contentParent.Margins = Rectangle.Empty;
+        _contentParent.Layout.Margins = new UISpacing();
         _panelMode = PanelMode.SubWindow;
 
         GLThread.ExecuteOnGLThreadAsync(() =>

@@ -150,20 +150,27 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
         {
             UISolidOutline hotReloadContainer = new()
             {
-                AnchorAndParentAnchor = UIAnchor.TopRight,
-                GrowX = false,
-                GrowY = false,
-                WindowColor = Color.PrettyOrange,
-                Paddings = new Rectangle(1, 1, 1, 1),
-                Visible = _hotReloadNeeded
+                Visuals =
+                {
+                    BackgroundColor = Color.PrettyOrange,
+                    Visible = _hotReloadNeeded
+                },
+                Layout =
+                {
+                    AnchorAndParentAnchor = UIAnchor.TopRight,
+                    Padding = new UISpacing(1, 1, 1, 1)
+                }
             };
             topBar.AddChild(hotReloadContainer);
             _hotReloadBox = hotReloadContainer;
 
             UISolidColor hotReloadButtonHighlight = new()
             {
-                WindowColor = Color.White * 0.3f,
-                Visible = false,
+                Visuals =
+                {
+                    BackgroundColor = Color.White * 0.5f,
+                    Visible = false
+                },
                 OrderInParent = 2
             };
             hotReloadContainer.AddChild(hotReloadButtonHighlight);
@@ -178,7 +185,6 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
 
                 NormalColor = new Color(31, 31, 31),
                 RolloverColor = new Color(31, 31, 31),
-                
 
                 OnMouseEnterProxy = (_) => hotReloadButtonHighlight.Visible = true,
                 OnMouseLeaveProxy = (_) => hotReloadButtonHighlight.Visible = false,
@@ -187,9 +193,12 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
                     // todo: editor rollover
                     var rollover = new UIRollover()
                     {
-                        Anchor = UIAnchor.TopRight,
-                        ParentAnchor = UIAnchor.BottomRight,
-                        Margins = new Rectangle(5, 5, 0, 5)
+                        Layout =
+                        {
+                            Anchor = UIAnchor.TopRight,
+                            ParentAnchor = UIAnchor.BottomRight,
+                            Margins = new UISpacing(5, 5, 0, 5),
+                        }
                     };
 
                     var color = new UIBaseWindow()

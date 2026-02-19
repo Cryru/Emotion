@@ -11,8 +11,8 @@ namespace Emotion.Game.Systems.UI
 
         public UIWorldAttachedWindow()
         {
-            StretchX = true;
-            StretchY = true;
+            Layout.SizingX = UISizing.Fit();
+            Layout.SizingY = UISizing.Fit();
         }
 
         public void AttachToPosition(Vector3 pos)
@@ -26,10 +26,10 @@ namespace Emotion.Game.Systems.UI
             base.InvalidateLayout();
         }
 
-        protected override void AfterLayout()
+        protected override void DELETEME_AfterLayout()
         {
             _awaitingLayout = false;
-            base.AfterLayout();
+            base.DELETEME_AfterLayout();
         }
 
         protected virtual Vector3 VerifyWorldPos(Vector3 pos)

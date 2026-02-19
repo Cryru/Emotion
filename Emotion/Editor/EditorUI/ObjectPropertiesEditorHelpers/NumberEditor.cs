@@ -11,8 +11,14 @@ public class NumberEditor<TNumber> : TypeEditor where TNumber : INumber<TNumber>
     {
         var inputBackground = new UISolidColor
         {
-            WindowColor = Color.Black * 0.5f,
-            Paddings = new Rectangle(5, 3, 5, 3)
+            Visuals =
+            {
+                BackgroundColor = Color.Black * 0.5f,
+            },
+            Layout =
+            {
+                Padding = new UISpacing(5, 3, 5, 3)
+            }
         };
         AddChild(inputBackground);
 

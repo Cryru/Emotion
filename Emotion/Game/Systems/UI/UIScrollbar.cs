@@ -78,15 +78,15 @@ public class UIScrollbar : UIBaseWindow
         {
             progress = Maths.Map(mousePos.X - _dragging.X, X, X + Width, 0, TotalArea);
             progress = MathF.Round(progress);
-            var list = (UICallbackListNavigator?)ScrollParent;
-            list?.ScrollByAbsolutePos(progress);
+            //var list = (UICallbackListNavigator?)ScrollParent;
+            //list?.ScrollByAbsolutePos(progress);
         }
         else
         {
             progress = Maths.Map(mousePos.Y - _dragging.Y, Y, Y + Height, 0, TotalArea);
             progress = MathF.Round(progress);
-            var list = (UICallbackListNavigator?)ScrollParent;
-            list?.ScrollByAbsolutePos(progress);
+            //var list = (UICallbackListNavigator?)ScrollParent;
+            //list?.ScrollByAbsolutePos(progress);
         }
 
         OnScroll?.Invoke(progress);
@@ -107,7 +107,7 @@ public class UIScrollbar : UIBaseWindow
         {
             // todo: what is this tomfoolery
             float spaceTaken = TotalArea > PageArea ? PageArea : TotalArea;
-            _measuredSize.Y = spaceTaken;
+            //_measuredSize.Y = spaceTaken;
             Height = spaceTaken;
         }
 
@@ -129,9 +129,9 @@ public class UIScrollbar : UIBaseWindow
         }
     }
 
-    protected override void AfterLayout()
+    protected override void DELETEME_AfterLayout()
     {
-        base.AfterLayout();
+        base.DELETEME_AfterLayout();
         UpdateScrollbar();
     }
 

@@ -87,7 +87,10 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
 
         editor.EditorList.AddChild(new EditorLabel("==== Read Only ====")
         {
-            Margins = new Rectangle(0, 10, 0, 0)
+            Layout =
+            {
+                Margins = new UISpacing(0, 10, 0, 0)
+            }
         });
 
         VectorEditor anchorDisplay = new VectorEditor(2);

@@ -78,23 +78,6 @@ public partial class UIController : UIBaseWindow
         return true;
     }
 
-#if NEW_UI
-		protected override Vector2 InternalMeasure(Vector2 space)
-		{
-			return Engine.Renderer.DrawBuffer.Size;
-		}
-#else
-    protected override Vector2 InternalMeasure(Vector2 space)
-    {
-        return Engine.Renderer.DrawBuffer.Size;
-    }
-
-    //protected override Vector2 NEW_InternalMeasure(Vector2 space)
-    //{
-    //    return Engine.Renderer.DrawBuffer.Size;
-    //}
-#endif
-
     //protected void UpdateLayout()
     //{
     //    _updateLayout = false;

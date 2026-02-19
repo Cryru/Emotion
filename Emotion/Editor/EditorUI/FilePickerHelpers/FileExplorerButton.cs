@@ -162,12 +162,14 @@ public class FileExplorerButton : UICallbackButton
 
         var ext = new EditorLabel
         {
-            ParentAnchor = UIAnchor.CenterCenter,
-            Anchor = UIAnchor.CenterCenter,
             WindowColor = EditorColorPalette.TextColor,
             FontSize = EditorColorPalette.EditorButtonTextSize,
             IgnoreParentColor = true,
-            Margins = new Rectangle(5, 0, 5, 0),
+            Layout =
+            {
+                AnchorAndParentAnchor = UIAnchor.CenterCenter,
+                Margins = new UISpacing(5, 0, 5, 0)
+            },
             Text = _extension
         };
         return ext;

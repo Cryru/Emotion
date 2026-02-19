@@ -38,16 +38,24 @@ public class VectorEditor : TypeEditor
         {
             var label = new EditorLabel(_componentNames[i])
             {
-                Margins = new Rectangle(0, 0, 5, 0)
+                Layout =
+                {
+                     Margins = new UISpacing(0, 0, 5, 0)
+                }
             };
             editorContainer.AddChild(label);
 
             var inputBackground = new UISolidColor
             {
-                WindowColor = Color.Black * 0.8f,
-                Paddings = new Rectangle(5, 3, 5, 3),
-
-                Margins = new Rectangle(0, 0, i != _componentCount - 1 ? 10 : 0, 0),
+                Visuals =
+                {
+                    BackgroundColor = Color.Black * 0.8f
+                },
+                Layout =
+                {
+                    Padding = new UISpacing(5, 3, 5, 3),
+                    Margins = new UISpacing(0, 0, i != _componentCount - 1 ? 10 : 0, 0),
+                }
             };
             editorContainer.AddChild(inputBackground);
 
