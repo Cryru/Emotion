@@ -70,13 +70,8 @@ public class WoWMovementController : IGameObjectComponent, IUpdateableComponent
         TerrainMeshGrid? terrain = map.GetFirstGridOfType<TerrainMeshGrid>();
         if (terrain == null) return;
 
-        Vector2 myPos = _character.Position2D;
-        Vector2 tile = terrain.GetTilePosOfWorldPos(myPos);
-        MeshGridStreamableChunk<float, ushort>? chunk = terrain.GetChunkAt(tile, out Vector2 _);
-        if (chunk == null || !chunk.CanBeSimulated)
-        {
-            return;
-        }
+        Vector3 charPos = _character.Position3D;
+        Vector2 charPos2D = charPos.ToVec2();
 
         // Add gravity
         _velocityZ += _gravityPerMs * dt;
@@ -124,7 +119,7 @@ public class WoWMovementController : IGameObjectComponent, IUpdateableComponent
         // Check for collision
         if (moveRequest.Z != 0 && (_inAir || moved))
         {
-            float height = terrain.GetHeightAt(_character.Position2D);
+            float height = terrain.GetHeightAt(charPos2D);
             if (_character.Z + moveRequest.Z < height)
             {
                 moveRequest.Z = 0;
@@ -132,24 +127,35 @@ public class WoWMovementController : IGameObjectComponent, IUpdateableComponent
             }
         }
 
+        // Check if going into invalid chunk.
+        Vector2 tile = terrain.GetTilePosOfWorldPos(charPos2D + moveRequest.ToVec2());
+        MeshGridStreamableChunk<float, ushort>? chunk = terrain.GetChunkAt(tile, out Vector2 _);
+        if (chunk == null || !chunk.CanBeSimulated)
+        {
+            moveRequest.X = 0;
+            moveRequest.Y = 0;
+        }
+
         // Add move
-        _character.Position3D += moveRequest;
+        Vector3 newPos = _character.Position3D + moveRequest;
 
         // Move along the terrain height
         if (!_inAir)
         {
             _velocityZ = 0;
 
-            float height = terrain.GetHeightAt(_character.Position2D);
-            _character.Z = height;
+            float height = terrain.GetHeightAt(newPos.ToVec2());
+            newPos.Z = height;
         }
+
+        _character.Position3D = newPos;
 
         // Update look
         if (_rightClickHeld)
         {
             CameraBase camera = Engine.Renderer.Camera;
             Vector3 lookAtPos = camera.LookAt;
-            _character.RotateToFacePoint(_character.Position3D + lookAtPos);
+            _character.RotateToFacePoint(newPos + lookAtPos);
         }
 
         string? animToSet = moved ? _walkAnim : _idleAnim;
