@@ -2,19 +2,16 @@
 
 #region Using
 
-using System.Collections;
-using System.Collections.Generic;
-using System.Numerics;
 using Emotion.Core;
-using Emotion.Core.Utility.Coroutines;
-using Emotion.Editor;
-using Emotion.Editor.EditorUI.Components;
 using Emotion.Game.Systems.UI;
 using Emotion.Game.Systems.UI2;
 using Emotion.Game.Systems.UI2.Editor;
 using Emotion.Graphics;
 using Emotion.Primitives;
 using Emotion.Testing;
+using System;
+using System.Collections;
+using System.Numerics;
 
 #endregion
 
@@ -224,7 +221,7 @@ public class NewUITests : TestingScene
         }
     }
 
-    //[Test]
+    [Test]
     public IEnumerator ComplicatedLayoutTest()
     {
         UIContainer container = new()
@@ -291,6 +288,77 @@ public class NewUITests : TestingScene
         yield return VerifyScreenshot(nameof(NewUITests), nameof(ComplicatedLayoutTest));
     }
 
+    [Test]
+    public IEnumerator ListOfBars()
+    {
+        var bg = new UIBaseWindow()
+        {
+            Visuals =
+            {
+                BackgroundColor = Color.CornflowerBlue
+            }
+        };
+        SceneUI.AddChild(bg);
+
+        var healthBars = new UIBaseWindow()
+        {
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalList(2),
+                AnchorAndParentAnchor = UIAnchor.BottomCenter,
+                Margins = new UISpacing(0, 0, 0, 130),
+                SizingX = UISizing.Fit(),
+                SizingY = UISizing.Fit()
+            },
+        };
+        bg.AddChild(healthBars);
+
+        float[] percents = new float[] { 100, 90, 80, 70, 60 };
+        for (int i = 0; i < percents.Length; i++)
+        {
+            var frameParent = new UIBaseWindow();
+            frameParent.Layout.SizingX = UISizing.Fixed(90);
+            frameParent.Layout.SizingY = UISizing.Fixed(55);
+            frameParent.Visuals.BorderColor = Color.Black;
+            frameParent.Visuals.BackgroundColor = Color.Black * 0.3f;
+            frameParent.Visuals.Border = 1;
+            healthBars.AddChild(frameParent);
+
+            var healthBarFill = new UIBaseWindow()
+            {
+                Layout =
+                {
+                    Offset = new IntVector2(1, 1),
+                    SizingX = UISizing.Fixed(88),
+                    SizingY = UISizing.Fixed(53),
+                },
+                Visuals =
+                {
+                    BackgroundColor = Color.PrettyBrown
+                }
+            };
+            frameParent.AddChild(healthBarFill);
+
+            var selectionFrame = new UIBaseWindow()
+            {
+                Visuals =
+                {
+                    BorderColor = Color.PrettyYellow,
+                    Border = 3,
+
+                    Visible = false
+                }
+            };
+            frameParent.AddChild(selectionFrame);
+
+            int fillAmount = (int)MathF.Round(88 * (percents[i] / 100f));
+            healthBarFill.Layout.SizingX = UISizing.Fixed(fillAmount);
+        }
+
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(ListOfBars));
+    }
+
     //[Test]
     //public IEnumerator FillXAxisMinHeightAndWidth()
     //{
@@ -340,68 +408,104 @@ public class NewUITests : TestingScene
     //    yield return VerifyScreenshot(nameof(NewUITests), nameof(FillNeitherAxisMinHeightAndWidth));
     //}
 
-    //[Test]
-    //public IEnumerator TwoSquaresInFillY()
-    //{
-    //    {
-    //        var win = new UISolidColor();
-    //        win.WindowColor = Color.PrettyOrange;
-    //        win.GrowX = false;
-    //        win.Id = "test";
+    [Test]
+    public IEnumerator TwoSquaresInFillY()
+    {
+        {
+            var win = new UISolidColor()
+            {
+                Name = "test",
+                Visuals =
+                {
+                    BackgroundColor = Color.PrettyOrange
+                },
+                Layout =
+                {
+                    SizingX = UISizing.Fit()
+                }
+            };
+            SceneUI.AddChild(win);
 
-    //        {
-    //            var a = new UISolidColor();
-    //            a.WindowColor = Color.White;
-    //            a.MinSize = new Vector2(20);
-    //            a.MaxSize = new Vector2(20);
-    //            win.AddChild(a);
-    //        }
+            {
+                var a = new UISolidColor()
+                {
+                    Visuals =
+                    {
+                        BackgroundColor = Color.White
+                    },
+                    Layout =
+                    {
+                        SizingX = UISizing.Fixed(60),
+                        SizingY = UISizing.Fixed(60)
+                    }
+                };
+                win.AddChild(a);
+            }
 
-    //        {
-    //            var a = new UISolidColor();
-    //            a.WindowColor = Color.Black;
-    //            a.MinSize = new Vector2(20);
-    //            a.MaxSize = new Vector2(20);
-    //            a.AnchorAndParentAnchor = UIAnchor.BottomLeft;
-    //            win.AddChild(a);
-    //        }
+            {
+                var a = new UISolidColor()
+                {
+                    Visuals =
+                    {
+                        BackgroundColor = Color.Black
+                    },
+                    Layout =
+                    {
+                        AnchorAndParentAnchor = UIAnchor.BottomLeft,
+                        SizingX = UISizing.Fixed(60),
+                        SizingY = UISizing.Fixed(60)
+                    }
+                };
+                win.AddChild(a);
+            }
+        }
 
-    //        UI.AddChild(win);
-    //    }
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(TwoSquaresInFillY));
+    }
 
-    //    yield return WaitUILayout();
-    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(TwoSquaresInFillY));
-    //}
+    [Test]
+    public IEnumerator FillList()
+    {
+        {
+            var win = new UIBaseWindow()
+            {
+                Name = "test",
+                Visuals =
+                {
+                    BackgroundColor = Color.PrettyOrange
+                },
+                Layout =
+                {
+                    LayoutMethod = UILayoutMethod.HorizontalList(0)
+                }
+            };
 
-    //[Test]
-    //public IEnumerator FillList()
-    //{
-    //    {
-    //        var win = new UISolidColor();
-    //        win.WindowColor = Color.PrettyOrange;
-    //        win.Id = "test";
-    //        win.LayoutMode = LayoutMode.HorizontalList;
+            {
+                var a = new UIBaseWindow()
+                {
+                    Visuals =
+                    {
+                        BackgroundColor = Color.White
+                    }
+                };
+                win.AddChild(a);
+            }
 
-    //        {
-    //            var a = new UISolidColor();
-    //            a.WindowColor = Color.White;
-    //            win.AddChild(a);
-    //        }
+            SceneUI.AddChild(win);
+        }
 
-    //        UI.AddChild(win);
-    //    }
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(FillList));
 
-    //    yield return WaitUILayout();
-    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(FillList));
+        {
+            UIBaseWindow list = SceneUI.GetWindowById("test")!;
+            list.Layout.LayoutMethod = UILayoutMethod.VerticalList(0);
+        }
 
-    //    {
-    //        UIBaseWindow list = UI.GetWindowById("test")!;
-    //        list.LayoutMode = LayoutMode.VerticalList;
-    //    }
-
-    //    yield return WaitUILayout();
-    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(FillList));
-    //}
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(FillList));
+    }
 
     //[Test]
     //public IEnumerator FillListThreeItems()

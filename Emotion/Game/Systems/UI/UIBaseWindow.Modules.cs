@@ -900,7 +900,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
         IntVector2 offsets = IntVector2.Zero;
         offsets += Layout.Offset;
-        offsets = offsets.FloorMultiply(CalculatedMetrics.Scale);
+        offsets = offsets.RoundMultiply(CalculatedMetrics.Scale);
         CalculatedMetrics.Offsets = offsets;
 
         foreach (UIBaseWindow child in Children)
