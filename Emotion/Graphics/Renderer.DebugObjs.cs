@@ -17,8 +17,16 @@ public sealed partial class Renderer
     private List<Mesh>? _spheres;
     private List<(Vector3, Vector3)>? _lines;
     private List<Cube>? _cubes;
+    private List<(Vector3, string)>? _texts;
 
     private static Color _defaultDbgObjectColor = Color.Green * 0.5f;
+
+    public void DbgAddText(Vector3 pos, string txt)
+    {
+        if (!Engine.Configuration.DebugMode) return;
+        _texts ??= new();
+        _texts.Add((pos, txt));
+    }
 
     public void DbgAddTriangle(Vector3 p1, Vector3 p2, Vector3 p3)
     {
@@ -90,6 +98,7 @@ public sealed partial class Renderer
         _spheres?.Clear();
         _lines?.Clear();
         _cubes?.Clear();
+        _texts?.Clear();
     }
 
     public void RenderDebugObjects()
@@ -126,5 +135,18 @@ public sealed partial class Renderer
                 var cube = _cubes[i];
                 cube.RenderOutline(this, _defaultDbgObjectColor, 0.05f);
             }
+
+        if (_texts != null)
+        {
+            PushModelMatrix(Matrix4x4.CreateScale(0.05f));
+            for (int i = 0; i < _texts.Count; i++)
+            {
+                (Vector3, string) txtItem = _texts[i];
+                PushModelMatrix(Matrix4x4.CreateTranslation(txtItem.Item1));
+                RenderString(Vector3.Zero, txtItem.Item2, 25);
+                PopModelMatrix();
+            }
+            PopModelMatrix();
+        }
     }
 }
