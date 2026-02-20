@@ -1,10 +1,13 @@
 ﻿#nullable enable
 
+extern alias SilkNet;
+
 using Emotion.Core.Systems.IO;
-using Silk.NET.Assimp;
+using SilkNet::Silk.NET.Assimp;
 
 namespace Emotion.Standard.Parsers.Assimp;
 
+[DontSerialize]
 public unsafe struct AssimpVirtualFileSystem
 {
     public FileIO NativeFileIO;

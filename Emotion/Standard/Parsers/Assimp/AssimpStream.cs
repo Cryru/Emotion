@@ -1,12 +1,14 @@
 ﻿#nullable enable
 
+extern alias SilkNet;
+
 #region Using
 
 using Emotion.Standard.Memory;
-using Silk.NET.Assimp;
+using SilkNet::Silk.NET.Assimp;
 using System.IO;
 using System.Runtime.InteropServices;
-using File = Silk.NET.Assimp.File;
+using File = SilkNet::Silk.NET.Assimp.File;
 
 #endregion
 

@@ -298,7 +298,7 @@
         </None>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Silk.NET.Assimp" Version="2.22.0" Condition="$(DefineConstants.Contains('MORE_MESH_TYPES'))" />
+        <PackageReference Include="Silk.NET.Assimp" Version="2.22.0" Condition="$(DefineConstants.Contains('MORE_MESH_TYPES'))" Aliases="SilkNet" />
         <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" Condition="$(DefineConstants.Contains('MORE_IMAGE_TYPES'))" />
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.0.0" Condition="$(DefineConstants.Contains('CSHARP_SCRIPTING'))" />
         <PackageReference Include="System.Text.Json" Version="10.0.3" />

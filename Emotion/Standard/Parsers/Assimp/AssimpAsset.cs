@@ -1,16 +1,18 @@
 ﻿#nullable enable
 
+extern alias SilkNet;
+
 #region Using
 
 using System.IO;
 using Emotion.Graphics.Data;
-using AssContext = Silk.NET.Assimp.Assimp;
-using AssTexture = Silk.NET.Assimp.Texture;
-using AssMesh = Silk.NET.Assimp.Mesh;
+using AssContext = SilkNet::Silk.NET.Assimp.Assimp;
+using AssTexture = SilkNet::Silk.NET.Assimp.Texture;
+using AssMesh = SilkNet::Silk.NET.Assimp.Mesh;
+using SilkNet::Silk.NET.Assimp;
 using Emotion.Graphics.Assets;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Core.Systems.IO;
-using Silk.NET.Assimp;
 using Emotion.Game.Systems.Animation.ThreeDee;
 using Texture = Emotion.Graphics.Objects.Texture;
 using Emotion.Core.Utility.Threading;
@@ -88,11 +90,9 @@ public static class AssimpFormat
         ProcessAnimations(scene, animations, animRig);
 
         // Add animations from a _Animations folder.
-        string animFolder = AssetLoader.GetFilePathNoExtension(name) + "_Animations/";
-        string[] assetsInFolder = Engine.AssetLoader.GetAssetsInFolder(animFolder);
-        for (var i = 0; i < assetsInFolder.Length; i++)
+        string animFolder = $"{AssetLoader.GetFileName(name)}_Animations/";
+        foreach (string assetPath in Engine.AssetLoader.ForEachAssetInFolder(animFolder))
         {
-            string assetPath = assetsInFolder[i];
             string assetPathRelative = assetPath.Replace(sceneDirectory, "");
             Scene* otherAssetScene = _assContext.ImportFileEx(assetPathRelative, (uint)_postProcFlags, ref nativeIO);
             if (otherAssetScene != null) ProcessAnimations(otherAssetScene, animations, animRig);
@@ -149,7 +149,7 @@ public static class AssimpFormat
 
                 byte[] dataManaged = dataAsByte.ToArray();
                 Texture? embeddedTexture = Texture.NonGLThreadInitialize();
-                GLThread.ExecuteGLThreadAsync(() =>
+                GLThread.ExecuteOnGLThreadAsync(() =>
                 {
                     Texture.NonGLThreadInitializedCreatePointer(embeddedTexture);
                     embeddedTexture.Upload(new Vector2(assTexture->MWidth, assTexture->MHeight), dataManaged);
@@ -669,54 +669,5 @@ public static class AssimpFormat
         }
 
         return null;
-    }
-
-    public static unsafe void ExportEntity(MeshEntity entity, string formatId, string name)
-    {
-        Scene sc = new Scene();
-        Node rootNode = new Node();
-
-        sc.MRootNode = &rootNode;
-        rootNode.MNumMeshes = (uint)entity.Meshes.Length;
-
-        AssMesh[] meshes = new AssMesh[entity.Meshes.Length];
-        for (int i = 0; i < meshes.Length; i++)
-        {
-
-        }
-
-
-        ExportAs(&sc, formatId, name);
-    }
-
-    public static unsafe void ExportAs(Scene* scene, string formatId, string name)
-    {
-        ExportDataBlob* blob = _assContext.ExportSceneToBlob(scene, formatId, (uint)_postProcFlags);
-        var str = new MemoryStream();
-        using (var writer = new BinaryWriter(str))
-        {
-            while (true)
-            {
-                if (blob == null) return;
-
-                bool hasNext = blob->Next != null;
-
-                writer.Write(blob->Name.AsString);
-                writer.Write(blob->Size);
-                var data = new Span<byte>(blob->Data, (int)blob->Size);
-                writer.Write(data);
-                writer.Write(hasNext);
-
-                if (hasNext)
-                {
-                    blob = blob->Next;
-                    continue;
-                }
-
-                break;
-            }
-        }
-
-        Engine.AssetLoader.Save(str.ToArray(), name, false);
     }
 }
