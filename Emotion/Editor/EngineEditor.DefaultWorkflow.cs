@@ -74,7 +74,8 @@ public static partial class EngineEditor
 
             // Camera speed
             UIBaseWindow cameraSpeed = TypeEditor.CreateCustomWithLabel("Camera Speed", (float)0, SetDebugCameraSpeed, LabelStyle.MapEditor);
-            cameraSpeed.Layout.MaxSizeX = 220;
+            //cameraSpeed.Layout.MaxSizeX = 220;
+            cameraSpeed.Layout.SizingX = UISizing.Fit();
             container.OnModeChanged = (_) =>
             {
                 // The speed changes when the camera changes, so we need to update it on mode changed.
