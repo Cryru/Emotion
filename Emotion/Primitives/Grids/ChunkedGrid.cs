@@ -7,7 +7,7 @@ using Emotion.Primitives.Grids.Chunked;
 namespace Emotion.Primitives.Grids;
 
 public class ChunkedGrid<T, ChunkT> : IGrid<T>
-    where T : unmanaged, IEquatable<T>
+    where T : unmanaged
     where ChunkT : IGridChunk<T>, new()
 {
     public Vector2 ChunkSize { get; private set; }
@@ -76,7 +76,7 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
         }
     }
 
-    #region ChunkHelpers
+    #region Chunk Helpers
 
     protected virtual ChunkT InitializeNewChunk()
     {
@@ -298,7 +298,7 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
     #endregion
 }
 
-public class VersionedGridChunk<T> : GenericGridChunk<T> where T : unmanaged, IEquatable<T>
+public class VersionedGridChunk<T> : GenericGridChunk<T> where T : unmanaged
 {
     // This is used to track runtime changes in the chunk for render cache updates
     [DontSerialize]

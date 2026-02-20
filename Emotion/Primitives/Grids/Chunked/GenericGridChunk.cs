@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Emotion.Primitives.Grids.Chunked;
 
-public class GenericGridChunk<T> : IGridChunk<T> where T : unmanaged, IEquatable<T>
+public class GenericGridChunk<T> : IGridChunk<T> where T : unmanaged
 {
     protected T[] _data = Array.Empty<T>();
 

@@ -16,7 +16,7 @@ namespace Emotion.Game.World.Terrain;
 [DontSerialize]
 public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGridWorldSpaceTiles, ITerrainGrid3D
     where ChunkT : MeshGridStreamableChunk<T, IndexT>, new()
-    where T : unmanaged, IEquatable<T>
+    where T : unmanaged
     where IndexT : INumber<IndexT>
 {
     public bool Initialized { get; private set; }
