@@ -39,18 +39,11 @@ public class VoxelMeshTerrainGrid<TData, TChunk, TIndex> : MeshGrid<TData, TChun
 
     public IEnumerator InitRoutine(GameMap.GridFriendAdapter adapter)
     {
-        List<Asset> assets = new List<Asset>();
-        if (TerrainMeshMaterial.DiffuseTextureName != null)
-            assets.Add(Engine.AssetLoader.Get<TextureAsset>(TerrainMeshMaterial.DiffuseTextureName));
+        GetMeshMaterial().EnsureAssetsLoaded();
 
         IRoutineWaiter indexBufferTask = GLThread.ExecuteOnGLThreadAsync(PrepareIndexBuffer);
         yield return base.InitRoutine();
         yield return indexBufferTask;
-
-        for (int i = 0; i < assets.Count; i++)
-        {
-            yield return assets[i];
-        }
     }
 
     protected override TChunk InitializeNewChunk()

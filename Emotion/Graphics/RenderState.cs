@@ -60,26 +60,4 @@ public partial struct RenderState
     {
 
     }
-
-    public static ShaderProgram ResolveFromName(string? name)
-    {
-        ShaderProgram shaderWant = ShaderFactory.DefaultProgram;
-        if (!string.IsNullOrEmpty(name))
-        {
-            if (name.Contains(".xml"))
-            {
-                ShaderAsset? oldShaderAsset = Engine.AssetLoader.LEGACY_Get<ShaderAsset>(name);
-                if (oldShaderAsset != null)
-                    shaderWant = oldShaderAsset.Shader;
-            }
-            else if (name.Contains(".glsl"))
-            {
-                // todo: async loading
-                ShaderAsset shaderHandle = Engine.AssetLoader.Get<ShaderAsset>(name, null, true);
-                if (shaderHandle.Loaded && shaderHandle.CompiledShader != null)
-                    shaderWant = shaderHandle.CompiledShader;
-            }
-        }
-        return shaderWant;
-    }
 }

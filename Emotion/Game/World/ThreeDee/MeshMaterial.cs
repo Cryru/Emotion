@@ -2,6 +2,7 @@
 
 using Emotion.Core.Systems.IO;
 using Emotion.Graphics.Assets;
+using Emotion.Graphics.Shader;
 
 #endregion
 
@@ -18,7 +19,7 @@ public class MeshMaterial
 
     public Color DiffuseColor = Color.White;
 
-    public SerializableAsset<TextureAsset>? DiffuseTextureName = null;
+    public AssetObjectReference<TextureAsset, Texture> DiffuseTextureName = AssetObjectReference<TextureAsset, Texture>.Invalid;
 
     public Texture DiffuseTexture = Texture.EmptyWhiteTexture;
 
@@ -38,13 +39,21 @@ public class MeshMaterial
 
     public Texture GetDiffuseTexture()
     {
-        if (DiffuseTextureName != null)
+        if (DiffuseTextureName.IsValid())
         {
-            TextureAsset texture = Engine.AssetLoader.Get<TextureAsset>(DiffuseTextureName);
-            if (texture.Loaded)
-                return texture.Texture;
+            return DiffuseTextureName.GetObjectLoadinline() ?? Texture.EmptyWhiteTexture;
         }
 
         return DiffuseTexture;
+    }
+
+    public void EnsureAssetsLoaded()
+    {
+        // todo: use AssetOwner
+        if (DiffuseTextureName.Type == AssetOrObjectReferenceType.AssetName)
+            Engine.AssetLoader.Get<TextureAsset>(DiffuseTextureName.AssetName, this);
+
+        if (State.Shader.Type == AssetOrObjectReferenceType.AssetName)
+            Engine.AssetLoader.Get<ShaderAsset>(State.Shader.AssetName, this);
     }
 }
