@@ -6,7 +6,6 @@ using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Shading;
-using Emotion.Primitives.Grids;
 using System.Runtime.InteropServices;
 
 namespace Emotion.Game.World.Terrain;
@@ -77,6 +76,10 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
         int vertices = (int)(evenRows + oddRows);
 
         TerrainData[] newChunkData = new TerrainData[vertices];
+        for (int i = 0; i < newChunkData.Length; i++)
+        {
+            newChunkData[i].Color = Color.White;
+        }
         newChunk.SetRawData(newChunkData);
 
         return newChunk;
@@ -130,7 +133,7 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
 
                 vert.Position = (pen + chunkWorldOffset).ToVec3(terrainData.Height);
                 vert.Normal = new Vector3(0, 0, 1);
-                vert.Color = Color.WhiteUint;
+                vert.Color = terrainData.Color.ToUint();
                 vert.UV = Vector2.Zero;
 
                 //Engine.Renderer.DbgAddPoint(vert.Position.ToVec2().ToVec3(0));
@@ -177,7 +180,7 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
 
                 vert.Position = (pen + chunkWorldOffset).ToVec3(terrainData.Height);
                 vert.Normal = new Vector3(0, 0, 1);
-                vert.Color = Color.WhiteUint;
+                vert.Color = terrainData.Color.ToUint();
                 vert.UV = Vector2.Zero;
 
                 //Engine.Renderer.DbgAddPoint(vert.Position.ToVec2().ToVec3(0));
@@ -210,7 +213,7 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
 
                 vert.Position = (pen + chunkWorldOffset).ToVec3(terrainData.Height);
                 vert.Normal = new Vector3(0, 0, 1);
-                vert.Color = Color.WhiteUint;
+                vert.Color = terrainData.Color.ToUint();
                 vert.UV = Vector2.Zero;
 
                 //Engine.Renderer.DbgAddPoint(vert.Position.ToVec2().ToVec3(0));
@@ -236,7 +239,7 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
 
             vert.Position = (pen + chunkWorldOffset).ToVec3(terrainData.Height);
             vert.Normal = new Vector3(0, 0, 0.5f);
-            vert.Color = Color.WhiteUint;
+            vert.Color = terrainData.Color.ToUint();
             vert.UV = Vector2.Zero;
 
             //Engine.Renderer.DbgAddPoint(vert.Position.ToVec2().ToVec3(0));
@@ -482,11 +485,21 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
     public enum BrushOperation
     {
         Rise,
-        Lower
+        Lower,
+        Color
     }
 
-    public void ApplyBrushHeight(BrushOperation op)
+    public struct TerrainBrush
     {
+        public float Size;
+        public float Strength;
+        public Color Color;
+    }
+
+    public void ApplyBrushHeight(BrushOperation op, TerrainBrush brush)
+    {
+        SetEditorBrush(true, brush.Size, brush.Strength);
+
         Vector2 brushPos = GetEditorBrush();
         Vector2 chunkWorldSize = ChunkSize * TileSize;
 
@@ -497,10 +510,13 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
         switch (op)
         {
             case BrushOperation.Rise:
-                brushFunc = static (ref data, str) => data.Height += str;
+                brushFunc = static (ref data, brush, str) => data.Height += str;
                 break;
             case BrushOperation.Lower:
-                brushFunc = static (ref data, str) => data.Height -= str;
+                brushFunc = static (ref data, brush, str) => data.Height -= str;
+                break;
+            case BrushOperation.Color:
+                brushFunc = static (ref data, brush, str) => data.Color = Color.Lerp(data.Color, brush.Color, str);
                 break;
         }
         if (brushFunc == null) return;
@@ -525,14 +541,14 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
 
                     chunk = newChunk;
                 }
-                ApplyBrushToSingleChunk(brushPos, chunkCoord, chunk, brushFunc);
+                ApplyBrushToSingleChunk(brushPos, chunkCoord, chunk, brush, brushFunc);
             }
         }
     }
 
-    public delegate void ApplyBrushToTerrain(ref TerrainData data, float strength);
+    public delegate void ApplyBrushToTerrain(ref TerrainData data, TerrainBrush brush, float fallOff);
 
-    private void ApplyBrushToSingleChunk(Vector2 brushPos, Vector2 chunkCoord, TerrainChunk chunk, ApplyBrushToTerrain func)
+    private void ApplyBrushToSingleChunk(Vector2 brushPos, Vector2 chunkCoord, TerrainChunk chunk, TerrainBrush brush, ApplyBrushToTerrain func)
     {
         float radius = _editorBrushSize;
         float radiusSq = MathF.Pow(radius, 2);
@@ -580,7 +596,7 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
 
                     //Engine.Renderer.DbgAddPoint(vertPos.ToVec3());
                     //Engine.Renderer.DbgAddText(vertPos.ToVec3(), falloff.ToString("0.00"));
-                    func(ref terrain, strength * falloff);
+                    func(ref terrain, brush, strength * falloff);
                 }
             }
         }

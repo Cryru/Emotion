@@ -164,9 +164,14 @@ public partial class LevelDesignWorkflow
                 if (terrainGrid == null) return true;
 
                 terrainGrid.ApplyBrushHeight(
-                   Engine.Host.IsAltModifierHeld() ?
-                       TerrainMeshGridNew.BrushOperation.Lower :
-                       TerrainMeshGridNew.BrushOperation.Rise
+                   //Engine.Host.IsAltModifierHeld() ? TerrainMeshGridNew.BrushOperation.Lower : TerrainMeshGridNew.BrushOperation.Rise,
+                   TerrainMeshGridNew.BrushOperation.Color,
+                   new TerrainMeshGridNew.TerrainBrush()
+                   {
+                       Size = _brushSize,
+                       Strength = _brushStr,
+                       Color = Color.Red
+                   }
                );
             }
 

@@ -17,10 +17,10 @@ public class TerrainEditorRaiseLowerTool : TerrainEditorTool
 
     public override void ApplyTool(TerrainEditorWindow editor, TerrainMeshGridNew terrain, TerrainBrushGridItem[] brushGrid)
     {
-        terrain.ApplyBrushHeight(
-            Engine.Host.IsAltModifierHeld() ?
-                TerrainMeshGridNew.BrushOperation.Rise :
-                TerrainMeshGridNew.BrushOperation.Lower
-        );
+        //terrain.ApplyBrushHeight(
+        //    Engine.Host.IsAltModifierHeld() ?
+        //        TerrainMeshGridNew.BrushOperation.Rise :
+        //        TerrainMeshGridNew.BrushOperation.Lower
+        //);
     }
 }
