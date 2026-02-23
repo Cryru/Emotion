@@ -137,7 +137,7 @@ vec4 FragmentShaderMain()
     // finalColor = gammaCorrect(finalColor);
 
 #if EDITOR_BRUSH
-    float ringThickness = 0.5;
+    float ringThickness = 0.3;
 
     float d = length(brushWorldSpace - vertPos.xy);
     float innerRadius = brushRadius - ringThickness;

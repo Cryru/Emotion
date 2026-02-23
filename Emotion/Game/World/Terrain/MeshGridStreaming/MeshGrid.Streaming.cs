@@ -220,7 +220,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
         }
 
         bool doneWithAllRequests = _currentRequestOffset == _finishedChunkRequest.Count - 1 && _currentDemoteRequestOffset == _finishedChunkRequestUntouched.Count - 1;
-        _chunkStreamUpdate.Update(dt);
+        _chunkStreamUpdate.Update(EngineEditor.IsOpen ? Engine.DeltaTime : dt);
         if (_chunkStreamUpdate.Finished || doneWithAllRequests)
         {
             ChunkStreamStateUpdate();

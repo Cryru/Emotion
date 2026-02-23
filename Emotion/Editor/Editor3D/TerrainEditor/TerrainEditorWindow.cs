@@ -11,8 +11,6 @@ namespace Emotion.Editor.Editor3D.TerrainEditor;
 [DontSerialize]
 public sealed class TerrainEditorWindow : GridEditorWindow
 {
-    private float _brushSize = 10;
-
     public TerrainEditorWindow() : base()
     {
     }
@@ -26,8 +24,8 @@ public sealed class TerrainEditorWindow : GridEditorWindow
 
     protected override void OnClose()
     {
-        TerrainMeshGrid? terrain = GetCurrentMapTerrain();
-        terrain?.SetEditorBrush(false, 0);
+        TerrainMeshGridNew? terrain = GetCurrentMapTerrain();
+        //terrain?.SetEditorBrush(false, 0);
     }
 
     protected override string GetGridName()
@@ -57,10 +55,10 @@ public sealed class TerrainEditorWindow : GridEditorWindow
 
     protected override Vector2 UpdateCursor()
     {
-        TerrainMeshGrid? terrain = GetCurrentMapTerrain();
+        TerrainMeshGridNew? terrain = GetCurrentMapTerrain();
         AssertNotNull(terrain);
 
-        terrain.SetEditorBrush(true, _brushSize);
+        //terrain.SetEditorBrush(true, _brushSize);
 
         // Construct brush grid
         Vector2 tileSize = terrain.TileSize;
@@ -112,50 +110,16 @@ public sealed class TerrainEditorWindow : GridEditorWindow
 
     protected override void UseCurrentToolAtPosition(Vector2 tilePos)
     {
-        TerrainMeshGrid? terrain = GetCurrentMapTerrain();
+        TerrainMeshGridNew? terrain = GetCurrentMapTerrain();
         AssertNotNull(terrain);
 
         if (CurrentTool is TerrainEditorTool terrainTool)
             terrainTool.ApplyTool(this, terrain, _brushGrid);
-
-        // Smooth
-        //float averageVal = 0;
-        //int values = 0;
-        //for (int i = 0; i < _brushGrid.Length; i++)
-        //{
-        //    BrushGrid tileInfo = _brushGrid[i];
-        //    float influence = tileInfo.Influence;
-        //    if (influence == 0) continue;
-
-        //    Vector2 tileCoord = tileInfo.TileCoord;
-
-        //    float val = terrain.GetAt(tileCoord);
-        //    averageVal += val;
-        //    values++;
-        //}
-
-        //averageVal = averageVal / values;
-        //for (int i = 0; i < _brushGrid.Length; i++)
-        //{
-        //    BrushGrid tileInfo = _brushGrid[i];
-        //    float influence = tileInfo.Influence;
-        //    if (influence == 0) continue;
-
-        //    Vector2 tileCoord = tileInfo.TileCoord;
-        //    float val = terrain.GetAt(tileCoord);
-
-        //    float brushStrength = 5 * influence;
-
-        //    float diff = averageVal - val;
-        //    float diffAbs = MathF.Abs(diff);
-        //    val += MathF.Min(diffAbs, brushStrength) * MathF.Sign(diff);
-        //    terrain.ExpandingSetAt(tileCoord, val);
-        //}
     }
 
-    public TerrainMeshGrid? GetCurrentMapTerrain()
+    public TerrainMeshGridNew? GetCurrentMapTerrain()
     {
         GameMap? map = EngineEditor.GetCurrentMap();
-        return map?.GetFirstGridOfType<TerrainMeshGrid>();
+        return map?.GetFirstGridOfType<TerrainMeshGridNew>();
     }
 }

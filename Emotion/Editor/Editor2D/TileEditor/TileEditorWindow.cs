@@ -74,9 +74,9 @@ public sealed class TileEditorWindow : GridEditorWindow
             tileTool.ApplyTool(this, CurrentLayer, tilePos);
     }
 
-    public override void SpawnBottomBarContent(Editor2DBottomBar bar, UIBaseWindow barContent)
+    public override void SpawnBottomBarContent(UIBaseWindow wnd, UIBaseWindow barContent)
     {
-        base.SpawnBottomBarContent(bar, barContent);
+        base.SpawnBottomBarContent(wnd, barContent);
 
         var sidePanel = new UIBaseWindow()
         {

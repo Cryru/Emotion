@@ -15,21 +15,12 @@ public class TerrainEditorRaiseLowerTool : TerrainEditorTool
         HotKey = Key.B;
     }
 
-    public override void ApplyTool(TerrainEditorWindow editor, TerrainMeshGrid terrain, TerrainBrushGridItem[] brushGrid)
+    public override void ApplyTool(TerrainEditorWindow editor, TerrainMeshGridNew terrain, TerrainBrushGridItem[] brushGrid)
     {
-        for (int i = 0; i < brushGrid.Length; i++)
-        {
-            TerrainBrushGridItem tileInfo = brushGrid[i];
-            float influence = tileInfo.Influence;
-            if (influence == 0) continue;
-
-            Vector2 tileCoord = tileInfo.TileCoord;
-
-            float brushStrength = 0.5f * influence;
-            if (Engine.Host.IsCtrlModifierHeld()) brushStrength = -brushStrength;
-
-            float val = terrain.GetAt(tileCoord);
-            terrain.ExpandingSetAt(tileCoord, val + brushStrength);
-        }
+        terrain.ApplyBrushHeight(
+            Engine.Host.IsAltModifierHeld() ?
+                TerrainMeshGridNew.BrushOperation.Rise :
+                TerrainMeshGridNew.BrushOperation.Lower
+        );
     }
 }

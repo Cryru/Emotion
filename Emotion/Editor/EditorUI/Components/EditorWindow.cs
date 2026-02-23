@@ -519,7 +519,7 @@ public class EditorWindow : UIBaseWindow
             _hostWindow = Engine.Host.CreateSubWindow(Header, contentSize);
 
             _panelItself.Layout.Offset = IntVector2.Zero;
-            _panelItself.AnchorAndParentAnchor = UIAnchor.TopLeft;
+            _panelItself.Layout.AnchorAndParentAnchor = UIAnchor.TopLeft;
             _centered = true;
         });
     }

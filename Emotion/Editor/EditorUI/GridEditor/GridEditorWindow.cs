@@ -2,7 +2,9 @@
 
 using Emotion.Editor.Editor2D;
 using Emotion.Editor.EditorUI.Components;
+using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 using Emotion.Primitives.Grids;
+using System.ComponentModel;
 
 namespace Emotion.Editor.EditorUI.GridEditor;
 
@@ -32,38 +34,15 @@ public abstract class GridEditorWindow : UIBaseWindow
         Engine.UI.SetInputFocus(this);
     }
 
-    public virtual void SpawnBottomBarContent(Editor2DBottomBar bar, UIBaseWindow barContent)
+    public virtual void SpawnBottomBarContent(UIBaseWindow wnd, UIBaseWindow barContent)
     {
-        // Bottom text
-        {
-            var textList = new UIBaseWindow()
-            {
-                Layout =
-                {
-                    LayoutMethod = UILayoutMethod.HorizontalList(10),
-                    AnchorAndParentAnchor = UIAnchor.CenterLeft,
-                    SizingY = UISizing.Fit()
-                }
-            };
-            barContent.AddChild(textList);
-
-            var label = new EditorLabel($"{GetGridName()} Editor")
-            {
-                WindowColor = Color.White * 0.5f
-            };
-            textList.AddChild(label);
-
-            var labelDynamic = new EditorLabel("");
-            textList.AddChild(labelDynamic);
-            _bottomText = labelDynamic;
-        }
-
         // Tool buttons
         {
             var buttonList = new UIBaseWindow()
             {
                 Layout =
                 {
+                    SizingX = UISizing.Fit(),
                     LayoutMethod = UILayoutMethod.HorizontalList(5),
                     AnchorAndParentAnchor = UIAnchor.CenterRight,
                     Margins = new UISpacing(5, 5, 5, 5)
@@ -78,6 +57,38 @@ public abstract class GridEditorWindow : UIBaseWindow
                 buttonList.AddChild(new GridEditorToolButton(this, tool));
             }
         }
+
+        // Bottom text
+        {
+            var textList = new UIBaseWindow()
+            {
+                Layout =
+                {
+                    LayoutMethod = UILayoutMethod.HorizontalList(10),
+                    AnchorAndParentAnchor = UIAnchor.CenterLeft,
+                    SizingY = UISizing.Fit()
+                }
+            };
+            barContent.AddChild(textList);
+
+            var labelDynamic = new EditorLabel("");
+            textList.AddChild(labelDynamic);
+            _bottomText = labelDynamic;
+        }
+
+        
+    }
+
+    protected float _brushSize = 5;
+    private void SetBrushSize(float val)
+    {
+        _brushSize = val;
+    }
+
+    protected float _brushStr = 1;
+    private void SetBrushStrength(float val)
+    {
+        _brushStr = val;
     }
 
     #region Tools

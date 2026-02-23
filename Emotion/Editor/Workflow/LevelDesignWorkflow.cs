@@ -1,7 +1,10 @@
 ﻿#nullable enable
 
+using Emotion.Editor.Editor3D.TerrainEditor;
 using Emotion.Editor.EditorUI;
 using Emotion.Editor.EditorUI.Components;
+using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
+using Emotion.Game.World.Terrain;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 
@@ -17,25 +20,11 @@ public partial class LevelDesignWorkflow : EditorWorkflow
     {
         base.Init(parent);
 
-        UIBaseWindow controls = new UIBaseWindow()
-        {
-            Visuals =
-            {
-                BackgroundColor = EditorColorPalette.BarColor,
-            },
-            Layout =
-            {
-                SizingX = UISizing.Grow(),
-                SizingY = UISizing.Fit(),
-                LayoutMethod = UILayoutMethod.HorizontalList(0),
-                Padding = new UISpacing(5, 5, 5, 5)
-            }
-        };
+        UIBaseWindow controls = new UIBaseWindow();
         parent.AddChild(controls);
-        parent.AddChild(new ObjectSelection(this));
 
-        var mapLayerDisplay = new MapGridDisplay();
-        controls.AddChild(mapLayerDisplay);
+        controls.AddChild(new MapGridDisplay(this));
+        //controls.AddChild(new ObjectSelection(this));
 
         var cameraViewMode = new MapEditorViewMode();
         cameraViewMode.Layout.AnchorAndParentAnchor = UIAnchor.BottomLeft;
@@ -106,34 +95,164 @@ public partial class LevelDesignWorkflow
         }
     }
 }
+public partial class LevelDesignWorkflow
+{
+    private class TerrainMeshBrushOverlay : UIBaseWindow
+    {
+        private LevelDesignWorkflow _workFlow;
+        private static float _brushSize = 2;
+        private static float _brushStr = 0.75f;
+
+        public TerrainMeshBrushOverlay(LevelDesignWorkflow workflow)
+        {
+            HandleInput = true;
+            _workFlow = workflow;
+
+            var controls = new UIBaseWindow()
+            {
+                Layout =
+                {
+                    Margins = new UISpacing(0, 50, 0, 0),
+                    LayoutMethod = UILayoutMethod.VerticalList(1)
+                }
+            };
+            AddChild(controls);
+
+            UIBaseWindow brushSize = TypeEditor.CreateCustomWithLabel("Brush Size", _brushSize, static (v) => _brushSize = v, LabelStyle.MapEditor);
+            brushSize.Layout.SizingX = UISizing.Fit();
+            controls.AddChild(brushSize);
+
+            UIBaseWindow brushStr = TypeEditor.CreateCustomWithLabel("Brush Strength", _brushStr, static (v) => _brushStr = v, LabelStyle.MapEditor);
+            brushStr.Layout.SizingX = UISizing.Fit();
+            controls.AddChild(brushStr);
+        }
+
+        public override void OnMouseEnter(Vector2 mousePos)
+        {
+            base.OnMouseEnter(mousePos);
+            UpdateSelection();
+        }
+
+        public override void OnMouseMove(Vector2 mousePos)
+        {
+            base.OnMouseMove(mousePos);
+            UpdateSelection();
+        }
+
+        public override void OnMouseLeft(Vector2 mousePos)
+        {
+            base.OnMouseLeft(mousePos);
+            UpdateSelection(true);
+        }
+
+        private void UpdateSelection(bool clear = false)
+        {
+            GameMap? map = EngineEditor.GetCurrentMap();
+            TerrainMeshGridNew? terrainGrid = map?.GetFirstGridOfType<TerrainMeshGridNew>();
+            if (terrainGrid == null) return;
+
+            terrainGrid.SetEditorBrush(!clear, _brushSize, _brushStr);
+            if (clear) return;
+        }
+
+        protected override bool UpdateInternal()
+        {
+            if (_mouseDown)
+            {
+                GameMap? map = EngineEditor.GetCurrentMap();
+                TerrainMeshGridNew? terrainGrid = map?.GetFirstGridOfType<TerrainMeshGridNew>();
+                if (terrainGrid == null) return true;
+
+                terrainGrid.ApplyBrushHeight(
+                   Engine.Host.IsAltModifierHeld() ?
+                       TerrainMeshGridNew.BrushOperation.Lower :
+                       TerrainMeshGridNew.BrushOperation.Rise
+               );
+            }
+
+            return base.UpdateInternal();
+        }
+
+        private bool _mouseDown;
+
+        public override bool OnKey(Key key, KeyState status, Vector2 mousePos)
+        {
+            if (key == Key.MouseKeyLeft)
+            {
+                _mouseDown = status == KeyState.Down;
+                return true;
+            }
+
+            return base.OnKey(key, status, mousePos);
+        }
+    }
+}
 
 public partial class LevelDesignWorkflow
 {
     private class MapGridDisplay : UIBaseWindow
     {
+        private LevelDesignWorkflow _workFlow;
         private UIBaseWindow _layerList;
 
-        public MapGridDisplay()
+        public MapGridDisplay(LevelDesignWorkflow workFlow)
         {
-            Layout.LayoutMethod = UILayoutMethod.VerticalList(0);
-            Layout.SizingY = UISizing.Fit();
+            _workFlow = workFlow;
 
-            NewUIScrollArea layerList = new NewUIScrollArea()
+            //NewUIScrollArea layerList = new NewUIScrollArea()
+            //{
+            //    Layout =
+            //    {
+            //        LayoutMethod = UILayoutMethod.VerticalList(1)
+            //    }
+            //};
+            //AddChild(layerList);
+            //_layerList = layerList;
+
+            var buttonList = new UIBaseButton()
             {
+                Visuals =
+                {
+                    BackgroundColor = EditorColorPalette.BarColor
+                },
                 Layout =
                 {
-                    LayoutMethod = UILayoutMethod.VerticalList(1)
+                    SizingY = UISizing.Fit(),
+                    Padding = new UISpacing(5, 5, 5, 5),
+                    LayoutMethod = UILayoutMethod.HorizontalList(3)
                 }
             };
-            AddChild(layerList);
-            _layerList = layerList;
+            AddChild(buttonList);
+
+            var secondBar = new UIBaseButton()
+            {
+                Visuals =
+                {
+                    BackgroundColor = EditorColorPalette.BarColor
+                },
+                Layout =
+                {
+                    SizingY = UISizing.Fit(),
+                    Padding = new UISpacing(5, 5, 5, 5),
+                    LayoutMethod = UILayoutMethod.HorizontalList(3)
+                }
+            };
+            AddChild(secondBar);
 
             EditorButton newLayer = new("+ New")
             {
                 Name = "NewLayerButton",
                 OnClickedUpProxy = (_) => NewLayer()
             };
-            AddChild(newLayer);
+            buttonList.AddChild(newLayer);
+            buttonList.AddChild(new OneButton(
+                "(temp) Old Terrain Editor",
+                (_) =>
+                {
+                    Parent.AddChild(new TerrainMeshBrushOverlay(_workFlow));
+                },
+                ButtonType.Outlined
+            ));
         }
 
         protected override void OnOpen()

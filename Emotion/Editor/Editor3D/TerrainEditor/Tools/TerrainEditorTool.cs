@@ -8,5 +8,5 @@ namespace Emotion.Editor.Editor3D.TerrainEditor.Tools;
 
 public abstract class TerrainEditorTool : GridEditorTool
 {
-    public abstract void ApplyTool(TerrainEditorWindow editor, TerrainMeshGrid terrain, TerrainBrushGridItem[] brushGrid);
+    public abstract void ApplyTool(TerrainEditorWindow editor, TerrainMeshGridNew terrain, TerrainBrushGridItem[] brushGrid);
 }
