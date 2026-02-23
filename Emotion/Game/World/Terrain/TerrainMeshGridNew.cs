@@ -15,7 +15,7 @@ namespace Emotion.Game.World.Terrain;
 public struct TerrainData
 {
     public float Height;
-    public Vector3 DBG_Pos;
+    public Color Color;
 }
 
 public class TerrainChunk : MeshGridStreamableChunk<TerrainData, ushort>
@@ -71,7 +71,10 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
     protected override TerrainChunk InitializeNewChunk()
     {
         TerrainChunk newChunk = new();
-        int vertices = (int)((ChunkSize.X * ChunkSize.Y) + ((ChunkSize.X + 1) * (ChunkSize.Y + 1)));
+
+        float evenRows = ChunkSize.X * ChunkSize.Y;
+        float oddRows = ChunkSize.X * ChunkSize.Y; // Middle vertices
+        int vertices = (int)(evenRows + oddRows);
 
         TerrainData[] newChunkData = new TerrainData[vertices];
         newChunk.SetRawData(newChunkData);
@@ -93,35 +96,42 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
         Vector2 halfTileSize = TileSize / 2f;
         Vector2 chunkWorldSize = ChunkSize * tileSize;
         Vector2 chunkWorldOffset = chunkCoord * chunkWorldSize;
-        int evenRowWidth = (int)(ChunkSize.X + 1);
-        int oddRowWidth = (int)ChunkSize.X;
+        int rowWidth = (int)ChunkSize.X;
+        int rows = (int)(ChunkSize.Y + ChunkSize.Y);
 
-        //Engine.Renderer.DbgAddCube(Cube.FromMinAndMax(chunkWorldOffset.ToVec3(0), (ChunkSize * TileSize).ToVec3(10) ));
+        TerrainData[] data = chunk.GetRawData();
 
-        TerrainData[] data = chunk.GetRawData() ?? Array.Empty<TerrainData>();
-        Span<VertexData_Pos_UV_Normal_Color> vertices = ResizeVertexMemoryAndGetSpan(ref chunk.VertexMemory, chunkCoord, data.Length);
+        int vertexCount = data.Length;
+        int stichingVertices = 0;
+        stichingVertices += rowWidth; // Extra row
+        stichingVertices += (int)ChunkSize.Y; // Extra column on even rows
+        stichingVertices++; // Bottom right corner
+        vertexCount += stichingVertices;
+
+        //Engine.Renderer.DbgAddCube(Cube.FromMinAndMax(chunkWorldOffset.ToVec3(0), (ChunkSize * TileSize).ToVec3(10)));
+
+        Span<VertexData_Pos_UV_Normal_Color> vertices = ResizeVertexMemoryAndGetSpan(ref chunk.VertexMemory, chunkCoord, vertexCount);
 
         Vector3 min = Vector3.Zero;
         Vector3 max = Vector3.Zero;
 
         Vector2 pen = Vector2.Zero;
         int verticesUsed = 0;
-        for (int y = 0; y < ChunkSize.Y + ChunkSize.Y + 1; y++)
+        int dataRead = 0;
+        for (int y = 0; y < rows; y++)
         {
             bool oddRow = y % 2 != 0;
             pen.X = oddRow ? halfTileSize.X : 0;
 
-            for (int x = 0; x < (oddRow ? oddRowWidth : evenRowWidth); x++)
+            for (int x = 0; x < rowWidth; x++)
             {
-                ref TerrainData terrainData = ref data[verticesUsed];
+                ref TerrainData terrainData = ref data[dataRead];
                 ref VertexData_Pos_UV_Normal_Color vert = ref vertices[verticesUsed];
 
                 vert.Position = (pen + chunkWorldOffset).ToVec3(terrainData.Height);
                 vert.Normal = new Vector3(0, 0, 1);
-                vert.Color = oddRow ? Color.Blue.ToUint() : Color.WhiteUint;
+                vert.Color = Color.WhiteUint;
                 vert.UV = Vector2.Zero;
-
-                terrainData.DBG_Pos = vert.Position;
 
                 //Engine.Renderer.DbgAddPoint(vert.Position.ToVec2().ToVec3(0));
                 //Engine.Renderer.DbgAddText(vert.Position.ToVec2().ToVec3(0), $"{verticesUsed}");
@@ -132,12 +142,168 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
                 pen.X += tileSize.X;
 
                 verticesUsed++;
+                dataRead++;
             }
+
+            if (!oddRow) verticesUsed++;
 
             pen.Y += halfTileSize.Y;
         }
-       
-        GLThread.ExecuteOnGLThreadAsync(PrepareIndexBuffer);
+
+        // Add stitching vertices
+        Vector2 rightChunkCoord = chunkCoord + new Vector2(1, 0);
+        TerrainChunk? chunkRight = GetChunk(rightChunkCoord);
+        TerrainData[]? dataRight = chunkRight?.GetRawData();
+
+        {
+            pen = Vector2.Zero;
+            int vIdx = 0;
+            for (int y = 0; y < rows; y++)
+            {
+                bool oddRow = y % 2 != 0;
+                pen.X = oddRow ? halfTileSize.X : 0;
+
+                pen.X += tileSize.X * rowWidth;
+                vIdx += rowWidth;
+                if (oddRow)
+                {
+                    pen.Y += halfTileSize.Y;
+                    continue;
+                }
+
+                int x = rowWidth + 1;
+                TerrainData terrainData = dataRight != null ? dataRight[y * rowWidth] : default;
+                ref VertexData_Pos_UV_Normal_Color vert = ref vertices[vIdx];
+
+                vert.Position = (pen + chunkWorldOffset).ToVec3(terrainData.Height);
+                vert.Normal = new Vector3(0, 0, 1);
+                vert.Color = Color.WhiteUint;
+                vert.UV = Vector2.Zero;
+
+                //Engine.Renderer.DbgAddPoint(vert.Position.ToVec2().ToVec3(0));
+                //Engine.Renderer.DbgAddText(vert.Position.ToVec2().ToVec3(0), $"{verticesUsed}");
+
+                min = Vector3.Min(min, vert.Position);
+                max = Vector3.Max(max, vert.Position);
+
+                pen.X += tileSize.X;
+                pen.Y += halfTileSize.Y;
+                vIdx++;
+            }
+        }
+
+        Vector2 bottomChunkCoord = chunkCoord + new Vector2(0, 1);
+        TerrainChunk? chunkBottom = GetChunk(bottomChunkCoord);
+        TerrainData[]? dataBottom = chunkBottom?.GetRawData();
+        {
+            int readIdx = 0;
+            int y = rows;
+            bool oddRow = y % 2 != 0;
+            pen.X = oddRow ? halfTileSize.X : 0;
+
+            for (int x = 0; x < rowWidth; x++)
+            {
+                TerrainData terrainData = dataBottom != null ? dataBottom[readIdx] : default;
+                readIdx++;
+
+                ref VertexData_Pos_UV_Normal_Color vert = ref vertices[verticesUsed];
+
+                vert.Position = (pen + chunkWorldOffset).ToVec3(terrainData.Height);
+                vert.Normal = new Vector3(0, 0, 1);
+                vert.Color = Color.WhiteUint;
+                vert.UV = Vector2.Zero;
+
+                //Engine.Renderer.DbgAddPoint(vert.Position.ToVec2().ToVec3(0));
+                //Engine.Renderer.DbgAddText(vert.Position.ToVec2().ToVec3(0), $"{verticesUsed}");
+
+                min = Vector3.Min(min, vert.Position);
+                max = Vector3.Max(max, vert.Position);
+
+                pen.X += tileSize.X;
+
+                verticesUsed++;
+            }
+        }
+
+        Vector2 bottomRightChunkCoord = chunkCoord + new Vector2(1, 1);
+        TerrainChunk? chunkBottomRight = GetChunk(bottomRightChunkCoord);
+        TerrainData[]? dataBottomRight = chunkBottomRight?.GetRawData();
+
+        {
+            TerrainData terrainData = dataBottomRight != null ? dataBottomRight[0] : default;
+
+            ref VertexData_Pos_UV_Normal_Color vert = ref vertices[verticesUsed];
+
+            vert.Position = (pen + chunkWorldOffset).ToVec3(terrainData.Height);
+            vert.Normal = new Vector3(0, 0, 0.5f);
+            vert.Color = Color.WhiteUint;
+            vert.UV = Vector2.Zero;
+
+            //Engine.Renderer.DbgAddPoint(vert.Position.ToVec2().ToVec3(0));
+            //Engine.Renderer.DbgAddText(vert.Position.ToVec2().ToVec3(0), $"{verticesUsed}");
+
+            min = Vector3.Min(min, vert.Position);
+            max = Vector3.Max(max, vert.Position);
+
+            verticesUsed++;
+        }
+
+        // Propagate the update (due to stitching vertices)
+        if (propagate)
+        {
+            TerrainChunk? stitchChunk;
+
+            // For normals
+            Vector2 topLeftChunkCoord = chunkCoord + new Vector2(-1, -1);
+            stitchChunk = GetChunk(topLeftChunkCoord);
+            if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
+                RequestChunkMeshUpdate(topLeftChunkCoord, stitchChunk);
+
+            // For normals
+            Vector2 topChunkCoord = chunkCoord + new Vector2(0, 1);
+            stitchChunk = GetChunk(topChunkCoord);
+            if (chunkBottom != null && chunkBottom.State >= ChunkState.HasMesh)
+                RequestChunkMeshUpdate(topChunkCoord, chunkBottom);
+
+            // For normals
+            Vector2 topRightCoord = chunkCoord + new Vector2(1, -1);
+            stitchChunk = GetChunk(topRightCoord);
+            if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
+                RequestChunkMeshUpdate(topRightCoord, stitchChunk);
+
+            // For normals
+            Vector2 leftChunkCoord = chunkCoord + new Vector2(-1, 0);
+            stitchChunk = GetChunk(topRightCoord);
+            if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
+                RequestChunkMeshUpdate(leftChunkCoord, stitchChunk);
+
+            // For stitching
+            //Vector2 rightChunkCoord = chunkCoord + new Vector2(1, 0);
+            stitchChunk = GetChunk(rightChunkCoord);
+            if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
+                RequestChunkMeshUpdate(rightChunkCoord, stitchChunk);
+
+            // For normals
+            Vector2 bottomLeftCoord = chunkCoord + new Vector2(-1, 1);
+            stitchChunk = GetChunk(bottomLeftCoord);
+            if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
+                RequestChunkMeshUpdate(bottomLeftCoord, stitchChunk);
+
+            // For stitching
+            //Vector2 bottomChunkCoord = chunkCoord + new Vector2(0, 1);
+            stitchChunk = GetChunk(bottomChunkCoord);
+            if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
+                RequestChunkMeshUpdate(bottomChunkCoord, stitchChunk);
+
+            // For stitching
+            //Vector2 bottomRightChunkCoord = chunkCoord + new Vector2(1, 1);
+            stitchChunk = GetChunk(bottomRightChunkCoord);
+            if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
+                RequestChunkMeshUpdate(bottomRightChunkCoord, stitchChunk);
+        }
+
+        if (_indexBuffer == null)
+            GLThread.ExecuteOnGLThreadAsync(PrepareIndexBuffer);
 
         // The indices used are the same for all chunks
         AssertNotNull(_indices);
@@ -170,8 +336,8 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
         int quads = (int)(ChunkSize.X * ChunkSize.Y);
         int indexCount = quads * 3 * 4;
         int evenRowWidth = (int)(ChunkSize.X + 1);
-        int oddRowWidth = (int) ChunkSize.X;
-        int height = (int) (ChunkSize.Y + ChunkSize.Y + 1);
+        int oddRowWidth = (int)ChunkSize.X;
+        int height = (int)(ChunkSize.Y + ChunkSize.Y + 1);
 
         _indexBuffer ??= new IndexBuffer();
 
@@ -292,6 +458,8 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
 
             foreach (TerrainChunk chunkToRender in _renderThisPass)
             {
+                if (!mouseRay.IntersectWithCube(chunkToRender.Bounds, out _, out _)) continue;
+
                 VertexDataAllocation vertices = chunkToRender.VertexMemory;
                 if (!vertices.Allocated) continue;
 
@@ -326,7 +494,7 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
         Engine.Renderer.DbgAddPoint(brushPos.ToVec3(), 0.5f, Color.Red);
 
         ApplyBrushToTerrain? brushFunc = null;
-        switch(op)
+        switch (op)
         {
             case BrushOperation.Rise:
                 brushFunc = static (ref data, str) => data.Height += str;
@@ -338,10 +506,10 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
         if (brushFunc == null) return;
 
         float brushRadius = _editorBrushSize;
-        int minChunkX = (int) MathF.Floor((brushPos.X - brushRadius) / chunkWorldSize.X);
-        int maxChunkX = (int) MathF.Floor((brushPos.X + brushRadius) / chunkWorldSize.X);
-        int minChunkY = (int) MathF.Floor((brushPos.Y - brushRadius) / chunkWorldSize.Y);
-        int maxChunkY = (int) MathF.Floor((brushPos.Y + brushRadius) / chunkWorldSize.Y);
+        int minChunkX = (int)MathF.Floor((brushPos.X - brushRadius) / chunkWorldSize.X);
+        int maxChunkX = (int)MathF.Floor((brushPos.X + brushRadius) / chunkWorldSize.X);
+        int minChunkY = (int)MathF.Floor((brushPos.Y - brushRadius) / chunkWorldSize.Y);
+        int maxChunkY = (int)MathF.Floor((brushPos.Y + brushRadius) / chunkWorldSize.Y);
         for (int cy = minChunkY; cy <= maxChunkY; cy++)
         {
             for (int cx = minChunkX; cx <= maxChunkX; cx++)
@@ -369,38 +537,33 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
         float radius = _editorBrushSize;
         float radiusSq = MathF.Pow(radius, 2);
         float strength = _editorBrushStr;
-       
+
         Vector2 tileSize = TileSize;
         Vector2 halfTileSize = TileSize / 2f;
         Vector2 chunkWorldOffset = chunkCoord * (ChunkSize * tileSize);
 
         Vector2 brushChunkSpace = brushPos - chunkWorldOffset;
 
-        int minY = (int) MathF.Floor((brushChunkSpace.Y - radius) / halfTileSize.Y);
-        int maxY = (int) MathF.Ceiling((brushChunkSpace.Y + radius) / halfTileSize.Y);
+        int minY = (int)MathF.Floor((brushChunkSpace.Y - radius) / halfTileSize.Y);
+        int maxY = (int)MathF.Ceiling((brushChunkSpace.Y + radius) / halfTileSize.Y);
         minY = Math.Max(0, minY);
-        maxY = (int) MathF.Min(ChunkSize.Y * 2, maxY);
+        maxY = (int)MathF.Min((ChunkSize.Y * 2) - 1, maxY);
 
-        int evenRowWidth = (int) (ChunkSize.X + 1); // 0...2...4
-        int oddRowWidth = (int) ChunkSize.X; // 1...3...5
-        int verticesPerPair = evenRowWidth + oddRowWidth;
+        int rowWidth = (int)ChunkSize.X;
 
         TerrainData[] data = chunk.GetRawData();
         for (int y = minY; y <= maxY; y++)
         {
             bool oddRow = y % 2 != 0;
             float xOffset = oddRow ? halfTileSize.X : 0;
-            int rowWidth = oddRow ? oddRowWidth : evenRowWidth;
 
-            int minX = (int) MathF.Floor((brushChunkSpace.X - xOffset - radius) / tileSize.X);
-            int maxX = (int) MathF.Ceiling((brushChunkSpace.X - xOffset + radius) / tileSize.X);
+            int minX = (int)MathF.Floor((brushChunkSpace.X - xOffset - radius) / tileSize.X);
+            int maxX = (int)MathF.Ceiling((brushChunkSpace.X - xOffset + radius) / tileSize.X);
 
             minX = Math.Max(0, minX);
             maxX = Math.Min(rowWidth - 1, maxX);
 
-            int rowStartIndex = (y / 2) * verticesPerPair;
-            if (oddRow) rowStartIndex += evenRowWidth;
-
+            int rowStartIndex = y * rowWidth;
             for (int x = minX; x <= maxX; x++)
             {
                 Vector2 vertPos = new Vector2(x * tileSize.X + xOffset, y * halfTileSize.Y) + chunkWorldOffset;
@@ -414,12 +577,6 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
 
                     int idx = rowStartIndex + x;
                     ref TerrainData terrain = ref data[idx];
-
-                    var tPos = terrain.DBG_Pos.ToVec2();
-                    if (tPos != Vector2.Zero && tPos != vertPos)
-                    {
-                        bool a = true;
-                    }
 
                     //Engine.Renderer.DbgAddPoint(vertPos.ToVec3());
                     //Engine.Renderer.DbgAddText(vertPos.ToVec3(), falloff.ToString("0.00"));

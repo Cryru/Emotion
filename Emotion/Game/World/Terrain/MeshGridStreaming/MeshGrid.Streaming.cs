@@ -359,7 +359,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
     protected override void OnChunkChanged(Vector2 chunkCoord, ChunkT newChunk)
     {
         base.OnChunkChanged(chunkCoord, newChunk);
-        RequestChunkMeshUpdate(chunkCoord, newChunk, true);
+        RequestChunkMeshUpdate(chunkCoord, newChunk, false);
     }
 
     public void RequestChunkMeshUpdate(Vector2 chunkCoord, ChunkT chunk, bool highPriority = false)

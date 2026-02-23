@@ -26,7 +26,7 @@ public partial class GameMap : IDisposable
 
     public IMapGrid[] Grids { get; set; } = Array.Empty<IMapGrid>(); // private
 
-    public LightModel LightModel = LightModel.DefaultLightModel;
+    public LightConfig LightModel = LightConfig.Default;
 
     private List<GameObject> _objectsOnMap = new(); // Objects the map was saved with, todo
 

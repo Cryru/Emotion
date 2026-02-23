@@ -234,7 +234,7 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
 
         r.MeshEntityRenderer.StartScene(r);
         r.MeshEntityRenderer.SubmitObjectForRendering(this, _entity, RenderState);
-        r.MeshEntityRenderer.EndScene(r, LightModel.DefaultLightModel);
+        r.MeshEntityRenderer.EndScene(r, LightConfig.Default);
 
         // Temp normal visualization code
         // ignore :)

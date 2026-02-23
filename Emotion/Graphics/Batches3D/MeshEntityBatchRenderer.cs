@@ -396,7 +396,7 @@ public sealed class MeshEntityBatchRenderer
         }
     }
 
-    public unsafe void EndScene(Renderer c, LightModel light)
+    public unsafe void EndScene(Renderer c, LightConfig light)
     {
         _inScene = false;
         _renderCounter++;
@@ -726,7 +726,7 @@ public sealed class MeshEntityBatchRenderer
         MeshEntity entity,
         MeshEntityMetaState metaState,
         Matrix4x4[][]? boneMatricesPerMesh = null,
-        LightModel? light = null
+        LightConfig? light = null
     )
     {
         Engine.Renderer.FlushRenderStream();
@@ -802,7 +802,7 @@ public sealed class MeshEntityBatchRenderer
             }
             else
             {
-                currentShader.SetUniformVector3("sunDirection", LightModel.DefaultLightModel.SunDirection);
+                currentShader.SetUniformVector3("sunDirection", LightConfig.Default.SunDirection);
                 currentShader.SetUniformColor("ambientColor", Color.White);
                 currentShader.SetUniformFloat("ambientLightStrength", 1f);
                 currentShader.SetUniformFloat("diffuseStrength", 0f);
@@ -951,7 +951,7 @@ public sealed class MeshEntityBatchRenderer
 
     #region Shadow Helpers
 
-    private void CalculateShadowMapCascadeData(LightModel light)
+    private void CalculateShadowMapCascadeData(LightConfig light)
     {
         if (_shadowCascades == null) return;
 
@@ -987,7 +987,7 @@ public sealed class MeshEntityBatchRenderer
         }
     }
 
-    private void CalculateShadowMapCascadeMatrix(Renderer c, ShadowCascadeData cascade, LightModel light)
+    private void CalculateShadowMapCascadeMatrix(Renderer c, ShadowCascadeData cascade, LightConfig light)
     {
         float aspectRatio = c.CurrentTarget.Size.X / c.CurrentTarget.Size.Y;
 
