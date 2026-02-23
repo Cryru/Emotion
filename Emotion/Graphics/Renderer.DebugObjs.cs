@@ -119,7 +119,7 @@ public sealed partial class Renderer
         if (_spheres != null)
             for (var i = 0; i < _spheres.Count; i++)
             {
-                _spheres[i].Render(this);
+                _spheres[i]?.Render(this);
             }
 
         if (_lines != null)
@@ -133,7 +133,7 @@ public sealed partial class Renderer
             for (int i = 0; i < _cubes.Count; i++)
             {
                 var cube = _cubes[i];
-                cube.RenderOutline(this, _defaultDbgObjectColor, 0.05f);
+                cube.RenderOutline(this, _defaultDbgObjectColor, 0.1f);
             }
 
         if (_texts != null)
