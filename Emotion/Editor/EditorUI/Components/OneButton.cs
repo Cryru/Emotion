@@ -86,7 +86,7 @@ public class OneButton : UIBaseButton
     protected UIText _label;
     protected ButtonState _state = ButtonState.Default;
 
-    public OneButton(string labelText, ButtonType buttonType = ButtonType.Default)
+    public OneButton(string labelText, Action<UIBaseButton>? onClicked = null, ButtonType buttonType = ButtonType.Default)
     {
         Visuals = new UIWindowVisualConfig()
         {
@@ -124,6 +124,8 @@ public class OneButton : UIBaseButton
 
         _state = ButtonState.Default;
         ApplyButtonState();
+
+        OnClicked = onClicked;
     }
 
     protected void ApplyButtonState()

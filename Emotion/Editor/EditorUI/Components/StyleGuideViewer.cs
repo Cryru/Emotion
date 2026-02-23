@@ -90,7 +90,7 @@ public class StyleGuideViewer : EditorWindow
 
         foreach (ButtonState but in buttonStates)
         {
-            var button = new OneButton("Button", ButtonType.Outlined);
+            var button = new OneButton("Button", null, ButtonType.Outlined);
             button.SetState(but);
             outlineButtonSection.AddChild(button);
         }

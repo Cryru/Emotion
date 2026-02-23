@@ -208,13 +208,13 @@ public class UIScrollArea : UIBaseWindow
         //    base.Layout_SetLayoutEngineDimensions(layoutEngine, pos, size, scale);
         //}
 
-        protected override void DELETEME_AfterLayout()
-        {
-            base.DELETEME_AfterLayout();
-            MaxScroll = Vector2.Max(Size, _measureChildrenUsedSpace);
-            CurrentScroll = Vector2.Clamp(CurrentScroll, Vector2.Zero, MaxScroll - Size);
-            ScrollTranslationMatrix = Matrix4x4.CreateTranslation(-CurrentScroll.X, -CurrentScroll.Y, 0);
-        }
+        //protected override void DELETEME_AfterLayout()
+        //{
+        //    base.DELETEME_AfterLayout();
+        //    MaxScroll = Vector2.Max(Size, _measureChildrenUsedSpace);
+        //    CurrentScroll = Vector2.Clamp(CurrentScroll, Vector2.Zero, MaxScroll - Size);
+        //    ScrollTranslationMatrix = Matrix4x4.CreateTranslation(-CurrentScroll.X, -CurrentScroll.Y, 0);
+        //}
 
         public bool ScrollToPos(Vector2 posToScrollTo)
         {

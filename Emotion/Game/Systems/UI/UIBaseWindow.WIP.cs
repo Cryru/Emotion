@@ -10,39 +10,11 @@ namespace Emotion.Game.Systems.UI;
 
 public partial class UIBaseWindow : IComparable<UIBaseWindow>
 {
-    // Legacy attributes
-#if NEW_UI
-    /// <summary>
-    /// The size returned by the window measure.
-    /// This is the defacto minimum size the child would occupy.
-    /// </summary>
-    [DontSerialize] protected Vector2 _measuredSize;
-
-    public bool ChildrenAllSameWidth; // todo: delete
-#endif
-
-    public bool ExpandParent
-    {
-        get => _expandParent;
-        set
-        {
-            if (_expandParent == value) return;
-            _expandParent = value;
-            InvalidateLayout();
-        }
-    }
-
-    private bool _expandParent = true;
-
-    /// <summary>
-    /// The amount of space used by the children of this window during measurement.
-    /// </summary>
-    [DontSerialize] protected Vector2 _measureChildrenUsedSpace;
-
     /// <summary>
     /// Whether the window should fill the available space of its parent.
     /// On by default. Doesn't apply when the parent is of a list layout.
     /// </summary>
+    [Obsolete("Use Layout.SizingX")]
     public bool GrowX
     {
         get => _growX;
@@ -57,6 +29,7 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>
     private bool _growX = true;
 
     /// <inheritdoc cref="GrowX" />
+    [Obsolete("Use Layout.SizingY")]
     public bool GrowY
     {
         get => _growY;
@@ -69,15 +42,4 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>
     }
 
     private bool _growY = true;
-
-    [DontSerialize]
-    public UIAnchor AnchorAndParentAnchor
-    {
-        get => ParentAnchor == Anchor ? Anchor : UIAnchor.TopLeft;
-        set
-        {
-            ParentAnchor = value;
-            Anchor = value;
-        }
-    }
 }

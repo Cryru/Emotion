@@ -17,7 +17,7 @@ public class GridEditorToolButton : UICallbackButton
         Editor = editor;
         Tool = tool;
 
-        GrowX = false;
+        Layout.SizingX = UISizing.Fit();
 
         var windowBackground = new UISolidColor
         {
@@ -46,11 +46,11 @@ public class GridEditorToolButton : UICallbackButton
         bool isSelected = Editor.CurrentTool == Tool;
         bool isRollover = MouseInside;
         if (isSelected)
-            _windowBackground.WindowColor = GridEditorColorPalette.ToolButtonSelectedColor;
+            _windowBackground.Visuals.BackgroundColor = GridEditorColorPalette.ToolButtonSelectedColor;
         else if (isRollover)
-            _windowBackground.WindowColor = GridEditorColorPalette.ToolButtonRolloverColor;
+            _windowBackground.Visuals.BackgroundColor = GridEditorColorPalette.ToolButtonRolloverColor;
         else
-            _windowBackground.WindowColor = GridEditorColorPalette.ToolButtonColor;
+            _windowBackground.Visuals.BackgroundColor = GridEditorColorPalette.ToolButtonColor;
     }
 
     public override void OnMouseEnter(Vector2 _)
