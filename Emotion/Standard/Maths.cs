@@ -929,4 +929,15 @@ public static class Maths
     {
         return a + (b - a) * t;
     }
+
+    public static int FloorDiv(int value, int divisor)
+    {
+        Assert(divisor > 0);
+
+        int integer = value / divisor;
+        int remainder = value % divisor;
+        // if (remainder != 0 && ((remainder < 0) != (divisor < 0))) integer--;
+        int needsAdjust = ((remainder | -remainder) >> 31) & (value >> 31);
+        return integer - needsAdjust;
+    }
 }

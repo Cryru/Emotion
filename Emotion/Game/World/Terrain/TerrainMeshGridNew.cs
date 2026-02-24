@@ -132,7 +132,7 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
                 ref VertexData_Pos_UV_Normal_Color vert = ref vertices[verticesUsed];
 
                 vert.Position = (pen + chunkWorldOffset).ToVec3(terrainData.Height);
-                vert.Normal = new Vector3(0, 0, 1);
+                vert.Normal = GetNormalForVert(x, y, chunkCoord, tileSize, halfTileSize);
                 vert.Color = terrainData.Color.ToUint();
                 vert.UV = Vector2.Zero;
 
@@ -179,7 +179,7 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
                 ref VertexData_Pos_UV_Normal_Color vert = ref vertices[vIdx];
 
                 vert.Position = (pen + chunkWorldOffset).ToVec3(terrainData.Height);
-                vert.Normal = new Vector3(0, 0, 1);
+                vert.Normal = GetNormalForVert(0, y, rightChunkCoord, tileSize, halfTileSize);
                 vert.Color = terrainData.Color.ToUint();
                 vert.UV = Vector2.Zero;
 
@@ -212,7 +212,7 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
                 ref VertexData_Pos_UV_Normal_Color vert = ref vertices[verticesUsed];
 
                 vert.Position = (pen + chunkWorldOffset).ToVec3(terrainData.Height);
-                vert.Normal = new Vector3(0, 0, 1);
+                vert.Normal = GetNormalForVert(x, 0, bottomChunkCoord, tileSize, halfTileSize);
                 vert.Color = terrainData.Color.ToUint();
                 vert.UV = Vector2.Zero;
 
@@ -238,7 +238,7 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
             ref VertexData_Pos_UV_Normal_Color vert = ref vertices[verticesUsed];
 
             vert.Position = (pen + chunkWorldOffset).ToVec3(terrainData.Height);
-            vert.Normal = new Vector3(0, 0, 0.5f);
+            vert.Normal = GetNormalForVert(0, 0, bottomRightChunkCoord, tileSize, halfTileSize);
             vert.Color = terrainData.Color.ToUint();
             vert.UV = Vector2.Zero;
 
@@ -248,61 +248,24 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
             min = Vector3.Min(min, vert.Position);
             max = Vector3.Max(max, vert.Position);
 
-            verticesUsed++;
+            verticesUsed++; 
         }
 
         // Propagate the update (due to stitching vertices)
         if (propagate)
         {
-            TerrainChunk? stitchChunk;
+            for (int cY = -1; cY <= 1; cY++)
+            {
+                for (int cX = -1; cX <= 1; cX++)
+                {
+                    if (cX == 0 && cY == 0) continue;
 
-            // For normals
-            Vector2 topLeftChunkCoord = chunkCoord + new Vector2(-1, -1);
-            stitchChunk = GetChunk(topLeftChunkCoord);
-            if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
-                RequestChunkMeshUpdate(topLeftChunkCoord, stitchChunk);
-
-            // For normals
-            Vector2 topChunkCoord = chunkCoord + new Vector2(0, 1);
-            stitchChunk = GetChunk(topChunkCoord);
-            if (chunkBottom != null && chunkBottom.State >= ChunkState.HasMesh)
-                RequestChunkMeshUpdate(topChunkCoord, chunkBottom);
-
-            // For normals
-            Vector2 topRightCoord = chunkCoord + new Vector2(1, -1);
-            stitchChunk = GetChunk(topRightCoord);
-            if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
-                RequestChunkMeshUpdate(topRightCoord, stitchChunk);
-
-            // For normals
-            Vector2 leftChunkCoord = chunkCoord + new Vector2(-1, 0);
-            stitchChunk = GetChunk(topRightCoord);
-            if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
-                RequestChunkMeshUpdate(leftChunkCoord, stitchChunk);
-
-            // For stitching
-            //Vector2 rightChunkCoord = chunkCoord + new Vector2(1, 0);
-            stitchChunk = GetChunk(rightChunkCoord);
-            if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
-                RequestChunkMeshUpdate(rightChunkCoord, stitchChunk);
-
-            // For normals
-            Vector2 bottomLeftCoord = chunkCoord + new Vector2(-1, 1);
-            stitchChunk = GetChunk(bottomLeftCoord);
-            if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
-                RequestChunkMeshUpdate(bottomLeftCoord, stitchChunk);
-
-            // For stitching
-            //Vector2 bottomChunkCoord = chunkCoord + new Vector2(0, 1);
-            stitchChunk = GetChunk(bottomChunkCoord);
-            if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
-                RequestChunkMeshUpdate(bottomChunkCoord, stitchChunk);
-
-            // For stitching
-            //Vector2 bottomRightChunkCoord = chunkCoord + new Vector2(1, 1);
-            stitchChunk = GetChunk(bottomRightChunkCoord);
-            if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
-                RequestChunkMeshUpdate(bottomRightChunkCoord, stitchChunk);
+                    Vector2 stitchCoord = chunkCoord + new Vector2(cX, cY);
+                    TerrainChunk? stitchChunk = GetChunk(stitchCoord);
+                    if (stitchChunk != null && stitchChunk.State >= ChunkState.HasMesh)
+                        RequestChunkMeshUpdate(stitchCoord, stitchChunk);
+                }
+            }
         }
 
         if (_indexBuffer == null)
@@ -602,6 +565,58 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
         }
 
         OnChunkChanged(chunkCoord, chunk);
+    }
+
+    #endregion
+
+    #region Normals
+
+    private Vector3 GetNormalForVert(int x, int y, Vector2 chunkCoord, Vector2 tileSize, Vector2 halfTileSize)
+    {
+        int gridX = (int)chunkCoord.X * (int)ChunkSize.X + x;
+        int gridY = (int)chunkCoord.Y * (int)ChunkSize.Y * 2 + y;
+
+        // Center (for fallback)
+        float fallback = GetHeightAtGrid(gridX, gridY, 0);
+
+        // Horizontal
+        float hL = GetHeightAtGrid(gridX - 1, gridY, fallback);
+        float hR = GetHeightAtGrid(gridX + 1, gridY, fallback);
+
+        // Vertical
+        float hT = GetHeightAtGrid(gridX, gridY - 2, fallback);
+        float hB = GetHeightAtGrid(gridX, gridY + 2, fallback);
+
+        float dX = tileSize.X * 2f;
+        float dY = tileSize.Y * 2f;
+        Vector3 normal = new Vector3(
+            -dY * (hR - hL),
+            -dX * (hB - hT),
+            dX * dY
+        );
+
+        return Vector3.Normalize(normal);
+    }
+
+    private float GetHeightAtGrid(int gridX, int gridY, float fallback)
+    {
+        int chunkWidth = (int)ChunkSize.X;
+        int chunkHeight = (int)ChunkSize.Y * 2;
+
+        int chunkX = Maths.FloorDiv(gridX, chunkWidth);
+        int chunkY = Maths.FloorDiv(gridY, chunkHeight);
+
+        Vector2 coord = new Vector2(chunkX, chunkY);
+        TerrainChunk? chunk = GetChunk(coord);
+        if (chunk == null) return fallback;
+
+        TerrainData[] data = chunk.GetRawData();
+
+        int lX = (gridX % chunkWidth + chunkWidth) % chunkWidth;
+        int lY = (gridY % chunkHeight + chunkHeight) % chunkHeight;
+        int idx = lY * chunkWidth + lX;
+        Assert(idx >= 0 && idx < data.Length);
+        return data[idx].Height;
     }
 
     #endregion
