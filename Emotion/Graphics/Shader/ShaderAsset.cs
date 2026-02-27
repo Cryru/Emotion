@@ -6,6 +6,7 @@ using Emotion.Graphics.Shading;
 using OpenGL;
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace Emotion.Graphics.Shader;
@@ -40,6 +41,21 @@ public class ShaderAsset : TextAsset, IAssetContainingObject<ShaderProgram>
 
         base.CreateInternal(data);
 
+        StringBuilder include = new StringBuilder();
+        int includeCount = 1;
+        foreach (var includePath in ForEachInclude(base.Content))
+        {
+            TextAsset includeFile = Engine.AssetLoader.Get<TextAsset>(includePath, this, false, true);
+            yield return includeFile;
+
+            if (includeCount == 1)
+                include.Append($"#define INCLUDE_FILE\n");
+
+            include.Append($"#line 0 {includeCount}\n");
+            include.Append(includeFile.Content);
+            includeCount++;
+        }
+
         // Content <- The content of our file :)
         bool es = Gl.CurrentShadingVersion.GLES;
         string versionString = $"#version {Gl.CurrentShadingVersion.VersionId}{(es ? " es" : "")}\n";
@@ -47,6 +63,8 @@ public class ShaderAsset : TextAsset, IAssetContainingObject<ShaderProgram>
         StringBuilder vertexShader = new StringBuilder();
         vertexShader.Append(versionString);
         vertexShader.Append("\n#define VERT_SHADER 1\n");
+        vertexShader.Append(include);
+        vertexShader.Append("\n#line 1 0\n");
         vertexShader.Append(base.Content);
         vertexShader.Append("\n");
         vertexShader.Append("void main()\n{\nVertexShaderMain();\n}");
@@ -54,6 +72,8 @@ public class ShaderAsset : TextAsset, IAssetContainingObject<ShaderProgram>
         StringBuilder fragmentShader = new StringBuilder();
         fragmentShader.Append(versionString);
         fragmentShader.Append("\n#define FRAG_SHADER 1\n");
+        fragmentShader.Append(include);
+        fragmentShader.Append("\n#line 1 0\n");
         fragmentShader.Append(base.Content);
         fragmentShader.Append("\n");
         fragmentShader.Append("\nout vec4 fragColor;\n");
@@ -70,6 +90,43 @@ public class ShaderAsset : TextAsset, IAssetContainingObject<ShaderProgram>
         CompiledShader = newShader;
         oldShader?.Dispose(); // When hot reloading we need to destroy the previous shader
     }
+
+    #region Helpers
+
+    private static IEnumerable<string> ForEachInclude(string source)
+    {
+        const string includeToken = "INCLUDE_FILE";
+        int includeTokenLen = includeToken.Length;
+
+        int offset = 0;
+        while (true)
+        {
+            int idx = source.IndexOf(includeToken);
+            if (idx < 0) yield break; // No more
+
+            offset = offset + idx + includeTokenLen;
+
+            // Skip whitespaces
+            while (offset < source.Length && char.IsWhiteSpace(source[offset]))
+                offset++;
+            if (offset >= source.Length) yield break;
+
+            // Check if opening
+            if (source[offset] != '<') continue;
+
+            // Read to closing
+            int end = source.IndexOf('>', offset + 1);
+            if (end == -1) yield break;
+
+            // Yield that
+            yield return source.Substring(offset + 1, end - offset - 1);
+
+            offset = end + 1;
+            if (offset >= source.Length) yield break;
+        }
+    }
+
+    #endregion
 
     #region Async Shader Compile
 
