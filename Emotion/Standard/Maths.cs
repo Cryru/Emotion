@@ -938,6 +938,6 @@ public static class Maths
         int remainder = value % divisor;
         // if (remainder != 0 && ((remainder < 0) != (divisor < 0))) integer--;
         int needsAdjust = ((remainder | -remainder) >> 31) & (value >> 31);
-        return integer - needsAdjust;
+        return integer + needsAdjust;
     }
 }
