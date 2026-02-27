@@ -32,6 +32,9 @@ public sealed class VertexDataFormat
     private const int COLOR_SIZE = sizeof(uint);
     private const int BONE_DATA_SIZE = sizeof(float) * 8; // VertexBoneData (Vector4 * 2)
 
+    public List<int>? CustomData;
+    public int CustomDataByteOffset = -1;
+
     #region Build
 
     public VertexDataFormat AddVertexPosition()
@@ -69,6 +72,17 @@ public sealed class VertexDataFormat
         return this;
     }
 
+    public VertexDataFormat AddCustomVector4()
+    {
+        if (!Built)
+        {
+            CustomData ??= new List<int>();
+            CustomData.Add(4);
+        }
+
+        return this;
+    }
+
     public VertexDataFormat Build()
     {
         if (Built) return this;
@@ -79,6 +93,16 @@ public sealed class VertexDataFormat
         if (HasNormals) elementSize += NORMAL_SIZE;
         if (HasVertexColors) elementSize += COLOR_SIZE;
         if (HasBones) elementSize += BONE_DATA_SIZE;
+
+        if (CustomData != null)
+        {
+            CustomDataByteOffset = elementSize;
+            foreach (int size in CustomData)
+            {
+                elementSize += sizeof(float) * size;
+            }
+        }
+
         ElementSize = elementSize;
 
         Built = true;

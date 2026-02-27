@@ -15,6 +15,12 @@ namespace Emotion.Graphics.Data;
 [StructLayout(LayoutKind.Sequential)]
 public struct VertexData
 {
+    public readonly static VertexDataFormat Format = new VertexDataFormat()
+       .AddVertexPosition()
+       .AddUV(1)
+       .AddVertexColor()
+       .Build();
+
     /// <summary>
     /// The size of vertex data in bytes.
     /// </summary>

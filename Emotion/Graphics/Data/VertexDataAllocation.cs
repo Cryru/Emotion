@@ -74,6 +74,25 @@ public struct VertexDataAllocation
         return new Span<T>((void*)Pointer, VertexCount);
     }
 
+    public Vector3 GetVertexPositionAtIndex(int idx)
+    {
+        if (!Format.HasPosition) return Vector3.Zero;
+        if (!Allocated) return Vector3.Zero;
+        if (idx >= VertexCount) return Vector3.Zero;
+
+        nint vertMem = Pointer;
+        Assert(vertMem != 0);
+
+        Format.GetVertexPositionOffsetAndStride(out int byteOffset, out int byteStride);
+        vertMem += byteOffset + byteStride * idx;
+
+        Vector3 v;
+        unsafe
+        {
+            return  *(Vector3*)vertMem;
+        }
+    }
+
     public IEnumerable<Vector3> ForEachVertexPosition()
     {
         if (!Format.HasPosition) yield break;
@@ -83,6 +102,31 @@ public struct VertexDataAllocation
         Assert(vertMem != 0);
 
         Format.GetVertexPositionOffsetAndStride(out int byteOffset, out int byteStride);
+        vertMem += byteOffset;
+
+        for (int i = 0; i < VertexCount; i++)
+        {
+            Vector3 v;
+            unsafe
+            {
+                v = *(Vector3*)vertMem;
+            }
+            yield return v;
+
+            if (i != VertexCount - 1)
+                vertMem += byteStride;
+        }
+    }
+
+    public IEnumerable<Vector3> ForEachNormal()
+    {
+        if (!Format.HasNormals) yield break;
+        if (!Allocated) yield break;
+
+        nint vertMem = Pointer;
+        Assert(vertMem != 0);
+
+        Format.GetNormalOffsetAndStride(out int byteOffset, out int byteStride);
         vertMem += byteOffset;
 
         for (int i = 0; i < VertexCount; i++)

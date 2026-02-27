@@ -3,6 +3,7 @@
 #region Using
 
 using Emotion.Core.Systems.IO;
+using Emotion.Graphics.Data;
 using Emotion.Graphics.Shader;
 using Emotion.Graphics.Shading;
 using Emotion.Standard.Reflector;
@@ -55,6 +56,10 @@ public partial struct RenderState
     public ProjectionBehavior ProjectionBehavior = Graphics.ProjectionBehavior.AutoCamera;
 
     public ShaderReference Shader = ShaderReference.Invalid;
+
+    // Work in progress
+    public VertexDataFormat VertexFormat = VertexData.Format;
+    public int ShaderModifiers = 0;
 
     public RenderState()
     {
