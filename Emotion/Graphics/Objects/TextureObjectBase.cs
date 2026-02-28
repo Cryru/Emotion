@@ -1,11 +1,7 @@
-﻿extern alias SilkNet;
-#nullable enable
+﻿#nullable enable
 
-using Emotion.Core.Systems.Logging;
 using Emotion.Core.Utility.Threading;
 using OpenGL;
-using SilkNet::Silk.NET.Assimp;
-using System.Runtime.InteropServices;
 
 namespace Emotion.Graphics.Objects;
 
