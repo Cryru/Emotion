@@ -150,15 +150,21 @@ public class Texture : TextureObjectBase
     public static Texture NoTexture = new(0);
     public static Texture EmptyWhiteTexture;
     public static Texture Smooth_EmptyWhiteTexture;
+    public static Texture Checkerboard;
 
     public static void InitializeEmptyTexture()
     {
-        EmptyWhiteTexture = new Texture(new Vector2(1, 1), new byte[] { 255, 255, 255, 255 }, PixelFormat.Rgba);
-        Smooth_EmptyWhiteTexture = new Texture(new Vector2(2, 2), new byte[] {
+        EmptyWhiteTexture = new Texture(new Vector2(1, 1), [ 255, 255, 255, 255 ], PixelFormat.Rgba);
+        Checkerboard = new Texture(new Vector2(2, 2), [
+            100, 100, 120, 255,     200, 200, 220, 255,
+            200, 200, 220, 255,     100, 100, 120, 255
+        ], PixelFormat.Rgba);
+
+        Smooth_EmptyWhiteTexture = new Texture(new Vector2(2, 2), [
                 255, 255, 255, 255,
                 255, 255, 255, 255,
                 255, 255, 255, 255,
                 255, 255, 255, 255
-        }, PixelFormat.Rgba, true);
+        ], PixelFormat.Rgba, true);
     }
 }
