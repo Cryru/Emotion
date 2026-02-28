@@ -20,7 +20,7 @@ VERTEX_ATTRIBUTE_LINE_TWO(2, Vector4, V_COLOR);
 VERTEX_ATTRIBUTE(3, Vector4, weights);
 VERTEX_ATTRIBUTE_LINE_TWO(3, Vector4, weights);
 
-#if VERT_SHADER
+#ifdef VERT_SHADER
 
 vec4 VertexShaderMain_DEEP()
 {
@@ -45,7 +45,7 @@ void VertexShaderMain()
 
 #endif
 
-#if FRAG_SHADER
+#ifdef FRAG_SHADER
 
 #if EDITOR_BRUSH
     uniform vec2 brushWorldSpace;
@@ -60,10 +60,10 @@ in vec3 F_NORMAL;
 
 vec4 SampleTexture(const int textureIndex)
 {  
-    if (textureIndex == 4)
+    if (textureIndex >= 4)
     {
         // Divide by 2 to ensure that each square in the default grid texture is 1 big!
-        return texture2D(diffuseTexture, fract(F_POSITION.xy / 2));
+        return texture2D(diffuseTexture, F_POSITION.xy / 2.0);
     }
 
     vec4 colorsForWeights[4] = vec4[](
@@ -111,7 +111,7 @@ vec4 FragmentShaderMain()
     vec3 finalColor = albedo * diffuse;
     // finalColor = gammaCorrect(finalColor);
 
-#if EDITOR_BRUSH
+#ifdef EDITOR_BRUSH
     float ringThickness = 0.3;
 
     float d = length(brushWorldSpace - V_POSITION.xy);

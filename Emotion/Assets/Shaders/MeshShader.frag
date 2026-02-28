@@ -1,5 +1,8 @@
 #version v
 
+precision highp float;
+precision highp int;
+
 uniform vec3 iResolution; // viewport resolution (in pixels)
 
 uniform vec3 cameraPosition; // world pos
@@ -169,7 +172,6 @@ float TheWitness_GetShadowAmount(int cascadeIdx, vec3 shadowPos)
 {
     float cascadeSizes[CASCADE_COUNT] = float[CASCADE_COUNT](2048.0, 1024.0, 512.0, 256.0);
     vec2 shadowMapSize = vec2(cascadeSizes[cascadeIdx]);
-    float numSlices = CASCADE_COUNT;
 
     vec2 uv = shadowPos.xy * shadowMapSize; // 1 unit - 1 texel
     vec2 shadowMapSizeInv = 1.0 / shadowMapSize; // texel size
@@ -184,19 +186,19 @@ float TheWitness_GetShadowAmount(int cascadeIdx, vec3 shadowPos)
     base_uv -= vec2(0.5, 0.5);
     base_uv *= shadowMapSizeInv;
 
-    float sum = 0;
+    float sum = 0.0;
 
-    float uw0 = (3 - 2 * s);
-    float uw1 = (1 + 2 * s);
+    float uw0 = (3.0 - 2.0 * s);
+    float uw1 = (1.0 + 2.0 * s);
 
-    float u0 = (2 - s) / uw0 - 1;
-    float u1 = s / uw1 + 1;
+    float u0 = (2.0 - s) / uw0 - 1.0;
+    float u1 = s / uw1 + 1.0;
 
-    float vw0 = (3 - 2 * t);
-    float vw1 = (1 + 2 * t);
+    float vw0 = (3.0 - 2.0 * t);
+    float vw1 = (1.0 + 2.0 * t);
 
-    float v0 = (2 - t) / vw0 - 1;
-    float v1 = t / vw1 + 1;
+    float v0 = (2.0 - t) / vw0 - 1.0;
+    float v1 = t / vw1 + 1.0;
 
     float lightDepth = shadowPos.z;
     sum += uw0 * vw0 * SampleShadowMap(vec3(base_uv + vec2(u0, v0) * shadowMapSizeInv, lightDepth), cascadeIdx);
