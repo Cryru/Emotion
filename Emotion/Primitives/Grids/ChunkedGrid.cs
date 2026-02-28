@@ -2,15 +2,22 @@
 
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
+using Emotion.Game.World.Terrain;
 using Emotion.Primitives.Grids.Chunked;
+using Emotion.Standard.Reflector.Handlers;
+using Emotion.Standard.Reflector.Handlers.Base;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
 
 namespace Emotion.Primitives.Grids;
 
-public class ChunkedGrid<T, ChunkT> : IGrid<T>
+public class ChunkedGrid<T, ChunkT> :
+    IGrid<T>,
+    ICustomReflectorMeta_ExtraMembers,
+    ICustomReflectorMeta_CustomCreateNew<ChunkedGrid<T, ChunkT>>
     where T : unmanaged
     where ChunkT : IGridChunk<T>, new()
 {
-    public Vector2 ChunkSize { get; private set; }
+    public Vector2 ChunkSize { get; protected set; }
 
     protected Dictionary<Vector2, ChunkT> _chunks { get; private set; } = new();
 
@@ -19,11 +26,25 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
         ChunkSize = new Vector2(chunkSize);
     }
 
-    // serialization
-    protected ChunkedGrid()
-    {
+    #region Serialization
 
+    public static ChunkedGrid<T, ChunkT> CustomCreateNew()
+    {
+        return new ChunkedGrid<T, ChunkT>(16);
     }
+
+    public static ComplexTypeHandlerMemberBase[] GetExtraReflectorMembers()
+    {
+        return [
+           new ComplexTypeHandlerMember<ChunkedGrid<T, ChunkT>, Vector2>(
+                "ChunkSize",
+                static (ref ChunkedGrid<T, ChunkT> p, Vector2 v) => p.ChunkSize = v,
+                static (p) => p.ChunkSize
+           )
+       ];
+    }
+
+    #endregion
 
     public Vector2 GetChunkCoordinateOfValueCoordinate(Vector2 tile)
     {
@@ -275,7 +296,9 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
         foreach (string file in Engine.AssetLoader.ForEachAssetInFolder(folder))
         {
             ReadOnlySpan<char> filePathAsSpan = file.AsSpan();
-            ReadOnlySpan<char> fileName = AssetLoader.GetFileName(filePathAsSpan);
+            if (filePathAsSpan.IndexOf(".backup") != -1) continue;
+
+            ReadOnlySpan<char> fileName = AssetLoader.GetFileNameNoExtension(filePathAsSpan);
 
             Vector2 coord = Vector2.Zero;
 
@@ -285,9 +308,14 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
             {
                 ReadOnlySpan<char> numAsString = fileName[numRange];
                 if (int.TryParse(numAsString, out int result))
+                {
                     coord[numIdx] = result;
+                    numIdx++;
+                }
                 else
+                {
                     continue;
+                }
             }
 
             var newChunk = new ChunkT();

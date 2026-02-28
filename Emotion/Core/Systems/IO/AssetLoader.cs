@@ -344,6 +344,15 @@ public partial class AssetLoader
         return lastSlash == -1 || lastSlash == name.Length - 1 ? name : name.Slice(lastSlash + 1);
     }
 
+    public static ReadOnlySpan<char> GetFileNameNoExtension(ReadOnlySpan<char> name)
+    {
+        int dot = name.LastIndexOf(".", StringComparison.OrdinalIgnoreCase);
+        if (dot != -1) name = name.Slice(0, dot);
+
+        int lastSlash = name.LastIndexOf("/", StringComparison.InvariantCulture);
+        return lastSlash == -1 || lastSlash == name.Length - 1 ? name : name.Slice(lastSlash + 1);
+    }
+
     /// <summary>
     /// Remove the relative part of a relative path and return it relative to a directory.
     /// [Folder/OtherFile.ext] + [../../../File.ext] = Folder/File.ext
