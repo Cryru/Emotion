@@ -295,15 +295,30 @@ public class VertexArrayObjectFromFormat : VertexArrayObject
             Gl.EnableVertexAttribArray(position);
             if (separateVertexAttributes)
             {
-                Gl.VertexAttribFormat(position, 4, (int)VertexAttribType.Float, false, (uint)byteOffset);
+                Gl.VertexAttribFormat(position, 4, (int)VertexAttribType.Float, false, (uint)byteOffset + sizeof(float) * 4);
                 Gl.VertexAttribBinding(position, 0);
             }
             else
             {
-                Gl.VertexAttribPointer(position, 4, VertexAttribType.Float, false, byteStride + sizeof(float) * 4, byteOffset);
+                Gl.VertexAttribPointer(position, 4, VertexAttribType.Float, false, byteStride, byteOffset + sizeof(float) * 4);
             }
 
             position++;
+        }
+
+        if (Format.CustomData != null)
+        {
+            int byteStride = Format.ElementSize;
+            int byteOffset = Format.CustomDataByteOffset;
+
+            foreach (var customDataElements in Format.CustomData)
+            {
+                Gl.EnableVertexAttribArray(position);
+                Gl.VertexAttribPointer(position, customDataElements, VertexAttribType.Float, false, byteStride, byteOffset);
+                position++;
+
+                byteOffset += customDataElements;
+            }
         }
     }
 }
