@@ -7,24 +7,29 @@ namespace Emotion.Core.Systems.IO;
 [DontSerialize]
 public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingObject<TObject>, new()
 {
-    private AssetObjectReference<TAsset, TObject> _currentRef = AssetObjectReference<TAsset, TObject>.Invalid;
     private Coroutine? _currentSetRoutine = Coroutine.CompletedRoutine;
     private Action<AssetOwner<TAsset, TObject>, object?>? _onChange = null;
     private object? _onChangeUserData = null;
     private bool _deferredSet = false;
-    private bool _ownershipEstablished = false;
+
+    private AssetObjectReference<TAsset, TObject> _currentRef = AssetObjectReference<TAsset, TObject>.Invalid;
+    private bool _currentOwnershipEstablished = false;
+
+    private bool _loadingOwnershipEstablished = false;
+    private AssetObjectReference<TAsset, TObject> _loadingRef = AssetObjectReference<TAsset, TObject>.Invalid;
 
     public Coroutine? Set(AssetObjectReference<TAsset, TObject> newAsset, bool deferSetToGetCurrent = false)
     {
         // Dedupe?
-        if (_currentRef == newAsset)
+        if (_currentRef == newAsset || _loadingRef == newAsset)
             return null;
 
-        DetachOldAsset(_currentRef);
-        _currentRef = newAsset;
+        _loadingRef = newAsset;
+        _loadingOwnershipEstablished = false;
 
         if (deferSetToGetCurrent)
         {
+            _loadingRef = newAsset;
             _deferredSet = true;
             return null;
         }
@@ -35,12 +40,12 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
     private Coroutine? SetInternal()
     {
         _deferredSet = false;
-        AssetObjectReference<TAsset, TObject> newAsset = _currentRef;
+        AssetObjectReference<TAsset, TObject> newAsset = _loadingRef;
 
         // New object that is already loaded, or invalid
         if (newAsset.Type == AssetOrObjectReferenceType.Object || !newAsset.IsValid())
         {
-            Assert(!_ownershipEstablished);
+            Assert(!_loadingOwnershipEstablished);
             AttachNewAsset(newAsset);
             InternalOnChanged();
             return null;
@@ -52,7 +57,7 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
 
     private IEnumerator LoadNewAssetAndAttach(AssetObjectReference<TAsset, TObject> handle)
     {
-        Assert(!_ownershipEstablished);
+        Assert(!_loadingOwnershipEstablished);
 
         if (handle.Type == AssetOrObjectReferenceType.AssetName)
         {
@@ -61,7 +66,7 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
 
             // Ownership established through loading the asset itself which also
             // enables ownership tracking for the asset.
-            _ownershipEstablished = true;
+            _loadingOwnershipEstablished = true;
         }
 
         if (handle.Type == AssetOrObjectReferenceType.Asset)
@@ -83,7 +88,8 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
 
     public Coroutine? GetCurrentLoading()
     {
-        if (_deferredSet) SetInternal();
+        if (_deferredSet)
+            return SetInternal();
 
         if (CanBeUsed()) return null;
         return _currentSetRoutine;
@@ -116,27 +122,31 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
         _onChangeUserData = null;
     }
 
-    private void DetachOldAsset(AssetObjectReference<TAsset, TObject> handle)
+    private void DetachOldAsset(in AssetObjectReference<TAsset, TObject> handle)
     {
         TAsset? asset = handle.Asset;
         asset?.OnLoaded -= AssetHotReloaded;
 
-        if (_ownershipEstablished)
+        if (_currentOwnershipEstablished)
         {
             RemoveOwnership(handle, this);
-            _ownershipEstablished = false;
+            _currentOwnershipEstablished = false;
         }
     }
 
-    private void AttachNewAsset(AssetObjectReference<TAsset, TObject> handle)
+    private void AttachNewAsset(in AssetObjectReference<TAsset, TObject> handle)
     {
+        AssetObjectReference<TAsset, TObject> old = _currentRef;
+        _currentRef = handle;
+        DetachOldAsset(old);
+
         TAsset? asset = handle.Asset;
         asset?.OnLoaded += AssetHotReloaded;
 
-        if (!_ownershipEstablished)
+        if (!_currentOwnershipEstablished)
         {
             AddOwnership(handle, this);
-            _ownershipEstablished = true;
+            _currentOwnershipEstablished = true;
         }
     }
 
