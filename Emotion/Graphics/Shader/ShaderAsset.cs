@@ -4,9 +4,6 @@ using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Threading;
 using Emotion.Graphics.Shading;
 using OpenGL;
-using System;
-using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace Emotion.Graphics.Shader;
@@ -41,23 +38,33 @@ public class ShaderAsset : TextAsset, IAssetContainingObject<ShaderProgram>
 
         base.CreateInternal(data);
 
+        bool es = Gl.CurrentShadingVersion.GLES;
+
         StringBuilder include = new StringBuilder();
         int includeCount = 1;
-        foreach (var includePath in ForEachInclude(base.Content))
+
+        if (es)
         {
-            TextAsset includeFile = Engine.AssetLoader.Get<TextAsset>(includePath, this, false, true);
+            TextAsset includeFile = Engine.AssetLoader.Get<TextAsset>("Shaders/GLESSupport.c");
             yield return includeFile;
 
-            if (includeCount == 1)
-                include.Append($"#define INCLUDE_FILE\n");
-
-            include.Append($"#line 0 {includeCount}\n");
+            include.Append($"\n#line 0 {includeCount}\n");
             include.Append(includeFile.Content);
             includeCount++;
         }
 
-        // Content <- The content of our file :)
-        bool es = Gl.CurrentShadingVersion.GLES;
+        foreach (string includePath in ForEachInclude(base.Content))
+        {
+            TextAsset includeFile = Engine.AssetLoader.Get<TextAsset>(includePath, this, false, true);
+            yield return includeFile;
+
+            include.Append($"\n#line 0 {includeCount}\n");
+            include.Append(includeFile.Content);
+            includeCount++;
+        }
+
+        // base.Content <- The content of our file :)
+
         string versionString = $"#version {Gl.CurrentShadingVersion.VersionId}{(es ? " es" : "")}\n";
 
         StringBuilder vertexShader = new StringBuilder();
