@@ -697,7 +697,7 @@ public class VoxelMeshTerrainGrid<TData, TChunk, TIndex> : MeshGrid<TData, TChun
         );
 
         verticesToAllocate = (int)Math.Ceiling(verticesToAllocate / 1000.0f) * 1000; // Round to thousandth so that reallocation is not too often
-        Span<VertexData_Pos_UV_Normal_Color> vertices = ResizeVertexMemoryAndGetSpan(ref chunk.VertexMemory, chunkCoord, verticesToAllocate);
+        Span<VertexData_Pos_UV_Normal_Color> vertices = ResizeVertexMemoryAndGetSpan<VertexData_Pos_UV_Normal_Color>(ref chunk.VertexMemory, chunkCoord, verticesToAllocate);
         int verticesUsed = RunChunkMeshGeneration(chunkCoord, chunk, chunkWorldOffset, dataMe, vertices, tileSize3D, false, out bool _);
 
         // Append transparent vertices

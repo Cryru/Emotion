@@ -11,6 +11,7 @@ using TerrainMeshGridChunk = Emotion.Game.World.Terrain.MeshGridStreaming.MeshGr
 
 namespace Emotion.Game.World.Terrain;
 
+[Obsolete("Use TerrainMeshGridNew")]
 public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ushort>, IMapGrid
 {
     public string UniqueId { get; set; } = Guid.NewGuid().ToString("N");
@@ -77,7 +78,7 @@ public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ush
         int stichingVertices = (int)(ChunkSize.X + ChunkSize.Y + 1);
         vertexCount += stichingVertices;
 
-        Span<VertexData_Pos_UV_Normal_Color> vertices = ResizeVertexMemoryAndGetSpan(ref chunk.VertexMemory, chunkCoord, vertexCount);
+        Span<VertexData_Pos_UV_Normal_Color> vertices = ResizeVertexMemoryAndGetSpan<VertexData_Pos_UV_Normal_Color>(ref chunk.VertexMemory, chunkCoord, vertexCount);
 
         // Get my data
         float[] dataMe = chunk.GetRawData() ?? Array.Empty<float>();

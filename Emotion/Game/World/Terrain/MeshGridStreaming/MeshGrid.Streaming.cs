@@ -546,6 +546,8 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
     private ObjectPool<VertexDataAllocation> _meshDataAllocations = new ObjectPool<VertexDataAllocation>();
     private ObjectPoolManual<GPUVertexMemory> _gpuDataAllocations = new ObjectPoolManual<GPUVertexMemory>(() => null!);
 
+    protected VertexDataFormat _vertexFormat = VertexData_Pos_UV_Normal_Color.Format;
+
     private void PromoteChunkToHasMesh(Vector2 chunkCoord, ChunkT chunk)
     {
         Assert(!chunk.VertexMemory.Allocated);
@@ -554,7 +556,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
 
         VertexDataAllocation newMemory = _meshDataAllocations.Get();
         if (!newMemory.Allocated)
-            newMemory = VertexDataAllocation.Allocate(VertexData_Pos_UV_Normal_Color.Format, 1, $"TerrainChunk_{chunkCoord}");
+            newMemory = VertexDataAllocation.Allocate(_vertexFormat, 1, $"TerrainChunk_{chunkCoord}");
         chunk.VertexMemory = newMemory;
 
         Assert(chunk.VerticesGeneratedForVersion == -1);
@@ -594,14 +596,15 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
         chunk.State = ChunkState.HasGPUData;
     }
 
-    protected Span<VertexData_Pos_UV_Normal_Color> ResizeVertexMemoryAndGetSpan(ref VertexDataAllocation vertexMemory, Vector2 chunkCoord, int vertexCount)
+    protected Span<TVertexData> ResizeVertexMemoryAndGetSpan<TVertexData>(ref VertexDataAllocation vertexMemory, Vector2 chunkCoord, int vertexCount)
+        where TVertexData : unmanaged
     {
         Assert(vertexMemory.Allocated);
 
         if (vertexMemory.VertexCount < vertexCount)
             vertexMemory = VertexDataAllocation.Reallocate(ref vertexMemory, vertexCount);
 
-        return vertexMemory.GetAsSpan<VertexData_Pos_UV_Normal_Color>();
+        return vertexMemory.GetAsSpan<TVertexData>();
     }
 
     #endregion

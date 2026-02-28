@@ -414,19 +414,25 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
         EngineEditor.AddEditorVisualization(this, "View Tile Vertex Normals", (c) =>
         {
             Vector2 cameraPos = c.Camera.Position.ToVec2();
+            Cube cameraPosCube = new Cube(cameraPos.ToVec3(0), new Vector3(100f, 100f, 1000f));
 
             foreach (ChunkT chunkToRender in _renderThisPass)
             {
-                if (Vector2.Distance(chunkToRender.Bounds.Origin.ToVec2(), cameraPos) > 15f) continue;
+                if (!chunkToRender.Bounds.Intersects(cameraPosCube)) continue;
 
                 VertexDataAllocation vertices = chunkToRender.VertexMemory;
-                Span<VertexData_Pos_UV_Normal_Color> verticesSpan = vertices.GetAsSpan<VertexData_Pos_UV_Normal_Color>();
-                for (int i = 0; i < verticesSpan.Length; i++)
-                {
-                    ref VertexData_Pos_UV_Normal_Color vert = ref verticesSpan[i];
-                    if (vert.Normal == Graphics.Renderer.Up) continue;
+                VertexDataFormat format = vertices.Format;
 
-                    c.RenderLine(vert.Position, vert.Position + vert.Normal * 0.5f, Color.Red, 0.05f);
+                int normalIdx = 0;
+                foreach (Vector3 normal in vertices.ForEachNormal())
+                {
+                    Vector3 pos = vertices.GetVertexPositionAtIndex(normalIdx);
+
+                    if (normal == Graphics.Renderer.Up) continue;
+
+                    c.RenderLine(pos, pos + normal * 2f, Color.Red, 0.1f);
+
+                    normalIdx++;
                 }
             }
         });
