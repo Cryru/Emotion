@@ -112,6 +112,8 @@ public abstract class SceneWithMap : Scene
         yield return InternalLoadSceneRoutineAsync();
         if (Map.State != GameMapState.Initialized)
             yield return Map.InitRoutine();
+        else
+            yield return Map.PreloadAllObjects();
         yield return base.LoadSceneRoutineAsync();
     }
 

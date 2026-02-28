@@ -74,9 +74,21 @@ public partial class GameMap : IDisposable
         }
 
         State = GameMapState.Initialized;
-
-        yield break;
     }
+
+    public IEnumerator PreloadAllObjects()
+    {
+        while (_objectsToLoad.TryDequeue(out GameObject? obj))
+        {
+            obj.Init(_gameObjectFriendAdapter);
+        }
+        while (_objectsToLoad.TryDequeue(out GameObject? obj))
+        {
+            while (obj.State != GameObjectState.Initialized)
+                yield return null;
+        }
+    }
+   
 
     #region Object Management
 
