@@ -2,6 +2,7 @@
 
 using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 using Emotion.Game.Systems.UI2.Editor;
+using Emotion.Game.World.Terrain;
 using Emotion.Standard.DataStructures.OptimizedStringReadWrite;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
@@ -103,7 +104,7 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
 
         Assert(reader.TokenType == JsonTokenType.StartObject);
 
-        T? val = _createNew != null ? _createNew() : default;
+        T? val = CreateNewTyped();
         if (val == null)
         {
             if (!reader.TrySkip())
@@ -159,8 +160,8 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
         Span<char> readMemory = stackalloc char[128];
 
         // Create the new object.
-        if (_createNew == null) return default;
-        T? obj = _createNew.Invoke();
+        if (!CanCreateNew()) return default;
+        T? obj = CreateNewTyped();
 
         while (true)
         {
@@ -250,7 +251,12 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
 
     public override object? CreateNew()
     {
-        if (_createNew == null) return null;
+        return CreateNewTyped();
+    }
+
+    public T? CreateNewTyped()
+    {
+        if (_createNew == null) return default;
         return _createNew();
     }
 

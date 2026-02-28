@@ -275,8 +275,6 @@ namespace SourceGenerator
             string safeShortName = GetSafeName(typ.Name);
             string safeName = GetSafeName(typ);
 
-            bool canBeInitialized = CanBeInitialized(typ);
-
             StringBuilder sb = new StringBuilder(2000);
             WriteFileHeader(sb);
 
@@ -356,17 +354,27 @@ namespace SourceGenerator
             }
 
             sb.AppendLine($"       ReflectorEngine.RegisterTypeHandler(new {handlerType}(");
-            if (canBeInitialized)
+
+            if (interfaces.Any(x => x.ToString() == $"Emotion.Standard.Reflector.Handlers.Interfaces.ICustomReflectorMeta_CustomCreateNew<{fullTypName}>"))
             {
-                if (typ.IsTupleType)
-                    sb.AppendLine($"           () => new ValueTuple{fullTypName.Replace("(", "<").Replace(")", ">")}(),");
-                else
-                    sb.AppendLine($"           () => new {fullTypName.Replace("?", "")}(),");
+                sb.AppendLine($"           {fullTypName}.CustomCreateNew,");
             }
             else
             {
-                sb.AppendLine($"           null,");
+                bool canBeInitialized = CanBeInitialized(typ);
+                if (canBeInitialized)
+                {
+                    if (typ.IsTupleType)
+                        sb.AppendLine($"           () => new ValueTuple{fullTypName.Replace("(", "<").Replace(")", ">")}(),");
+                    else
+                        sb.AppendLine($"           () => new {fullTypName.Replace("?", "")}(),");
+                }
+                else
+                {
+                    sb.AppendLine($"           null,");
+                }
             }
+
             sb.AppendLine($"           \"{safeShortName}\", members,");
 
 
