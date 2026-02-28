@@ -1,11 +1,8 @@
 ﻿#nullable enable
 
 using Emotion.Editor.Editor2D.TileEditor;
-using Emotion.Editor.Editor3D.TerrainEditor;
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Editor.EditorUI.MapObjectEditor;
-using Emotion.Game.Systems.UI;
-using Emotion.Game.Systems.UI2;
 
 namespace Emotion.Editor.Editor2D;
 
@@ -103,22 +100,6 @@ public class Editor2DBottomBar : UIBaseWindow
                 SpawnBackButton(this, barContent);
 
                 var editorWindow = new TileEditorWindow();
-                editorWindow.SpawnBottomBarContent(this, barContent);
-                _currentEditor = editorWindow;
-
-                EngineEditor.EditorUI.AddChild(editorWindow);
-            };
-            toolButtonList.AddChild(toolButton);
-        }
-
-        {
-            EditorButton toolButton = new EditorButton("3D Terrain Editor");
-            toolButton.OnClickedProxy = (_) =>
-            {
-                barContent.ClearChildren();
-                SpawnBackButton(this, barContent);
-
-                var editorWindow = new TerrainEditorWindow();
                 editorWindow.SpawnBottomBarContent(this, barContent);
                 _currentEditor = editorWindow;
 

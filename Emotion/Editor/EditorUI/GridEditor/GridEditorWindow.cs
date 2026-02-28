@@ -74,21 +74,7 @@ public abstract class GridEditorWindow : UIBaseWindow
             var labelDynamic = new EditorLabel("");
             textList.AddChild(labelDynamic);
             _bottomText = labelDynamic;
-        }
-
-        
-    }
-
-    protected float _brushSize = 5;
-    private void SetBrushSize(float val)
-    {
-        _brushSize = val;
-    }
-
-    protected float _brushStr = 1;
-    private void SetBrushStrength(float val)
-    {
-        _brushStr = val;
+        }   
     }
 
     #region Tools

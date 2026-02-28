@@ -149,7 +149,7 @@ public static partial class EngineEditor
         CurrentWorkflow?.Render(c);
         c.SetUseViewMatrix(false);
 
-        string perfReadoutStr = $"<right>FPS: {PerformanceMetrics.FpsLastSecond}\nDCF: {PerformanceMetrics.DrawCallsLastFrame:00}";
+        string perfReadoutStr = $"<right>FPS: {PerformanceMetrics.FpsLastSecond}\nDraws: {PerformanceMetrics.DrawCallsLastFrame:00}";
         _perfText.Text = perfReadoutStr;
     }
 
