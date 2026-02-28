@@ -14,7 +14,24 @@ namespace Emotion.Game.World.Terrain;
 public struct TerrainData
 {
     public float Height;
+    public Vector4 Weights;
     public Color Color;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+public struct TerrainVertex
+{
+    public readonly static VertexDataFormat Format = new VertexDataFormat()
+        .AddVertexPosition()
+        .AddNormal()
+        .AddVertexColor()
+        .AddCustomVector4()
+        .Build();
+
+    public Vector3 Position;
+    public Vector3 Normal;
+    public uint Color;
+    public Vector4 Weights;
 }
 
 public class TerrainChunk : MeshGridStreamableChunk<TerrainData, ushort>
@@ -28,6 +45,8 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
 
     public TerrainMeshGridNew(Vector2 tileSize, float chunkSize) : base(tileSize, chunkSize)
     {
+        // This API is utter trash
+        _vertexFormat = TerrainVertex.Format;
     }
 
     public IEnumerator InitRoutine(GameMap.GridFriendAdapter adapter)
@@ -47,7 +66,7 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
         {
             FaceCulling = true,
             FaceCullingBackFace = true,
-            Shader = "Shaders3D/TerrainShader.glsl"
+            Shader = "Shaders3D/TerrainShaderNew.glsl"
         }
     };
 
@@ -61,6 +80,8 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
         Vector2 brushWorldSpace = GetEditorBrush();
         shader.SetUniformVector2("brushWorldSpace", brushWorldSpace);
         shader.SetUniformFloat("brushRadius", _editorBrushSize);
+
+        Texture.EnsureBound(Texture.Checkerboard.Pointer, 0);
     }
 
     #endregion
@@ -113,7 +134,7 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
 
         //Engine.Renderer.DbgAddCube(Cube.FromMinAndMax(chunkWorldOffset.ToVec3(0), (ChunkSize * TileSize).ToVec3(10)));
 
-        Span<VertexData_Pos_UV_Normal_Color> vertices = ResizeVertexMemoryAndGetSpan(ref chunk.VertexMemory, chunkCoord, vertexCount);
+        Span<TerrainVertex> vertices = ResizeVertexMemoryAndGetSpan<TerrainVertex>(ref chunk.VertexMemory, chunkCoord, vertexCount);
 
         Vector3 min = Vector3.Zero;
         Vector3 max = Vector3.Zero;
@@ -129,12 +150,12 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
             for (int x = 0; x < rowWidth; x++)
             {
                 ref TerrainData terrainData = ref data[dataRead];
-                ref VertexData_Pos_UV_Normal_Color vert = ref vertices[verticesUsed];
+                ref TerrainVertex vert = ref vertices[verticesUsed];
 
                 vert.Position = (pen + chunkWorldOffset).ToVec3(terrainData.Height);
                 vert.Normal = GetNormalForVert(x, y, chunkCoord, tileSize, halfTileSize);
                 vert.Color = terrainData.Color.ToUint();
-                vert.UV = Vector2.Zero;
+                vert.Weights = terrainData.Weights;
 
                 //Engine.Renderer.DbgAddPoint(vert.Position.ToVec2().ToVec3(0));
                 //Engine.Renderer.DbgAddText(vert.Position.ToVec2().ToVec3(0), $"{verticesUsed}");
@@ -154,6 +175,8 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
         }
 
         // Add stitching vertices
+        TerrainData defaultData = new TerrainData() { Height = 0, Color = Color.White };
+
         Vector2 rightChunkCoord = chunkCoord + new Vector2(1, 0);
         TerrainChunk? chunkRight = GetChunk(rightChunkCoord);
         TerrainData[]? dataRight = chunkRight?.GetRawData();
@@ -175,13 +198,13 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
                 }
 
                 int x = rowWidth + 1;
-                TerrainData terrainData = dataRight != null ? dataRight[y * rowWidth] : default;
-                ref VertexData_Pos_UV_Normal_Color vert = ref vertices[vIdx];
+                TerrainData terrainData = dataRight != null ? dataRight[y * rowWidth] : defaultData;
+                ref TerrainVertex vert = ref vertices[vIdx];
 
                 vert.Position = (pen + chunkWorldOffset).ToVec3(terrainData.Height);
                 vert.Normal = GetNormalForVert(0, y, rightChunkCoord, tileSize, halfTileSize);
                 vert.Color = terrainData.Color.ToUint();
-                vert.UV = Vector2.Zero;
+                vert.Weights = terrainData.Weights;
 
                 //Engine.Renderer.DbgAddPoint(vert.Position.ToVec2().ToVec3(0));
                 //Engine.Renderer.DbgAddText(vert.Position.ToVec2().ToVec3(0), $"{verticesUsed}");
@@ -206,15 +229,15 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
 
             for (int x = 0; x < rowWidth; x++)
             {
-                TerrainData terrainData = dataBottom != null ? dataBottom[readIdx] : default;
+                TerrainData terrainData = dataBottom != null ? dataBottom[readIdx] : defaultData;
                 readIdx++;
 
-                ref VertexData_Pos_UV_Normal_Color vert = ref vertices[verticesUsed];
+                ref TerrainVertex vert = ref vertices[verticesUsed];
 
                 vert.Position = (pen + chunkWorldOffset).ToVec3(terrainData.Height);
                 vert.Normal = GetNormalForVert(x, 0, bottomChunkCoord, tileSize, halfTileSize);
                 vert.Color = terrainData.Color.ToUint();
-                vert.UV = Vector2.Zero;
+                vert.Weights = terrainData.Weights;
 
                 //Engine.Renderer.DbgAddPoint(vert.Position.ToVec2().ToVec3(0));
                 //Engine.Renderer.DbgAddText(vert.Position.ToVec2().ToVec3(0), $"{verticesUsed}");
@@ -233,14 +256,14 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
         TerrainData[]? dataBottomRight = chunkBottomRight?.GetRawData();
 
         {
-            TerrainData terrainData = dataBottomRight != null ? dataBottomRight[0] : default;
+            TerrainData terrainData = dataBottomRight != null ? dataBottomRight[0] : defaultData;
 
-            ref VertexData_Pos_UV_Normal_Color vert = ref vertices[verticesUsed];
+            ref TerrainVertex vert = ref vertices[verticesUsed];
 
             vert.Position = (pen + chunkWorldOffset).ToVec3(terrainData.Height);
             vert.Normal = GetNormalForVert(0, 0, bottomRightChunkCoord, tileSize, halfTileSize);
             vert.Color = terrainData.Color.ToUint();
-            vert.UV = Vector2.Zero;
+            vert.Weights = terrainData.Weights;
 
             //Engine.Renderer.DbgAddPoint(vert.Position.ToVec2().ToVec3(0));
             //Engine.Renderer.DbgAddText(vert.Position.ToVec2().ToVec3(0), $"{verticesUsed}");
@@ -248,7 +271,7 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
             min = Vector3.Min(min, vert.Position);
             max = Vector3.Max(max, vert.Position);
 
-            verticesUsed++; 
+            verticesUsed++;
         }
 
         // Propagate the update (due to stitching vertices)
@@ -392,6 +415,11 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
         return 0;
     }
 
+    public void SetHeightAt(Vector2 worldSpace)
+    {
+
+    }
+
     #endregion
 
     #region Brush
@@ -447,20 +475,22 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
 
     public enum BrushOperation
     {
-        Rise,
-        Lower,
+        ChangeHeight,
+        TextureWeights,
         Color
     }
 
     public struct TerrainBrush
     {
+        public BrushOperation Operation;
         public float Size;
         public float Strength;
         public Color Color;
     }
 
-    public void ApplyBrushHeight(BrushOperation op, TerrainBrush brush)
+    public void ApplyBrushHeight(TerrainBrush brush)
     {
+        BrushOperation op = brush.Operation;
         SetEditorBrush(true, brush.Size, brush.Strength);
 
         Vector2 brushPos = GetEditorBrush();
@@ -472,14 +502,40 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
         ApplyBrushToTerrain? brushFunc = null;
         switch (op)
         {
-            case BrushOperation.Rise:
+            case BrushOperation.ChangeHeight:
                 brushFunc = static (ref data, brush, str) => data.Height += str;
                 break;
-            case BrushOperation.Lower:
-                brushFunc = static (ref data, brush, str) => data.Height -= str;
-                break;
             case BrushOperation.Color:
-                brushFunc = static (ref data, brush, str) => data.Color = Color.Lerp(data.Color, brush.Color, str);
+                brushFunc = static (ref data, brush, str) =>
+                {
+                    data.Color = Color.Lerp(data.Color, brush.Color, str);
+                };
+                break;
+            case BrushOperation.TextureWeights:
+                brushFunc = static (ref data, brush, str) =>
+                {
+                    var colors = new Color[5] { Color.Red, Color.Green, Color.Blue, Color.PrettyOrange, Color.Black };
+                    int colIdx = colors.IndexOf(brush.Color);
+
+                    Vector4 w = data.Weights;
+                    float sum = w.X + w.Y + w.Z + w.W;
+                    float w4 = Math.Max(1f - sum, 0f);
+                    float[] weights = new float[5] { w.X, w.Y, w.Z, w.W, w4 };
+                    weights[colIdx] += brush.Strength;
+
+                    float total = 0;
+                    for (int i = 0; i < weights.Length; i++)
+                    {
+                        total += weights[i];
+                    }
+
+                    // Normalize
+                    for (int i = 0; i < weights.Length; i++)
+                    {
+                        weights[i] /= total;
+                    }
+                    data.Weights = new Vector4(weights[0], weights[1], weights[2], weights[3]);
+                };
                 break;
         }
         if (brushFunc == null) return;
