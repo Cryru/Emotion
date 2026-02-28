@@ -6,6 +6,7 @@ using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Shading;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
 using System.Runtime.InteropServices;
 
 namespace Emotion.Game.World.Terrain;
@@ -13,6 +14,8 @@ namespace Emotion.Game.World.Terrain;
 [StructLayout(LayoutKind.Sequential)]
 public struct TerrainData
 {
+    public static TerrainData DefaultData = new TerrainData() { Height = 0, Color = Color.White };
+
     public float Height;
     public Vector4 Weights;
     public Color Color;
@@ -39,7 +42,7 @@ public class TerrainChunk : MeshGridStreamableChunk<TerrainData, ushort>
 
 }
 
-public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, ushort>, IMapGrid
+public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, ushort>, IMapGrid, ICustomReflectorMeta_CustomCreateNew<TerrainMeshGridNew>
 {
     public string UniqueId { get; set; } = Guid.NewGuid().ToString("N");
 
@@ -49,12 +52,26 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
         _vertexFormat = TerrainVertex.Format;
     }
 
+    protected TerrainMeshGridNew() : this(Vector2.Zero, 0)
+    {
+
+    }
+
     public IEnumerator InitRoutine(GameMap.GridFriendAdapter adapter)
     {
         GetMeshMaterial().EnsureAssetsLoaded();
         yield return GLThread.ExecuteOnGLThreadAsync(PrepareIndexBuffer);
         yield return base.InitRoutine();
     }
+
+    #region Serialization
+
+    public static new TerrainMeshGridNew CustomCreateNew()
+    {
+        return new TerrainMeshGridNew();
+    }
+
+    #endregion
 
     #region Rendering
 
@@ -175,8 +192,6 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
         }
 
         // Add stitching vertices
-        TerrainData defaultData = new TerrainData() { Height = 0, Color = Color.White };
-
         Vector2 rightChunkCoord = chunkCoord + new Vector2(1, 0);
         TerrainChunk? chunkRight = GetChunk(rightChunkCoord);
         TerrainData[]? dataRight = chunkRight?.GetRawData();
@@ -198,7 +213,7 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
                 }
 
                 int x = rowWidth + 1;
-                TerrainData terrainData = dataRight != null ? dataRight[y * rowWidth] : defaultData;
+                TerrainData terrainData = dataRight != null ? dataRight[y * rowWidth] : TerrainData.DefaultData;
                 ref TerrainVertex vert = ref vertices[vIdx];
 
                 vert.Position = (pen + chunkWorldOffset).ToVec3(terrainData.Height);
@@ -229,7 +244,7 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
 
             for (int x = 0; x < rowWidth; x++)
             {
-                TerrainData terrainData = dataBottom != null ? dataBottom[readIdx] : defaultData;
+                TerrainData terrainData = dataBottom != null ? dataBottom[readIdx] : TerrainData.DefaultData;
                 readIdx++;
 
                 ref TerrainVertex vert = ref vertices[verticesUsed];
@@ -256,7 +271,7 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
         TerrainData[]? dataBottomRight = chunkBottomRight?.GetRawData();
 
         {
-            TerrainData terrainData = dataBottomRight != null ? dataBottomRight[0] : defaultData;
+            TerrainData terrainData = dataBottomRight != null ? dataBottomRight[0] : TerrainData.DefaultData;
 
             ref TerrainVertex vert = ref vertices[verticesUsed];
 

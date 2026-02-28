@@ -1,6 +1,5 @@
 ﻿#nullable enable
 
-using Emotion.Core.Utility.Threading;
 using Emotion.Editor;
 using Emotion.Game.World.Terrain.MeshGridStreaming;
 using Emotion.Game.World.ThreeDee;
@@ -9,28 +8,32 @@ using Emotion.Graphics.Data;
 using Emotion.Graphics.Memory;
 using Emotion.Graphics.Shading;
 using Emotion.Primitives.Grids;
+using Emotion.Standard.Reflector.Handlers;
+using Emotion.Standard.Reflector.Handlers.Base;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
 using OpenGL;
 
 namespace Emotion.Game.World.Terrain;
 
-[DontSerialize]
-public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGridWorldSpaceTiles, ITerrainGrid3D
+public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGridWorldSpaceTiles, ITerrainGrid3D, ICustomReflectorMeta_ExtraMembers
     where ChunkT : MeshGridStreamableChunk<T, IndexT>, new()
     where T : unmanaged
     where IndexT : INumber<IndexT>
 {
     public bool Initialized { get; private set; }
 
-    //[SerializeNonPublicGetSet]
-    public Vector2 TileSize { get; protected set; }
+    public Vector2 TileSize { get; private set; }
 
     public MeshGrid(Vector2 tileSize, float chunkSize) : base(chunkSize)
     {
         TileSize = tileSize;
 
+        // todo: do this in chunks rather than world units
         if (SimulationRange == 0 || RenderRange == 0)
         {
             int factor = (int)MathF.Max(tileSize.Y, tileSize.X);
+            factor = Math.Max(factor, 1);
+
             SimulationRange = 512 * factor;
             RenderRange = 512 * factor;
         }
@@ -49,6 +52,21 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
     {
         EngineEditor.RemoveEditorVisualizations(this);
     }
+
+    #region Serialization
+
+    public static new ComplexTypeHandlerMemberBase[] GetExtraReflectorMembers()
+    {
+        return [
+           new ComplexTypeHandlerMember<MeshGrid<T, ChunkT, IndexT>, Vector2>(
+                "TileSize",
+                static (ref MeshGrid<T, ChunkT, IndexT> p, Vector2 v) => p.TileSize = v,
+                static (p) => p.TileSize
+           )
+       ];
+    }
+
+    #endregion
 
     #region API
 
