@@ -158,7 +158,10 @@ public class Texture : TextureObjectBase
         Checkerboard = new Texture(new Vector2(2, 2), [
             100, 100, 120, 255,     200, 200, 220, 255,
             200, 200, 220, 255,     100, 100, 120, 255
-        ], PixelFormat.Rgba);
+        ], PixelFormat.Rgba)
+        {
+            Tile = true
+        };
 
         Smooth_EmptyWhiteTexture = new Texture(new Vector2(2, 2), [
                 255, 255, 255, 255,
