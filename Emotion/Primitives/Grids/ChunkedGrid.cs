@@ -49,6 +49,11 @@ public class ChunkedGrid<T, ChunkT> : IGrid<T>
         return chunk;
     }
 
+    public ChunkT? GetChunk(IntVector2 chunkCoord)
+    {
+        return GetChunk(chunkCoord.ToVec2());
+    }
+
     public void CreateEmptyChunksInArea(Vector2 origin, Vector2 size)
     {
         Rectangle areaToSpawn = new Rectangle(origin, size);

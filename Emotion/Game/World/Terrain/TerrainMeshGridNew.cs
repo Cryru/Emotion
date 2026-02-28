@@ -376,48 +376,101 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
 
     #region World Space Helpers
 
-    public override Vector2 GetTilePosOfWorldPos(Vector2 location)
+    public override Vector2 GetTilePosOfWorldPos(Vector2 worldSpace)
     {
-        location -= TileSize; // Stiching vertex
-        return base.GetTilePosOfWorldPos(location);
+        Vector2 tileSize = TileSize;
+        Vector2 halfTileSize = tileSize / 2f;
+
+        int gy = (int)MathF.Floor(worldSpace.Y / halfTileSize.Y);
+        bool oddRow = (gy % 2) != 0;
+        float rowOffset = oddRow ? halfTileSize.X : 0f;
+        int gx = (int)MathF.Floor((worldSpace.X - rowOffset) / tileSize.X);
+
+        return new Vector2(gx, gy);
     }
 
-    public override Vector2 GetWorldPosOfTile(Vector2 tileCoord2d)
+    public override Vector2 GetWorldPosOfTile(Vector2 tileCoord)
     {
-        return base.GetWorldPosOfTile(tileCoord2d) + TileSize;
+        Vector2 tileSize = TileSize;
+        Vector2 halfTileSize = tileSize / 2f;
+
+        bool odd = (tileCoord.Y % 2) != 0;
+        float off = odd ? halfTileSize.X : 0f;
+        return new Vector2(tileCoord.X * tileSize.X + off, tileCoord.Y * halfTileSize.Y);
+    }
+
+    public Vector3 GetWorldPosOfTileWithHeight(Vector2 tileCoord)
+    {
+        Vector2 worldPos = GetWorldPosOfTile(tileCoord);
+        GetHeightAtGridCoord(tileCoord, out float height);
+        return worldPos.ToVec3(height);
     }
 
     public override float GetHeightAt(Vector2 worldSpace)
     {
-        worldSpace -= TileSize; // Stiching
+        Vector2 tileSize = TileSize;
+        Vector2 halfTileSize = tileSize / 2f;
 
-        Vector2 tilePos = worldSpace / TileSize;
-        Vector2 floorPos = tilePos.Floor();
-        Vector2 ceilPos = tilePos.Ceiling();
+        // Find the closest quad start (top left vertex on an even row)
+        int gy = (int)MathF.Floor(worldSpace.Y / tileSize.Y) * 2;
+        int gx = (int)MathF.Floor(worldSpace.X / tileSize.X);
 
-        //TerrainMeshGridChunk? chunk00 = GetChunkAt(floorPos, out Vector2 relCoord00);
-        //TerrainMeshGridChunk? chunk10 = GetChunkAt(new Vector2(ceilPos.X, floorPos.Y), out Vector2 relCoord10);
-        //TerrainMeshGridChunk? chunk01 = GetChunkAt(new Vector2(floorPos.X, ceilPos.Y), out Vector2 relCoord01);
-        //TerrainMeshGridChunk? chunk11 = GetChunkAt(ceilPos, out Vector2 relCoord11);
+        Vector2 centerCoord = new Vector2(gx, gy + 1);
+        Vector2 topLeftCoord = new Vector2(gx, gy);
+        Vector2 topRightCoord = new Vector2(gx + 1, gy);
+        Vector2 botLeftCoord = new Vector2(gx, gy + 2);
+        Vector2 botRightCoord = new Vector2(gx + 1, gy + 2);
 
-        //float h00 = chunk00 != null ? GetAtForChunk(chunk00, relCoord00) : 0;
-        //float h10 = chunk10 != null ? GetAtForChunk(chunk10, relCoord10) : 0;
-        //float h01 = chunk01 != null ? GetAtForChunk(chunk01, relCoord01) : 0;
-        //float h11 = chunk11 != null ? GetAtForChunk(chunk11, relCoord11) : 0;
+        Vector3 centerPos = GetWorldPosOfTileWithHeight(centerCoord);
+        Vector3 topLeftPos = GetWorldPosOfTileWithHeight(topLeftCoord);
+        Vector3 topRightPos = GetWorldPosOfTileWithHeight(topRightCoord);
 
-        //float fracX = tilePos.X - floorPos.X;
-        //float fracY = tilePos.Y - floorPos.Y;
+        Triangle posInTri = Triangle.Invalid;
+        Triangle currentTri = new Triangle(centerPos, topRightPos, topLeftPos); // Top triangle
+        if (currentTri.IsPoint2DInTriangle(worldSpace))
+        {
+            posInTri = currentTri;
+        }
+        else
+        {
+            Vector3 botLeftPos = GetWorldPosOfTileWithHeight(botLeftCoord);
+            currentTri = new Triangle(centerPos, topLeftPos, botLeftPos); // Left triangle
+            if (currentTri.IsPoint2DInTriangle(worldSpace))
+            {
+                posInTri = currentTri;
+            }
+            else
+            {
+                Vector3 botRightPos = GetWorldPosOfTileWithHeight(botRightCoord);
+                currentTri = new Triangle(centerPos, botLeftPos, botRightPos); // Bottom triangle
+                if (currentTri.IsPoint2DInTriangle(worldSpace))
+                {
+                    posInTri = currentTri;
+                }
+                else
+                {
+                    currentTri = new Triangle(centerPos, botRightPos, topRightPos); // Right triangle
+                    if (currentTri.IsPoint2DInTriangle(worldSpace))
+                    {
+                        posInTri = currentTri;
+                    }
+                }
+            }
+        }
 
-        //float h0 = Maths.Lerp(h00, h10, fracX); // bottom
-        //float h1 = Maths.Lerp(h01, h11, fracX); // top
-        //float height = Maths.Lerp(h0, h1, fracY); // both
+        // Sanity check!
+        if (!posInTri.Valid) return centerPos.Z;
 
-        return 0;
+        // Vertical triangle?
+        Vector3 n = posInTri.Normal;
+        if (MathF.Abs(n.Z) < Maths.EPSILON) return posInTri.A.Z;
+
+        return posInTri.A.Z - (n.X * (worldSpace.X - posInTri.A.X) + n.Y * (worldSpace.Y - posInTri.A.Y)) / n.Z;
     }
 
     public void SetHeightAt(Vector2 worldSpace)
     {
-
+        // todo: find the chunk, the tiles, and interpolate setting them (maybe this just calls the editor brush function with some brush?)
     }
 
     #endregion
@@ -520,7 +573,7 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
                     Vector4 w = data.Weights;
                     float sum = w.X + w.Y + w.Z + w.W;
                     float w4 = Math.Max(1f - sum, 0f);
-                    float[] weights = new float[5] { w.X, w.Y, w.Z, w.W, w4 };
+                    float[] weights = [w.X, w.Y, w.Z, w.W, w4];
                     weights[colIdx] += brush.Strength;
 
                     float total = 0;
@@ -632,16 +685,22 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
         int gridX = (int)chunkCoord.X * (int)ChunkSize.X + x;
         int gridY = (int)chunkCoord.Y * (int)ChunkSize.Y * 2 + y;
 
+        IntVector2 gridPos = new IntVector2(gridX, gridY);
+
         // Center (for fallback)
-        float fallback = GetHeightAtGrid(gridX, gridY, 0);
+        GetHeightAtGridCoord(gridPos, out float fallback);
 
         // Horizontal
-        float hL = GetHeightAtGrid(gridX - 1, gridY, fallback);
-        float hR = GetHeightAtGrid(gridX + 1, gridY, fallback);
+        if (!GetHeightAtGridCoord(gridPos - new IntVector2(1, 0), out float hL))
+            hL = fallback;
+        if (!GetHeightAtGridCoord(gridPos + new IntVector2(1, 0), out float hR))
+            hR = fallback;
 
         // Vertical
-        float hT = GetHeightAtGrid(gridX, gridY - 2, fallback);
-        float hB = GetHeightAtGrid(gridX, gridY + 2, fallback);
+        if (!GetHeightAtGridCoord(gridPos - new IntVector2(0, 2), out float hT))
+            hT = fallback;
+        if (!GetHeightAtGridCoord(gridPos + new IntVector2(0, 2), out float hB))
+            hB = fallback;
 
         float dX = tileSize.X * 2f;
         float dY = tileSize.Y * 2f;
@@ -654,25 +713,30 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
         return Vector3.Normalize(normal);
     }
 
-    private float GetHeightAtGrid(int gridX, int gridY, float fallback)
+    private bool GetHeightAtGridCoord(Vector2 gridPos, out float height)
     {
+        return GetHeightAtGridCoord(gridPos.ToIVec2Ceil(), out height);
+    }
+
+    private bool GetHeightAtGridCoord(IntVector2 gridPos, out float height)
+    {
+        height = 0;
+
         int chunkWidth = (int)ChunkSize.X;
         int chunkHeight = (int)ChunkSize.Y * 2;
+        IntVector2 chunkCoord = gridPos.FloorDiv(new IntVector2(chunkWidth, chunkHeight));
 
-        int chunkX = Maths.FloorDiv(gridX, chunkWidth);
-        int chunkY = Maths.FloorDiv(gridY, chunkHeight);
-
-        Vector2 coord = new Vector2(chunkX, chunkY);
-        TerrainChunk? chunk = GetChunk(coord);
-        if (chunk == null) return fallback;
+        TerrainChunk? chunk = GetChunk(chunkCoord);
+        if (chunk == null) return false;
 
         TerrainData[] data = chunk.GetRawData();
 
-        int lX = (gridX % chunkWidth + chunkWidth) % chunkWidth;
-        int lY = (gridY % chunkHeight + chunkHeight) % chunkHeight;
+        int lX = (gridPos.X % chunkWidth + chunkWidth) % chunkWidth;
+        int lY = (gridPos.Y % chunkHeight + chunkHeight) % chunkHeight;
         int idx = lY * chunkWidth + lX;
         Assert(idx >= 0 && idx < data.Length);
-        return data[idx].Height;
+        height = data[idx].Height;
+        return true;
     }
 
     #endregion

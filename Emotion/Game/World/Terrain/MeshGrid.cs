@@ -427,10 +427,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
                 foreach (Vector3 normal in vertices.ForEachNormal())
                 {
                     Vector3 pos = vertices.GetVertexPositionAtIndex(normalIdx);
-
-                    if (normal == Graphics.Renderer.Up) continue;
-
-                    c.RenderLine(pos, pos + normal * 2f, Color.Red, 0.1f);
+                    c.RenderLine(pos, pos + normal * 2f, normal == Graphics.Renderer.Up ? Color.Green : Color.Red, 0.1f);
 
                     normalIdx++;
                 }

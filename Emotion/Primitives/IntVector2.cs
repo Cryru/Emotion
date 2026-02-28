@@ -33,6 +33,13 @@ public record struct IntVector2
         return new Vector3(X, Y, z);
     }
 
+    public readonly IntVector2 FloorDiv(IntVector2 divisor)
+    {
+        int x = X;
+        int y = Y;
+        return new IntVector2(Maths.FloorDiv(x, divisor.X), Maths.FloorDiv(y, divisor.Y));
+    }
+
     #region Operands
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
