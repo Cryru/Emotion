@@ -67,7 +67,7 @@ public class WoWMovementController : IGameObjectComponent, IUpdateableComponent
         GameMap? map = _character.Map;
         if (map == null) return;
 
-        TerrainMeshGrid? terrain = map.GetFirstGridOfType<TerrainMeshGrid>();
+        TerrainMeshGridNew? terrain = map.GetFirstGridOfType<TerrainMeshGridNew>();
         if (terrain == null) return;
 
         Vector3 charPos = _character.Position3D;
@@ -129,7 +129,7 @@ public class WoWMovementController : IGameObjectComponent, IUpdateableComponent
 
         // Check if going into invalid chunk.
         Vector2 tile = terrain.GetTilePosOfWorldPos(charPos2D + moveRequest.ToVec2());
-        MeshGridStreamableChunk<float, ushort>? chunk = terrain.GetChunkAt(tile, out Vector2 _);
+        TerrainChunk? chunk = terrain.GetChunkAt(tile, out Vector2 _);
         if (chunk == null || !chunk.CanBeSimulated)
         {
             moveRequest.X = 0;
