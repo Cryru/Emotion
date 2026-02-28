@@ -1,8 +1,11 @@
-﻿#nullable enable
+﻿extern alias SilkNet;
+#nullable enable
 
 using Emotion.Core.Systems.Logging;
 using Emotion.Core.Utility.Threading;
 using OpenGL;
+using SilkNet::Silk.NET.Assimp;
+using System.Runtime.InteropServices;
 
 namespace Emotion.Graphics.Objects;
 
@@ -171,6 +174,8 @@ public abstract class TextureObjectBase : IDisposable
         _smoothSet = false;
         Smooth = _smooth;
         Tile = _tile;
+        ApplyAnisotropicFiltering();
+
         Version++;
     }
 
@@ -255,4 +260,35 @@ public abstract class TextureObjectBase : IDisposable
 
         GLThread.ExecuteOnGLThreadAsync(Gl.DeleteTexture, oldPtr);
     }
+
+    #region Graphic Settings
+
+    private void ApplyAnisotropicFiltering()
+    {
+        bool supportedViaExtension = Gl.CurrentExtensions.TextureFilterAnisotropic_ARB;
+        bool supportedViaVersion = Gl.CurrentVersion.Major >= 4 && Gl.CurrentVersion.Minor >= 6;
+        if (!supportedViaExtension && !supportedViaVersion) return;
+
+        GLThread.ExecuteOnGLThreadAsync(static (texture) =>
+        {
+            int max = Gl.CurrentLimits.MaxTextureMaxAnisotropy;
+            float value = Engine.Renderer.NYI_AnisotropyFiltering;
+            if (value == 0)
+                return;
+
+            if (Engine.Renderer.Dsa)
+            {
+                Gl.TextureParameter(texture.Pointer, TextureParameterName.MaxAnisotropy, value);
+                Gl.TextureParameter(texture.Pointer, TextureParameterName.MaxAnisotropy, value);
+            }
+            else
+            {
+                EnsureBound(texture._textureTarget, texture.Pointer);
+                Gl.TexParameter(texture._textureTarget, TextureParameterName.MaxAnisotropy, value);
+                Gl.TexParameter(texture._textureTarget, TextureParameterName.MaxAnisotropy, value);
+            }
+        }, this);
+    }
+
+    #endregion
 }

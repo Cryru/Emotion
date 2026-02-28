@@ -67,6 +67,8 @@ public sealed partial class Renderer
     /// </summary>
     public const uint MAX_INDICES = ushort.MaxValue;
 
+    public int NYI_AnisotropyFiltering = 0;
+
     #endregion
 
     #region Flags

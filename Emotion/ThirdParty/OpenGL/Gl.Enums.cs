@@ -10573,7 +10573,9 @@ public enum TextureParameterName
     /// Strongly typed for value GL_TEXTURE_WIDTH.
     /// </summary>
     [RequiredByFeature("GL_VERSION_1_0")] [RequiredByFeature("GL_ES_VERSION_3_1", Api = "gles2")]
-    TextureWidth = Gl.TEXTURE_WIDTH
+    TextureWidth = Gl.TEXTURE_WIDTH,
+
+    MaxAnisotropy = Gl.TEXTURE_MAX_ANISOTROPY
 }
 
 /// <summary>
