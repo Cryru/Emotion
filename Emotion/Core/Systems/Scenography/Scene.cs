@@ -141,10 +141,7 @@ public abstract class SceneWithMap : Scene
 
     private static GameMap InitDefaultMap()
     {
-        return new GameMap()
-        {
-            MapPath = "Maps/start.xml"
-        };
+        return new GameMap();
     }
 
     public Coroutine SetCurrentMap(AssetObjectReference<GameMapAsset, GameMap> asset)
@@ -152,9 +149,30 @@ public abstract class SceneWithMap : Scene
         return _mapOwner.Set(asset) ?? Coroutine.CompletedRoutine;
     }
 
+    private GameMap? _currentMap;
+
     private void OnMapChanged(GameMap newMap)
     {
+        // Changing map while a map is active
+        if (_currentMap != null)
+            Engine.CoroutineManager.StartCoroutine(SwapMapRoutine(newMap));
+        else
+            _currentMap = newMap;
+    }
 
+    private IEnumerator SwapMapRoutine(GameMap newMap)
+    {
+        if (newMap.State == GameMapState.Initialized)
+            yield return newMap.PreloadAllObjects();
+        else
+            yield return newMap.InitRoutine();
+
+        GameMap? oldMap = _currentMap;
+        AssertNotNull(oldMap);
+
+        _currentMap = newMap;
+
+        oldMap.Dispose();
     }
 
     #endregion

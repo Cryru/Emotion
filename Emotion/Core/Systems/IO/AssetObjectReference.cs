@@ -50,12 +50,6 @@ public struct AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta_Extra
         return _type != AssetOrObjectReferenceType.None;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool ReadyToUse()
-    {
-        return _type == AssetOrObjectReferenceType.Object;
-    }
-
     public TObject? GetObjectLoadinline()
     {
         if (_type == AssetOrObjectReferenceType.AssetName)
@@ -144,6 +138,7 @@ public struct AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta_Extra
     public override string? ToString()
     {
         if (_assetName != null) return _assetName;
+        if (_asset != null) return _asset.Name;
         if (_assetObject != null) return _assetObject.ToString();
         return "Invalid Asset/Object Reference";
     }

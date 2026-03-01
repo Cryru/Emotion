@@ -67,8 +67,6 @@ public class GameMapAsset : Asset, IAssetContainingObject<GameMap>
         }
 
         yield return Coroutine.WhenAll(routines);
-
-        yield return map.InitRoutine();
     }
 
     protected override void CreateInternal(ReadOnlyMemory<byte> data)

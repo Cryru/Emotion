@@ -485,6 +485,7 @@ public partial class AssetLoader
 
     public void AddReferenceToAsset(Asset? asset, object referencingObject)
     {
+        // todo: should dedupe
         if (asset == null) return;
         // todo
     }

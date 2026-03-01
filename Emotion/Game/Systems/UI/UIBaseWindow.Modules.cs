@@ -525,7 +525,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         {
             // Try to get the loading routine.
             Coroutine? newLoading = InternalLoad();
-            if (newLoading != null)
+            if (newLoading != null && !newLoading.Finished)
             {
                 _loadingRoutine = newLoading;
                 firstLoading = newLoading;
