@@ -120,7 +120,7 @@ public class WoWMovementController : IGameObjectComponent, IUpdateableComponent
         if (moveRequest.Z != 0 && (_inAir || moved))
         {
             float height = terrain.GetHeightAt(charPos2D);
-            if (_character.Z + moveRequest.Z < height)
+            if (charPos.Z + moveRequest.Z < height)
             {
                 moveRequest.Z = 0;
                 _inAir = false;
@@ -137,7 +137,7 @@ public class WoWMovementController : IGameObjectComponent, IUpdateableComponent
         }
 
         // Add move
-        Vector3 newPos = _character.Position3D + moveRequest;
+        Vector3 newPos = charPos + moveRequest;
 
         // Move along the terrain height
         if (!_inAir)

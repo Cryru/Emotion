@@ -11,9 +11,13 @@ public class StringEditor : TypeEditor
 
     public StringEditor()
     {
-        var textInput = new OneTextInput()
+        var textInput = new OneTextInput(multiLine: false)
         {
-            Name = "TextInput"
+            Name = "TextInput",
+            InnerInput =
+            {
+                SubmitOnFocusLoss = true
+            }
         };
         textInput.OnSubmit = OnTextInputChanged;
         AddChild(textInput);

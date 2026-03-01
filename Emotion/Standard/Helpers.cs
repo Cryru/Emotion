@@ -2,7 +2,6 @@
 
 #region Using
 
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -393,5 +392,59 @@ public static class Helpers
 
         header = Array.Empty<byte>();
         return Encoding.UTF8;
+    }
+
+    /// <summary>
+    /// Synchronize two lists
+    /// </summary>
+    /// <typeparam name="T">The type of items in the source list</typeparam>
+    /// <typeparam name="T2">The type of items in the target list</typeparam>
+    /// <param name="source">The source of truth list</param>
+    /// <param name="target">The list that needs to be synchronized</param>
+    /// <param name="compareFunc">A function which returns a specific T2 matches a T</param>
+    /// <param name="addItem">A function which adds an item to the target list (when it is missing in the target)</param>
+    /// <param name="removeItem">A function which removes an item from the target list (when it is missing in the source)</param>
+    public static void SynchronizeLists<T, T2>(
+        List<T> source,
+        List<T2> target,
+        Func<T2, T, bool> compareFunc,
+        Action<List<T2>, T> addItem,
+        Action<List<T2>, T2> removeItem)
+    {
+        // Remove those not present in the source anymore
+        for (int i = target.Count - 1; i >= 0; i--)
+        {
+            T2 targetItem = target[i];
+
+            bool noLongerPresent = false;
+            for (int j = 0; j < source.Count; j++)
+            {
+                if (compareFunc(targetItem, source[j]))
+                {
+                    noLongerPresent = true;
+                    break;
+                }
+            }
+            if (noLongerPresent) continue;
+            removeItem(target, targetItem);
+        }
+
+        // Add those missing in the target
+        for (int i = 0; i < source.Count; i++)
+        {
+            T sourceItem = source[i];
+
+            bool alreadyExists = false;
+            for (int j = 0; j < target.Count; j++)
+            {
+                if (compareFunc(target[j], sourceItem))
+                {
+                    alreadyExists = true;
+                    break;
+                }
+            }
+            if (alreadyExists) continue;
+            addItem(target, sourceItem);
+        }
     }
 }

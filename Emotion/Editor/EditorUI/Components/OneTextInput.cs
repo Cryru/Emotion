@@ -6,6 +6,7 @@ public class OneTextInput : UIBaseWindow
 {
     public string Text { get => _input.Text; set => _input.Text = value; }
     public Action<string>? OnSubmit { get => _input.OnSubmit; set => _input.OnSubmit = value; }
+    public UITextInput InnerInput { get => _input; }
     private UITextInput _input;
 
     public OneTextInput(string placeholder = "Type something", bool multiLine = true)
