@@ -22,13 +22,7 @@ public class GameDataListEditor : ListEditor<GameDataObject>
 
     protected override object? CreateNewItem()
     {
-        GameDataObject? newItem = EditorAdapter.CreateNew(_editor.GameDataType);
-        if (newItem == null) return null;
-
-        newItem.Id = EditorAdapter.EnsureNonDuplicatedId(newItem.Id, _editor.EmulatedEditList);
-        newItem.Index = _editor.EmulatedEditList.Count;
-
-        return newItem;
+        return EditorAdapter.CreateNew(_editor.GameDataType, _editor.EmulatedEditList);
     }
 
     public void UpdatePendingChangesForItems()

@@ -4,13 +4,11 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Emotion.Game.Systems.GameData;
 
-public class GameDataReference
+public struct GameDataReference<T> 
+    where T : GameDataObject
 {
     public string? Id;
-}
 
-public class GameDataReference<T> : GameDataReference where T : GameDataObject
-{
     public static implicit operator GameDataReference<T>(string id)
     {
         return new GameDataReference<T>() { Id = id };

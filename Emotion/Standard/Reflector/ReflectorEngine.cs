@@ -295,9 +295,12 @@ public static class ReflectorEngine
 
     public static IGenericReflectorTypeHandler[] GetDescendantsOf<T>(bool directOnly = false)
     {
-        Type[] types = Array.Empty<Type>();
+        return GetDescendantsOf(typeof(T), directOnly);
+    }
 
-        Type typ = typeof(T);
+    public static IGenericReflectorTypeHandler[] GetDescendantsOf(Type typ, bool directOnly = false)
+    {
+        Type[] types = Array.Empty<Type>();
         Dictionary<Type, Type[]> dict = directOnly ? _typeRelationsDirect : _typeRelations;
         if (dict.TryGetValue(typ, out Type[]? value))
             types = value;

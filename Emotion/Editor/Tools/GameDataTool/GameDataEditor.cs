@@ -51,8 +51,8 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
         // Now that the UI is setup, initialize editing functionality
 
         // Create a list of game data instances to be edited instead of the real deal.
-        GameDataObject[] gameDataOfType = GetObjectsOfType(GameDataType);
-        for (int i = 0; i < gameDataOfType.Length; i++)
+        IReadOnlyList<GameDataObject> gameDataOfType = GetObjectsOfType(GameDataType);
+        for (int i = 0; i < gameDataOfType.Count; i++)
         {
             GameDataObject dataObject = gameDataOfType[i];
             EmulatedEditList.Add(dataObject.CreateCopy());
@@ -62,7 +62,6 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
         // Attach to events concerning the list (fired by the ListEditor)
         // and hot reload "need" events in order to hide/show the hot reload section.
         EngineEditor.RegisterForObjectChanges(EmulatedEditList, OnListChanged, this);
-        EditorAdapter.OnHotReloadNeededChange += HotReloadNeededChange;
     }
 
     protected override GameDataListEditor GetLeftSideContent()
@@ -89,7 +88,6 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
     {
         base.OnClose();
         EngineEditor.UnregisterForObjectChanges(this);
-        EditorAdapter.OnHotReloadNeededChange -= HotReloadNeededChange;
         EngineEditor.UnregisterForObjectChanges(_propertyEditorListener);
     }
 
@@ -146,121 +144,6 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
             Enabled = true
         };
         topBar.AddChild(statistics);
-
-        {
-            UISolidOutline hotReloadContainer = new()
-            {
-                Visuals =
-                {
-                    BackgroundColor = Color.PrettyOrange,
-                    Visible = _hotReloadNeeded
-                },
-                Layout =
-                {
-                    AnchorAndParentAnchor = UIAnchor.TopRight,
-                    Padding = new UISpacing(1, 1, 1, 1)
-                }
-            };
-            topBar.AddChild(hotReloadContainer);
-            _hotReloadBox = hotReloadContainer;
-
-            UISolidColor hotReloadButtonHighlight = new()
-            {
-                Visuals =
-                {
-                    BackgroundColor = Color.White * 0.5f,
-                    Visible = false
-                },
-                OrderInParent = 2
-            };
-            hotReloadContainer.AddChild(hotReloadButtonHighlight);
-
-            SquareEditorButtonWithTexture hotReloadButton = new("Editor/HotReload.png")
-            {
-                Layout =
-                {
-                    Scale = new Vector2(0.75f),
-                    Padding = new UISpacing(4, 4, 4, 4),
-                },
-
-                NormalColor = new Color(31, 31, 31),
-                RolloverColor = new Color(31, 31, 31),
-
-                OnMouseEnterProxy = (_) => hotReloadButtonHighlight.Visible = true,
-                OnMouseLeaveProxy = (_) => hotReloadButtonHighlight.Visible = false,
-                OnRolloverSpawn = () =>
-                {
-                    // todo: editor rollover
-                    var rollover = new UIRollover()
-                    {
-                        Layout =
-                        {
-                            Anchor = UIAnchor.TopRight,
-                            ParentAnchor = UIAnchor.BottomRight,
-                            Margins = new UISpacing(5, 5, 0, 5),
-                        }
-                    };
-
-                    var color = new UIBaseWindow()
-                    {
-                        Visuals =
-                        {
-                            BackgroundColor = EditorColorPalette.BarColor * 0.75f,
-                        },
-                        Layout =
-                        {
-                            MaxSizeX = 400,
-                            Padding = new UISpacing(8, 5, 8, 5)
-                        }
-                    };
-                    rollover.AddChild(color);
-
-                    var text = new EditorLabel
-                    {
-                        Text = "Some game data objects might have an incorrect class, until you hot-reload or restart!"
-                    };
-                    color.AddChild(text);
-
-                    return rollover;
-                }
-            };
-            hotReloadContainer.AddChild(hotReloadButton);
-        }
-    }
-
-    #endregion
-
-    #region Hot Reload
-
-    private static bool _hotReloadNeeded;
-    private UIBaseWindow _hotReloadBox = null!;
-
-    private void HotReloadNeededChange(List<string> typesNeedReload)
-    {
-        bool wasNeeded = _hotReloadNeeded;
-
-        _hotReloadNeeded = typesNeedReload.IndexOf(EditorAdapter.GetGameDataTypeDefClassName(GameDataType)) != -1;
-        _hotReloadBox.Visible = _hotReloadNeeded;
-
-        // Replace data being edited.
-        if (wasNeeded && !_hotReloadNeeded)
-        {
-            GameDataObject[] gameDataOfType = GetObjectsOfType(GameDataType);
-            for (int i = 0; i < gameDataOfType.Length; i++)
-            {
-                GameDataObject dataObject = gameDataOfType[i];
-                GameDataObject newInstance = dataObject.CreateCopy();
-
-                GameDataObject currentItem = EmulatedEditList[i];
-                ReflectorEngine.CopyProperties(currentItem, newInstance);
-                EmulatedEditList[i] = newInstance;
-
-                if (_propertyEditor.ObjectBeingEdited == currentItem)
-                    SetEditItem(newInstance);
-            }
-
-            EngineEditor.ReportChange_NoInfo(EmulatedEditList, this);
-        }
     }
 
     #endregion
@@ -271,10 +154,7 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
 
     protected override void SaveFile()
     {
-        for (int i = 0; i < _deletedList.Count; i++)
-        {
-            EditorAdapter.EditorDeleteObject(GameDataType, _deletedList[i]);
-        }
+        EditorAdapter.DeleteData(GameDataType, _deletedList);
         _deletedList.Clear();
 
         EditorAdapter.SaveChanges(GameDataType, _modifiedList);

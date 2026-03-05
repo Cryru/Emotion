@@ -8,7 +8,7 @@ namespace Emotion.Core.Systems.Localization;
 
 public static class LocalizationEngine
 {
-    public static LocalizationOption[] GetLocalizationOptions()
+    public static IReadOnlyList<LocalizationOption> GetLocalizationOptions()
     {
         return GameDatabase.GetObjectsOfType<LocalizationOption>();
     }

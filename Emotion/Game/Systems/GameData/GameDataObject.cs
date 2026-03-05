@@ -12,7 +12,7 @@ namespace Emotion.Game.Systems.GameData;
 public abstract class GameDataObject : IComparable<GameDataObject>
 {
     [DontShowInEditor]
-    public string? LoadedFromModel;
+    public bool HasClass;
 
     [DontShowInEditor]
     public int Index;
