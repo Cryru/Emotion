@@ -324,10 +324,6 @@ public static class Engine
         UI = new UISystem();
         Multiplayer = new MultiplayerSystem();
 
-        // Load game data.
-        GameDatabase.Initialize();
-        LocalizationEngine.Initialize();
-
         // Debuggers
         EngineEditor.Initialize();
 
@@ -362,9 +358,6 @@ public static class Engine
         // Start running real time.
         _realTimeTracker.Start();
 
-        // Start the entry async entry point as a job, and start the loop.
-        Jobs.Add(entryPointAsyncRoutine());
-
         if (Configuration.LoopFactory == null)
         {
             Log.Info("Using default loop.", MessageSource.Engine);
@@ -372,7 +365,7 @@ public static class Engine
         }
 
         Log.Info("Starting loop...", MessageSource.Engine);
-        CoroutineManager.StartCoroutine(MainLoopRoutine());
+        CoroutineManager.StartCoroutine(MainLoopRoutine(entryPointAsyncRoutine));
         Configuration.LoopFactory(MainLoopTick, RunFrame);
     }
 
@@ -460,8 +453,27 @@ public static class Engine
         CoroutineManager.Update(deltaTime);
     }
 
-    private static IEnumerator MainLoopRoutine()
+    private static bool _initReady = false;
+
+    private static IEnumerator MainLoopRoutine(Func<IEnumerator> entryPointAsyncRoutine)
     {
+        // Routine initialization
+        {
+            IRoutineWaiter rendererInitRoutine = Engine.Jobs.Add(Engine.Renderer.InitializeRoutineAsync());
+
+            // Load game data.
+            yield return GameDatabase.InitializeRoutine();
+            LocalizationEngine.Initialize();
+
+            // Wait for the renderer to load.
+            yield return rendererInitRoutine;
+
+            // Start the entry async entry point as a job, and start the loop.
+            Jobs.Add(entryPointAsyncRoutine());
+        }
+
+        _initReady = true;
+
         int desiredStepMs = (int)Math.Floor(1000f / Configuration.DesiredTicksPerSecond);
         desiredStepMs = Math.Max(1, desiredStepMs);
         DeltaTime = desiredStepMs;
@@ -522,7 +534,7 @@ public static class Engine
 
     private static void RunFrame()
     {
-        if (!Renderer.ReadyToRender)
+        if (!_initReady)
         {
             GLThread.Run();
             Host.Context.SwapBuffers();

@@ -295,9 +295,6 @@ public sealed partial class Renderer
         // Initialize misc graphics objects.
         Texture.InitializeEmptyTexture();
 
-        // Load base assets.
-        IRoutineWaiter loadingRoutine = Engine.Jobs.Add(InitializeSystemAssetsRoutineAsync());
-
         // Create default render states (depends on shaders)
         CurrentState = new RenderState();
 
@@ -318,22 +315,13 @@ public sealed partial class Renderer
         // Apply display settings (this is the initial application) and attach the camera updating coroutine.
         ApplySettings();
         UpdateCamera();
-
-        _systemAssetsLoading = loadingRoutine;
     }
 
     #endregion
 
     #region System Loading
 
-    /// <summary>
-    /// Whether the renderer is fully initialized.
-    /// </summary>
-    public bool ReadyToRender { get => _systemAssetsLoading != null && _systemAssetsLoading.Finished; }
-
-    private IRoutineWaiter? _systemAssetsLoading;
-
-    private IEnumerator InitializeSystemAssetsRoutineAsync()
+    internal IEnumerator InitializeRoutineAsync()
     {
         yield return ShaderFactory.LoadDefaultShadersRoutineAsync();
     }
