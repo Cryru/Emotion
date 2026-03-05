@@ -109,28 +109,28 @@ public abstract class LoggingProvider : IDisposable
 
     public void ONE_Info(string source, [InterpolatedStringHandlerArgument("", "source")] ref InfoLogHandler handler)
     {
-        // handler manages the logging via Dispose
+        handler.Dispose();
     }
 
     public void ONE_Warning(string source, [InterpolatedStringHandlerArgument("", "source")] ref WarningLogHandler handler)
     {
-        // handler manages the logging via Dispose
+        handler.Dispose();
     }
 
     [Conditional("DEBUG")]
     public void ONE_Trace(string source, [InterpolatedStringHandlerArgument("", "source")] ref TraceLogHandler handler)
     {
-        // handler manages the logging via Dispose
+        handler.Dispose();
     }
 
     public void ONE_Error(string source, [InterpolatedStringHandlerArgument("", "source")] ref ErrorLogHandler handler)
     {
-        // handler manages the logging via Dispose
+        handler.Dispose();
     }
 
     public void Log(MessageType type, string source, [InterpolatedStringHandlerArgument("", "type", "source")] ref LogInterpolatedStringHandler handler)
     {
-        // handler manages the logging via Dispose
+        handler.Dispose();
     }
 
     public void ONE_Info(string source, in ReadOnlySpan<char> msg)
