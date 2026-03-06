@@ -52,9 +52,13 @@ public abstract class ComplexTypeHandlerMemberBase
 
     public abstract bool GetValueFromComplexObject(object obj, out object? readValue);
 
+    [Obsolete("Use the ParseIntoT overload")]
     public abstract bool SetValueInComplexObject(object obj, object? val);
 
+    public abstract bool SetValueInComplexObject<ParseIntoT>(ref ParseIntoT obj, object? val);
+
     // Needed to avoid struct boxing
+    [Obsolete("Use the ParseIntoT overload of SetValueInComplexObject")]
     public abstract object? SetValueInComplexObjectAndReturnParent(object obj, object? val);
 
     #endregion

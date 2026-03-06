@@ -247,11 +247,11 @@ public abstract class Asset : IRoutineWaiter
         where T : Asset, IAssetContainingObject<TObject>, new()
     {
         T? asset = null;
-        if (assetOrObjectReference.Type == AssetOrObjectReferenceType.AssetName)
+        if (assetOrObjectReference.Type == AssetReferenceType.AssetName)
         {
             asset = Engine.AssetLoader.Get<T>(assetOrObjectReference.AssetName, this, LoadingInline, true);
         }
-        else if (assetOrObjectReference.Type == AssetOrObjectReferenceType.Asset)
+        else if (assetOrObjectReference.Type == AssetReferenceType.Asset)
         {
             asset = assetOrObjectReference.Asset;
             if (asset != null)

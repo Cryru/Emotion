@@ -50,10 +50,10 @@ public class MeshMaterial
     public void EnsureAssetsLoaded()
     {
         // todo: use AssetOwner
-        if (DiffuseTextureName.Type == AssetOrObjectReferenceType.AssetName)
+        if (DiffuseTextureName.Type == AssetReferenceType.AssetName)
             Engine.AssetLoader.Get<TextureAsset>(DiffuseTextureName.AssetName, this);
 
-        if (State.Shader.Type == AssetOrObjectReferenceType.AssetName)
+        if (State.Shader.Type == AssetReferenceType.AssetName)
             Engine.AssetLoader.Get<ShaderAsset>(State.Shader.AssetName, this);
     }
 }

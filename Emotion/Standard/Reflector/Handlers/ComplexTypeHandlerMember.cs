@@ -89,6 +89,19 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMemberBa
         return default;
     }
 
+    public override bool SetValueInComplexObject<ParseIntoT>(ref ParseIntoT obj, object? val)
+    {
+        if (!typeof(ParseIntoT).IsAssignableTo(typeof(ParentT))) return false;
+
+        ref ParentT parentT = ref Unsafe.As<ParseIntoT, ParentT>(ref obj);
+        if (val is MyT valType)
+        {
+            _setValue(ref parentT, valType);
+            return true;
+        }
+        return false;
+    }
+
     #endregion
 
     #region Serialization Read

@@ -61,14 +61,14 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
     private bool TryUseRightAway(ref AssetObjectReference<TAsset, TObject> handle)
     {
         // Invalid
-        if (handle.Type == AssetOrObjectReferenceType.None) return true;
+        if (handle.Type == AssetReferenceType.None) return true;
 
         // If asset - try to resolve
-        if (handle.Type == AssetOrObjectReferenceType.AssetName)
+        if (handle.Type == AssetReferenceType.AssetName)
             handle = Engine.AssetLoader.Get<TAsset>(handle.AssetName, this);
 
         // If asset - check if already loaded
-        if (handle.Type == AssetOrObjectReferenceType.Asset)
+        if (handle.Type == AssetReferenceType.Asset)
         {
             AssertNotNull(handle.Asset);
             if (handle.Asset.Loaded)
@@ -86,7 +86,7 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
         }
 
         // If object - we're good to go
-        if (handle.Type == AssetOrObjectReferenceType.Object)
+        if (handle.Type == AssetReferenceType.Object)
         {
             if (handle.AssetObject == null)
                 handle = AssetObjectReference<TAsset, TObject>.Invalid;
@@ -101,9 +101,9 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
 
     private IEnumerator WaitForNewToLoadRoutine(AssetObjectReference<TAsset, TObject> handle)
     {
-        Assert(handle.Type != AssetOrObjectReferenceType.AssetName); // Should have been handled by "RightAway" function
+        Assert(handle.Type != AssetReferenceType.AssetName); // Should have been handled by "RightAway" function
 
-        if (handle.Type == AssetOrObjectReferenceType.Asset)
+        if (handle.Type == AssetReferenceType.Asset)
         {
             TAsset? asset = handle.Asset;
             AssertNotNull(asset);
@@ -136,7 +136,7 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
     {
         if (!_currentRef.IsValid()) return default;
 
-        Assert(_currentRef.Type == AssetOrObjectReferenceType.Object);
+        Assert(_currentRef.Type == AssetReferenceType.Object);
         return _currentRef.AssetObject;
     }
 
@@ -206,14 +206,14 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
     private static void AddOwnership(AssetObjectReference<TAsset, TObject> handle, object owner)
     {
         if (!handle.IsValid()) return;
-        Assert(handle.Type == AssetOrObjectReferenceType.Object); // Must be loaded!
+        Assert(handle.Type == AssetReferenceType.Object); // Must be loaded!
         Engine.AssetLoader.AddReferenceToAsset(handle.Asset, owner);
     }
 
     private static void RemoveOwnership<T>(AssetObjectReference<TAsset, TObject> handle, T obj) where T : notnull
     {
         if (!handle.IsValid()) return;
-        Assert(handle.Type == AssetOrObjectReferenceType.Object); // Must be loaded!
+        Assert(handle.Type == AssetReferenceType.Object); // Must be loaded!
         Engine.AssetLoader.RemoveReferenceFromAsset(handle.Asset, obj);
     }
 

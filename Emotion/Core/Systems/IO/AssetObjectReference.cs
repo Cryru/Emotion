@@ -1,6 +1,5 @@
 ﻿#nullable enable
 
-using Emotion.Core.Utility.Coroutines;
 using Emotion.Standard.Reflector.Handlers;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
@@ -8,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace Emotion.Core.Systems.IO;
 
-public enum AssetOrObjectReferenceType
+public enum AssetReferenceType
 {
     None = 0,
     Asset,
@@ -21,12 +20,12 @@ public struct AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta_Extra
 {
     public static AssetObjectReference<TAsset, TObject> Invalid { get; } = new();
 
-    public AssetOrObjectReferenceType Type { get => _type; }
+    public AssetReferenceType Type { get => _type; }
     public string? AssetName { get => _assetName; }
     public TAsset? Asset { get => _asset; }
     public TObject? AssetObject { get => _assetObject; }
 
-    private AssetOrObjectReferenceType _type;
+    private AssetReferenceType _type;
     private TAsset? _asset;
     private string? _assetName;
     private TObject? _assetObject;
@@ -34,31 +33,31 @@ public struct AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta_Extra
     // Implicit conversions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator AssetObjectReference<TAsset, TObject>(TAsset asset)
-        => new AssetObjectReference<TAsset, TObject> { _type = AssetOrObjectReferenceType.Asset, _asset = asset };
+        => new AssetObjectReference<TAsset, TObject> { _type = AssetReferenceType.Asset, _asset = asset };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator AssetObjectReference<TAsset, TObject>(string assetName)
-        => new AssetObjectReference<TAsset, TObject> { _type = AssetOrObjectReferenceType.AssetName, _assetName = assetName };
+        => new AssetObjectReference<TAsset, TObject> { _type = AssetReferenceType.AssetName, _assetName = assetName };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator AssetObjectReference<TAsset, TObject>(TObject obj)
-        => new AssetObjectReference<TAsset, TObject> { _type = AssetOrObjectReferenceType.Object, _assetObject = obj };
+        => new AssetObjectReference<TAsset, TObject> { _type = AssetReferenceType.Object, _assetObject = obj };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsValid()
     {
-        return _type != AssetOrObjectReferenceType.None;
+        return _type != AssetReferenceType.None;
     }
 
     public TObject? GetObjectLoadinline()
     {
-        if (_type == AssetOrObjectReferenceType.AssetName)
+        if (_type == AssetReferenceType.AssetName)
         {
             TAsset asset = Engine.AssetLoader.Get<TAsset>(_assetName, null, true);
             if (asset.Loaded)
                 return asset.GetObject();
         }
-        else if (_type == AssetOrObjectReferenceType.Asset)
+        else if (_type == AssetReferenceType.Asset)
         {
             AssertNotNull(_asset);
             if (_asset.Loaded)
@@ -71,7 +70,7 @@ public struct AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta_Extra
 
     public TAsset? GetAsset()
     {
-        return _type == AssetOrObjectReferenceType.Asset ? _asset : null;
+        return _type == AssetReferenceType.Asset ? _asset : null;
     }
 
     #region Equality
@@ -122,11 +121,11 @@ public struct AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta_Extra
     {
         switch (_type)
         {
-            case AssetOrObjectReferenceType.AssetName when _assetName != null:
+            case AssetReferenceType.AssetName when _assetName != null:
                 return _assetName.GetHashCode();
-            case AssetOrObjectReferenceType.Asset when _asset != null:
+            case AssetReferenceType.Asset when _asset != null:
                 return _asset.GetHashCode();
-            case AssetOrObjectReferenceType.Object when _assetObject != null:
+            case AssetReferenceType.Object when _assetObject != null:
                 return _assetObject.GetHashCode();
 
         }
@@ -153,7 +152,7 @@ public struct AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta_Extra
                 static (ref AssetObjectReference<TAsset, TObject> p, string? v) =>
                 {
                     p._assetName = v;
-                    p._type = AssetOrObjectReferenceType.AssetName;
+                    p._type = AssetReferenceType.AssetName;
                 },
                 static (p) => p._assetName
             )

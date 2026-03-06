@@ -99,8 +99,11 @@ namespace Emotion.SourceGeneration
 
         private static readonly HashSet<string> _reflectorMethods = new HashSet<string>()
         {
-            //"GetDescendantsOf",
-            "GetTypeInfo"
+            "GetTypeName",
+            "GetDescendantsOf",
+            "GetComplexTypeHandler",
+            "GetTypeHandler",
+            "CopyProperties"
         };
 
         private static readonly HashSet<string> _excludeTypes = new HashSet<string>()

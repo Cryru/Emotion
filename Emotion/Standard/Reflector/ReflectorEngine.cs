@@ -141,14 +141,6 @@ public static class ReflectorEngine
         return null;
     }
 
-    public static ComplexTypeHandler<T>? GetTypeInfo<T>()
-    {
-        Type typ = typeof(T);
-        if (_typeHandlers.TryGetValue(typ, out IGenericReflectorTypeHandler? handler))
-            return (ComplexTypeHandler<T>)handler;
-        return null;
-    }
-
     public static IGenericReflectorComplexTypeHandler? GetComplexTypeHandler(Type typ)
     {
         if (_typeHandlers.TryGetValue(typ, out IGenericReflectorTypeHandler? handler))
@@ -192,13 +184,7 @@ public static class ReflectorEngine
         T? newObj = (T?)handler.CreateNew();
         if (newObj == null) return newObj;
 
-        IEnumerable<ComplexTypeHandlerMemberBase> members = handler.GetMembersDeep();
-        foreach (ComplexTypeHandlerMemberBase member in members)
-        {
-            if (member.GetValueFromComplexObject(obj, out object? val))
-                member.SetValueInComplexObject(newObj, CreateCopyOf(val));
-        }
-
+        CopyProperties(obj, newObj);
         return newObj;
     }
 
@@ -215,7 +201,7 @@ public static class ReflectorEngine
         foreach (ComplexTypeHandlerMemberBase member in members)
         {
             if (member.GetValueFromComplexObject(from, out object? val))
-                member.SetValueInComplexObject(to, val);
+                member.SetValueInComplexObject<T>(ref to, val);
         }
         return true;
     }
@@ -331,6 +317,21 @@ public static class ReflectorEngine
             baseTyp = baseTyp.BaseType;
         }
         return false;
+    }
+
+    public static Type? WalkUpUntilDirectDescendant(Type typToWalk, Type directDescof)
+    {
+        Type prev = typToWalk;
+        Type? baseTyp = typToWalk.BaseType;
+        while (baseTyp != null)
+        {
+            if (baseTyp == directDescof) return prev;
+
+            prev = baseTyp;
+            baseTyp = baseTyp.BaseType;
+        }
+
+        return null;
     }
 
     #endregion

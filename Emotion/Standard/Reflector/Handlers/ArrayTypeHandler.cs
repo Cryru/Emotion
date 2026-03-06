@@ -73,7 +73,7 @@ public class ArrayTypeHandler<T, TItem> : ReflectorTypeHandlerBase<T>, IGenericE
                 // If we are an object array, assign the id.
                 if (item != null && objectArrayIdMember != null)
                 {
-                    objectArrayIdMember.SetValueInComplexObject(item, objectArrayCurrentItemId);
+                    objectArrayIdMember.SetValueInComplexObjectAndReturnParent(item, objectArrayCurrentItemId);
                     objectArrayCurrentItemId = null;
                 }
 

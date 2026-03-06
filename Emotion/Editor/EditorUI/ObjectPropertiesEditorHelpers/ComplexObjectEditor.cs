@@ -117,7 +117,7 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
                     }
                     else
                     {
-                        member.SetValueInComplexObject(_value, newValue);
+                        member.SetValueInComplexObjectAndReturnParent(_value, newValue);
                         if (_objEdit != null)
                             _objEdit.NotifyPropertyChangedThroughStack();
                         else
