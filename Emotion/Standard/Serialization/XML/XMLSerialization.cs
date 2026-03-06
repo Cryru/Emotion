@@ -6,6 +6,7 @@ using Emotion.Standard.DataStructures.OptimizedStringReadWrite;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Xml.XPath;
 
@@ -26,18 +27,18 @@ public static class XMLSerialization
 {
     public static string XMLHeader = "<?xml version=\"1.0\"?>";
 
-    public static T? From<T>(string xml)
+    public static T? From<T>([StringSyntax(StringSyntaxAttribute.Xml)] string xml)
     {
         return From<T>(xml.AsSpan());
     }
 
-    public static T? From<T>(ReadOnlySpan<char> xmlDataUtf16)
+    public static T? From<T>([StringSyntax(StringSyntaxAttribute.Xml)] ReadOnlySpan<char> xmlDataUtf16)
     {
         var reader = new ValueStringReader(xmlDataUtf16);
         return From<T>(ref reader);
     }
 
-    public static T? From<T>(ReadOnlySpan<byte> xmlDataUtf8)
+    public static T? From<T>([StringSyntax(StringSyntaxAttribute.Xml)] ReadOnlySpan<byte> xmlDataUtf8)
     {
         var reader = new ValueStringReader(xmlDataUtf8);
         return From<T>(ref reader);

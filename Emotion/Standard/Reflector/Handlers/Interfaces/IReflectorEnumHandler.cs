@@ -12,9 +12,9 @@ public interface IReflectorEnumHandler
 
     public string GetValueName(object value);
 
-    public bool TryParse(string str, out object result);
+    public bool TryParse(string str, out object? result);
 
-    public bool TryParse<TUnderlyingNumeric>(TUnderlyingNumeric numeric, out object result) where TUnderlyingNumeric : INumber<TUnderlyingNumeric>;
+    public bool TryParse<TUnderlyingNumeric>(TUnderlyingNumeric numeric, out object? result) where TUnderlyingNumeric : INumber<TUnderlyingNumeric>;
 }
 
 public interface IReflectorEnumHandler<T> : IReflectorEnumHandler

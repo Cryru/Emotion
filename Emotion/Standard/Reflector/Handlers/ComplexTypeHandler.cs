@@ -169,11 +169,18 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
             if (charsWritten == 0) break;
 
             Span<char> nextTag = readMemory.Slice(0, charsWritten);
+            if (nextTag[^1] == '/') // Self closing tag
+            {
+                continue;
+            }
+            
             ComplexTypeHandlerMemberBase? member = GetMemberByName(nextTag);
             if (member == null)
             {
-                // todo: Try skip :/
-                break;
+                // Try skip :/
+                // todo: skip complex
+                reader.MoveCursorToNextOccuranceOfChar('>');
+                continue;
             }
 
             if (!member.ParseFromXML(ref reader, ref obj)) break; // Error in parsing?

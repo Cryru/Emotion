@@ -4,6 +4,7 @@ using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 using Emotion.Standard.DataStructures.OptimizedStringReadWrite;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
+using Emotion.Standard.Serialization.XML;
 using System.Text.Json;
 
 namespace Emotion.Standard.Reflector.Handlers;
@@ -19,6 +20,7 @@ public class EnumTypeHandler<T, TNum> : ReflectorTypeHandlerBase<T>, IReflectorE
     public Type UnderlyingType => typeof(TNum);
 
     private Dictionary<string, (T, TNum)> _items;
+    private Dictionary<int, (T, TNum)> _itemsHashed;
     private Dictionary<TNum, T> _itemsNumeric;
     private Dictionary<T, string> _itemToString;
     private string[] _names;
@@ -30,6 +32,12 @@ public class EnumTypeHandler<T, TNum> : ReflectorTypeHandlerBase<T>, IReflectorE
     {
         _fullEnumName = $"global::{(typeof(T).FullName ?? "").Replace("+", ".")}";
         _items = items;
+
+        _itemsHashed = new Dictionary<int, (T, TNum)>(_items.Count);
+        foreach (KeyValuePair<string, (T, TNum)> item in _items)
+        {
+            _itemsHashed.Add(item.Key.GetStableHashCode(), item.Value);
+        }
 
         int curIdx = 0;
         _names = new string[_items.Count];
@@ -79,6 +87,18 @@ public class EnumTypeHandler<T, TNum> : ReflectorTypeHandlerBase<T>, IReflectorE
         return default;
     }
 
+    public unsafe override T? ParseFromXML(ref ValueStringReader reader)
+    {
+        Span<char> readMemory = stackalloc char[128];
+        int chars = reader.ReadToNextOccuranceofChar('<', readMemory);
+        if (chars == 0) return default;
+
+        if (TryParse(readMemory.Slice(0, chars), out T? result))
+            return result;
+
+        return default;
+    }
+
     #endregion
 
     #region Serialization Write
@@ -86,6 +106,17 @@ public class EnumTypeHandler<T, TNum> : ReflectorTypeHandlerBase<T>, IReflectorE
     public override void WriteAsCode(T value, ref ValueStringWriter writer)
     {
         writer.WriteString($"{_fullEnumName}.{GetValueName(value)}");
+    }
+
+    public override void WriteAsXML(T value, ref ValueStringWriter writer, bool addTypeTags, XMLConfig config)
+    {
+        if (addTypeTags)
+            writer.WriteXMLTag(Type.Name, ValueStringWriter.XMLTagType.Normal);
+
+        writer.WriteString(GetValueName(value));
+
+        if (addTypeTags)
+            writer.WriteXMLTag(Type.Name, ValueStringWriter.XMLTagType.Closing);
     }
 
     #endregion
@@ -119,11 +150,11 @@ public class EnumTypeHandler<T, TNum> : ReflectorTypeHandlerBase<T>, IReflectorE
         return string.Empty;
     }
 
-    public bool TryParse(string str, out T? result)
+    public bool TryParse(ReadOnlySpan<char> str, out T? result)
     {
         result = default;
 
-        if (_items.TryGetValue(str, out (T, TNum) val))
+        if (_itemsHashed.TryGetValue(str.GetStableHashCode(), out (T, TNum) val))
         {
             result = val.Item1;
             return true;
@@ -141,7 +172,7 @@ public class EnumTypeHandler<T, TNum> : ReflectorTypeHandlerBase<T>, IReflectorE
     {
         result = default;
 
-        if (_items.TryGetValue(str, out (T, TNum) val))
+        if (_itemsHashed.TryGetValue(str.GetStableHashCode(), out (T, TNum) val))
         {
             result = val.Item1;
             return true;

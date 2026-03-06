@@ -4,6 +4,9 @@
 
 using Emotion.Core.Systems.Logging;
 using Emotion.Standard.Parsers.XML;
+using Emotion.Standard.Serialization.XML;
+using System.Runtime.InteropServices;
+using System.Text;
 
 #endregion
 
@@ -51,14 +54,7 @@ public class XMLAsset<T> : XMLAssetMarkerClass, IAssetContainingObject<T>
 
     protected override IEnumerator Internal_LoadAssetRoutine(ReadOnlyMemory<byte> data)
     {
-        try
-        {
-            Content = XMLFormat.From<T>(data);
-        }
-        catch (Exception ex)
-        {
-            Engine.Log.Error(new Exception($"Couldn't parse XML asset of type {GetType()}!", ex));
-        }
+        CreateInternal(data);
         yield break;
     }
 
@@ -67,7 +63,17 @@ public class XMLAsset<T> : XMLAssetMarkerClass, IAssetContainingObject<T>
         // we need to support the legacy because of RenderComposer loading default shaders.
         try
         {
-            Content = XMLFormat.From<T>(data);
+            ReadOnlySpan<byte> sp = data.Span;
+            Encoding encoding = Helpers.GuessStringEncoding(sp);
+            if (encoding == System.Text.Encoding.Default)
+            {
+                ReadOnlySpan<char> utf16 = MemoryMarshal.Cast<byte, char>(data.Span);
+                Content = XMLSerialization.From<T>(utf16);
+            }
+            else if (encoding == System.Text.Encoding.UTF8)
+            {
+                Content = XMLSerialization.From<T>(sp);
+            }
         }
         catch (Exception ex)
         {
@@ -94,7 +100,7 @@ public class XMLAsset<T> : XMLAssetMarkerClass, IAssetContainingObject<T>
     /// <inheritdoc />
     public override bool SaveAs(string name, bool backup = true)
     {
-        string? data = XMLFormat.To(Content);
+        string? data = XMLSerialization.To(Content);
         if (data == null)
         {
             Engine.Log.Error($"Couldn't serialize content of type {typeof(T)}.", MessageSource.Other);
