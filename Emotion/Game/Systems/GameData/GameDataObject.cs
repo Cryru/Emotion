@@ -12,9 +12,6 @@ namespace Emotion.Game.Systems.GameData;
 public abstract class GameDataObject : IComparable<GameDataObject>
 {
     [DontShowInEditor]
-    public bool HasClass;
-
-    [DontShowInEditor]
     public int Index;
 
     public string Id = "Untitled";

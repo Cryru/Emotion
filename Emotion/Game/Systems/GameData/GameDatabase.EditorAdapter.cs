@@ -5,6 +5,7 @@
 using Emotion.Core.Systems.IO;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
+using Emotion.Standard.Serialization.XML;
 using System.IO;
 using GameDataObjectAsset = Emotion.Core.Systems.IO.XMLAsset<Emotion.Game.Systems.GameData.GameDataObject>;
 
@@ -51,6 +52,9 @@ public static partial class GameDatabase
 
         public static void SaveChanges(Type type, List<GameDataObject> objs)
         {
+            _database.TryGetValue(type, out GameDataTable? typeTable);
+            AssertNotNull(typeTable);
+
             string assetFolder = $"{ASSETS_DATA_FOLDER}/{type.Name}";
             string? codeFolder = GetCodeFolder(type);
             foreach (GameDataObject obj in objs)
@@ -59,6 +63,12 @@ public static partial class GameDatabase
                 ass.SaveAs($"{assetFolder}/{obj.Id}.xml", false);
 
                 EnsureObjClassFile(codeFolder, type, obj);
+
+                string xml = XMLSerialization.To(obj);
+                GameDataObject? backToObject = XMLSerialization.From<GameDataObject>(xml);
+                AssertNotNull(backToObject);
+                if (backToObject != null && typeTable != null)
+                    typeTable.ReplaceObject(backToObject);
             }
         }
 

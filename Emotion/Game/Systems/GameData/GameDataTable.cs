@@ -44,7 +44,7 @@ public static partial class GameDatabase
                     _objects.Add(content);
             }
 
-            _objects.Sort(static (x, y) => x.Index - y.Index);
+            _objects.Sort();
             RecreateIdMap();
 
             _loadingObjects = null;

@@ -125,8 +125,11 @@ public static partial class GameDatabase
     public static T? GetObject<T>(string? name)
         where T : GameDataObject
     {
-        Type typ = typeof(T);
-        return (T?)GetObject(typ, name);
+        Type? dataType = ReflectorEngine.WalkUpUntilDirectDescendant(typeof(T), typeof(GameDataObject));
+        AssertNotNull(dataType);
+        if (dataType == null) return null;
+
+        return (T?)GetObject(dataType, name);
     }
 
     #endregion
