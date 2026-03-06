@@ -28,10 +28,10 @@ public unsafe class RenderStreamBatch
     /// </summary>
     public Type CurrentVertexType { get; protected set; } = typeof(VertexData);
 
-    private Func<GLRenderObjects>? CurrentVertexTypeCreateObjectMethod;
-
-    // Performance cache for GetStreamMemory
-    private uint _currentVertexTypeByteSize = (uint) VertexData.SizeInBytes;
+    /// <summary>
+    /// The vertex format current being streamed.
+    /// </summary>
+    public VertexDataFormat CurrentVertexFormat { get; protected set; } = VertexData.Format;
 
     /// <summary>
     /// Whether anything is mapped to the stream.
@@ -98,8 +98,8 @@ public unsafe class RenderStreamBatch
         }
     }
 
-    protected Dictionary<Type, Stack<GLRenderObjects>> _renderObjects = new();
-    protected Dictionary<Type, Stack<GLRenderObjects>> _renderObjectsUsed = new();
+    protected Dictionary<VertexDataFormat, Stack<GLRenderObjects>> _renderObjects = new();
+    protected Dictionary<VertexDataFormat, Stack<GLRenderObjects>> _renderObjectsUsed = new();
 
     #endregion
 
@@ -123,7 +123,7 @@ public unsafe class RenderStreamBatch
         // Godspeed.
         for (var i = 0; i < 16; i++)
         {
-            CreateRenderObject<VertexData>();
+            CreateRenderObject(VertexData.Format);
         }
 
         for (var i = 0; i < _batchableLengths.Length; i++)
@@ -145,11 +145,13 @@ public unsafe class RenderStreamBatch
         return GetStreamMemory<VertexData>(structCount, indexCount, batchMode, texture);
     }
 
-    public StreamData<T> GetStreamMemory<T>(uint structCount, uint indexCount, BatchMode batchMode, Texture? texture = null) where T : struct
+    public StreamData<T> GetStreamMemory<T>(uint structCount, uint indexCount, BatchMode batchMode, Texture? texture = null)
+        where T : struct, IVertexDataFormatStruct
     {
+        VertexDataFormat format = T.Format;
+
         Type type = typeof(T);
-        uint vertexTypeByteSize = _currentVertexTypeByteSize;
-        if (CurrentVertexType != type) vertexTypeByteSize = (uint) Marshal.SizeOf<T>();
+        uint vertexTypeByteSize = (uint) format.ElementSize;
 
         uint vBytesNeeded = structCount * vertexTypeByteSize;
         uint iBytesNeeded = indexCount * _indexByteSize;
@@ -157,13 +159,12 @@ public unsafe class RenderStreamBatch
         // This request can never be serviced, as it itself is larger that an empty buffer.
         if (vBytesNeeded > _backingBufferSize || iBytesNeeded > _backingIndexBufferSize) return default;
 
-        if (CurrentVertexType != type)
+        if (CurrentVertexFormat != format)
         {
             if (AnythingMapped) FlushRender();
-            EnsureRenderObjectsOfType<T>();
-            _currentVertexTypeByteSize = vertexTypeByteSize;
+            EnsureRenderObjectsOfType(format);
             CurrentVertexType = type;
-            CurrentVertexTypeCreateObjectMethod = CreateRenderObject<T>;
+            CurrentVertexFormat = format;
         }
 
         // Check if the request can be served, if not - flush the buffers.
@@ -371,7 +372,7 @@ public unsafe class RenderStreamBatch
         _smoothAtlas?.Update(c);
 
         // Funnel used objects back into the usable pool.
-        foreach (KeyValuePair<Type, Stack<GLRenderObjects>> usedStackPair in _renderObjectsUsed)
+        foreach (KeyValuePair<VertexDataFormat, Stack<GLRenderObjects>> usedStackPair in _renderObjectsUsed)
         {
             Stack<GLRenderObjects> usableStack = _renderObjects[usedStackPair.Key];
             Stack<GLRenderObjects> usedStack = usedStackPair.Value;
@@ -381,32 +382,31 @@ public unsafe class RenderStreamBatch
 
     #region GL Render Objects
 
-    protected GLRenderObjects CreateRenderObject<T>() where T : struct
+    protected GLRenderObjects CreateRenderObject(VertexDataFormat format)
     {
         var vbo = new VertexBuffer(0, BufferUsage.StreamDraw);
         var ibo = new IndexBuffer(0, BufferUsage.StreamDraw);
-        var vao = new VertexArrayObject<T>(vbo, ibo);
+        var vao = new VertexArrayObjectFromFormat(format, vbo, ibo);
 
         var objectsPair = new GLRenderObjects(vbo, ibo, vao);
 
-        Type vertexType = typeof(T);
-        if (!_renderObjects.TryGetValue(vertexType, out Stack<GLRenderObjects>? renderObjsOfType))
+        if (!_renderObjects.TryGetValue(format, out Stack<GLRenderObjects>? renderObjsOfType))
         {
             renderObjsOfType = new Stack<GLRenderObjects>();
-            _renderObjects.Add(vertexType, renderObjsOfType);
+            _renderObjects.Add(format, renderObjsOfType);
 
             var usedStack = new Stack<GLRenderObjects>();
-            _renderObjectsUsed.Add(vertexType, usedStack);
+            _renderObjectsUsed.Add(format, usedStack);
         }
 
         renderObjsOfType.Push(objectsPair);
         return objectsPair;
     }
 
-    protected void EnsureRenderObjectsOfType<T>() where T : struct
+    protected void EnsureRenderObjectsOfType(VertexDataFormat format)
     {
-        var type = typeof(T);
-        if (!_renderObjects.ContainsKey(type)) CreateRenderObject<T>();
+        if (!_renderObjects.ContainsKey(format))
+            CreateRenderObject(format);
     }
 
     // According to the Khronos OpenGL reference, buffers cannot be uploaded to if any rendering
@@ -418,25 +418,22 @@ public unsafe class RenderStreamBatch
     // and fencing is a lot slower than just allocating a bunch.
     protected GLRenderObjects? GetFreeRenderObjectOfCurrentVertexType()
     {
-        Type vertexType = CurrentVertexType;
-        if (!_renderObjects.TryGetValue(vertexType, out Stack<GLRenderObjects>? renderObjsOfType))
+        VertexDataFormat vertexFormat = CurrentVertexFormat;
+        if (!_renderObjects.TryGetValue(vertexFormat, out Stack<GLRenderObjects>? renderObjsOfType))
         {
-            Assert(false, $"No render object of vertex type {vertexType.Name}");
+            Assert(false, $"No render object of vertex type {vertexFormat}");
             return null;
         }
 
         if (renderObjsOfType.Count == 0)
         {
-            if (CurrentVertexTypeCreateObjectMethod == null)
-                CreateRenderObject<VertexData>();
-            else
-                CurrentVertexTypeCreateObjectMethod();
+            CreateRenderObject(vertexFormat);
         }
 
         if (renderObjsOfType.Count > 0)
         {
             GLRenderObjects obj = renderObjsOfType.Pop();
-            Stack<GLRenderObjects> usedStack = _renderObjectsUsed[vertexType];
+            Stack<GLRenderObjects> usedStack = _renderObjectsUsed[vertexFormat];
             usedStack.Push(obj);
             return obj;
         }
@@ -452,7 +449,8 @@ public unsafe class RenderStreamBatch
     /// <summary>
     /// Get stream memory and automatically map indices depending on the batch mode.
     /// </summary>
-    public Span<T> GetStreamMemory<T>(uint structCount, BatchMode batchMode, Texture? texture = null) where T : struct
+    public Span<T> GetStreamMemory<T>(uint structCount, BatchMode batchMode, Texture? texture = null)
+        where T : struct, IVertexDataFormatStruct
     {
         uint indexCount = 0;
         switch (batchMode)
@@ -521,7 +519,8 @@ public unsafe class RenderStreamBatch
         return GetStreamMemory<VertexData>(structCount, batchMode, texturePtr);
     }
 
-    public Span<T> GetStreamMemory<T>(uint structCount, BatchMode batchMode, uint texturePtr) where T : struct
+    public Span<T> GetStreamMemory<T>(uint structCount, BatchMode batchMode, uint texturePtr)
+        where T : struct, IVertexDataFormatStruct
     {
         uint indexCount = 0;
         switch (batchMode)
@@ -560,11 +559,13 @@ public unsafe class RenderStreamBatch
         return GetStreamMemory<VertexData>(structCount, indexCount, batchMode, texturePointer);
     }
 
-    public StreamData<T> GetStreamMemory<T>(uint structCount, uint indexCount, BatchMode batchMode, uint texturePointer) where T : struct
+    public StreamData<T> GetStreamMemory<T>(uint structCount, uint indexCount, BatchMode batchMode, uint texturePointer)
+        where T : struct, IVertexDataFormatStruct
     {
+        VertexDataFormat format = T.Format;
+
         Type type = typeof(T);
-        uint vertexTypeByteSize = _currentVertexTypeByteSize;
-        if (CurrentVertexType != type) vertexTypeByteSize = (uint)Marshal.SizeOf<T>();
+        uint vertexTypeByteSize = (uint) format.ElementSize;
 
         uint vBytesNeeded = structCount * vertexTypeByteSize;
         uint iBytesNeeded = indexCount * _indexByteSize;
@@ -572,12 +573,12 @@ public unsafe class RenderStreamBatch
         // This request can never be serviced, as it itself is larger that an empty buffer.
         if (vBytesNeeded > _backingBufferSize || iBytesNeeded > _backingIndexBufferSize) return default;
 
-        if (CurrentVertexType != type)
+        if (CurrentVertexFormat != format)
         {
             if (AnythingMapped) FlushRender();
-            EnsureRenderObjectsOfType<T>();
-            _currentVertexTypeByteSize = vertexTypeByteSize;
+            EnsureRenderObjectsOfType(format);
             CurrentVertexType = type;
+            CurrentVertexFormat = format;
         }
 
         // Check if the request can be served, if not - flush the buffers.

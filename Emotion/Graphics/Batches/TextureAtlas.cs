@@ -174,7 +174,7 @@ public class TextureAtlas : Packing.PackingResumableState
 
     private readonly FrameBuffer _fbo;
     private readonly VertexBuffer _vbo;
-    private readonly VertexArrayObject<VertexData> _vao;
+    private readonly VertexArrayObjectFromFormat _vao;
     private readonly VertexData[] _vboLocal;
 
     protected bool _haveDirtyTextures;
@@ -208,7 +208,7 @@ public class TextureAtlas : Packing.PackingResumableState
         var quadIndices = new ushort[12];
         IndexBuffer.FillQuadIndices(quadIndices, 0);
         ibo.Upload(quadIndices);
-        _vao = new VertexArrayObject<VertexData>(_vbo, ibo);
+        _vao = new VertexArrayObjectFromFormat(VertexData.Format, _vbo, ibo);
 
         _fbo = new FrameBuffer(Size).WithColor();
         _fbo.CheckErrors();

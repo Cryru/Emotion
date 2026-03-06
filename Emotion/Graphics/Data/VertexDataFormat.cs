@@ -4,6 +4,12 @@ using System.Text;
 
 namespace Emotion.Graphics.Data;
 
+[DontSerialize]
+public interface IVertexDataFormatStruct
+{
+    public static abstract VertexDataFormat Format { get; }
+}
+
 public sealed class VertexDataFormat
 {
     public static VertexDataFormat Default2D = new VertexDataFormat()

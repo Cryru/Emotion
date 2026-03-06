@@ -70,7 +70,8 @@ public abstract class VertexArrayObject : IDisposable
 
         // Some Intel drivers don't bind the IBO when the VAO is bound.
         // https://stackoverflow.com/questions/8973690/vao-and-element-array-buffer-state
-        if (vao?.IBO != null) IndexBuffer.EnsureBound(vao.IBO.Pointer);
+        if (vao?.IBO != null)
+            IndexBuffer.EnsureBound(vao.IBO.Pointer);
     }
 
     /// <summary>
@@ -118,7 +119,7 @@ public abstract class VertexArrayObject : IDisposable
         int stride = Marshal.SizeOf<T>();
         var vertexType = typeof(T);
 
-        ComplexTypeHandler<T>? typeData = ReflectorEngine.GetTypeInfo<T>();
+        ComplexTypeHandler<T>? typeData = ReflectorEngine.GetComplexTypeHandler<T>();
         AssertNotNull(typeData);
         ComplexTypeHandlerMemberBase[] members = typeData.GetMembers();
 
@@ -132,7 +133,7 @@ public abstract class VertexArrayObject : IDisposable
             string fieldName = member.Name;
             nint offset = Marshal.OffsetOf(vertexType, fieldName);
             Type fieldType = vertexAttributeData.TypeOverride ?? member.Type;
-            if (fieldName == "UV") UVByteOffset = (int) offset;
+            if (fieldName == "UV") UVByteOffset = (int)offset;
 
             uint position = positionOffset + i;
             Gl.EnableVertexAttribArray(position);
@@ -167,18 +168,21 @@ public class VertexArrayObjectFromFormat : VertexArrayObject
     /// </summary>
     public VertexDataFormat Format { get; init; }
 
-    public VertexArrayObjectFromFormat(VertexDataFormat format, VertexBuffer vbo)
+    public VertexArrayObjectFromFormat(VertexDataFormat format, VertexBuffer vbo, IndexBuffer? ibo = null)
     {
         Format = format;
         Assert(format.Built);
 
+        format.GetUVOffsetAndStride(0, out int offset, out int _);
+        UVByteOffset = offset; // Cache this as it is used by the render stream's uv remapping
         ByteSize = format.ElementSize;
 
         Pointer = Gl.GenVertexArray();
         VBO = vbo;
+        IBO = ibo;
 
         EnsureBound(this);
-        IndexBuffer.EnsureBound(0);
+        if (ibo == null) IndexBuffer.EnsureBound(0);
         VertexBuffer.EnsureBound(VBO.Pointer);
 
         SetupAttributes();
@@ -194,7 +198,7 @@ public class VertexArrayObjectFromFormat : VertexArrayObject
 
         if (separateVertexAttributes)
             VertexBuffer.EnsureBound(0);
-        
+
         // This code needs to match the format specification (which is a single one for Emotion).
         // If the order in the VertexDataFormat changes we need to change this too.
         uint position = 0;
@@ -212,7 +216,7 @@ public class VertexArrayObjectFromFormat : VertexArrayObject
             {
                 Gl.VertexAttribPointer(position, 3, VertexAttribType.Float, false, byteStride, byteOffset);
             }
-           
+
             position++;
         }
 
@@ -231,7 +235,7 @@ public class VertexArrayObjectFromFormat : VertexArrayObject
             {
                 Gl.VertexAttribPointer(position, 2, VertexAttribType.Float, false, byteStride, byteOffset);
             }
-           
+
             position++;
         }
 
@@ -250,7 +254,7 @@ public class VertexArrayObjectFromFormat : VertexArrayObject
             {
                 Gl.VertexAttribPointer(position, 3, VertexAttribType.Float, false, byteStride, byteOffset);
             }
-            
+
             position++;
         }
 

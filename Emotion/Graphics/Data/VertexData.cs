@@ -13,9 +13,9 @@ namespace Emotion.Graphics.Data;
 /// Represents the data of a single vertex.
 /// </summary>
 [StructLayout(LayoutKind.Sequential)]
-public struct VertexData
+public struct VertexData : IVertexDataFormatStruct
 {
-    public readonly static VertexDataFormat Format = new VertexDataFormat()
+    public static VertexDataFormat Format { get; } = new VertexDataFormat()
        .AddVertexPosition()
        .AddUV(1)
        .AddVertexColor()
