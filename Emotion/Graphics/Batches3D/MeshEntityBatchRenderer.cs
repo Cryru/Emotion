@@ -396,327 +396,327 @@ public sealed class MeshEntityBatchRenderer
         }
     }
 
-    public unsafe void EndScene(Renderer c, LightConfig light)
-    {
-        _inScene = false;
-        _renderCounter++;
+    //public unsafe void EndScene(Renderer c, LightConfig light)
+    //{
+    //    _inScene = false;
+    //    _renderCounter++;
 
-        // todo: better frustum culling, these objects shouldn't have been pushed in the first place
-        // and it would be reasonable to assume that the map should be able to return them faster if queried with
-        // a frustum in the first place.
-        Frustum primaryFrustum = new Frustum(c.Camera.ViewMatrix * c.Camera.ProjectionMatrix);
-        for (int i = 0; i < _objectDataPool.Length; i++)
-        {
-            ref RenderInstanceObjectData objInstance = ref _objectDataPool[i];
-            ref Sphere objBound = ref objInstance.FrustumCullingSphere;
-            bool isVisible = primaryFrustum.IntersectsOrContainsSphere(objBound);
-            objInstance.FrustumCulling[0] = isVisible;
+    //    // todo: better frustum culling, these objects shouldn't have been pushed in the first place
+    //    // and it would be reasonable to assume that the map should be able to return them faster if queried with
+    //    // a frustum in the first place.
+    //    Frustum primaryFrustum = new Frustum(c.Camera.ViewMatrix * c.Camera.ProjectionMatrix);
+    //    for (int i = 0; i < _objectDataPool.Length; i++)
+    //    {
+    //        ref RenderInstanceObjectData objInstance = ref _objectDataPool[i];
+    //        ref Sphere objBound = ref objInstance.FrustumCullingSphere;
+    //        bool isVisible = primaryFrustum.IntersectsOrContainsSphere(objBound);
+    //        objInstance.FrustumCulling[0] = isVisible;
 
-            // Record the furthest and closest object distances in order to fit the shadow near/far.
-            if (isVisible && objBound.Radius < 5000f)
-            {
-                float distanceToCamera = objInstance.DistanceToCamera;
-                float distanceToCameraMax = distanceToCamera + objBound.Radius;
-                float distanceToCameraMin = distanceToCamera - objBound.Radius;
-                if (distanceToCameraMin < objBound.Radius) distanceToCameraMin = 10f;
+    //        // Record the furthest and closest object distances in order to fit the shadow near/far.
+    //        if (isVisible && objBound.Radius < 5000f)
+    //        {
+    //            float distanceToCamera = objInstance.DistanceToCamera;
+    //            float distanceToCameraMax = distanceToCamera + objBound.Radius;
+    //            float distanceToCameraMin = distanceToCamera - objBound.Radius;
+    //            if (distanceToCameraMin < objBound.Radius) distanceToCameraMin = 10f;
 
-                if (distanceToCameraMax > _furthestObjectDist)
-                {
-                    _furthestObjectDist = distanceToCameraMax;
-                    //_furthestObject = obj;
-                }
-                if (distanceToCameraMin < _closestObjectDist)
-                {
-                    _closestObjectDist = distanceToCameraMin;
-                    //_closestObject = obj;
-                }
-            }
-        }
+    //            if (distanceToCameraMax > _furthestObjectDist)
+    //            {
+    //                _furthestObjectDist = distanceToCameraMax;
+    //                //_furthestObject = obj;
+    //            }
+    //            if (distanceToCameraMin < _closestObjectDist)
+    //            {
+    //                _closestObjectDist = distanceToCameraMin;
+    //                //_closestObject = obj;
+    //            }
+    //        }
+    //    }
 
-        CalculateShadowMapCascadeData(light);
+    //    CalculateShadowMapCascadeData(light);
 
-        // Apply object culling.
-        for (int cIdx = 0; cIdx < _shadowCascades.Length; cIdx++)
-        {
-            var cascade = _shadowCascades[cIdx];
-            var cascadeFrustum = cascade.Frustum;
-            for (int i = 0; i < _objectDataPool.Length; i++)
-            {
-                ref RenderInstanceObjectData objInstance = ref _objectDataPool[i];
-                ref Sphere objBound = ref objInstance.FrustumCullingSphere;
-                objInstance.FrustumCulling[cIdx + 1] = cascadeFrustum.IntersectsOrContainsSphere(objBound);
-            }
-        }
+    //    // Apply object culling.
+    //    for (int cIdx = 0; cIdx < _shadowCascades.Length; cIdx++)
+    //    {
+    //        var cascade = _shadowCascades[cIdx];
+    //        var cascadeFrustum = cascade.Frustum;
+    //        for (int i = 0; i < _objectDataPool.Length; i++)
+    //        {
+    //            ref RenderInstanceObjectData objInstance = ref _objectDataPool[i];
+    //            ref Sphere objBound = ref objInstance.FrustumCullingSphere;
+    //            objInstance.FrustumCulling[cIdx + 1] = cascadeFrustum.IntersectsOrContainsSphere(objBound);
+    //        }
+    //    }
 
-        // Upload base state to all shaders that will be in use.
-        bool receiveAmbient = true; // todo
-        for (int i = 0; i < _shadersUsedList.Count; i++)
-        {
-            ShaderProgram shader = _shadersUsedList[i];
-            c.SetShader(shader);
+    //    // Upload base state to all shaders that will be in use.
+    //    bool receiveAmbient = true; // todo
+    //    for (int i = 0; i < _shadersUsedList.Count; i++)
+    //    {
+    //        ShaderProgram shader = _shadersUsedList[i];
+    //        c.SetShader(shader);
 
-            shader.SetUniformInt("diffuseTexture", 0);
-            shader.SetUniformInt("shadowMapTextureC1", 1);
-            shader.SetUniformInt("shadowMapTextureC2", 2);
-            shader.SetUniformInt("shadowMapTextureC3", 3);
-            shader.SetUniformInt("shadowMapTextureC4", 4);
+    //        shader.SetUniformInt("diffuseTexture", 0);
+    //        shader.SetUniformInt("shadowMapTextureC1", 1);
+    //        shader.SetUniformInt("shadowMapTextureC2", 2);
+    //        shader.SetUniformInt("shadowMapTextureC3", 3);
+    //        shader.SetUniformInt("shadowMapTextureC4", 4);
 
-            for (int cId = 0; cId < _shadowCascades.Length; cId++)
-            {
-                var cascade = _shadowCascades[cId];
-                shader.SetUniformMatrix4(cascade.ViewProjUniformName, cascade.LightViewProj);
-                shader.SetUniformFloat(cascade.UnitToTexelScaleUniformName, cascade.UnitToTexelScale);
-            }
+    //        for (int cId = 0; cId < _shadowCascades.Length; cId++)
+    //        {
+    //            var cascade = _shadowCascades[cId];
+    //            shader.SetUniformMatrix4(cascade.ViewProjUniformName, cascade.LightViewProj);
+    //            shader.SetUniformFloat(cascade.UnitToTexelScaleUniformName, cascade.UnitToTexelScale);
+    //        }
 
-            shader.SetUniformVector3("cameraPosition", c.Camera.Position);
-            shader.SetUniformVector3("sunDirection", Vector3.Normalize(light.SunDirection));
-            shader.SetUniformColor("ambientColor", receiveAmbient ? light.AmbientLightColor : Color.White);
-            shader.SetUniformFloat("ambientLightStrength", receiveAmbient ? light.AmbientLightStrength : 1f);
-            shader.SetUniformFloat("diffuseStrength", receiveAmbient ? light.DiffuseStrength : 0f);
-            shader.SetUniformFloat("shadowOpacity", light.ShadowOpacity);
-        }
+    //        shader.SetUniformVector3("cameraPosition", c.Camera.Position);
+    //        shader.SetUniformVector3("sunDirection", Vector3.Normalize(light.SunDirection));
+    //        shader.SetUniformColor("ambientColor", receiveAmbient ? light.AmbientLightColor : Color.White);
+    //        shader.SetUniformFloat("ambientLightStrength", receiveAmbient ? light.AmbientLightStrength : 1f);
+    //        shader.SetUniformFloat("diffuseStrength", receiveAmbient ? light.DiffuseStrength : 0f);
+    //        shader.SetUniformFloat("shadowOpacity", light.ShadowOpacity);
+    //    }
 
-        // Upload all meshes.
-        for (int i = 0; i < _meshesUsedList.Count; i++)
-        {
-            var mesh = _meshesUsedList[i];
-            bool skinnedMesh = mesh.BoneData != null;
-            GLRenderObjects? renderObj = GetMeshRenderObjectOrCreateNew(mesh, skinnedMesh, out bool alreadyUploaded);
-            if (renderObj == null) // Impossible!
-            {
-                Assert(false, "No render object?");
-                return;
-            }
+    //    // Upload all meshes.
+    //    for (int i = 0; i < _meshesUsedList.Count; i++)
+    //    {
+    //        var mesh = _meshesUsedList[i];
+    //        bool skinnedMesh = mesh.BoneData != null;
+    //        GLRenderObjects? renderObj = GetMeshRenderObjectOrCreateNew(mesh, skinnedMesh, out bool alreadyUploaded);
+    //        if (renderObj == null) // Impossible!
+    //        {
+    //            Assert(false, "No render object?");
+    //            return;
+    //        }
 
-            if (!alreadyUploaded)
-            {
-                renderObj.VBO.UploadPartial(mesh.Vertices);
-                renderObj.VBOExtended.UploadPartial(mesh.ExtraVertexData);
+    //        if (!alreadyUploaded)
+    //        {
+    //            renderObj.VBO.UploadPartial(mesh.Vertices);
+    //            renderObj.VBOExtended.UploadPartial(mesh.ExtraVertexData);
 
-                if (skinnedMesh)
-                {
-                    AssertNotNull(renderObj.VBOBones);
-                    renderObj.VBOBones.UploadPartial(mesh.BoneData);
-                }
+    //            if (skinnedMesh)
+    //            {
+    //                AssertNotNull(renderObj.VBOBones);
+    //                renderObj.VBOBones.UploadPartial(mesh.BoneData);
+    //            }
 
-                renderObj.IBO.UploadPartial(mesh.Indices);
-            }
-        }
+    //            renderObj.IBO.UploadPartial(mesh.Indices);
+    //        }
+    //    }
 
-        // Bind cascade textures as none while rendering shadow maps.
-        // 0 is diffuse texture
-        const int reservedTextureSlots = 1;
-        for (var j = reservedTextureSlots; j < reservedTextureSlots + _shadowCascades.Length; j++)
-        {
-            Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer, (uint)j);
-        }
+    //    // Bind cascade textures as none while rendering shadow maps.
+    //    // 0 is diffuse texture
+    //    const int reservedTextureSlots = 1;
+    //    for (var j = reservedTextureSlots; j < reservedTextureSlots + _shadowCascades.Length; j++)
+    //    {
+    //        Texture.EnsureBound(Texture.EmptyWhiteTexture.Pointer, (uint)j);
+    //    }
 
-        if (light.Shadows)
-        {
-            Gl.Enable((EnableCap)Gl.DEPTH_CLAMP);
-            for (int i = 0; i < _shadowCascades.Length; i++)
-            {
-                var cascade = _shadowCascades[i];
-                if (cascade.Buffer == null) continue;
+    //    if (light.Shadows)
+    //    {
+    //        Gl.Enable((EnableCap)Gl.DEPTH_CLAMP);
+    //        for (int i = 0; i < _shadowCascades.Length; i++)
+    //        {
+    //            var cascade = _shadowCascades[i];
+    //            if (cascade.Buffer == null) continue;
 
-                _renderingShadowmap = i;
-                c.RenderToAndClear(cascade.Buffer);
-                if (!UseVSMShadows)
-                {
-                    Gl.DrawBuffers(Gl.NONE);
-                    Gl.ReadBuffer(Gl.NONE);
-                }
-                RenderSceneFull(c);
-                c.RenderTo(null);
-                _renderingShadowmap = -1;
-            }
-            Gl.Disable((EnableCap)Gl.DEPTH_CLAMP);
+    //            _renderingShadowmap = i;
+    //            c.RenderToAndClear(cascade.Buffer);
+    //            if (!UseVSMShadows)
+    //            {
+    //                Gl.DrawBuffers(Gl.NONE);
+    //                Gl.ReadBuffer(Gl.NONE);
+    //            }
+    //            RenderSceneFull(c);
+    //            c.RenderTo(null);
+    //            _renderingShadowmap = -1;
+    //        }
+    //        Gl.Disable((EnableCap)Gl.DEPTH_CLAMP);
 
-            // Bind cascade textures.
-            for (var j = reservedTextureSlots; j < reservedTextureSlots + _shadowCascades.Length; j++)
-            {
-                ShadowCascadeData cascade = _shadowCascades[j - reservedTextureSlots];
-                Texture.EnsureBound(cascade.BufferAttachment?.Pointer ?? Texture.EmptyWhiteTexture.Pointer, (uint)j);
-            }
-        }
+    //        // Bind cascade textures.
+    //        for (var j = reservedTextureSlots; j < reservedTextureSlots + _shadowCascades.Length; j++)
+    //        {
+    //            ShadowCascadeData cascade = _shadowCascades[j - reservedTextureSlots];
+    //            Texture.EnsureBound(cascade.BufferAttachment?.Pointer ?? Texture.EmptyWhiteTexture.Pointer, (uint)j);
+    //        }
+    //    }
 
-        // todo: different frustums for shadows would mean different pipeline groups etc.
-        RenderSceneFull(c);
-    }
+    //    // todo: different frustums for shadows would mean different pipeline groups etc.
+    //    RenderSceneFull(c);
+    //}
 
-    private void RenderSceneFull(Renderer c)
-    {
-        RenderMainPass(c, _mainPassShaderGroups);
+    //private void RenderSceneFull(Renderer c)
+    //{
+    //    RenderMainPass(c, _mainPassShaderGroups);
 
-        // Transparent objects are first sorted by distance from the camera, so they
-        // can be drawn from furthest to closest and alpha blend with each other.
-        //
-        // Then they are drawn twice - first without writing to the color buffer
-        // so they can populate the depth buffer with the highest depth, and then
-        // drawn normally. This will prevent faces of one object from occluding other
-        // faces in that same object, since they will be depth clipped.
-        var transparentObjects = _meshDataPoolTransparent;
-        var activeSlice = transparentObjects.GetActiveSlice();
-        MemoryExtensions.Sort(activeSlice, _objectComparison);
+    //    // Transparent objects are first sorted by distance from the camera, so they
+    //    // can be drawn from furthest to closest and alpha blend with each other.
+    //    //
+    //    // Then they are drawn twice - first without writing to the color buffer
+    //    // so they can populate the depth buffer with the highest depth, and then
+    //    // drawn normally. This will prevent faces of one object from occluding other
+    //    // faces in that same object, since they will be depth clipped.
+    //    var transparentObjects = _meshDataPoolTransparent;
+    //    var activeSlice = transparentObjects.GetActiveSlice();
+    //    MemoryExtensions.Sort(activeSlice, _objectComparison);
 
-        c.ToggleRenderColor(false);
-        RenderTransparentObjects(c);
-        c.ToggleRenderColor(true);
-        RenderTransparentObjects(c);
-    }
+    //    c.ToggleRenderColor(false);
+    //    RenderTransparentObjects(c);
+    //    c.ToggleRenderColor(true);
+    //    RenderTransparentObjects(c);
+    //}
 
-    private void RenderTransparentObjects(Renderer c)
-    {
-        if (_meshDataPoolTransparent.Length == 0) return;
+    //private void RenderTransparentObjects(Renderer c)
+    //{
+    //    if (_meshDataPoolTransparent.Length == 0) return;
 
-        for (int i = 0; i < _meshDataPoolTransparent.Length; i++)
-        {
-            ref RenderInstanceMeshDataTransparent meshInstance = ref _meshDataPoolTransparent[i];
+    //    for (int i = 0; i < _meshDataPoolTransparent.Length; i++)
+    //    {
+    //        ref RenderInstanceMeshDataTransparent meshInstance = ref _meshDataPoolTransparent[i];
 
-            var mesh = meshInstance.Mesh;
-            var objectData = _objectDataPool[meshInstance.ObjectRegistrationId];
+    //        var mesh = meshInstance.Mesh;
+    //        var objectData = _objectDataPool[meshInstance.ObjectRegistrationId];
 
-            if (_renderingShadowmap != -1) return;
+    //        if (_renderingShadowmap != -1) return;
 
-            var currentShader = meshInstance.Shader;
+    //        var currentShader = meshInstance.Shader;
 
-            Engine.Renderer.SetShader(currentShader);
-            currentShader.SetUniformColor("diffuseColor", mesh.Material.DiffuseColor);
+    //        Engine.Renderer.SetShader(currentShader);
+    //        currentShader.SetUniformColor("diffuseColor", mesh.Material.DiffuseColor);
 
-            Texture? diffuseTexture = mesh.Material.DiffuseTexture;
-            Texture.EnsureBound(diffuseTexture?.Pointer ?? Texture.EmptyWhiteTexture.Pointer);
+    //        Texture? diffuseTexture = mesh.Material.DiffuseTexture;
+    //        Texture.EnsureBound(diffuseTexture?.Pointer ?? Texture.EmptyWhiteTexture.Pointer);
 
-            bool skinnedMesh = mesh.BoneData != null;
-            GLRenderObjects? renderObj = GetMeshRenderObjectOrCreateNew(mesh, skinnedMesh, out bool _);
-            AssertNotNull(renderObj);
+    //        bool skinnedMesh = mesh.BoneData != null;
+    //        GLRenderObjects? renderObj = GetMeshRenderObjectOrCreateNew(mesh, skinnedMesh, out bool _);
+    //        AssertNotNull(renderObj);
 
-            c.PushModelMatrix(objectData.ModelMatrix);
-            currentShader.SetUniformColor("objectTint", objectData.MetaState.Tint);
+    //        c.PushModelMatrix(objectData.ModelMatrix);
+    //        currentShader.SetUniformColor("objectTint", objectData.MetaState.Tint);
 
-            bool receiveAmbient = true;
-            bool receiveShadow = true;
-            int lightMode = 0;
-            if (!receiveAmbient) lightMode = 1;
-            if (!receiveShadow) lightMode = 2;
-            if (!receiveAmbient && !receiveShadow) lightMode = 3;
-            currentShader.SetUniformInt("lightMode", lightMode);
+    //        bool receiveAmbient = true;
+    //        bool receiveShadow = true;
+    //        int lightMode = 0;
+    //        if (!receiveAmbient) lightMode = 1;
+    //        if (!receiveShadow) lightMode = 2;
+    //        if (!receiveAmbient && !receiveShadow) lightMode = 3;
+    //        currentShader.SetUniformInt("lightMode", lightMode);
 
-            if (skinnedMesh && meshInstance.BoneData != null)
-                currentShader.SetUniformMatrix4("boneMatrices", meshInstance.BoneData, meshInstance.BoneData.Length);
+    //        if (skinnedMesh && meshInstance.BoneData != null)
+    //            currentShader.SetUniformMatrix4("boneMatrices", meshInstance.BoneData, meshInstance.BoneData.Length);
 
-            if (meshInstance.UploadMetaStateToShader)
-                objectData.MetaState.ApplyShaderUniforms(currentShader);
+    //        if (meshInstance.UploadMetaStateToShader)
+    //            objectData.MetaState.ApplyShaderUniforms(currentShader);
 
-            c.SetFaceCulling(objectData.BackfaceCulling, _renderingShadowmap == -1 || !ShadowsCullFrontFace);
+    //        c.SetFaceCulling(objectData.BackfaceCulling, _renderingShadowmap == -1 || !ShadowsCullFrontFace);
 
-            // Render geometry
-            VertexBuffer.EnsureBound(renderObj.VBO.Pointer);
-            VertexBuffer.EnsureBound(renderObj.VBOExtended.Pointer);
-            VertexArrayObject.EnsureBound(renderObj.VAO);
-            IndexBuffer.EnsureBound(renderObj.IBO.Pointer);
-            Gl.DrawElements(PrimitiveType.Triangles, mesh.Indices.Length, DrawElementsType.UnsignedShort, nint.Zero);
+    //        // Render geometry
+    //        VertexBuffer.EnsureBound(renderObj.VBO.Pointer);
+    //        VertexBuffer.EnsureBound(renderObj.VBOExtended.Pointer);
+    //        VertexArrayObject.EnsureBound(renderObj.VAO);
+    //        IndexBuffer.EnsureBound(renderObj.IBO.Pointer);
+    //        Gl.DrawElements(PrimitiveType.Triangles, mesh.Indices.Length, DrawElementsType.UnsignedShort, nint.Zero);
 
-            c.PopModelMatrix();
-        }
+    //        c.PopModelMatrix();
+    //    }
 
-        c.SetShader(null);
-        c.SetFaceCulling(false, false);
-    }
+    //    c.SetShader(null);
+    //    c.SetFaceCulling(false, false);
+    //}
 
-    private unsafe void RenderMainPass(Renderer c, StructArenaAllocator<MeshRenderPipelineStateGroup> groupsInPass)
-    {
-        if (groupsInPass.Length == 0) return;
+    //private unsafe void RenderMainPass(Renderer c, StructArenaAllocator<MeshRenderPipelineStateGroup> groupsInPass)
+    //{
+    //    if (groupsInPass.Length == 0) return;
 
-        for (int i = 0; i < groupsInPass.Length; i++) // for each pipeline
-        {
-            ref MeshRenderPipelineStateGroup pipelineState = ref groupsInPass[i];
+    //    for (int i = 0; i < groupsInPass.Length; i++) // for each pipeline
+    //    {
+    //        ref MeshRenderPipelineStateGroup pipelineState = ref groupsInPass[i];
 
-            // Setup the pipeline.
-            var currentShader = pipelineState.Shader;
-            Engine.Renderer.SetShader(currentShader);
+    //        // Setup the pipeline.
+    //        var currentShader = pipelineState.Shader;
+    //        Engine.Renderer.SetShader(currentShader);
 
-            currentShader.SetUniformInt("renderingShadowMap", _renderingShadowmap);
+    //        currentShader.SetUniformInt("renderingShadowMap", _renderingShadowmap);
 
-            // each mesh batch in this pipeline
-            // these are parameters shared by all instances of that mesh in the scene
-            int meshBatchIdx = pipelineState.MeshRenderBatchList.StartIndex;
-            while (meshBatchIdx != -1)
-            {
-                ref MeshRenderMeshBatch batch = ref _renderBatchPool[meshBatchIdx];
-                var mesh = batch.Mesh;
+    //        // each mesh batch in this pipeline
+    //        // these are parameters shared by all instances of that mesh in the scene
+    //        int meshBatchIdx = pipelineState.MeshRenderBatchList.StartIndex;
+    //        while (meshBatchIdx != -1)
+    //        {
+    //            ref MeshRenderMeshBatch batch = ref _renderBatchPool[meshBatchIdx];
+    //            var mesh = batch.Mesh;
 
-                currentShader.SetUniformColor("diffuseColor", mesh.Material.DiffuseColor);
-                Texture? diffuseTexture = mesh.Material.DiffuseTexture;
-                Texture.EnsureBound(diffuseTexture?.Pointer ?? Texture.EmptyWhiteTexture.Pointer);
+    //            currentShader.SetUniformColor("diffuseColor", mesh.Material.DiffuseColor);
+    //            Texture? diffuseTexture = mesh.Material.DiffuseTexture;
+    //            Texture.EnsureBound(diffuseTexture?.Pointer ?? Texture.EmptyWhiteTexture.Pointer);
 
-                bool skinnedMesh = mesh.BoneData != null;
-                GLRenderObjects? renderObj = GetMeshRenderObjectOrCreateNew(mesh, skinnedMesh, out bool _);
-                AssertNotNull(renderObj);
+    //            bool skinnedMesh = mesh.BoneData != null;
+    //            GLRenderObjects? renderObj = GetMeshRenderObjectOrCreateNew(mesh, skinnedMesh, out bool _);
+    //            AssertNotNull(renderObj);
 
-                // render each instance of the mesh
-                // todo: instanced rendering
-                int instanceIdx = batch.MeshInstanceList.StartIndex;
-                while (instanceIdx != -1)
-                {
-                    ref RenderInstanceMeshData instance = ref _meshDataPool[instanceIdx];
-                    ref RenderInstanceObjectData objectData = ref _objectDataPool[instance.ObjectRegistrationId];
+    //            // render each instance of the mesh
+    //            // todo: instanced rendering
+    //            int instanceIdx = batch.MeshInstanceList.StartIndex;
+    //            while (instanceIdx != -1)
+    //            {
+    //                ref RenderInstanceMeshData instance = ref _meshDataPool[instanceIdx];
+    //                ref RenderInstanceObjectData objectData = ref _objectDataPool[instance.ObjectRegistrationId];
 
-                    bool dontRender = false;
+    //                bool dontRender = false;
 
-                    dontRender = dontRender || (_renderingShadowmap != -1 && ShadowsCullFrontFace && !objectData.BackfaceCulling);
-                    dontRender = dontRender || !objectData.FrustumCulling[_renderingShadowmap + 1];
+    //                dontRender = dontRender || (_renderingShadowmap != -1 && ShadowsCullFrontFace && !objectData.BackfaceCulling);
+    //                dontRender = dontRender || !objectData.FrustumCulling[_renderingShadowmap + 1];
 
-                    if (dontRender)
-                    {
-                        instanceIdx = instance.NextItem;
-                        continue;
-                    }
+    //                if (dontRender)
+    //                {
+    //                    instanceIdx = instance.NextItem;
+    //                    continue;
+    //                }
 
-                    bool receiveAmbient = true;
-                    bool receiveShadow = false;//!flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveShadow);
-                    int lightMode = 0;
-                    if (!receiveAmbient) lightMode = 1;
-                    if (!receiveShadow) lightMode = 2;
-                    if (!receiveAmbient && !receiveShadow) lightMode = 3;
-                    currentShader.SetUniformInt("lightMode", lightMode);
+    //                bool receiveAmbient = true;
+    //                bool receiveShadow = false;//!flags.EnumHasFlag(ObjectFlags.Map3DDontReceiveShadow);
+    //                int lightMode = 0;
+    //                if (!receiveAmbient) lightMode = 1;
+    //                if (!receiveShadow) lightMode = 2;
+    //                if (!receiveAmbient && !receiveShadow) lightMode = 3;
+    //                currentShader.SetUniformInt("lightMode", lightMode);
 
-                    c.PushModelMatrix(objectData.ModelMatrix);
-                    currentShader.SetUniformColor("objectTint", objectData.MetaState.Tint);
+    //                c.PushModelMatrix(objectData.ModelMatrix);
+    //                currentShader.SetUniformColor("objectTint", objectData.MetaState.Tint);
 
-                    if (skinnedMesh && instance.BoneData != null)
-                        currentShader.SetUniformMatrix4("boneMatrices", instance.BoneData, instance.BoneData.Length);
+    //                if (skinnedMesh && instance.BoneData != null)
+    //                    currentShader.SetUniformMatrix4("boneMatrices", instance.BoneData, instance.BoneData.Length);
 
-                    if (pipelineState.UploadMetaStateToShader)
-                        objectData.MetaState.ApplyShaderUniforms(currentShader);
+    //                if (pipelineState.UploadMetaStateToShader)
+    //                    objectData.MetaState.ApplyShaderUniforms(currentShader);
 
-                    c.SetFaceCulling(objectData.BackfaceCulling, _renderingShadowmap == -1 || !ShadowsCullFrontFace);
+    //                c.SetFaceCulling(objectData.BackfaceCulling, _renderingShadowmap == -1 || !ShadowsCullFrontFace);
 
-                    c.SetAlphaBlend(false);
+    //                c.SetAlphaBlend(false);
 
-                    if (objectData.MetaState.CustomRenderState != null)
-                        c.SetState(objectData.MetaState.CustomRenderState);
+    //                if (objectData.MetaState.CustomRenderState != null)
+    //                    c.SetState(objectData.MetaState.CustomRenderState);
 
-                    // Render geometry
-                    VertexBuffer.EnsureBound(renderObj.VBO.Pointer);
-                    VertexBuffer.EnsureBound(renderObj.VBOExtended.Pointer);
-                    VertexArrayObject.EnsureBound(renderObj.VAO);
-                    IndexBuffer.EnsureBound(renderObj.IBO.Pointer);
-                    Gl.DrawElements(PrimitiveType.Triangles, mesh.Indices.Length, DrawElementsType.UnsignedShort, nint.Zero);
+    //                // Render geometry
+    //                VertexBuffer.EnsureBound(renderObj.VBO.Pointer);
+    //                VertexBuffer.EnsureBound(renderObj.VBOExtended.Pointer);
+    //                VertexArrayObject.EnsureBound(renderObj.VAO);
+    //                IndexBuffer.EnsureBound(renderObj.IBO.Pointer);
+    //                Gl.DrawElements(PrimitiveType.Triangles, mesh.Indices.Length, DrawElementsType.UnsignedShort, nint.Zero);
 
-                    c.PopModelMatrix();
-                    c.SetAlphaBlend(true);
+    //                c.PopModelMatrix();
+    //                c.SetAlphaBlend(true);
 
-                    instanceIdx = instance.NextItem;
-                }
+    //                instanceIdx = instance.NextItem;
+    //            }
 
-                meshBatchIdx = batch.NextItem;
-            }
-        }
+    //            meshBatchIdx = batch.NextItem;
+    //        }
+    //    }
 
-        // Restore render state.
-        Engine.Renderer.SetShader(null);
-        c.SetFaceCulling(false, false);
-    }
+    //    // Restore render state.
+    //    Engine.Renderer.SetShader(null);
+    //    c.SetFaceCulling(false, false);
+    //}
 
     /// <summary>
     /// Meant to be used for rendering a one off entity, such as for UI or
@@ -850,33 +850,33 @@ public sealed class MeshEntityBatchRenderer
             }
 
             // Upload geometry
-            GLRenderObjects? renderObj = GetMeshRenderObjectOrCreateNew(obj, skinnedMesh, out bool alreadyUploaded);
-            if (renderObj == null) // Impossible!
-            {
-                Assert(false, "RenderStream had no render object to flush with.");
-                return;
-            }
+            //GLRenderObjects? renderObj = GetMeshRenderObjectOrCreateNew(obj, skinnedMesh, out bool alreadyUploaded);
+            //if (renderObj == null) // Impossible!
+            //{
+            //    Assert(false, "RenderStream had no render object to flush with.");
+            //    return;
+            //}
 
-            if (!alreadyUploaded)
-            {
-                renderObj.VBO.UploadPartial(obj.Vertices);
-                renderObj.VBOExtended.UploadPartial(obj.ExtraVertexData);
+            //if (!alreadyUploaded)
+            //{
+            //    renderObj.VBO.UploadPartial(obj.Vertices);
+            //    renderObj.VBOExtended.UploadPartial(obj.ExtraVertexData);
 
-                if (skinnedMesh)
-                {
-                    AssertNotNull(renderObj.VBOBones);
-                    renderObj.VBOBones.UploadPartial(obj.BoneData);
-                }
+            //    if (skinnedMesh)
+            //    {
+            //        AssertNotNull(renderObj.VBOBones);
+            //        renderObj.VBOBones.UploadPartial(obj.BoneData);
+            //    }
 
-                renderObj.IBO.UploadPartial(obj.Indices);
-            }
+            //    renderObj.IBO.UploadPartial(obj.Indices);
+            //}
 
-            // Render geometry
-            VertexBuffer.EnsureBound(renderObj.VBO.Pointer);
-            VertexBuffer.EnsureBound(renderObj.VBOExtended.Pointer);
-            VertexArrayObject.EnsureBound(renderObj.VAO);
-            IndexBuffer.EnsureBound(renderObj.IBO.Pointer);
-            Gl.DrawElements(PrimitiveType.Triangles, obj.Indices.Length, DrawElementsType.UnsignedShort, nint.Zero);
+            //// Render geometry
+            //VertexBuffer.EnsureBound(renderObj.VBO.Pointer);
+            //VertexBuffer.EnsureBound(renderObj.VBOExtended.Pointer);
+            //VertexArrayObject.EnsureBound(renderObj.VAO);
+            //IndexBuffer.EnsureBound(renderObj.IBO.Pointer);
+            //Gl.DrawElements(PrimitiveType.Triangles, obj.Indices.Length, DrawElementsType.UnsignedShort, nint.Zero);
         }
 
         Engine.Renderer.SetFaceCulling(false, false);
@@ -885,58 +885,58 @@ public sealed class MeshEntityBatchRenderer
 
     #region GPU Memory Helpers
 
-    private GLRenderObjects AllocateRenderObject(bool withBones)
-    {
-        var vbo = new VertexBuffer((uint)(ushort.MaxValue * VertexData.SizeInBytes), BufferUsage.StreamDraw);
-        var vboExt = new VertexBuffer((uint)(ushort.MaxValue * VertexDataMesh3DExtra.SizeInBytes), BufferUsage.StreamDraw);
-        VertexBuffer? vboBones = null;
-        if (withBones) vboBones = new VertexBuffer((uint)(ushort.MaxValue * Mesh3DVertexDataBones.SizeInBytes), BufferUsage.StreamDraw);
+    //private GLRenderObjects AllocateRenderObject(bool withBones)
+    //{
+    //    var vbo = new VertexBuffer((uint)(ushort.MaxValue * VertexData.Format.ElementSize), BufferUsage.StreamDraw);
+    //    var vboExt = new VertexBuffer((uint)(ushort.MaxValue * VertexDataMesh3DExtra.SizeInBytes), BufferUsage.StreamDraw);
+    //    VertexBuffer? vboBones = null;
+    //    if (withBones) vboBones = new VertexBuffer((uint)(ushort.MaxValue * Mesh3DVertexDataBones.SizeInBytes), BufferUsage.StreamDraw);
 
-        var ibo = new IndexBuffer(ushort.MaxValue * sizeof(ushort) * 3, BufferUsage.StreamDraw);
+    //    var ibo = new IndexBuffer(ushort.MaxValue * sizeof(ushort) * 3, BufferUsage.StreamDraw);
 
-        var vao = new VertexArrayObject<VertexData>(vbo, ibo);
-        vao.AppendType<VertexDataMesh3DExtra>(vboExt);
-        if (withBones) vao.AppendType<Mesh3DVertexDataBones>(vboBones);
+    //    var vao = new VertexArrayObject(VertexData.Format, vbo, ibo);
+    //    vao.AppendType<VertexDataMesh3DExtra>(vboExt);
+    //    if (withBones) vao.AppendType<Mesh3DVertexDataBones>(vboBones);
 
-        var objectsPair = new GLRenderObjects(vbo, vboExt, vboBones, ibo, vao);
-        if (withBones)
-            _renderObjectsBones.Push(objectsPair);
-        else
-            _renderObjects.Push(objectsPair);
+    //    var objectsPair = new GLRenderObjects(vbo, vboExt, vboBones, ibo, vao);
+    //    if (withBones)
+    //        _renderObjectsBones.Push(objectsPair);
+    //    else
+    //        _renderObjects.Push(objectsPair);
 
-        return objectsPair;
-    }
+    //    return objectsPair;
+    //}
 
-    public GLRenderObjects? GetMeshRenderObjectOrCreateNew(Mesh? mesh, bool withBones, out bool alreadyUploaded)
-    {
-        alreadyUploaded = false;
+    //public GLRenderObjects? GetMeshRenderObjectOrCreateNew(Mesh? mesh, bool withBones, out bool alreadyUploaded)
+    //{
+    //    alreadyUploaded = false;
 
-        // Mesh already uploaded!
-        if (mesh != null)
-        {
-            if (_meshToRenderObject.ContainsKey(mesh))
-            {
-                alreadyUploaded = true;
-                return _meshToRenderObject[mesh];
-            }
-        }
+    //    // Mesh already uploaded!
+    //    if (mesh != null)
+    //    {
+    //        if (_meshToRenderObject.ContainsKey(mesh))
+    //        {
+    //            alreadyUploaded = true;
+    //            return _meshToRenderObject[mesh];
+    //        }
+    //    }
 
-        Stack<GLRenderObjects> stack = withBones ? _renderObjectsBones : _renderObjects;
-        if (stack.Count == 0) AllocateRenderObject(withBones);
+    //    Stack<GLRenderObjects> stack = withBones ? _renderObjectsBones : _renderObjects;
+    //    if (stack.Count == 0) AllocateRenderObject(withBones);
 
-        if (stack.Count > 0)
-        {
-            GLRenderObjects obj = stack.Pop();
-            Stack<GLRenderObjects> usedStack = withBones ? _renderObjectsBonesUsed : _renderObjectsUsed;
-            usedStack.Push(obj);
+    //    if (stack.Count > 0)
+    //    {
+    //        GLRenderObjects obj = stack.Pop();
+    //        Stack<GLRenderObjects> usedStack = withBones ? _renderObjectsBonesUsed : _renderObjectsUsed;
+    //        usedStack.Push(obj);
 
-            if (mesh != null) _meshToRenderObject.Add(mesh, obj);
-            return obj;
-        }
+    //        if (mesh != null) _meshToRenderObject.Add(mesh, obj);
+    //        return obj;
+    //    }
 
-        Assert(false, "No free render object for stream!?");
-        return null;
-    }
+    //    Assert(false, "No free render object for stream!?");
+    //    return null;
+    //}
 
     public void DoTasks()
     {

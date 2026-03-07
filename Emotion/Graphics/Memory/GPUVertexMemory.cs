@@ -9,12 +9,12 @@ public class GPUVertexMemory
 {
     public VertexDataFormat Format { get => VAO.Format; }
 
-    public VertexArrayObjectFromFormat VAO;
+    public VertexArrayObject VAO;
     public VertexBuffer VBO;
 
     public GPUVertexMemory(VertexDataFormat format)
     {
         VBO = new VertexBuffer(0, BufferUsage.StaticDraw);
-        VAO = new VertexArrayObjectFromFormat(format, VBO);
+        VAO = new VertexArrayObject(format, VBO);
     }
 }

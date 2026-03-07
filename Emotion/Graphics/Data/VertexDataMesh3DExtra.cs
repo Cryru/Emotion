@@ -11,7 +11,7 @@ public struct VertexDataMesh3DExtra
 {
     public static readonly int SizeInBytes = Marshal.SizeOf(new VertexDataMesh3DExtra());
 
-    [VertexAttribute(3, false)] public Vector3 Normal;
+    public Vector3 Normal;
 
     public override string ToString()
     {
@@ -24,8 +24,8 @@ public struct Mesh3DVertexDataBones
 {
     public static readonly int SizeInBytes = Marshal.SizeOf(new Mesh3DVertexDataBones());
 
-    [VertexAttribute(4, false)] public Vector4 BoneIds;
-    [VertexAttribute(4, false)] public Vector4 BoneWeights;
+    public Vector4 BoneIds;
+    public Vector4 BoneWeights;
 
     public override string ToString()
     {

@@ -386,7 +386,7 @@ public unsafe class RenderStreamBatch
     {
         var vbo = new VertexBuffer(0, BufferUsage.StreamDraw);
         var ibo = new IndexBuffer(0, BufferUsage.StreamDraw);
-        var vao = new VertexArrayObjectFromFormat(format, vbo, ibo);
+        var vao = new VertexArrayObject(format, vbo, ibo);
 
         var objectsPair = new GLRenderObjects(vbo, ibo, vao);
 

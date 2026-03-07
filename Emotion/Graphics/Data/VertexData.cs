@@ -29,17 +29,16 @@ public struct VertexData : IVertexDataFormatStruct
     /// <summary>
     /// The vertex itself.
     /// </summary>
-    [VertexAttribute(3, false)] public Vector3 Vertex;
+    public Vector3 Vertex;
 
     /// <summary>
     /// The UV of the vertex's texture.
     /// </summary>
-    [VertexAttribute(2, false)] public Vector2 UV;
+    public Vector2 UV;
 
     /// <summary>
     /// The packed color of the vertex.
     /// </summary>
-    [VertexAttribute(4, true, typeof(byte))]
     public uint Color;
 
     /// <summary>
