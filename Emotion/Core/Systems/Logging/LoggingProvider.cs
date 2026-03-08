@@ -201,6 +201,7 @@ public abstract class LoggingProvider : IDisposable
 
         public void AppendLiteral(string s) => _inner.AppendLiteral(s);
         public void AppendFormatted<T>(T val) => _inner.AppendFormatted(val);
+        public void AppendFormatted(ReadOnlySpan<char> val) => _inner.AppendFormatted(val);
         public void Dispose() => _inner.Dispose();
     }
 
@@ -241,15 +242,7 @@ public abstract class LoggingProvider : IDisposable
 
         public void AppendLiteral(string s)
         {
-            if (_filtered) return;
-
-            AssertNotNull(_buffer);
-            if (_charsWritten >= _buffer.Length) return;
-
-            Span<char> bufferSlice = _buffer.AsSpan(_charsWritten);
-            ValueStringWriter writer = new ValueStringWriter(bufferSlice);
-            writer.WriteString(s);
-            _charsWritten += writer.CharsWritten;
+            AppendFormatted(s.AsSpan());
         }
 
         public void AppendFormatted<T>(T val)
@@ -268,6 +261,19 @@ public abstract class LoggingProvider : IDisposable
             Span<char> bufferSlice = _buffer.AsSpan(_charsWritten);
             formattable.TryFormat(bufferSlice, out int bytesWritten, default, default);
             _charsWritten += bytesWritten;
+        }
+
+        public void AppendFormatted(ReadOnlySpan<char> val)
+        {
+            if (_filtered) return;
+
+            AssertNotNull(_buffer);
+            if (_charsWritten >= _buffer.Length) return;
+
+            Span<char> bufferSlice = _buffer.AsSpan(_charsWritten);
+            if (bufferSlice.Length < val.Length) return;
+            val.CopyTo(bufferSlice);
+            _charsWritten += val.Length;
         }
 
         public void AppendSpan(ReadOnlySpan<char> span)
