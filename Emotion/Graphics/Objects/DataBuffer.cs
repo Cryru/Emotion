@@ -81,16 +81,18 @@ public class DataBuffer : IDisposable
     /// <param name="data">The data itself.</param>
     /// <param name="usage">What the buffer will be used for.</param>
     public void Upload<T>(T[] data, BufferUsage usage = BufferUsage.StreamDraw)
+        where T : unmanaged
     {
         Upload(data, data.Length, usage);
     }
 
-    public void Upload<T>(T[] data, int indexCount, BufferUsage usage = BufferUsage.StreamDraw)
+    public unsafe void Upload<T>(T[] data, int indexCount, BufferUsage usage = BufferUsage.StreamDraw)
+        where T : unmanaged
     {
         // Finish mapping - if it was.
         FinishMapping();
 
-        int byteSize = Marshal.SizeOf(data[0]);
+        int byteSize = sizeof(T);
         Size = (uint)(indexCount * byteSize);
 
         if (Engine.Renderer.Dsa)
@@ -129,12 +131,13 @@ public class DataBuffer : IDisposable
     }
 
     /// <inheritdoc cref="UploadPartial(IntPtr, uint, uint)" />
-    public void UploadPartial<T>(T[] data, uint offset = 0) where T : unmanaged
+    public unsafe void UploadPartial<T>(T[] data, uint offset = 0)
+        where T : unmanaged
     {
         // Finish mapping - if it was.
         FinishMapping();
 
-        int byteSize = Marshal.SizeOf(data[0]);
+        int byteSize = sizeof(T);
         var offsetPtr = (IntPtr)offset;
         var partSize = (uint)(data.Length * byteSize);
 
