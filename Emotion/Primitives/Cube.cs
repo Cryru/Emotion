@@ -214,7 +214,7 @@ public struct Cube
         return new Cube(center, halfExtent);
     }
 
-    public bool IntersectWithVertices<TIndex>(TIndex[] indices, int indexCount, VertexDataAllocation vertices, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
+    public bool IntersectWithVertices<TIndex>(TIndex[] indices, int indexCount, in VertexDataAllocation vertices, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
         where TIndex : INumber<TIndex>
     {
         collisionPoint = Vector3.Zero;
@@ -232,7 +232,7 @@ public struct Cube
             if (Intersects(triangle))
                 return true;
         }
-        
+
 
         //for (var i = 0; i < indexCount; i += 3)
         //{
@@ -385,18 +385,12 @@ public struct Cube
 
     #endregion
 
-    #region RenderStream Textures
+    #region RenderStream Draw
 
-    public void RenderSpriteOnFaces(Renderer r, Color color, IAssetContainingObject<Texture> textureAsset, Rectangle? textureArea = null)
+    public void RenderSpriteOnFaces(Renderer r, Color color, TextureReference textureAsset, Rectangle? textureArea = null)
     {
-        if (!textureAsset.Finished) return;
+        Texture? texture = textureAsset.GetObjectLoadinline();
 
-        Texture? texture = textureAsset.GetObject();
-        RenderSpriteOnFaces(r, color, texture ?? Texture.EmptyWhiteTexture, textureArea);
-    }
-
-    public void RenderSpriteOnFaces(Renderer r, Color color, Texture texture, Rectangle? textureArea = null)
-    {
         Cube theCube = this;
 
         Span<Vector3> baseVertices = stackalloc Vector3[8];
@@ -433,15 +427,15 @@ public struct Cube
 
         // Copy indices
         for (int i = 0; i < memory.IndicesData.Length; i++)
-            memory.IndicesData[i] = (ushort) (memory.StructIndex + memory.IndicesData[i]);
+            memory.IndicesData[i] = (ushort)(memory.StructIndex + memory.IndicesData[i]);
     }
 
     #endregion
 
     #region Unit Entity
 
-    private static MeshEntity? _unitCubeEntity;
-    private static object _unitCubeCreationLock = new object();
+    private static MeshEntity? _entity;
+    private static Lock _entityCreationLock = new();
 
     /// <summary>
     /// Get a mesh entity of a unit cube.
@@ -449,39 +443,29 @@ public struct Cube
     public static MeshEntity GetEntity()
     {
         // Check if created
-        if (_unitCubeEntity != null) return _unitCubeEntity;
-
-        // Wait for creation
-        lock (_unitCubeCreationLock)
-        {
-        }
-
-        // Recheck if created
-        if (_unitCubeEntity != null) return _unitCubeEntity;
+        if (_entity != null) return _entity;
 
         // Create
-        lock (_unitCubeCreationLock)
+        lock (_entityCreationLock)
         {
-            var vertexData = new VertexData[8];
-            var extraData = new VertexDataMesh3DExtra[8];
-            var indices = new ushort[36];
-
-            for (var ic = 0; ic < vertexData.Length; ic++)
-            {
-                vertexData[ic].Color = Color.WhiteUint;
-            }
+            // Recheck if created
+            if (_entity != null) return _entity;
 
             // Cube - 36 vertices, 12 triangles, 6 sides
             // Cube - 36 indices, 8 vertices, 6 quads
-            vertexData[0].Vertex = new Vector3(-0.5f, 0.5f, 0.5f);
-            vertexData[1].Vertex = new Vector3(0.5f, 0.5f, 0.5f);
-            vertexData[2].Vertex = new Vector3(0.5f, -0.5f, 0.5f);
-            vertexData[3].Vertex = new Vector3(-0.5f, -0.5f, 0.5f);
+            VertexDataAllocation alloc = VertexDataAllocation.Allocate(VertexData_Pos_UV_Normal.Format, 8);
+            Span<VertexData_Pos_UV_Normal> vertexData = alloc.GetAsSpan<VertexData_Pos_UV_Normal>();
+            ushort[] indices = new ushort[36];
 
-            vertexData[4].Vertex = new Vector3(-0.5f, 0.5f, -0.5f);
-            vertexData[5].Vertex = new Vector3(0.5f, 0.5f, -0.5f);
-            vertexData[6].Vertex = new Vector3(0.5f, -0.5f, -0.5f);
-            vertexData[7].Vertex = new Vector3(-0.5f, -0.5f, -0.5f);
+            vertexData[0].Position = new Vector3(-0.5f, 0.5f, 0.5f);
+            vertexData[1].Position = new Vector3(0.5f, 0.5f, 0.5f);
+            vertexData[2].Position = new Vector3(0.5f, -0.5f, 0.5f);
+            vertexData[3].Position = new Vector3(-0.5f, -0.5f, 0.5f);
+
+            vertexData[4].Position = new Vector3(-0.5f, 0.5f, -0.5f);
+            vertexData[5].Position = new Vector3(0.5f, 0.5f, -0.5f);
+            vertexData[6].Position = new Vector3(0.5f, -0.5f, -0.5f);
+            vertexData[7].Position = new Vector3(-0.5f, -0.5f, -0.5f);
 
             vertexData[0].UV = new Vector2(0, 0.5f);
             vertexData[1].UV = new Vector2(0.5f, 0.5f);
@@ -493,15 +477,15 @@ public struct Cube
             vertexData[6].UV = new Vector2(0.5f, 0);
             vertexData[7].UV = new Vector2(0, 0);
 
-            extraData[0].Normal = new Vector3(0, 0, 1);
-            extraData[1].Normal = new Vector3(0, 0, 1);
-            extraData[2].Normal = new Vector3(0, 0, 1);
-            extraData[3].Normal = new Vector3(0, 0, 1);
+            vertexData[0].Normal = new Vector3(0, 0, 1);
+            vertexData[1].Normal = new Vector3(0, 0, 1);
+            vertexData[2].Normal = new Vector3(0, 0, 1);
+            vertexData[3].Normal = new Vector3(0, 0, 1);
 
-            extraData[4].Normal = new Vector3(0, 0, -1);
-            extraData[5].Normal = new Vector3(0, 0, -1);
-            extraData[6].Normal = new Vector3(0, 0, -1);
-            extraData[7].Normal = new Vector3(0, 0, -1);
+            vertexData[4].Normal = new Vector3(0, 0, -1);
+            vertexData[5].Normal = new Vector3(0, 0, -1);
+            vertexData[6].Normal = new Vector3(0, 0, -1);
+            vertexData[7].Normal = new Vector3(0, 0, -1);
 
             // Front
             indices[00] = 0;
@@ -551,19 +535,10 @@ public struct Cube
             indices[34] = 7;
             indices[35] = 3;
 
-            _unitCubeEntity = new MeshEntity
-            {
-                Name = "Cube",
-                BackFaceCulling = true,
-                Scale = 1f,
-                Meshes = new[]
-                {
-                    new Mesh(vertexData, extraData, indices)
-                }
-            };
+            _entity = new MeshEntity([new Mesh(alloc, indices, MeshMaterial.DefaultMaterialTwoSided, "Cube")], "Cube");
         }
 
-        return _unitCubeEntity;
+        return _entity;
     }
 
     #endregion
