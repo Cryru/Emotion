@@ -468,8 +468,7 @@ public static partial class GLTFFormat
                     indicesAsUshort.CopyTo(indices);
                 }
 
-                // Determine vertex count from largest attribute, and whether we're expecting bones.
-                bool isSkinned = false;
+                // Determine vertex count from largest attribute
                 int vertexCount = 0;
                 foreach (KeyValuePair<string, JSONArrayIndexOrName> attribute in attributes)
                 {
@@ -477,9 +476,6 @@ public static partial class GLTFFormat
                     if (accessor == null) continue;
 
                     vertexCount = Math.Max(vertexCount, accessor.Count);
-
-                    if (attribute.Key == "JOINTS_0" || attribute.Key == "WEIGHTS_0")
-                        isSkinned = true;
                 }
 
                 // Split buffer if mapping into single buffer
@@ -504,19 +500,9 @@ public static partial class GLTFFormat
                     }
                 }
 
-                // Initialize vertices array
-                VertexData[] vertices = new VertexData[vertexCount];
-                VertexDataMesh3DExtra[] verticesExtraData = new VertexDataMesh3DExtra[vertexCount];
-                for (int i = 0; i < vertices.Length; i++)
-                {
-                    ref VertexData vert = ref vertices[i];
-                    vert.Color = Color.WhiteUint;
-                }
-
-                Mesh3DVertexDataBones[]? boneData = null;
-                if (isSkinned)
-                    boneData = new Mesh3DVertexDataBones[vertexCount];
-
+                // Create the vertex format
+                bool hasBones = false;
+                VertexDataFormat vertexFormat = new VertexDataFormat();
                 foreach (KeyValuePair<string, JSONArrayIndexOrName> attribute in attributes)
                 {
                     GLTFAccessor? accessor = attribute.Value.GetReferenced(gltfDoc.Accessors);
@@ -526,6 +512,52 @@ public static partial class GLTFFormat
                     switch (attributeKey)
                     {
                         case "POSITION":
+                            vertexFormat.AddVertexPosition();
+                            break;
+                        case "NORMAL":
+                            vertexFormat.AddNormal();
+                            break;
+                        case "TEXCOORD_0":
+                            vertexFormat.AddUV(0);
+                            break;
+                        case "TEXCOORD_1":
+                            vertexFormat.AddUV(1);
+                            break;
+                        case "JOINTS_0":
+                            hasBones = true;
+                            break;
+                        case "WEIGHTS_0":
+                            hasBones = true;
+                            break;
+                    }
+                }
+                if (hasBones)
+                    vertexFormat.AddBoneData();
+                vertexFormat.Build();
+
+                // Read vertex data
+                // todo: Can we figure out some sort of scheme where we build a vertex format aroudn the accessor data and just straight up copy it
+                VertexDataAllocation vertexData = VertexDataAllocation.Allocate(vertexFormat, vertexCount);
+                foreach (KeyValuePair<string, JSONArrayIndexOrName> attribute in attributes)
+                {
+                    GLTFAccessor? accessor = attribute.Value.GetReferenced(gltfDoc.Accessors);
+                    if (accessor == null) continue;
+
+                    string attributeKey = attribute.Key;
+                    switch (attributeKey)
+                    {
+                        case "POSITION":
+                            {
+                                AccessorReader<Vector3> accessorData = GetAccessorDataAsType<Vector3>(gltfDoc, accessor);
+
+                                for (int i = 0; i < vertexCount; i++)
+                                {
+                                    Vector3 pos = accessorData.ReadElement(vertexOffset + i);
+                                    if (makeLeftHanded) pos.Z = -pos.Z;
+                                    vertexData.SetVertexPositionAtIndex(i, pos);
+                                }
+                                break;
+                            }
                         case "NORMAL":
                             {
                                 AccessorReader<Vector3> accessorData = GetAccessorDataAsType<Vector3>(gltfDoc, accessor);
@@ -534,67 +566,45 @@ public static partial class GLTFFormat
                                 {
                                     Vector3 pos = accessorData.ReadElement(vertexOffset + i);
                                     if (makeLeftHanded) pos.Z = -pos.Z;
-
-                                    if (attributeKey == "POSITION")
-                                    {
-                                        ref VertexData vert = ref vertices[i];
-                                        vert.Vertex = pos;
-                                    }
-                                    else if (attributeKey == "NORMAL")
-                                    {
-                                        ref VertexDataMesh3DExtra vert = ref verticesExtraData[i];
-                                        vert.Normal = pos;
-                                    }
+                                    vertexData.SetNormalAtIndex(i, pos);
                                 }
                                 break;
                             }
                         case "TEXCOORD_0":
-                        case "TEXCOORD_1": // todo
+                        case "TEXCOORD_1":
+                            // todo iterate all TEXCOORD
                             {
                                 AccessorReader<Vector2> accessorData = GetAccessorDataAsType<Vector2>(gltfDoc, accessor);
+                                int uvIdx = attributeKey == "TEXCOORD_0" ? 0 : 1;
 
                                 for (int i = 0; i < vertexCount; i++)
                                 {
                                     Vector2 pos = accessorData.ReadElement(vertexOffset + i);
-
                                     if (invertUVVertical)
                                         pos.Y = -pos.Y;
-
-                                    if (attributeKey == "TEXCOORD_0")
-                                    {
-                                        ref VertexData vert = ref vertices[i];
-                                        vert.UV = pos;
-                                    }
+                                    vertexData.SetUVAtIndex(uvIdx, i, pos);
                                 }
                                 break;
                             }
-                        case "JOINTS_0" when isSkinned:
+                        case "JOINTS_0" when hasBones:
                             {
-                                AssertNotNull(boneData);
-
                                 AccessorReader<Vector4> accessorData = GetAccessorDataAsType<Vector4>(gltfDoc, accessor);
 
                                 for (int i = 0; i < vertexCount; i++)
                                 {
                                     Vector4 joints = accessorData.ReadElement(vertexOffset + i);
-
-                                    ref Mesh3DVertexDataBones vert = ref boneData[i];
-                                    vert.BoneIds = joints;
+                                    vertexData.SetBoneIdAtIndex(i, joints);
                                 }
                                 break;
                             }
-                        case "WEIGHTS_0" when isSkinned:
+                        case "WEIGHTS_0" when hasBones:
                             {
-                                AssertNotNull(boneData);
-
                                 AccessorReader<Vector4> accessorData = GetAccessorDataAsType<Vector4>(gltfDoc, accessor);
 
                                 for (int i = 0; i < vertexCount; i++)
                                 {
                                     Vector4 weights = accessorData.ReadElement(vertexOffset + i);
-
-                                    ref Mesh3DVertexDataBones vert = ref boneData[i];
-                                    vert.BoneWeights = weights;
+                                    vertexData.SetBoneWeightsAtIndex(i, weights);
                                 }
                                 break;
                             }
@@ -615,12 +625,7 @@ public static partial class GLTFFormat
                 if (gltfMesh.Name == string.Empty) meshName = $"Mesh {m}";
                 if (p > 0) meshName = $" - Primitive {p}";
 
-                Mesh mesh = new Mesh(meshName, vertices, verticesExtraData, indices)
-                {
-                    Material = material,
-                    BoneData = boneData
-                };
-                meshes[currentMeshId] = mesh;
+                meshes[currentMeshId] = new Mesh(vertexData, indices, material, meshName);
                 currentMeshId++;
             }
         }
@@ -664,11 +669,10 @@ public static partial class GLTFFormat
             skins[skinIdx] = skin;
         }
 
-        MeshEntity entity = new MeshEntity()
+        MeshEntity entity = new MeshEntity(meshes)
         {
-            Name = "Unknown Entity Name", // Overriden by MeshAsset
+            Name = "Unknown Entity Name", // Will be overriden by MeshAsset
             LocalTransform = Matrix4x4.CreateRotationX(90 * Maths.DEG2_RAD), // Y up to Z up since GLTF is Y up
-            Meshes = meshes,
             AnimationRig = rigNodes,
             Animations = animations,
             AnimationSkins = skins,
