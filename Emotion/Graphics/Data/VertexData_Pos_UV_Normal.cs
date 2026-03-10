@@ -3,13 +3,12 @@
 namespace Emotion.Graphics.Data;
 
 [StructLayout(LayoutKind.Sequential)]
-public struct VertexData_Pos_UV_Normal_Color
+public struct VertexData_Pos_UV_Normal
 {
     public readonly static VertexDataFormat Format = new VertexDataFormat()
         .AddVertexPosition()
         .AddUV(1)
         .AddNormal()
-        .AddVertexColor()
         .Build();
 
     public Vector3 Position;
@@ -17,6 +16,4 @@ public struct VertexData_Pos_UV_Normal_Color
     public Vector2 UV;
 
     public Vector3 Normal;
-
-    public uint Color;
 }

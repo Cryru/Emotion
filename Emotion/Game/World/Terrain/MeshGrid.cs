@@ -382,7 +382,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
 
         // todo: demote chunk to data only before freeing
         RemoveChunkFromLoadedList(chunkCoord);
-        VertexDataAllocation.FreeAllocated(ref newChunk.VertexMemory);
+        VertexDataAllocation.FreeAllocated(newChunk.VertexMemory);
         GPUMemoryAllocator.FreeBuffer(newChunk.GPUVertexMemory);
     }
 

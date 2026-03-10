@@ -5,6 +5,7 @@ using Emotion.Game.World.Terrain.MeshGridStreaming;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
+using Emotion.Graphics.Shader;
 using Emotion.Graphics.Shading;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 using System.Runtime.InteropServices;
@@ -83,7 +84,8 @@ public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, us
         {
             FaceCulling = true,
             FaceCullingBackFace = true,
-            Shader = "Shaders3D/TerrainShaderNew.glsl"
+            ShaderGroup = "Shaders3D/TerrainShaderNew.glsl",
+            ShaderGroupDefinition = new ShaderGroupDefinition(TerrainVertex.Format)
         }
     };
 

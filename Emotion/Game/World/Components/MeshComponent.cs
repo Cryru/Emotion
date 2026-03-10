@@ -230,33 +230,13 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
 
     public virtual void Render(Renderer r)
     {
-        r.MeshEntityRenderer.EnsureAssetsLoaded();
-
-        r.MeshEntityRenderer.StartScene(r);
-        r.MeshEntityRenderer.SubmitObjectForRendering(this, _entity, RenderState);
-        //r.MeshEntityRenderer.EndScene(r, LightConfig.Default);
-
-        // Temp normal visualization code
-        // ignore :)
-        //int maxNormal = 1000;
-        //var firstMesh = _entity.Meshes[0];
-        //var verts = firstMesh.Vertices;
-        //var vertData = firstMesh.ExtraVertexData;
-        //for (int i = 0; i < verts.Length; i++)
-        //{
-        //    Graphics.Data.VertexData vert = verts[i];
-        //    Graphics.Data.VertexDataMesh3DExtra extraData = vertData[i];
-        //    Vector3 norm = extraData.Normal;
-        //    c.RenderLine(vert.Vertex, vert.Vertex + norm * 2.5f, Color.Red, 0.05f);
-
-        //    if (i > maxNormal) break;
-        //}
+        r.MeshEntityRenderer.AddToCurrentScene(r, RenderState);
     }
 
     public void DebugDrawSkeleton(Renderer c)
     {
-        SkeletonAnimRigNode[]? rig = _entity?.AnimationRig;
-        if (rig == null) return;
+        SkeletonAnimRigNode[] rig = _entity.AnimationRig;
+        if (rig.Length == 0) return;
         if (RenderState == null) return;
 
         c.SetDepthTest(false);

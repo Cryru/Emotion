@@ -10,14 +10,26 @@ public interface IVertexDataFormatStruct
     public static abstract VertexDataFormat Format { get; }
 }
 
-public sealed class VertexDataFormat
+public enum VertexDataFormatAttributeType : int
 {
-    public static VertexDataFormat Default2D = new VertexDataFormat()
-        .AddVertexPosition()
-        .AddUV(1)
-        .AddVertexColor()
-        .Build();
+    None,
+    Position,
+    UV,
+    Normal,
+    VertexColor,
+    BoneIds,
+    BoneWeights,
 
+    CustomStart,
+    Custom0,
+    Custom1,
+    Custom2,
+    Custom3,
+    Custom4
+}
+
+public sealed class VertexDataFormat : IEquatable<VertexDataFormat>
+{
     public bool Built { get; private set; }
 
     public int ElementSize { get; private set; }
@@ -31,6 +43,8 @@ public sealed class VertexDataFormat
     public bool HasVertexColors { get; private set; }
 
     public bool HasBones { get; private set; }
+
+    public int Hash { get; private set; }
 
     private const int POSITION_SIZE = sizeof(float) * 3; // Vector3
     private const int UV_SIZE = sizeof(float) * 2; // Vector2 (per UV)
@@ -93,23 +107,55 @@ public sealed class VertexDataFormat
     {
         if (Built) return this;
 
+        int hash = 0;
         int elementSize = 0;
-        if (HasPosition) elementSize += POSITION_SIZE;
-        if (HasUVCount > 0) elementSize += UV_SIZE * HasUVCount;
-        if (HasNormals) elementSize += NORMAL_SIZE;
-        if (HasVertexColors) elementSize += COLOR_SIZE;
-        if (HasBones) elementSize += BONE_DATA_SIZE;
+        if (HasPosition)
+        {
+            elementSize += POSITION_SIZE;
+            hash += "Position".GetStableHashCode();
+        }
+
+        if (HasUVCount > 0)
+        {
+            elementSize += UV_SIZE * HasUVCount;
+
+            int uvHash = "UV".GetStableHashCode();
+            hash += uvHash * HasUVCount;
+        }
+
+        if (HasNormals)
+        {
+            elementSize += NORMAL_SIZE;
+            hash += "Normal".GetStableHashCode();
+        }
+
+        if (HasVertexColors)
+        {
+            elementSize += COLOR_SIZE;
+            hash += "Color".GetStableHashCode();
+        }
+
+        if (HasBones)
+        {
+            elementSize += BONE_DATA_SIZE;
+            hash += "Bones".GetStableHashCode();
+        }
 
         if (CustomData != null)
         {
+            int customIdx = 1;
             CustomDataByteOffset = elementSize;
             foreach (int size in CustomData)
             {
                 elementSize += sizeof(float) * size;
+
+                hash += size * customIdx;
+                customIdx++;
             }
         }
 
         ElementSize = elementSize;
+        Hash = hash;
 
         Built = true;
         return this;
@@ -192,48 +238,89 @@ public sealed class VertexDataFormat
 
     #endregion
 
-    #region Shader Interop
+    #region Generic Helpers
 
-    public void GetDescriptionForShader(StringBuilder b)
+    public bool AddAttribute(VertexDataFormatAttributeType type)
     {
-        // $"VERTEX_ATTRIBUTE({nextLocation}, Vector3, vertPos)"
+        if (Built)
+            return false;
 
-        int nextLocation = 0;
-        if (HasPosition)
+        switch (type)
         {
-            b.AppendLine($"layout(location = {nextLocation})in vec3 vertPos");
-            nextLocation++;
+            case VertexDataFormatAttributeType.Position:
+                AddVertexPosition();
+                return true;
+            case VertexDataFormatAttributeType.UV:
+                AddUV(1);
+                return true;
+            case VertexDataFormatAttributeType.VertexColor:
+                AddVertexColor();
+                return true;
+            case VertexDataFormatAttributeType.Normal:
+                AddNormal();
+                return true;
+            case VertexDataFormatAttributeType.BoneIds:
+            case VertexDataFormatAttributeType.BoneWeights:
+                AddBoneData();
+                return true;
+            default:
+                {
+                    if (type > VertexDataFormatAttributeType.CustomStart)
+                    {
+                        AddCustomVector4();
+                        return true;
+                    }
+                    break;
+                }
         }
-        if (HasUVCount > 0)
-        {
-            for (int i = 0; i < HasUVCount; i++)
-            {
-                if (i == 0)
-                    b.AppendLine($"layout(location = {nextLocation})in vec2 uv");
-                else
-                    b.AppendLine($"layout(location = {nextLocation})in vec2 uv_{i + 1}");
 
-                nextLocation++;
-            }
-        }
-        if (HasNormals)
+        return false;
+    }
+
+    public bool HasAttribute(VertexDataFormatAttributeType type)
+    {
+        switch (type)
         {
-            b.AppendLine($"layout(location = {nextLocation})in vec3 normal");
-            nextLocation++;
+            case VertexDataFormatAttributeType.Position:
+                return HasPosition;
+            case VertexDataFormatAttributeType.UV:
+                return HasUVCount > 0;
+            case VertexDataFormatAttributeType.VertexColor:
+                return HasVertexColors;
+            case VertexDataFormatAttributeType.Normal:
+                return HasNormals;
+            case VertexDataFormatAttributeType.BoneIds:
+            case VertexDataFormatAttributeType.BoneWeights:
+                return HasBones;
+            default:
+                {
+                    if (type > VertexDataFormatAttributeType.CustomStart)
+                    {
+                        int customIdx = type - VertexDataFormatAttributeType.CustomStart;
+                        return CustomData != null && CustomData.Count >= customIdx;
+                    }
+                    break;
+                }
         }
-        if (HasVertexColors)
-        {
-            b.AppendLine($"layout(location = {nextLocation})in vec4 color");
-            nextLocation++;
-        }
-        if (HasBones)
-        {
-            b.AppendLine($"layout(location = {nextLocation})in vec4 boneIds");
-            nextLocation++;
-            b.AppendLine($"layout(location = {nextLocation})in vec4 boneWeights");
-            nextLocation++;
-        }
+
+        return false;
     }
 
     #endregion
+
+    public override string ToString()
+    {
+        return $"VertexFormat {Hash} {(HasPosition ? "P" : "")}{(HasUVCount > 0 ? $"U({HasUVCount})" : "")}{(HasNormals ? $"N" : "")}{(HasVertexColors ? $"C" : "")}{(HasBones ? $"B" : "")}{(CustomData != null ? $"X({CustomData.Count})" : "")}";
+    }
+
+    public override int GetHashCode()
+    {
+        return Hash;
+    }
+
+    public bool Equals(VertexDataFormat? other)
+    {
+        if (other == null) return false;
+        return other.Hash == Hash;
+    }
 }

@@ -1,25 +1,9 @@
-﻿#define V_POSITION vertPos
-#define V_NORMAL normal
-#define V_COLOR vertColor
-#define V_UV uv
-
-#define F_POSITION fragPosition
-#define F_NORMAL fragNormal
-
-#ifdef VERT_SHADER
-
-#define VERTEX_ATTRIBUTE(loc, typ, name) layout(location = loc) in typ name
-#define VERTEX_ATTRIBUTE_LINE_TWO(loc, typ, name) out typ pass_##name
-#define VERTEX_ATTRIBUTE_WORK(loc, typ, name) pass_##name = name
-
+﻿#ifdef VERT_SHADER
+    #define VERT_TO_FRAGMENT out
 #endif
 
 #ifdef FRAG_SHADER
-
-#define VERTEX_ATTRIBUTE(loc, typ, name) in typ pass_##name
-#define VERTEX_ATTRIBUTE_LINE_TWO(loc, typ, name) typ name = pass_##name
-#define RETURN_DEBUG_NORMAL return vec4((F_NORMAL + vec3(1.0)) / 2.0, 1.0);
-
+    #define VERT_TO_FRAGMENT in
 #endif
 
 #define Vector4 vec4

@@ -47,7 +47,7 @@ public static class GPUMemoryAllocator
 
     public static IndexBuffer RentIndexBuffer(int desiredLength = -1)
     {
-        if (desiredLength == -1)
+        if (true)
         {
             if(_freeIBO.Count > 0)
             {

@@ -16,6 +16,7 @@ public class Mesh
 {
     private const string DEFAULT_MESH_NAME = "Untitled";
 
+    public bool Valid;
     public string Name;
 
     public MeshMaterial Material = MeshMaterial.DefaultMaterial;
@@ -27,7 +28,7 @@ public class Mesh
 
     public int AnimationSkin = 0;
 
-    public VertexDataFormat VertexFormat;
+    public VertexDataFormat VertexFormat { get => VertexAllocation.Format; }
     public VertexDataAllocation VertexAllocation;
 
     public Mesh(VertexData[] vertices, VertexDataMesh3DExtra[] extraData, ushort[] indices)
@@ -48,21 +49,24 @@ public class Mesh
         Material = MeshMaterial.DefaultMaterial;
     }
 
-    public Mesh(VertexDataFormat format, VertexDataAllocation memory, ushort[] indices)
+    public Mesh(VertexDataAllocation memory, ushort[] indices, MeshMaterial? material = null, string? name = null)
     {
-        VertexFormat = format;
         VertexAllocation = memory;
         Indices = indices;
+        Material = material ?? MeshMaterial.DefaultMaterial;
+        Name = name ?? DEFAULT_MESH_NAME;
+        Valid = true;
     }
 
-    // Serialization constructor.
-    protected Mesh()
+    public void Dispose()
     {
-        Name = DEFAULT_MESH_NAME;
-        Vertices = null!;
-        ExtraVertexData = null!;
+        if (!Valid) return;
+
+        VertexDataAllocation.FreeAllocated(VertexAllocation);
+        VertexAllocation = null!;
+
         Indices = null!;
-        Material = MeshMaterial.DefaultMaterial;
+        Valid = false;
     }
 
     public override string ToString()
@@ -92,28 +96,6 @@ public class Mesh
 
     #region Transformations
 
-    public Mesh TransformMeshVertices(Matrix4x4 mat)
-    {
-        VertexData[]? vertices = Vertices;
-        for (var i = 0; i < vertices.Length; i++)
-        {
-            ref Vector3 vertex = ref vertices[i].Vertex;
-            vertices[i].Vertex = Vector3.Transform(vertex, mat);
-        }
-
-        VertexDataMesh3DExtra[] extraData = ExtraVertexData;
-        if (extraData != null)
-        {
-            for (var i = 0; i < extraData.Length; i++)
-            {
-                ref Vector3 vertex = ref extraData[i].Normal;
-                extraData[i].Normal = Vector3.TransformNormal(vertex, mat);
-            }
-        }
-
-        return this;
-    }
-
     public Mesh ColorMeshVertices(Color col)
     {
         uint val = col.ToUint();
@@ -141,56 +123,86 @@ public class Mesh
         return this;
     }
 
-    public static Mesh ShallowCopyMesh(Mesh m1)
+    public static unsafe Mesh CombineMeshes(
+        Mesh m1,
+        Matrix4x4 transformM1,
+        Mesh m2,
+        Matrix4x4 transformM2,
+        MeshMaterial material,
+        string name
+    )
     {
-        return new Mesh()
+        var alloc1 = m1.VertexAllocation;
+        var alloc2 = m2.VertexAllocation;
+
+        if (m1.VertexFormat != m2.VertexFormat)
         {
-            Vertices = m1.Vertices,
-            ExtraVertexData = m1.ExtraVertexData,
-            Indices = m1.Indices,
-            BoneData = m1.BoneData,
-            Material = m1.Material,
-            Name = m1.Name + "_Copy"
-        };
-    }
-
-    public static Mesh ShallowCopyMesh_DeepCopyVertexData(Mesh m1)
-    {
-        return new Mesh()
-        {
-            Vertices = (VertexData[]) m1.Vertices.Clone(),
-            ExtraVertexData = (VertexDataMesh3DExtra[]) m1.ExtraVertexData.Clone(),
-            Indices = m1.Indices,
-            BoneData = m1.BoneData,
-            Material = m1.Material,
-            Name = m1.Name + "_Copy"
-        };
-    }
-
-    public static Mesh CombineMeshes(Mesh m1, Mesh m2, string name)
-    {
-        var m = new Mesh(
-            name,
-            new VertexData[m1.Vertices.Length + m2.Vertices.Length],
-            new VertexDataMesh3DExtra[m1.ExtraVertexData.Length + m2.ExtraVertexData.Length],
-            new ushort[m1.Indices.Length + m2.Indices.Length]);
-
-        m1.Vertices.CopyTo(new Span<VertexData>(m.Vertices));
-        m2.Vertices.CopyTo(new Span<VertexData>(m.Vertices, m1.Vertices.Length, m2.Vertices.Length));
-        m1.ExtraVertexData.CopyTo(new Span<VertexDataMesh3DExtra>(m.ExtraVertexData));
-        m2.ExtraVertexData.CopyTo(new Span<VertexDataMesh3DExtra>(m.ExtraVertexData, m1.ExtraVertexData.Length, m2.ExtraVertexData.Length));
-        m1.Indices.CopyTo(new Span<ushort>(m.Indices));
-        m2.Indices.CopyTo(new Span<ushort>(m.Indices, m1.Indices.Length, m2.Indices.Length));
-
-        int vertexOffset = m1.Vertices.Length;
-        for (int i = m1.Indices.Length; i < m.Indices.Length; i++)
-        {
-            m.Indices[i] = (ushort) (m.Indices[i] + vertexOffset);
+            Assert(false, "Tried combining meshes with different vertex formats.");
+            return m1;
         }
 
-        m.Material = m1.Material;
+        int totalVertices = alloc1.VertexCount + alloc2.VertexCount;
+        VertexDataAllocation combinedVerts = VertexDataAllocation.Allocate(alloc1.Format, totalVertices);
 
-        return m;
+        Span<byte> mem1 = new Span<byte>((byte*) alloc1.Pointer, alloc1.VertexCount * alloc1.Format.ElementSize);
+        Span<byte> mem2 = new Span<byte>((byte*) alloc2.Pointer, alloc2.VertexCount * alloc2.Format.ElementSize);
+
+        Span<byte> memNew = new Span<byte>((byte*)combinedVerts.Pointer, totalVertices * alloc1.Format.ElementSize);
+        mem1.CopyTo(memNew);
+        mem2.CopyTo(memNew.Slice(mem1.Length));
+
+        ushort[] combinedIndices = new ushort[m1.Indices.Length + m2.Indices.Length];
+        m1.Indices.CopyTo(combinedIndices);
+        m2.Indices.CopyTo(combinedIndices, m1.Indices.Length);
+
+        // Offset the indices in the second part
+        int vertexOffset = alloc1.VertexCount;
+        for (int i = m1.Indices.Length; i < combinedIndices.Length; i++)
+        {
+            combinedIndices[i] = (ushort)(combinedIndices[i] + vertexOffset);
+        }
+
+        bool hasNormals = alloc1.Format.HasNormals;
+        for (int i = 0; i < alloc1.VertexCount; i++)
+        {
+            Vector3 vert = combinedVerts.GetVertexPositionAtIndex(i);
+            vert = Vector3.Transform(vert, transformM1);
+            combinedVerts.SetVertexPositionAtIndex(i, vert);
+
+            if (hasNormals)
+            {
+                Vector3 norm = combinedVerts.GetNormalAtIndex(i);
+                norm = Vector3.TransformNormal(norm, transformM1);
+                combinedVerts.SetNormalAtIndex(vertexOffset + i, norm);
+            }
+        }
+
+        for (int i = 0; i < alloc2.VertexCount; i++)
+        {
+            Vector3 vert = combinedVerts.GetVertexPositionAtIndex(vertexOffset + i);
+            vert = Vector3.Transform(vert, transformM2);
+            combinedVerts.SetVertexPositionAtIndex(vertexOffset + i, vert);
+
+            if (hasNormals)
+            {
+                Vector3 norm = combinedVerts.GetNormalAtIndex(vertexOffset + i);
+                norm = Vector3.TransformNormal(norm, transformM2);
+                combinedVerts.SetNormalAtIndex(vertexOffset + i, norm);
+            }
+        }
+
+        Mesh combinedMesh = new Mesh(combinedVerts, combinedIndices, material, name);
+
+        m1.Dispose();
+        m2.Dispose();
+
+        return combinedMesh;
+    }
+
+    [Obsolete("DELETE MEEEE")]
+    public Mesh TransformMeshVertices(Matrix4x4 tra)
+    {
+        return this;
     }
 
     #endregion

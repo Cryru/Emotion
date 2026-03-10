@@ -16,6 +16,8 @@ namespace Emotion.Game.World.ThreeDee;
 /// </summary>
 public class MeshEntity
 {
+    private const string DEFAULT_ENTITY_NAME = "Untitled";
+
     public string Name { get; set; } = string.Empty;
 
     public float Scale { get; set; } = 1f;
@@ -38,6 +40,17 @@ public class MeshEntity
 
     // Caches
     private Dictionary<string, (Sphere, Cube)> _cachedBounds = new();
+
+    public MeshEntity(Mesh[] meshes, string? name = null)
+    {
+        Meshes = meshes;
+        Name = name ?? DEFAULT_ENTITY_NAME;
+    }
+
+    public MeshEntity()
+    {
+
+    }
 
     public Mesh? GetMeshByName(string id)
     {
@@ -145,119 +158,14 @@ public class MeshEntity
         for (var i = 0; i < meshes.Length; i++)
         {
             Mesh mesh = meshes[i];
-            var boneCount = 1; // idx 0 is identity
-            //if (mesh.Bones != null) boneCount += mesh.Bones.Length;
-
-            var mats = new Matrix4x4[boneCount];
-            for (int m = 0; m < boneCount; m++)
+            VertexDataAllocation vertexAllocation = mesh.VertexAllocation;
+            foreach (var vPos in vertexAllocation.ForEachVertexPosition())
             {
-                mats[m] = Matrix4x4.Identity;
-            }
-            boneMatricesPerMesh[i] = mats;
-        }
-
-        for (var i = 0; i < meshes.Length; i++)
-        {
-            Mesh mesh = meshes[i];
-            VertexData[] meshVertices = mesh.Vertices;
-            Mesh3DVertexDataBones[]? boneData = mesh.BoneData;
-
-            // Non animated mesh ezpz
-            if (boneData == null)
-            {
-                for (var v = 0; v < meshVertices.Length; v++)
-                {
-                    yield return meshVertices[v].Vertex;
-                }
-
-                continue;
-            }
-
-            // We will calculate the bone matrices by sampling keyframes and sum
-            // up their bounds and get the total animated bound.
-            SkeletalAnimation? currentAnimation = null;
-            for (var j = 0; j < Animations?.Length; j++)
-            {
-                SkeletalAnimation anim = Animations[j];
-                if (anim.Name == animation)
-                {
-                    currentAnimation = anim;
-                    break;
-                }
-            }
-
-            // If there is a current animation go through all key frames.
-            SkeletonAnimChannel[]? channels = currentAnimation?.AnimChannels;
-            int channelLength = channels?.Length ?? 1;
-
-            for (var j = 0; j < channelLength; j++)
-            {
-                MeshAnimBoneTranslation[] positionFrames;
-                if (channels != null)
-                {
-                    // Going through every single frame is too heavy.
-                    // SkeletonAnimChannel channel = channels[j];
-                    // positionFrames = channel.Positions; 
-
-                    float animationDuration = currentAnimation!.Duration;
-                    positionFrames = new[]
-                    {
-                        new MeshAnimBoneTranslation
-                        {
-                            Timestamp = 0
-                        },
-                        new MeshAnimBoneTranslation
-                        {
-                            Timestamp = animationDuration * 0.25f
-                        },
-                        new MeshAnimBoneTranslation
-                        {
-                            Timestamp = animationDuration * 0.5f
-                        },
-                        new MeshAnimBoneTranslation
-                        {
-                            Timestamp = animationDuration
-                        }
-                    };
-                }
-                else
-                {
-                    positionFrames = new[]
-                    {
-                        new MeshAnimBoneTranslation
-                        {
-                            Timestamp = 0
-                        }
-                    };
-                }
-
-                for (var k = 0; k < positionFrames.Length; k++)
-                {
-                    // todo
-                    //CalculateBoneMatrices(currentAnimation, boneMatricesPerMesh, positionFrames[k].Timestamp);
-
-                    Matrix4x4[] bonesForThisMesh = boneMatricesPerMesh[i];
-                    for (var v = 0; v < boneData.Length; v++)
-                    {
-                        Mesh3DVertexDataBones vertexData = boneData[v];
-                        Vector3 vertex = meshVertices[v].Vertex;
-
-                        Vector3 vertexTransformed = vertex;
-                        //for (var w = 0; w < 4; w++)
-                        //{
-                        //    float boneId = vertexData.BoneIds[w];
-                        //    float weight = vertexData.BoneWeights[w];
-
-                        //    Matrix4x4 boneMat = bonesForThisMesh[(int)boneId];
-                        //    Vector3 thisWeightPos = Vector3.Transform(vertex, boneMat);
-                        //    vertexTransformed += thisWeightPos * weight;
-                        //}
-
-                        yield return vertexTransformed;
-                    }
-                }
+                yield return vPos;
             }
         }
+
+        // todo: animation
     }
 
     public static void PostProcess_FixAnimationRigOrder(MeshEntity entity)

@@ -1,12 +1,12 @@
-﻿#region Using
+﻿#nullable enable
+
+#region Using
 
 using Emotion.Core.Systems.IO;
 using Emotion.Graphics.Assets;
 using Emotion.Graphics.Shader;
 
 #endregion
-
-#nullable enable
 
 namespace Emotion.Game.World.ThreeDee;
 
@@ -23,18 +23,37 @@ public class MeshMaterial
 
     public Texture DiffuseTexture = Texture.EmptyWhiteTexture;
 
-    public RenderState State = RenderState.Default;
+    public RenderState State;
 
     public MeshMaterial()
     {
-        State = RenderState.Default;
-        //State.ShaderName = "Shaders3D/MeshShader.glsl";
-        State.Shader = "Shaders/MeshShader.xml";
+        State = new RenderState
+        {
+            ShaderGroup = "Shaders3D/MeshShader.glsl"
+        };
     }
 
     public static MeshMaterial DefaultMaterial = new MeshMaterial
     {
         Name = "Default"
+    };
+
+    public static MeshMaterial DefaultMaterialTwoSided = new MeshMaterial
+    {
+        Name = "Default",
+        State =
+        {
+            FaceCulling = true
+        }
+    };
+
+    public static MeshMaterial DefaultMaterialOneSided = new MeshMaterial
+    {
+        Name = "Default",
+        State =
+        {
+            FaceCulling = false
+        }
     };
 
     public Texture GetDiffuseTexture()
@@ -55,5 +74,7 @@ public class MeshMaterial
 
         if (State.Shader.Type == AssetReferenceType.AssetName)
             Engine.AssetLoader.Get<ShaderAsset>(State.Shader.AssetName, this);
+
+        State.ShaderGroup.ResolveAsset();
     }
 }

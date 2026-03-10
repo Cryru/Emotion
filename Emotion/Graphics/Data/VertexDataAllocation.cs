@@ -4,15 +4,11 @@ using Emotion.Standard.Memory;
 
 namespace Emotion.Graphics.Data;
 
-public struct VertexDataAllocation
+public class VertexDataAllocation
 {
-    public static VertexDataAllocation Empty = new();
-
     public bool Allocated { get; set; }
-
-    public nint Pointer { get; init; } = nint.Zero;
-
-    public int VertexCount { get; init; } = 0;
+    public nint Pointer { get; init; }
+    public int VertexCount { get; init; }
 
     public VertexDataFormat Format { get; init; }
 
@@ -57,8 +53,9 @@ public struct VertexDataAllocation
         return new VertexDataAllocation(newPtr, vertexCount, old.Format);
     }
 
-    public static void FreeAllocated(ref VertexDataAllocation mem)
+    public static void FreeAllocated(VertexDataAllocation? mem)
     {
+        if (mem == null) return;
         if (!mem.Allocated) return;
         mem.Allocated = false;
         UnmanagedMemoryAllocator.Free(mem.Pointer);
@@ -74,6 +71,8 @@ public struct VertexDataAllocation
         return new Span<T>((void*)Pointer, VertexCount);
     }
 
+    #region Getters
+
     public Vector3 GetVertexPositionAtIndex(int idx)
     {
         if (!Format.HasPosition) return Vector3.Zero;
@@ -85,13 +84,157 @@ public struct VertexDataAllocation
 
         Format.GetVertexPositionOffsetAndStride(out int byteOffset, out int byteStride);
         vertMem += byteOffset + byteStride * idx;
-
-        Vector3 v;
         unsafe
         {
-            return  *(Vector3*)vertMem;
+            return *(Vector3*)vertMem;
         }
     }
+
+    public Vector3 GetNormalAtIndex(int idx)
+    {
+        if (!Format.HasNormals) return Vector3.Zero;
+        if (!Allocated) return Vector3.Zero;
+        if (idx >= VertexCount) return Vector3.Zero;
+
+        nint vertMem = Pointer;
+        Assert(vertMem != 0);
+
+        Format.GetNormalOffsetAndStride(out int byteOffset, out int byteStride);
+        vertMem += byteOffset + byteStride * idx;
+        unsafe
+        {
+            return *(Vector3*)vertMem;
+        }
+    }
+
+    public unsafe Triangle GetTriangleAtIndices<TIndex>(TIndex i1, TIndex i2, TIndex i3) where TIndex : INumber<TIndex>
+    {
+        if (!Format.HasPosition) return Triangle.Invalid;
+        if (!Allocated) return Triangle.Invalid;
+
+        nint vertMem = Pointer;
+        Assert(vertMem != 0);
+
+        Format.GetVertexPositionOffsetAndStride(out int byteOffset, out int byteStride);
+        vertMem += byteOffset;
+
+        uint idx1AsInt = uint.CreateTruncating(i1);
+        uint idx2AsInt = uint.CreateTruncating(i2);
+        uint idx3AsInt = uint.CreateTruncating(i3);
+
+        Vector3 v1 = *(Vector3*)(vertMem + byteStride * idx1AsInt);
+        Vector3 v2 = *(Vector3*)(vertMem + byteStride * idx2AsInt);
+        Vector3 v3 = *(Vector3*)(vertMem + byteStride * idx3AsInt);
+
+        return new Triangle(v1, v2, v3);
+    }
+
+    #endregion
+
+    #region Setters
+
+    public bool SetVertexPositionAtIndex(int idx, Vector3 pos)
+    {
+        if (!Format.HasPosition) return false;
+        if (!Allocated) return false;
+        if (idx >= VertexCount) return false;
+
+        nint mem = Pointer;
+        Assert(mem != 0);
+
+        Format.GetVertexPositionOffsetAndStride(out int byteOffset, out int byteStride);
+        mem += byteOffset + byteStride * idx;
+
+        unsafe
+        {
+            *(Vector3*)mem = pos;
+        }
+        return true;
+    }
+
+    public bool SetNormalAtIndex(int idx, Vector3 pos)
+    {
+        if (!Format.HasNormals) return false;
+        if (!Allocated) return false;
+        if (idx >= VertexCount) return false;
+
+        nint vertMem = Pointer;
+        Assert(vertMem != 0);
+
+        Format.GetNormalOffsetAndStride(out int byteOffset, out int byteStride);
+        vertMem += byteOffset + byteStride * idx;
+
+        unsafe
+        {
+            *(Vector3*)vertMem = pos;
+        }
+        return true;
+    }
+
+    public bool SetUVAtIndex(int uvIdx, int idx, Vector2 uv)
+    {
+        if (uvIdx < 0 || uvIdx >= Format.HasUVCount) return false;
+        if (!Allocated) return false;
+        if (idx >= VertexCount) return false;
+
+        nint mem = Pointer;
+        Assert(mem != 0);
+
+        Format.GetUVOffsetAndStride(uvIdx, out int byteOffset, out int byteStride);
+        mem += byteOffset + byteStride * idx;
+
+        unsafe
+        {
+            *(Vector2*)mem = uv;
+        }
+        return true;
+    }
+
+    public bool SetBoneIdAtIndex(int idx, Vector4 boneIds)
+    {
+        if (!Format.HasBones) return false;
+        if (!Allocated) return false;
+        if (idx >= VertexCount) return false;
+
+        nint mem = Pointer;
+        Assert(mem != 0);
+
+        Format.GetBoneDataOffsetAndStride(out int byteOffset, out int byteStride);
+        mem += byteOffset + byteStride * idx;
+
+        unsafe
+        {
+            VertexBoneData boneData = *(VertexBoneData*)mem;
+            boneData.BoneIds = boneIds;
+            *(VertexBoneData*)mem = boneData;
+        }
+        return true;
+    }
+
+    public bool SetBoneWeightsAtIndex(int idx, Vector4 boneWeights)
+    {
+        if (!Format.HasBones) return false;
+        if (!Allocated) return false;
+        if (idx >= VertexCount) return false;
+
+        nint mem = Pointer;
+        Assert(mem != 0);
+
+        Format.GetBoneDataOffsetAndStride(out int byteOffset, out int byteStride);
+        mem += byteOffset + byteStride * idx;
+
+        unsafe
+        {
+            VertexBoneData boneData = *(VertexBoneData*)mem;
+            boneData.BoneWeights = boneWeights;
+            *(VertexBoneData*)mem = boneData;
+        }
+        return true;
+    }
+
+    #endregion
+
+    #region Iterators
 
     public IEnumerable<Vector3> ForEachVertexPosition()
     {
@@ -243,25 +386,5 @@ public struct VertexDataAllocation
         }
     }
 
-    public unsafe Triangle GetTriangleAtIndices<TIndex>(TIndex i1, TIndex i2, TIndex i3) where TIndex : INumber<TIndex>
-    {
-        if (!Format.HasPosition) return Triangle.Invalid;
-        if (!Allocated) return Triangle.Invalid;
-
-        nint vertMem = Pointer;
-        Assert(vertMem != 0);
-
-        Format.GetVertexPositionOffsetAndStride(out int byteOffset, out int byteStride);
-        vertMem += byteOffset;
-
-        uint idx1AsInt = uint.CreateTruncating(i1);
-        uint idx2AsInt = uint.CreateTruncating(i2);
-        uint idx3AsInt = uint.CreateTruncating(i3);
-
-        Vector3 v1 = *(Vector3*)(vertMem + byteStride * idx1AsInt);
-        Vector3 v2 = *(Vector3*)(vertMem + byteStride * idx2AsInt);
-        Vector3 v3 = *(Vector3*)(vertMem + byteStride * idx3AsInt);
-
-        return new Triangle(v1, v2, v3);
-    }
+    #endregion
 }

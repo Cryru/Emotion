@@ -7,10 +7,17 @@ using Emotion.Graphics.Data;
 using Emotion.Graphics.Shader;
 using Emotion.Graphics.Shading;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 #endregion
 
 namespace Emotion.Game.World.ThreeDee;
+
+public struct PerMeshState
+{
+    public bool RenderMesh;
+    public MeshMaterial? OverrideMaterial;
+}
 
 /// <summary>
 /// Holds runtime state information referring to a mesh entity.
@@ -20,12 +27,11 @@ namespace Emotion.Game.World.ThreeDee;
 [DontSerialize]
 public class MeshEntityMetaState
 {
+    public MeshEntity Entity { get => _entity; }
+
     public Matrix4x4 ModelMatrix = Matrix4x4.Identity;
 
-    /// <summary>
-    /// Whether the mesh index should be rendered.
-    /// </summary>
-    public bool[] RenderMesh = Array.Empty<bool>();
+    public PerMeshState[] PerMeshState = Array.Empty<PerMeshState>();
 
     /// <summary>
     /// Additional scale for all dimensions of the entity.
@@ -38,8 +44,8 @@ public class MeshEntityMetaState
     /// </summary>
     public Color Tint = Color.White;
 
-    public ShaderAsset? ShaderAsset { get; private set; }
-    private Dictionary<string, IMeshMaterialShaderParameter>? _shaderParameters;
+    //public ShaderAsset? ShaderAsset { get; private set; }
+    //private Dictionary<string, IMeshMaterialShaderParameter>? _shaderParameters;
 
     public RenderState? CustomRenderState;
 
@@ -54,7 +60,7 @@ public class MeshEntityMetaState
         _entity = entity;
         ModelMatrix = entity.LocalTransform;
 
-        RenderMesh = new bool[entity.Meshes.Length];
+        PerMeshState = new PerMeshState[entity.Meshes.Length];
 
         _boneMatricesForEntityRig = new Matrix4x4[entity.AnimationRig.Length];
 
@@ -65,23 +71,21 @@ public class MeshEntityMetaState
         for (int meshIdx = 0; meshIdx < entity.Meshes.Length; meshIdx++)
         {
             Mesh mesh = entity.Meshes[meshIdx];
-            RenderMesh[meshIdx] = true;
+            PerMeshState[meshIdx].RenderMesh = true;
 
             Matrix4x4[] matrices;
-            if (mesh.BoneData != null)
+            if (mesh.VertexFormat.HasBones)
             {
                 int largestBoneIdUsed = 0;
-                for (int j = 0; j < mesh.BoneData.Length; j++)
+                foreach (VertexBoneData boneData in mesh.VertexAllocation.ForEachBoneData())
                 {
-                    Mesh3DVertexDataBones data = mesh.BoneData[j];
-                    Vector4 boneIds = data.BoneIds;
+                    Vector4 boneIds = boneData.BoneIds;
                     for (int b = 0; b < 4; b++)
                     {
                         int jointRef = (int)boneIds[b];
                         if (jointRef > largestBoneIdUsed) largestBoneIdUsed = jointRef;
                     }
                 }
-
                 if (largestBoneIdUsed > MAX_BONES)
                 {
                     Engine.Log.Error($"Entity {_entity.Name}'s mesh {mesh.Name} has too many bones ({largestBoneIdUsed} > {MAX_BONES}).", "3D");
@@ -210,56 +214,42 @@ public class MeshEntityMetaState
 
     #endregion
 
-    public Task SetShader(string path)
-    {
-        // todo: wtf
-        _shaderParameters = new();
-        ShaderAsset = Engine.AssetLoader.Get<ShaderAsset>(path);
-        return Task.CompletedTask;
-    }
+    //private void SetShaderParam<T>(string name, T value) where T : struct
+    //{
+    //    _shaderParameters ??= new();
 
-    public void SetShader(ShaderAsset asset)
-    {
-        _shaderParameters = new();
-        ShaderAsset = asset;
-    }
+    //    if (_shaderParameters.ContainsKey(name))
+    //    {
+    //        MeshMaterialShaderParameter<T>? param = _shaderParameters[name] as MeshMaterialShaderParameter<T>;
+    //        if (param == null) return; // Parameters can't change types.
+    //        param.Value = value;
+    //    }
+    //    else
+    //    {
+    //        IMeshMaterialShaderParameter? newParam = null;
+    //        if (value is float floatVal)
+    //            newParam = new MeshMaterialShaderParameterFloat(name, floatVal);
+    //        else if (value is Vector2 vec2Val)
+    //            newParam = new MeshMaterialShaderParameterVec2(name, vec2Val);
+    //        else if (value is Vector3 vec3Val)
+    //            newParam = new MeshMaterialShaderParameterVec3(name, vec3Val);
+    //        else if (value is Vector4 vec4Val)
+    //            newParam = new MeshMaterialShaderParameterVec4(name, vec4Val);
+    //        else if (value is Color colorVal)
+    //            newParam = new MeshMaterialShaderParameterColor(name, colorVal);
+    //        if (newParam == null) return;
+    //        _shaderParameters.Add(name, newParam);
+    //    }
+    //}
 
-    public void SetShaderParam<T>(string name, T value) where T : struct
-    {
-        _shaderParameters ??= new();
-
-        if (_shaderParameters.ContainsKey(name))
-        {
-            MeshMaterialShaderParameter<T>? param = _shaderParameters[name] as MeshMaterialShaderParameter<T>;
-            if (param == null) return; // Parameters can't change types.
-            param.Value = value;
-        }
-        else
-        {
-            IMeshMaterialShaderParameter? newParam = null;
-            if (value is float floatVal)
-                newParam = new MeshMaterialShaderParameterFloat(name, floatVal);
-            else if (value is Vector2 vec2Val)
-                newParam = new MeshMaterialShaderParameterVec2(name, vec2Val);
-            else if (value is Vector3 vec3Val)
-                newParam = new MeshMaterialShaderParameterVec3(name, vec3Val);
-            else if (value is Vector4 vec4Val)
-                newParam = new MeshMaterialShaderParameterVec4(name, vec4Val);
-            else if (value is Color colorVal)
-                newParam = new MeshMaterialShaderParameterColor(name, colorVal);
-            if (newParam == null) return;
-            _shaderParameters.Add(name, newParam);
-        }
-    }
-
-    public void ApplyShaderUniforms(ShaderProgram program)
-    {
-        if (_shaderParameters == null) return;
-        foreach ((string paramName, IMeshMaterialShaderParameter param) in _shaderParameters)
-        {
-            param.Apply(program, paramName);
-        }
-    }
+    //private void ApplyShaderUniforms(ShaderProgram program)
+    //{
+    //    if (_shaderParameters == null) return;
+    //    foreach ((string paramName, IMeshMaterialShaderParameter param) in _shaderParameters)
+    //    {
+    //        param.Apply(program, paramName);
+    //    }
+    //}
 }
 
 #region Shader Uniform Types

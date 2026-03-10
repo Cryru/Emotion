@@ -195,6 +195,8 @@ public partial class GameMap : IDisposable
 
     public void Render(Renderer r)
     {
+        r.MeshEntityRenderer.StartScene(LightConfig);
+
         var culling = new CameraCullingContext(r.Camera);
         foreach (IMapGrid grid in Grids)
         {
@@ -222,6 +224,9 @@ public partial class GameMap : IDisposable
                 obj.ForEachComponentOfType<IRenderableComponent, Renderer>(static (component, r) => component.Render(r), r);
             }
         }
+
+        // In case any component pushed to it
+        r.MeshEntityRenderer.EndScene();
     }
 
     public void Dispose()

@@ -1,46 +1,25 @@
-﻿// 1. uniform reflection
-// 2. vertex shader main deep
-// 4. vertex attribute passing and reflection
-// 5. shader derivatives
-// 6. material def reflection
+﻿// INCLUDE_FILE <Shaders/Common.h>
 
-// INCLUDE_FILE <Shaders/Common.h>
+// DEFINE_VERTEX_ATTRIBUTE Position V_Pos
+// DEFINE_VERTEX_ATTRIBUTE Normal V_Normal
+// DEFINE_VERTEX_ATTRIBUTE VertexColor V_Color
+// DEFINE_VERTEX_ATTRIBUTE Custom0 V_Weights
+
+VERT_TO_FRAGMENT vec3 F_Pos;
+VERT_TO_FRAGMENT vec3 F_Normal;
 
 #define EDITOR_BRUSH 1
 
-VERTEX_ATTRIBUTE(0, Vector3, V_POSITION);
-VERTEX_ATTRIBUTE_LINE_TWO(0, Vector3, V_POSITION);
-
-VERTEX_ATTRIBUTE(1, Vector3, V_NORMAL);
-VERTEX_ATTRIBUTE_LINE_TWO(1, Vector3, V_NORMAL);
-
-VERTEX_ATTRIBUTE(2, Vector4, V_COLOR);
-VERTEX_ATTRIBUTE_LINE_TWO(2, Vector4, V_COLOR);
-
-VERTEX_ATTRIBUTE(3, Vector4, weights);
-VERTEX_ATTRIBUTE_LINE_TWO(3, Vector4, weights);
-
 #ifdef VERT_SHADER
 
-vec4 VertexShaderMain_DEEP()
+vec4 VertexShaderMain()
 {
-    return projectionMatrix * viewMatrix * modelMatrix * vec4(V_POSITION, 1.0);
-}
+    vec4 localPos = modelMatrix * vec4(V_Pos, 1.0);
 
-out vec3 F_POSITION;
-out vec3 F_NORMAL;
+    F_Pos = vec3(modelMatrix * localPos);
+    F_Normal = normalize(mat3(transpose(inverse(modelMatrix))) * V_Normal);
 
-void VertexShaderMain()
-{
-    VERTEX_ATTRIBUTE_WORK(0, Vector3, V_POSITION);
-    VERTEX_ATTRIBUTE_WORK(1, Vector3, V_NORMAL);
-    VERTEX_ATTRIBUTE_WORK(2, Vector4, V_COLOR);
-    VERTEX_ATTRIBUTE_WORK(3, Vector4, weights);
-
-    F_POSITION = vec3(modelMatrix * vec4(V_POSITION, 1.0));
-    F_NORMAL = normalize(mat3(transpose(inverse(modelMatrix))) * V_NORMAL);
-
-    gl_Position = VertexShaderMain_DEEP();
+    return projectionMatrix * viewMatrix * localPos;
 }
 
 #endif
@@ -55,15 +34,12 @@ void VertexShaderMain()
 
 uniform Texture diffuseTexture;
 
-in vec3 F_POSITION;
-in vec3 F_NORMAL;
-
-vec4 SampleTexture(const int textureIndex)
+vec4 SampleTexture(const int textureIndex) // temp until texture splatting
 {  
     if (textureIndex >= 4)
     {
         // Divide by 2 to ensure that each square in the default grid texture is 1 big!
-        return texture2D(diffuseTexture, F_POSITION.xy / 2.0);
+        return texture2D(diffuseTexture, F_Pos.xy / 2.0);
     }
 
     vec4 colorsForWeights[4] = vec4[](
@@ -78,7 +54,7 @@ vec4 SampleTexture(const int textureIndex)
 vec4 FragmentShaderMain()
 {
     // Splat
-    float sum = weights[0] + weights[1] + weights[2] + weights[3];
+    float sum = V_Weights[0] + V_Weights[1] + V_Weights[2] + V_Weights[3];
     float w4 = clamp(1.0 - sum, 0.0, 1.0);
     vec4 colorsForWeights[5] = vec4[](
         RED,
@@ -87,12 +63,12 @@ vec4 FragmentShaderMain()
         vec4(253.0 / 255.0, 141.0 / 255.0, 20.0 / 255.0, 1.0),
         vec4(0.0, 0.0, 0.0, 1.0)
     );
-    vec4 col = SampleTexture(0) * weights[0] +
-           SampleTexture(1) * weights[1] +
-           SampleTexture(2) * weights[2] +
-           SampleTexture(3) * weights[3] +
+    vec4 col = SampleTexture(0) * V_Weights[0] +
+           SampleTexture(1) * V_Weights[1] +
+           SampleTexture(2) * V_Weights[2] +
+           SampleTexture(3) * V_Weights[3] +
            SampleTexture(4) * w4;
-    col *= V_COLOR;
+    col *= V_Color;
     vec3 albedo = col.rgb;
 
     vec3 lightDirection = normalize(vec3(0.0, 0.5, 1.0));
@@ -101,7 +77,7 @@ vec4 FragmentShaderMain()
     float ambient = 0.0;
 
     // Calculate the diffuse light factor
-    vec3 flattenedNormal = mix(F_NORMAL, vec3(0.0, 0.0, 1.0), 0.2);
+    vec3 flattenedNormal = mix(F_Normal, vec3(0.0, 0.0, 1.0), 0.2);
 
     float NdotL = dot(flattenedNormal, lightDirection);
     float diffuse = max(NdotL, 0.01);
@@ -109,12 +85,11 @@ vec4 FragmentShaderMain()
 
     // Combine light and terrain color
     vec3 finalColor = albedo * diffuse;
-    // finalColor = gammaCorrect(finalColor);
 
 #ifdef EDITOR_BRUSH
     float ringThickness = 0.3;
 
-    float d = length(brushWorldSpace - V_POSITION.xy);
+    float d = length(brushWorldSpace - V_Pos.xy);
     float innerRadius = brushRadius - ringThickness;
     float outerRadius = brushRadius;
 

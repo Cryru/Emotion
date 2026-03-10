@@ -56,10 +56,8 @@ public partial struct RenderState
     public ProjectionBehavior ProjectionBehavior = Graphics.ProjectionBehavior.AutoCamera;
 
     public ShaderReference Shader = ShaderReference.Invalid;
-
-    // Work in progress
-    public VertexDataFormat VertexFormat = VertexData.Format;
-    public int ShaderModifiers = 0;
+    public AssetObjectReference<ShaderGroupAsset, ShaderGroup> ShaderGroup = AssetObjectReference<ShaderGroupAsset, ShaderGroup>.Invalid;
+    public ShaderGroupDefinition ShaderGroupDefinition = new ShaderGroupDefinition(VertexData.Format);
 
     public RenderState()
     {

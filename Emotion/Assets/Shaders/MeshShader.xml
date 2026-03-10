@@ -1,4 +1,0 @@
-<ShaderDescription>
-    <Vert>Shaders/MeshShader.vert</Vert>
-    <Frag>Shaders/MeshShader.frag</Frag>
-</ShaderDescription>

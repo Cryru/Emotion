@@ -57,7 +57,7 @@ public class MeshGridStreamableChunk<T, IndexT> : VersionedGridChunk<T>, IStream
         {
             if (GPUVertexMemory != null)
                 return ChunkState.HasGPUData;
-            if (VertexMemory.Allocated)
+            if (VertexMemory != null && VertexMemory.Allocated)
                 return ChunkState.HasMesh;
             return ChunkState.DataOnly;
         }
@@ -72,7 +72,7 @@ public class MeshGridStreamableChunk<T, IndexT> : VersionedGridChunk<T>, IStream
     public int VerticesGeneratedForVersion = -1;
 
     [DontSerialize]
-    public VertexDataAllocation VertexMemory;
+    public VertexDataAllocation? VertexMemory;
 
     [DontSerialize]
     public uint VerticesUsed;

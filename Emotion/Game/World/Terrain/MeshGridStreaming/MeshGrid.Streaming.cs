@@ -490,6 +490,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
                 Assert(chunk.GPUVertexMemory != null);
                 if (chunk.GPUVertexMemory == null) return;
 
+                AssertNotNull(chunk.VertexMemory);
                 Assert(chunk.VertexMemory.Allocated);
                 if (!chunk.VertexMemory.Allocated) return;
 
@@ -543,62 +544,82 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
 
     #region Promotion and Allocation Logic
 
-    private ObjectPool<VertexDataAllocation> _meshDataAllocations = new ObjectPool<VertexDataAllocation>();
+    private Stack<VertexDataAllocation> _meshDataPool = new Stack<VertexDataAllocation>();
     private ObjectPoolManual<GPUVertexMemory> _gpuDataAllocations = new ObjectPoolManual<GPUVertexMemory>(() => null!);
 
     protected VertexDataFormat _vertexFormat = VertexData_Pos_UV_Normal_Color.Format;
 
     private void PromoteChunkToHasMesh(Vector2 chunkCoord, ChunkT chunk)
     {
-        Assert(!chunk.VertexMemory.Allocated);
-        if (chunk.VertexMemory.Allocated)
-            VertexDataAllocation.FreeAllocated(ref chunk.VertexMemory);
+        if (chunk.State == ChunkState.HasMesh)
+        {
+            Assert(false, "Promoting a chunk to CPU - which is already at that state");
+            return;
+        }
 
-        VertexDataAllocation newMemory = _meshDataAllocations.Get();
-        if (!newMemory.Allocated)
-            newMemory = VertexDataAllocation.Allocate(_vertexFormat, 1, $"TerrainChunk_{chunkCoord}");
+        if (chunk.VertexMemory != null && chunk.VertexMemory.Allocated)
+        {
+            Assert(false, "Promoting a chunk that already has CPU memory :/");
+
+            // Free its memory so we don't leak
+            VertexDataAllocation.FreeAllocated(chunk.VertexMemory);
+            chunk.VertexMemory = null;
+        }
+
+        _meshDataPool.TryPop(out VertexDataAllocation? newMemory);
+        newMemory ??= VertexDataAllocation.Allocate(_vertexFormat, 1, $"TerrainChunk_{chunkCoord}");
         chunk.VertexMemory = newMemory;
 
         Assert(chunk.VerticesGeneratedForVersion == -1);
         chunk.VerticesGeneratedForVersion = -1;
+        chunk.State = ChunkState.HasMesh;
 
         Dictionary<Vector2, ChunkT> listForNewState = GetChunksInState(ChunkState.HasMesh);
         listForNewState.Add(chunkCoord, chunk);
-        chunk.State = ChunkState.HasMesh;
     }
 
     private void PromoteChunkToHasGPU(Vector2 chunkCoord, ChunkT chunk)
     {
-        Assert(chunk.GPUVertexMemory == null);
-        if (chunk.GPUVertexMemory != null)
-            GPUMemoryAllocator.FreeBuffer(chunk.GPUVertexMemory);
-
-        Assert(chunk.VertexMemory.Allocated);
-        if (!chunk.VertexMemory.Allocated)
+        if (chunk.State == ChunkState.HasGPUData)
+        {
+            Assert(false, "Promoting a chunk to GPU - which is already at that state");
             return;
+        }
 
+        if (chunk.GPUVertexMemory != null)
+        {
+            Assert(false, "Promoting a chunk that already has GPU memory :/");
+
+            // Free its memory so we don't leak
+            GPUMemoryAllocator.FreeBuffer(chunk.GPUVertexMemory);
+            chunk.GPUVertexMemory = null;
+        }
+
+        if (chunk.VertexMemory == null || !chunk.VertexMemory.Allocated)
+        {
+            Assert(false, "Promoting a chunk without CPU data to GPU");
+            return;
+        }
+
+        Assert(GLThread.IsGLThread()); // Can allocate GPU memory only on this thread
         GPUVertexMemory newGpuMemory = _gpuDataAllocations.Get();
-        if (newGpuMemory == null)
-        {
-            Assert(GLThread.IsGLThread());
-            chunk.GPUVertexMemory = GPUMemoryAllocator.AllocateBuffer(chunk.VertexMemory.Format);
-        }
-        else
-        {
-            chunk.GPUVertexMemory = newGpuMemory;
-        }
+        newGpuMemory ??= GPUMemoryAllocator.AllocateBuffer(chunk.VertexMemory.Format);
+        chunk.GPUVertexMemory = newGpuMemory;
 
+        // Reset uploaded version
         Assert(chunk.GPUUploadedVersion == -1);
         chunk.GPUUploadedVersion = -1;
+        chunk.State = ChunkState.HasGPUData;
 
         Dictionary<Vector2, ChunkT> listForNewState = GetChunksInState(ChunkState.HasGPUData);
-        listForNewState.Add(chunkCoord, chunk);
-        chunk.State = ChunkState.HasGPUData;
+        bool added = listForNewState.TryAdd(chunkCoord, chunk);
+        Assert(added);
     }
 
-    protected Span<TVertexData> ResizeVertexMemoryAndGetSpan<TVertexData>(ref VertexDataAllocation vertexMemory, Vector2 chunkCoord, int vertexCount)
+    protected Span<TVertexData> ResizeVertexMemoryAndGetSpan<TVertexData>(ref VertexDataAllocation? vertexMemory, Vector2 chunkCoord, int vertexCount)
         where TVertexData : unmanaged
     {
+        AssertNotNull(vertexMemory);
         Assert(vertexMemory.Allocated);
 
         if (vertexMemory.VertexCount < vertexCount)
@@ -625,10 +646,13 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT>
 
     private void DemoteChunkFromHasMesh(Vector2 chunkCoord, ChunkT chunk)
     {
-        VertexDataAllocation memory = chunk.VertexMemory;
-        _meshDataAllocations.Return(memory);
-        chunk.VertexMemory = VertexDataAllocation.Empty;
+        // Return the vertex memory to the pool
+        VertexDataAllocation? memory = chunk.VertexMemory;
+        chunk.VertexMemory = null;
         chunk.VerticesGeneratedForVersion = -1;
+
+        if (memory != null)
+            _meshDataPool.Push(memory);
 
         Dictionary<Vector2, ChunkT> listForOldState = GetChunksInState(ChunkState.HasMesh);
         listForOldState.Remove(chunkCoord);

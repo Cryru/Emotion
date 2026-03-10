@@ -32,7 +32,7 @@ public class VertexArrayObject : IDisposable
     /// The ibo attached to this vertex array object.
     /// When the vao is bound, this ibo is bound automatically.
     /// </summary>
-    public IndexBuffer IBO { get; protected set; }
+    public IndexBuffer? IBO { get; protected set; }
 
     /// <summary>
     /// The byte size of one instance of the structure.
@@ -54,8 +54,12 @@ public class VertexArrayObject : IDisposable
         Format = format;
         Assert(format.Built);
 
-        format.GetUVOffsetAndStride(0, out int offset, out int _);
-        UVByteOffset = offset; // Cache this as it is used by the render stream's uv remapping
+        if (format.HasUVCount > 0)
+        {
+            format.GetUVOffsetAndStride(0, out int offset, out int _);
+            UVByteOffset = offset; // Cache this as it is used by the render stream's uv remapping
+        }
+
         ByteSize = format.ElementSize;
 
         Pointer = Gl.GenVertexArray();
@@ -83,23 +87,23 @@ public class VertexArrayObject : IDisposable
 
         // This code needs to match the format specification (which is a single one for Emotion).
         // If the order in the VertexDataFormat changes we need to change this too.
-        uint position = 0;
+        uint attributeIndex = 0;
         if (Format.HasPosition)
         {
             Format.GetVertexPositionOffsetAndStride(out int byteOffset, out int byteStride);
 
-            Gl.EnableVertexAttribArray(position);
+            Gl.EnableVertexAttribArray(attributeIndex);
             if (separateVertexAttributes)
             {
-                Gl.VertexAttribFormat(position, 3, (int)VertexAttribType.Float, false, (uint)byteOffset);
-                Gl.VertexAttribBinding(position, 0);
+                Gl.VertexAttribFormat(attributeIndex, 3, (int)VertexAttribType.Float, false, (uint)byteOffset);
+                Gl.VertexAttribBinding(attributeIndex, 0);
             }
             else
             {
-                Gl.VertexAttribPointer(position, 3, VertexAttribType.Float, false, byteStride, byteOffset);
+                Gl.VertexAttribPointer(attributeIndex, 3, VertexAttribType.Float, false, byteStride, byteOffset);
             }
 
-            position++;
+            attributeIndex++;
         }
 
         for (int i = 0; i < Format.HasUVCount; i++)
@@ -107,18 +111,18 @@ public class VertexArrayObject : IDisposable
             Format.GetUVOffsetAndStride(i, out int byteOffset, out int byteStride);
 
             // Vector2
-            Gl.EnableVertexAttribArray(position);
+            Gl.EnableVertexAttribArray(attributeIndex);
             if (separateVertexAttributes)
             {
-                Gl.VertexAttribFormat(position, 2, (int)VertexAttribType.Float, false, (uint)byteOffset);
-                Gl.VertexAttribBinding(position, 0);
+                Gl.VertexAttribFormat(attributeIndex, 2, (int)VertexAttribType.Float, false, (uint)byteOffset);
+                Gl.VertexAttribBinding(attributeIndex, 0);
             }
             else
             {
-                Gl.VertexAttribPointer(position, 2, VertexAttribType.Float, false, byteStride, byteOffset);
+                Gl.VertexAttribPointer(attributeIndex, 2, VertexAttribType.Float, false, byteStride, byteOffset);
             }
 
-            position++;
+            attributeIndex++;
         }
 
         if (Format.HasNormals)
@@ -126,18 +130,18 @@ public class VertexArrayObject : IDisposable
             Format.GetNormalOffsetAndStride(out int byteOffset, out int byteStride);
 
             // Vector3
-            Gl.EnableVertexAttribArray(position);
+            Gl.EnableVertexAttribArray(attributeIndex);
             if (separateVertexAttributes)
             {
-                Gl.VertexAttribFormat(position, 3, (int)VertexAttribType.Float, false, (uint)byteOffset);
-                Gl.VertexAttribBinding(position, 0);
+                Gl.VertexAttribFormat(attributeIndex, 3, (int)VertexAttribType.Float, false, (uint)byteOffset);
+                Gl.VertexAttribBinding(attributeIndex, 0);
             }
             else
             {
-                Gl.VertexAttribPointer(position, 3, VertexAttribType.Float, false, byteStride, byteOffset);
+                Gl.VertexAttribPointer(attributeIndex, 3, VertexAttribType.Float, false, byteStride, byteOffset);
             }
 
-            position++;
+            attributeIndex++;
         }
 
         if (Format.HasVertexColors)
@@ -145,18 +149,18 @@ public class VertexArrayObject : IDisposable
             Format.GetVertexColorsOffsetAndStride(out int byteOffset, out int byteStride);
 
             // Normalized uint to vec4
-            Gl.EnableVertexAttribArray(position);
+            Gl.EnableVertexAttribArray(attributeIndex);
             if (separateVertexAttributes)
             {
-                Gl.VertexAttribFormat(position, 4, (int)VertexAttribType.UnsignedByte, true, (uint)byteOffset);
-                Gl.VertexAttribBinding(position, 0);
+                Gl.VertexAttribFormat(attributeIndex, 4, (int)VertexAttribType.UnsignedByte, true, (uint)byteOffset);
+                Gl.VertexAttribBinding(attributeIndex, 0);
             }
             else
             {
-                Gl.VertexAttribPointer(position, 4, VertexAttribType.UnsignedByte, true, byteStride, byteOffset);
+                Gl.VertexAttribPointer(attributeIndex, 4, VertexAttribType.UnsignedByte, true, byteStride, byteOffset);
             }
 
-            position++;
+            attributeIndex++;
         }
 
         if (Format.HasBones)
@@ -164,32 +168,32 @@ public class VertexArrayObject : IDisposable
             Format.GetBoneDataOffsetAndStride(out int byteOffset, out int byteStride);
 
             // Vector4 BoneIds
-            Gl.EnableVertexAttribArray(position);
+            Gl.EnableVertexAttribArray(attributeIndex);
             if (separateVertexAttributes)
             {
-                Gl.VertexAttribFormat(position, 4, (int)VertexAttribType.Float, false, (uint)byteOffset);
-                Gl.VertexAttribBinding(position, 0);
+                Gl.VertexAttribFormat(attributeIndex, 4, (int)VertexAttribType.Float, false, (uint)byteOffset);
+                Gl.VertexAttribBinding(attributeIndex, 0);
             }
             else
             {
-                Gl.VertexAttribPointer(position, 4, VertexAttribType.Float, false, byteStride, byteOffset);
+                Gl.VertexAttribPointer(attributeIndex, 4, VertexAttribType.Float, false, byteStride, byteOffset);
             }
 
-            position++;
+            attributeIndex++;
 
             // Vector4 BoneWeights
-            Gl.EnableVertexAttribArray(position);
+            Gl.EnableVertexAttribArray(attributeIndex);
             if (separateVertexAttributes)
             {
-                Gl.VertexAttribFormat(position, 4, (int)VertexAttribType.Float, false, (uint)byteOffset + sizeof(float) * 4);
-                Gl.VertexAttribBinding(position, 0);
+                Gl.VertexAttribFormat(attributeIndex, 4, (int)VertexAttribType.Float, false, (uint)byteOffset + sizeof(float) * 4);
+                Gl.VertexAttribBinding(attributeIndex, 0);
             }
             else
             {
-                Gl.VertexAttribPointer(position, 4, VertexAttribType.Float, false, byteStride, byteOffset + sizeof(float) * 4);
+                Gl.VertexAttribPointer(attributeIndex, 4, VertexAttribType.Float, false, byteStride, byteOffset + sizeof(float) * 4);
             }
 
-            position++;
+            attributeIndex++;
         }
 
         if (Format.CustomData != null)
@@ -199,9 +203,9 @@ public class VertexArrayObject : IDisposable
 
             foreach (var customDataElements in Format.CustomData)
             {
-                Gl.EnableVertexAttribArray(position);
-                Gl.VertexAttribPointer(position, customDataElements, VertexAttribType.Float, false, byteStride, byteOffset);
-                position++;
+                Gl.EnableVertexAttribArray(attributeIndex);
+                Gl.VertexAttribPointer(attributeIndex, customDataElements, VertexAttribType.Float, false, byteStride, byteOffset);
+                attributeIndex++;
 
                 byteOffset += customDataElements;
             }

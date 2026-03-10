@@ -2,9 +2,11 @@
 
 #region Using
 
+using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Profiling;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Data;
+using Emotion.Graphics.Shader;
 using Emotion.Graphics.Shading;
 using OpenGL;
 
@@ -42,7 +44,7 @@ public sealed partial class Renderer
     /// <param name="colors">The color (or colors) of the vertex/vertices.</param>
     public void RenderVertices(Vector2[] verts, params Color[] colors)
     {
-        var vertCount = (uint) verts.Length;
+        var vertCount = (uint)verts.Length;
         Span<VertexData> vertices = RenderStream.GetStreamMemory(vertCount, BatchMode.TriangleFan);
         for (var i = 0; i < verts.Length; i++)
         {
@@ -351,10 +353,10 @@ public sealed partial class Renderer
         {
             Gl.Enable(EnableCap.ScissorTest);
             Rectangle c = clip.Value;
-            Gl.Scissor((int) c.X,
-                (int) (Engine.Renderer.CurrentTarget.Viewport.Height - c.Height - c.Y),
-                (int) c.Width,
-                (int) c.Height);
+            Gl.Scissor((int)c.X,
+                (int)(Engine.Renderer.CurrentTarget.Viewport.Height - c.Height - c.Y),
+                (int)c.Width,
+                (int)c.Height);
         }
 
         RenderState currentState = CurrentState;
@@ -425,10 +427,25 @@ public sealed partial class Renderer
 
         PerfProfiler.FrameEventStart("ShaderSet");
 
-        ShaderReference newShader = newState.Shader;
-        ShaderReference currentShader = currentState.Shader;
-        if (force || newShader != currentShader)
-            SetShader(newShader);
+        AssetObjectReference<ShaderGroupAsset, ShaderGroup> shaderGroup = newState.ShaderGroup;
+        if (shaderGroup.IsValid())
+        {
+            ShaderGroupAsset? groupAsset = newState.ShaderGroup.ResolveAsset();
+            if (groupAsset != null && groupAsset.Loaded)
+            {
+                ShaderGroup? group = groupAsset.ShaderGroup;
+                ShaderProgram? shader = group?.GetShader(newState.ShaderGroupDefinition);
+                if (shader != null && (force || currentState.Shader != shader))
+                    SetShader(shader);
+            }
+        }
+        else
+        {
+            ShaderReference newShader = newState.Shader;
+            ShaderReference currentShader = currentState.Shader;
+            if (force || newShader != currentShader)
+                SetShader(newShader);
+        }
 
         PerfProfiler.FrameEventEnd("ShaderSet");
 

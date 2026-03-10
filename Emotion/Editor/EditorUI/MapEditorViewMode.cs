@@ -171,10 +171,12 @@ public class MapEditorViewMode : UIBaseWindow
     private class MapEditorViewModeOrientationGizmo : UIBaseWindow
     {
         private static MeshEntity _gizmoEntity = null!;
+        private static MeshEntityMetaState _gizmoEntityRenderState = null!;
 
         public MapEditorViewModeOrientationGizmo()
         {
-            _gizmoEntity ??= TranslationGizmo.GetTranslationGizmoEntity(15, 15, false)!;
+            _gizmoEntity ??= TranslationGizmo.GetTranslationGizmoEntity(15, 15, false);
+            _gizmoEntityRenderState ??= new MeshEntityMetaState(_gizmoEntity);
         }
 
         protected override void InternalRender(Renderer r)
@@ -204,14 +206,12 @@ public class MapEditorViewMode : UIBaseWindow
             r.PushModelMatrix(Matrix4x4.CreateScale(1.5f * GetScale(), 1.5f * GetScale(), -1.5f * GetScale()));
             r.PushModelMatrix(Matrix4x4.CreateTranslation((center + new Vector2(0, 0)).ToVec3(100)));
 
-            // todo: render 3d in UI
+            // todo: MeshEntityWindow : UIBaseWindow
             if (_gizmoEntity.Meshes != null)
             {
-                for (int i = 0; i < _gizmoEntity.Meshes.Length; i++)
-                {
-                    Mesh mesh = _gizmoEntity.Meshes[i];
-                    mesh.Render(r);
-                }
+                r.MeshEntityRenderer.StartScene(null);
+                r.MeshEntityRenderer.AddToCurrentScene(r, _gizmoEntityRenderState);
+                r.MeshEntityRenderer.EndScene();
             }
 
             r.PopModelMatrix();

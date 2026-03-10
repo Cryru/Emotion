@@ -4,15 +4,12 @@
 
 using System.Runtime.CompilerServices;
 using System.Text.Unicode;
-using Emotion.Core.Systems.Input;
-using Emotion.Core.Systems.Logging;
-using Emotion.Core.Utility.Coroutines;
 using Emotion.Core.Utility.Profiling;
 using Emotion.Core.Utility.Threading;
 using Emotion.Graphics.Batches;
-using Emotion.Graphics.Batches3D;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Memory;
+using Emotion.Graphics.Renderer3D;
 using Emotion.Graphics.Shading;
 using Emotion.Graphics.Text;
 using OpenGL;
@@ -101,13 +98,13 @@ public sealed partial class Renderer
     /// <summary>
     /// An object that handles batched rendering through streaming vertices every frame.
     /// </summary>
-    public RenderStreamBatch RenderStream { get; private set; }
+    public RenderStreamBatch RenderStream { get; private set; } = null!;
 
     /// <summary>
     /// A specialized renderer for mesh entities.
     /// The backbone of the 3D renderer.
     /// </summary>
-    public MeshEntityBatchRenderer MeshEntityRenderer { get; private set; }
+    public MeshEntityRenderer MeshEntityRenderer { get; private set; } = new MeshEntityRenderer();
 
     /// <summary>
     /// A representation of the screen's frame buffer.
@@ -309,7 +306,6 @@ public sealed partial class Renderer
 
         // Create render objects
         RenderStream = new RenderStreamBatch(); // This is used for IM-like rendering.
-        MeshEntityRenderer = new MeshEntityBatchRenderer();
         TextRenderer.Init();
 
         // Apply display settings (this is the initial application) and attach the camera updating coroutine.
@@ -511,7 +507,6 @@ public sealed partial class Renderer
         }
 
         RenderStream.DoTasks(this);
-        MeshEntityRenderer.DoTasks();
         TextRenderer.DoTasks();
         GPUMemoryAllocator.ProcessFreed();
         InFrame = false;
