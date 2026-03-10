@@ -23,9 +23,11 @@ public class CylinderMeshGenerator
     {
         Assert(Sides >= 3);
 
-        var vertices = new VertexData[Sides * 4 + (Capped ? 2 : 0)];
-        var meshData = new VertexDataMesh3DExtra[vertices.Length];
-        var indices = new ushort[Sides * 6 + (Capped ? 3 * Sides * 2 : 0)];
+        int vertexCount = Sides * 4 + (Capped ? 2 : 0);
+        VertexDataAllocation vertData = VertexDataAllocation.Allocate(VertexData_Pos_UV_Normal.Format, vertexCount);
+        Span<VertexData_Pos_UV_Normal> vertices = vertData.GetAsSpan<VertexData_Pos_UV_Normal>();
+
+        ushort[] indices = new ushort[Sides * 6 + (Capped ? 3 * Sides * 2 : 0)];
 
         var prevTopX = (float) (RadiusTop * Math.Cos(0));
         var prevTopY = (float) (RadiusTop * Math.Sin(0));
@@ -49,12 +51,6 @@ public class CylinderMeshGenerator
             var bottomX = (float) (RadiusBottom * Math.Cos(angle));
             var bottomY = (float) (RadiusBottom * Math.Sin(angle));
 
-            float nextAngle = (i + 2) * step;
-            var topXNext = (float) (RadiusTop * Math.Cos(nextAngle));
-            var topYNext = (float) (RadiusTop * Math.Sin(nextAngle));
-            var bottomXNext = (float) (RadiusBottom * Math.Cos(nextAngle));
-            var bottomYNext = (float) (RadiusBottom * Math.Sin(nextAngle));
-
             if (i == Sides - 1)
             {
                 topX = startingTopX;
@@ -67,34 +63,28 @@ public class CylinderMeshGenerator
             int idxStart = i * 6;
 
             // Add the vertices for this quad.
-            ref VertexData v1 = ref vertices[vtxStart];
-            v1.Vertex = new Vector3(prevBottomX, prevBottomY, 0);
+            ref VertexData_Pos_UV_Normal v1 = ref vertices[vtxStart];
+            v1.Position = new Vector3(prevBottomX, prevBottomY, 0);
             v1.UV = new Vector2((float) i / Sides, 0);
-            v1.Color = Color.WhiteUint;
 
-            indices[idxStart] = (ushort) vtxStart;
-
-            ref VertexData v2 = ref vertices[vtxStart + 1];
-            v2.Vertex = new Vector3(bottomX, bottomY, 0);
+            ref VertexData_Pos_UV_Normal v2 = ref vertices[vtxStart + 1];
+            v2.Position = new Vector3(bottomX, bottomY, 0);
             v2.UV = new Vector2((float) (i + 1) / Sides, 0);
-            v2.Color = Color.WhiteUint;
 
-            indices[idxStart + 1] = (ushort) (vtxStart + 1);
-
-            ref VertexData v3 = ref vertices[vtxStart + 2];
-            v3.Vertex = new Vector3(prevTopX, prevTopY, Height);
+            ref VertexData_Pos_UV_Normal v3 = ref vertices[vtxStart + 2];
+            v3.Position = new Vector3(prevTopX, prevTopY, Height);
             v3.UV = new Vector2((float) i / Sides, 1);
-            v3.Color = Color.WhiteUint;
 
-            indices[idxStart + 2] = (ushort) (vtxStart + 2);
-            indices[idxStart + 3] = (ushort) (vtxStart + 2);
-            indices[idxStart + 4] = (ushort) (vtxStart + 1);
-
-            ref VertexData v6 = ref vertices[vtxStart + 3];
-            v6.Vertex = new Vector3(topX, topY, Height);
+            ref VertexData_Pos_UV_Normal v6 = ref vertices[vtxStart + 3];
+            v6.Position = new Vector3(topX, topY, Height);
             v6.UV = new Vector2((float) (i + 1) / Sides, 1);
-            v6.Color = Color.WhiteUint;
-            indices[idxStart + 5] = (ushort) (vtxStart + 3);
+
+            indices[idxStart + 0] = (ushort)(vtxStart + 0);
+            indices[idxStart + 1] = (ushort)(vtxStart + 1);
+            indices[idxStart + 2] = (ushort)(vtxStart + 2);
+            indices[idxStart + 3] = (ushort)(vtxStart + 2);
+            indices[idxStart + 4] = (ushort)(vtxStart + 1);
+            indices[idxStart + 5] = (ushort)(vtxStart + 3);
 
             // Set as previous to be used for the next quad.
             prevTopX = topX;
@@ -112,7 +102,7 @@ public class CylinderMeshGenerator
 
             for (int k = 0; k < 4; k++)
             {
-                meshData[vtxStart + k].Normal = sliceNormal;
+                vertices[vtxStart + k].Normal = sliceNormal;
             }
         }
 
@@ -121,11 +111,10 @@ public class CylinderMeshGenerator
             int vtxStart = Sides * 4;
 
             // Top center point
-            ref VertexData v1 = ref vertices[vtxStart];
-            v1.Vertex = new Vector3(0, 0, Height);
+            ref VertexData_Pos_UV_Normal v1 = ref vertices[vtxStart];
+            v1.Position = new Vector3(0, 0, Height);
             v1.UV = new Vector2(0, 1); // todo
-            v1.Color = Color.WhiteUint;
-            meshData[vtxStart].Normal = Renderer.Up;
+            v1.Normal = Renderer.Up;
 
             // Cap on top
             int idxStart = Sides * 6;
@@ -141,11 +130,10 @@ public class CylinderMeshGenerator
             }
 
             // Bottom center point
-            ref VertexData v2 = ref vertices[vtxStart + 1];
-            v2.Vertex = new Vector3(0, 0, 0);
+            ref VertexData_Pos_UV_Normal v2 = ref vertices[vtxStart + 1];
+            v2.Position = new Vector3(0, 0, 0);
             v2.UV = new Vector2(0, 0); // todo
-            v2.Color = Color.Red.ToUint();
-            meshData[vtxStart + 1].Normal = -Renderer.Up;
+            v2.Normal = -Renderer.Up;
 
             // Cap on bottom
             idxStart += Sides * 3;
@@ -161,6 +149,6 @@ public class CylinderMeshGenerator
             }
         }
 
-        return new Mesh(name, vertices, meshData, indices);
+        return new Mesh(vertData, indices, MeshMaterial.DefaultMaterialTwoSided, name);
     }
 }
