@@ -49,6 +49,22 @@ public struct AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta_Extra
         return _type != AssetReferenceType.None;
     }
 
+    public TAsset? ResolveAsset()
+    {
+        if (_type == AssetReferenceType.AssetName)
+        {
+            _asset = Engine.AssetLoader.Get<TAsset>(_assetName);
+            _type = AssetReferenceType.Asset;
+        }
+
+        if (_type == AssetReferenceType.Asset)
+        {
+            return _asset;
+        }
+
+        return null;
+    }
+
     public TObject? GetObjectLoadinline()
     {
         if (_type == AssetReferenceType.AssetName)
@@ -66,11 +82,6 @@ public struct AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta_Extra
 
         // _type == Object
         return _assetObject;
-    }
-
-    public TAsset? GetAsset()
-    {
-        return _type == AssetReferenceType.Asset ? _asset : null;
     }
 
     #region Equality
