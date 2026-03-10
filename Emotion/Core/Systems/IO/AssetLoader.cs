@@ -141,7 +141,7 @@ public partial class AssetLoader
             else // We allow loading of assets that don't exist.
             {
                 enginePath = AssetLoader.NameToEngineName(name);
-                Engine.Log.Warning($"Requested asset that doesn't exist - {name}", MessageSource.AssetLoader);
+                Engine.Log.Warning($"Requested asset that doesn't exist - {name}", MessageSource.AssetLoader, true);
             }
         }
 
