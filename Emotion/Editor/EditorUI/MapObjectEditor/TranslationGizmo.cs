@@ -80,82 +80,80 @@ public class TranslationGizmo : GameObject
 
     public static MeshEntity GetTranslationGizmoEntity(float height = 30, float arrowHeight = 10, bool planes = true)
     {
-        var arrowCylinderGen = new CylinderMeshGenerator();
-        arrowCylinderGen.RadiusBottom = 3;
-        arrowCylinderGen.RadiusTop = 3;
-        arrowCylinderGen.Height = height;
-        arrowCylinderGen.Capped = true;
-
-        var arrowGen = new CylinderMeshGenerator();
-        arrowGen.RadiusBottom = 5f;
-        arrowGen.RadiusTop = 0;
-        arrowGen.Height = arrowHeight;
-        arrowGen.Capped = true;
-
-        Mesh xCylinder = arrowCylinderGen.GenerateMesh().TransformMeshVertices(
-            Matrix4x4.CreateFromYawPitchRoll(Maths.DegreesToRadians(90), 0f, 0f)
-        );
-        Mesh xArrow = arrowGen.GenerateMesh().TransformMeshVertices(
-            Matrix4x4.CreateFromYawPitchRoll(Maths.DegreesToRadians(90), 0f, 0f) *
-            Matrix4x4.CreateTranslation(arrowCylinderGen.Height * ALMOST_ONE, 0, 0)
-        );
-        var meshXAxis = Mesh.CombineMeshes(xCylinder, xArrow, "X");
-
-        Mesh yCylinder = arrowCylinderGen.GenerateMesh("YCylinder").TransformMeshVertices(
-            Matrix4x4.CreateFromYawPitchRoll(0, Maths.DegreesToRadians(-90), 0f)
-        );
-        Mesh yArrow = arrowGen.GenerateMesh("YArrow").TransformMeshVertices(
-            Matrix4x4.CreateFromYawPitchRoll(0, Maths.DegreesToRadians(-90), 0f) *
-            Matrix4x4.CreateTranslation(0, arrowCylinderGen.Height * ALMOST_ONE, 0)
-        );
-        var meshYAxis = Mesh.CombineMeshes(yCylinder, yArrow, "Y");
-
-        Mesh zCylinder = arrowCylinderGen.GenerateMesh("ZCylinder");
-        Mesh zArrow = arrowGen.GenerateMesh("ZArrow").TransformMeshVertices(
-            Matrix4x4.CreateTranslation(0, 0, arrowCylinderGen.Height * ALMOST_ONE)
-        );
-        var meshZAxis = Mesh.CombineMeshes(zCylinder, zArrow, "Z");
-
-        var materialX = new MeshMaterial
+        var arrowCylinderGen = new CylinderMeshGenerator
         {
-            Name = "Material-Tool-X",
-            DiffuseColor = new Color(165, 40, 40)
+            RadiusBottom = 3,
+            RadiusTop = 3,
+            Height = height,
+            Capped = true
         };
-        meshXAxis.Material = materialX;
 
-        var materialY = new MeshMaterial
+        var arrowGen = new CylinderMeshGenerator
         {
-            Name = "Material-Tool-Y",
-            DiffuseColor = new Color(40, 165, 40)
+            RadiusBottom = 5f,
+            RadiusTop = 0,
+            Height = arrowHeight,
+            Capped = true
         };
-        meshYAxis.Material = materialY;
 
-        var materialZ = new MeshMaterial
-        {
-            Name = "Material-Tool-Z",
-            DiffuseColor = new Color(40, 40, 165)
-        };
-        meshZAxis.Material = materialZ;
+        Mesh meshXAxis = Mesh.CombineMeshes(
+            arrowCylinderGen.GenerateMesh(),
+            Matrix4x4.CreateFromYawPitchRoll(Maths.DegreesToRadians(90), 0f, 0f),
+            arrowGen.GenerateMesh(),
+            Matrix4x4.CreateFromYawPitchRoll(Maths.DegreesToRadians(90), 0f, 0f) * Matrix4x4.CreateTranslation(arrowCylinderGen.Height * ALMOST_ONE, 0, 0),
+            new MeshMaterial
+            {
+                Name = "Material-Tool-X",
+                DiffuseColor = new Color(165, 40, 40)
+            },
+            "X"
+        );
+
+        Mesh meshYAxis = Mesh.CombineMeshes(
+            arrowCylinderGen.GenerateMesh(),
+            Matrix4x4.CreateFromYawPitchRoll(0, Maths.DegreesToRadians(-90), 0f),
+            arrowGen.GenerateMesh(),
+            Matrix4x4.CreateFromYawPitchRoll(0, Maths.DegreesToRadians(-90), 0f) * Matrix4x4.CreateTranslation(0, arrowCylinderGen.Height * ALMOST_ONE, 0),
+            new MeshMaterial
+            {
+                Name = "Material-Tool-Y",
+                DiffuseColor = new Color(40, 165, 40)
+            },
+            "Y"
+        );
+
+        Mesh meshZAxis = Mesh.CombineMeshes(
+            arrowCylinderGen.GenerateMesh("ZCylinder"),
+            Matrix4x4.Identity,
+            arrowGen.GenerateMesh("ZArrow"),
+            Matrix4x4.CreateTranslation(0, 0, arrowCylinderGen.Height * ALMOST_ONE),
+            new MeshMaterial
+            {
+                Name = "Material-Tool-Z",
+                DiffuseColor = new Color(40, 40, 165)
+            },
+            "Z"
+        );
 
         Mesh[] meshes;
         if (planes)
         {
-            var materialPlaneZ = new MeshMaterial
-            {
-                Name = "Material-Plane-Z",
-                DiffuseColor = Color.Blue,
-                State =
-                {
-                    FaceCulling = false
-                }
-            };
-            Mesh meshZPlane = Mesh.ShallowCopyMesh_DeepCopyVertexData(Quad3D.QuadEntity.Meshes[0]);
-            meshZPlane.TransformMeshVertices(
-                Matrix4x4.CreateScale(30, 30, 30) *
-                Matrix4x4.CreateTranslation(arrowCylinderGen.Height / 2, arrowCylinderGen.Height / 2, 0)
-            );
-            meshZPlane.Material = materialPlaneZ;
-            meshZPlane.Name = "Z-Plane";
+            //var materialPlaneZ = new MeshMaterial
+            //{
+            //    Name = "Material-Plane-Z",
+            //    DiffuseColor = Color.Blue,
+            //    State =
+            //    {
+            //        FaceCulling = false
+            //    }
+            //};
+            //Mesh meshZPlane = Mesh.ShallowCopyMesh_DeepCopyVertexData(Quad3D.QuadEntity.Meshes[0]);
+            //meshZPlane.TransformMeshVertices(
+            //    Matrix4x4.CreateScale(30, 30, 30) *
+            //    Matrix4x4.CreateTranslation(arrowCylinderGen.Height / 2, arrowCylinderGen.Height / 2, 0)
+            //);
+            //meshZPlane.Material = materialPlaneZ;
+            //meshZPlane.Name = "Z-Plane";
 
             meshes = new[]
             {
@@ -163,7 +161,7 @@ public class TranslationGizmo : GameObject
                 meshYAxis,
                 meshZAxis,
 
-                meshZPlane
+                //meshZPlane
             };
         }
         else
@@ -176,11 +174,7 @@ public class TranslationGizmo : GameObject
             };
         }
 
-        return new MeshEntity
-        {
-            Meshes = meshes,
-            Name = "Translation Gizmo",
-        };
+        return new MeshEntity(meshes, "Translation Gizmo");
     }
 
     public bool KeyHandler(Key key, KeyState status)
