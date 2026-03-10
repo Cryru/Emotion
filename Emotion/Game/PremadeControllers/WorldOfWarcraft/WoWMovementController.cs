@@ -114,6 +114,9 @@ public class WoWMovementController : IGameObjectComponent, IUpdateableComponent
         float movementSpeed = WalkingSpeed;
         if (walkingBack) movementSpeed /= 2f;
 
+        // Prevent adding 1 to both X and Y
+        if (wasd != Vector2.Zero)
+            wasd = Vector2.Normalize(wasd);
         moveRequest += (wasd * movementSpeed * dt).ToVec3();
 
         // Check for collision
