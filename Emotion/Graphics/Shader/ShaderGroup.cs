@@ -1,11 +1,13 @@
 ﻿#nullable enable
 
+using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Threading;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Shading;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
 using Emotion.Standard.Reflector.Handlers.Base;
+using OpenGL;
 using System.Text;
 
 namespace Emotion.Graphics.Shader;
@@ -13,39 +15,80 @@ namespace Emotion.Graphics.Shader;
 public class ShaderGroup
 {
     public bool Valid { get; private set; }
-
     public string Name;
-
-    public string VersionString;
     public string ShaderContent;
-    public StringBuilder Includes;
+
+    public string VersionString = "Invalid";
+    private StringBuilder _includes = new StringBuilder();
 
     // Dynamic vertex format
-    private StringBuilder _defines = new();
     private StringBuilder _vertexFormatDefine = new();
-    private StringBuilder _fragmentFormatDefine = new();
-    private StringBuilder _vertexShaderExtraCode = new();
-    private StringBuilder _fragmentShaderExtraCode = new();
+    private StringBuilder _vertShaderPassParameters = new();
 
     private Dictionary<ShaderGroupDefinition, ShaderGroupCompileStatus> _compilations = new();
     private List<ShaderVertexAttribute> _vertAttribute = new();
 
     public ShaderGroup(
         string name,
-        string versionString,
-        string shaderContent,
-        StringBuilder include
+        string shaderContent
     )
     {
         Name = name;
-        VersionString = versionString;
         ShaderContent = shaderContent;
-        Includes = include;
     }
 
-    internal void Init()
+    public IEnumerator Init()
     {
-        // Determine the vertex format binding
+        bool es = Gl.CurrentShadingVersion.GLES;
+        VersionString = $"#version {Gl.CurrentShadingVersion.VersionId}{(es ? " es" : "")}\n";
+
+        // Process includes
+        StringBuilder include = _includes;
+        include.AppendLine("// INCLUDES");
+        include.AppendLine();
+
+        int includeCount = 1;
+
+        // Include GLES support if running on GLES
+        if (es)
+        {
+            TextAsset includeFile = Engine.AssetLoader.Get<TextAsset>("Shaders/GLESSupport.c");
+            yield return includeFile;
+
+            include.AppendLine("// Shaders/GLESSupport.c");
+            include.AppendLine();
+            include.Append($"\n#line 0 {includeCount}\n");
+            include.Append(includeFile.Content);
+            includeCount++;
+        }
+
+        // Always include common
+        {
+            TextAsset includeFile = Engine.AssetLoader.Get<TextAsset>("Shaders/Common.h");
+            yield return includeFile;
+
+            include.AppendLine("// Shaders/Common.h");
+            include.AppendLine();
+            include.Append($"\n#line 0 {includeCount}\n");
+            include.Append(includeFile.Content);
+            includeCount++;
+        }
+
+        foreach (string includePath in ForEachInclude(ShaderContent))
+        {
+            if (includePath == "Shaders/Common.h") continue;
+
+            TextAsset includeFile = Engine.AssetLoader.Get<TextAsset>(includePath, this, false, true);
+            yield return includeFile;
+
+            include.AppendLine($"// {includePath}");
+            include.AppendLine();
+            include.Append($"\n#line 0 {includeCount}\n");
+            include.Append(includeFile.Content);
+            includeCount++;
+        }
+
+        // Determine the vertex format support
         VertexDataFormat format = new VertexDataFormat();
         foreach (ShaderVertexAttribute attribute in ForEachDefinedVertexAttribute(ShaderContent))
         {
@@ -75,96 +118,133 @@ public class ShaderGroup
         return null;
     }
 
-    private static IEnumerator CompileShaderVariantRoutineAsync(ShaderGroup group, ShaderGroupDefinition def)
+    public IEnumerator GetShaderRoutine(ShaderOut shaderOut, ShaderGroupDefinition def)
+    {
+        if (!Valid)
+            yield break;
+
+        VertexDataFormat defFormat = def.Format;
+
+        // Check if shader format is a subset of the definiton format.
+
+        // Check if the compilation has already been queued/finished.
+        if (_compilations.TryGetValue(def, out ShaderGroupCompileStatus? compilation))
+        {
+            shaderOut.OutShaderProgram = compilation.Shader;
+            yield break;
+        }
+
+        _compilations.Add(def, new ShaderGroupCompileStatus());
+        yield return CompileShaderVariantRoutine(this, shaderOut, def);
+    }
+
+    public (StringBuilder vertShader, StringBuilder fragShader) GetShaderSourceForPipelineDef(in ShaderGroupDefinition def)
     {
         VertexDataFormat defFormat = def.Format;
 
-        StringBuilder vertexShader = new StringBuilder();
-        vertexShader.Append(group.VersionString);
-        vertexShader.Append("\n#define VERT_SHADER 1\n");
+        // Write the code brought by the pipeline def
+        StringBuilder pipelineDefCode = new StringBuilder();
 
-        vertexShader.Append("\n// OPTIONAL ATTRIBUTES\n");
-        foreach (ShaderVertexAttribute attr in group._vertAttribute)
+        pipelineDefCode.Append("\n// VERTEX ATTRIBUTE DEFINES\n");
+        bool hasBones = false;
+        foreach (ShaderVertexAttribute attr in _vertAttribute)
         {
-            if (defFormat.HasAttribute(attr.AttributeType))
-                vertexShader.Append(attr.OptionalDefine);
+            bool add = false;
+            if (attr.Optional)
+                add = defFormat.HasAttribute(attr.AttributeType);
+            else
+                add = true;
+
+            if (add)
+            {
+                pipelineDefCode.AppendLine($"#define HAS_{attr.AttributeType} 1");
+                hasBones = hasBones || attr.AttributeType == VertexDataFormatAttributeType.BoneIds || attr.AttributeType == VertexDataFormatAttributeType.BoneWeights;
+            }
         }
+        if (hasBones)
+            pipelineDefCode.AppendLine("#define HAS_BONES 1");
 
         if (def.Defines != null)
         {
-            vertexShader.Append("\n// COMPILATION DEFINITION DEFINES\n");
+            pipelineDefCode.Append("\n// PIPELINE VARIATION\n");
             foreach (string item in def.Defines)
             {
-                vertexShader.Append($"#define {item}");
+                pipelineDefCode.AppendLine($"#define {item}");
             }
         }
 
-        vertexShader.Append("\n// DEFINES\n");
-        vertexShader.Append(group._defines);
-        vertexShader.Append("\n// INCLUDES\n");
-        vertexShader.Append(group.Includes);
-        vertexShader.Append("\n");
-        vertexShader.Append("\n// VERTEX DATA FORMAT\n");
-        vertexShader.Append(group._vertexFormatDefine);
-        vertexShader.Append("\n");
+        pipelineDefCode.Append("\n// VERTEX DATA FORMAT\n");
+        pipelineDefCode.Append(_vertexFormatDefine);
+
+        StringBuilder vertexShader = new StringBuilder();
+        vertexShader.Append(VersionString);
+        vertexShader.Append("\n#define VERT_SHADER 1\n");
+
+        vertexShader.Append(_includes);
+        vertexShader.Append(pipelineDefCode);
+
+        vertexShader.AppendLine();
         vertexShader.Append("#line 1 0\n");
-        vertexShader.Append(group.ShaderContent);
+        vertexShader.Append(ShaderContent);
         vertexShader.Append("\n\n// GENERATED MAIN\n");
-        vertexShader.Append("void main()");
+        vertexShader.Append("void main()\n");
         vertexShader.Append("{\n");
-        vertexShader.Append(group._vertexShaderExtraCode);
+        vertexShader.Append(_vertShaderPassParameters);
         vertexShader.Append("\n    gl_Position = VertexShaderMain();\n");
         vertexShader.Append("}\n");
 
         StringBuilder fragmentShader = new StringBuilder();
-        fragmentShader.Append(group.VersionString);
+        fragmentShader.Append(VersionString);
         fragmentShader.Append("\n#define FRAG_SHADER 1\n");
 
-        fragmentShader.Append("\n// OPTIONAL ATTRIBUTES\n");
-        foreach (ShaderVertexAttribute attr in group._vertAttribute)
-        {
-            if (defFormat.HasAttribute(attr.AttributeType))
-                fragmentShader.Append(attr.OptionalDefine);
-        }
+        fragmentShader.Append(_includes);
+        fragmentShader.Append(pipelineDefCode);
 
-        if (def.Defines != null)
-        {
-            fragmentShader.Append("\n// COMPILATION DEFINITION DEFINES\n");
-            foreach (string item in def.Defines)
-            {
-                fragmentShader.Append($"#define {item}");
-            }
-        }
-
-        fragmentShader.Append("\n// DEFINES\n");
-        fragmentShader.Append(group._defines);
-        fragmentShader.Append("\n// INCLUDES\n");
-        fragmentShader.Append(group.Includes);
-        fragmentShader.Append("\n");
-        fragmentShader.Append("\n// VERTEX DATA FORMAT\n");
-        fragmentShader.Append(group._fragmentFormatDefine);
         fragmentShader.Append("\n");
         fragmentShader.Append("#line 1 0\n");
-        fragmentShader.Append(group.ShaderContent);
+        fragmentShader.Append(ShaderContent);
         fragmentShader.Append("\n\n// GENERATED MAIN\n");
         fragmentShader.Append("\nout vec4 fragColor;\n");
-        fragmentShader.Append("void main()");
+        fragmentShader.Append("void main()\n");
         fragmentShader.Append("{\n");
-        fragmentShader.Append(group._fragmentShaderExtraCode);
-        fragmentShader.Append("\n    fragColor = FragmentShaderMain();\n");
+        fragmentShader.Append("    fragColor = FragmentShaderMain();\n");
         fragmentShader.Append("}\n");
 
-        Engine.Log.ONE_Info("Shader", $"{group.Name} {def} compiling...");
-        CreateShaderParams param = new CreateShaderParams(vertexShader.ToString(), fragmentShader.ToString()); // todo: pool
-        yield return GLThread.ExecuteOnGLThreadAsync(static (CreateShaderParams param) =>
-        {
-            ShaderProgram? compiled = ShaderFactory.CreateShaderRaw(param.VertShaderSource, param.FragShaderSource);
-            param.OutShaderProgram = compiled;
-        }, param);
+        return (vertexShader, fragmentShader);
+    }
 
-        ShaderProgram? compiledShader = param.OutShaderProgram;
-        if (compiledShader == null) yield break; // Didn't compile
-        Engine.Log.ONE_Info("Shader", $"{group.Name} {def} compiled!");
+    public IEnumerator GetCompiledShaderForPipelineDefRoutine(ShaderOut compiledOut, ShaderGroupDefinition def)
+    {
+        (StringBuilder vert, StringBuilder frag) = GetShaderSourceForPipelineDef(def);
+
+        Engine.Log.ONE_Info("Pipeline", $"Compiling {Name} {def}");
+        compiledOut.VertexSource = vert;
+        compiledOut.FragmentSource = frag;
+        yield return GLThread.ExecuteOnGLThreadAsync(static (ShaderOut param) =>
+        {
+            string? vertSource = param.VertexSource?.ToString();
+            string? fragSource = param.FragmentSource?.ToString();
+            if (vertSource == null || fragSource == null) return;
+
+            ShaderProgram? compiled = ShaderFactory.CreateShaderRaw(vertSource, fragSource);
+            param.OutShaderProgram = compiled;
+        }, compiledOut);
+
+        ShaderProgram? compiledShader = compiledOut.OutShaderProgram;
+        if (compiledShader == null)
+        {
+            Engine.Log.ONE_Error("Pipeline", $"Failed compilation of {Name} {def}");
+            yield break;
+        }
+        Engine.Log.ONE_Info("Pipeline", $"Compiled {Name} {def}");
+    }
+
+    private static IEnumerator CompileShaderVariantRoutine(ShaderGroup group, ShaderOut shaderOut, ShaderGroupDefinition def)
+    {
+        yield return group.GetCompiledShaderForPipelineDefRoutine(shaderOut, def);
+
+        ShaderProgram? compiledShader = shaderOut.OutShaderProgram;
+        if (compiledShader == null) yield break;
 
         lock (group)
         {
@@ -178,6 +258,12 @@ public class ShaderGroup
                 compilation.SetShader(compiledShader);
             AssertNotNull(compilation);
         }
+    }
+
+    private static IEnumerator CompileShaderVariantRoutineAsync(ShaderGroup group, ShaderGroupDefinition def)
+    {
+        ShaderOut create = new ShaderOut(); // todo: pool
+        yield return CompileShaderVariantRoutine(group, create, def);
     }
 
     public void Dispose()
@@ -194,6 +280,39 @@ public class ShaderGroup
     }
 
     #region Helpers
+
+    private static IEnumerable<string> ForEachInclude(string source)
+    {
+        const string includeToken = "INCLUDE_FILE";
+        int tokenLength = includeToken.Length;
+
+        int offset = 0;
+        while (offset < source.Length)
+        {
+            int idx = source.IndexOf(includeToken, offset);
+            if (idx < 0) yield break; // No more
+
+            idx += tokenLength;
+
+            // Skip whitespaces
+            while (idx < source.Length && char.IsWhiteSpace(source[idx]))
+                idx++;
+            if (idx == source.Length) break;
+
+            // Check if opening
+            if (source[idx] == '<')
+            {
+                // Read to closing
+                int end = source.IndexOf('>', idx + 1);
+                if (end != -1)
+                {
+                    yield return source.Substring(idx + 1, end - idx - 1);
+                }
+
+                offset = end + 1;
+            }
+        }
+    }
 
     private static IEnumerable<ShaderVertexAttribute> ForEachDefinedVertexAttribute(string source)
     {
@@ -327,108 +446,69 @@ public class ShaderGroup
             }
         }
 
-        // Write defines
-        bool wroteHasBones = false;
-        foreach (ShaderVertexAttribute attr in _vertAttribute)
-        {
-            StringBuilder writeDefineTo = _defines;
 
-            bool optionalDefineWritten = false;
-            if (attr.Optional)
-            {
-                optionalDefineWritten = true;
-                attr.OptionalIfDef = $"#ifdef HAS_{attr.AttributeType}";
-                writeDefineTo = new StringBuilder();
-            }
-
-            if (!wroteHasBones &&
-                (attr.AttributeType == VertexDataFormatAttributeType.BoneIds || attr.AttributeType == VertexDataFormatAttributeType.BoneWeights)
-            )
-            {
-                writeDefineTo.AppendLine($"#define HAS_BONES 1");
-                wroteHasBones = true;
-            }
-
-            writeDefineTo.AppendLine($"#define HAS_{attr.AttributeType} 1");
-
-            if (optionalDefineWritten)
-                attr.OptionalDefine = writeDefineTo.ToString();
-        }
-
-        // Write format code
+        // Vertex shader vertex attributes
+        _vertexFormatDefine.AppendLine($"#ifdef VERT_SHADER");
         foreach (ShaderVertexAttribute attr in _vertAttribute)
         {
             bool endIf = false;
             if (attr.Optional)
             {
-                _vertexFormatDefine.AppendLine(attr.OptionalIfDef);
-                _fragmentFormatDefine.AppendLine(attr.OptionalIfDef);
+                _vertexFormatDefine.AppendLine($"#ifdef HAS_{attr.AttributeType}");
                 endIf = true;
             }
 
             _vertexFormatDefine.AppendLine($"layout(location = {attr.AttributeLocation}) in {attr.DataType} {attr.AttributeName};");
-            _fragmentFormatDefine.AppendLine($"in {attr.DataType} pass_{attr.AttributeName};");
+            _vertexFormatDefine.AppendLine($"out {attr.DataType} pass_{attr.AttributeName};");
 
             if (endIf)
-            {
                 _vertexFormatDefine.AppendLine($"#endif");
-                _fragmentFormatDefine.AppendLine($"#endif");
-            }
         }
-
-        _vertexFormatDefine.AppendLine();
-        _vertexFormatDefine.AppendLine("// PASS LOGIC");
+        _vertexFormatDefine.AppendLine($"#endif");
         _vertexFormatDefine.AppendLine();
 
-        _fragmentFormatDefine.AppendLine();
-        _fragmentFormatDefine.AppendLine("// PASS LOGIC");
-        _fragmentFormatDefine.AppendLine();
-
-        // Write pass code
+        // Fragment shader vertex attributes
+        _vertexFormatDefine.AppendLine($"#ifdef FRAG_SHADER");
         foreach (ShaderVertexAttribute attr in _vertAttribute)
         {
             bool endIf = false;
             if (attr.Optional)
             {
-                _vertexFormatDefine.AppendLine(attr.OptionalIfDef);
-                _vertexShaderExtraCode.AppendLine(attr.OptionalIfDef);
-                _fragmentFormatDefine.AppendLine(attr.OptionalIfDef);
-                _fragmentShaderExtraCode.AppendLine(attr.OptionalIfDef);
+                _vertexFormatDefine.AppendLine($"#ifdef HAS_{attr.AttributeType}");
                 endIf = true;
             }
 
-            _vertexFormatDefine.AppendLine($"out {attr.DataType} pass_{attr.AttributeName};");
-            _vertexShaderExtraCode.AppendLine($"    pass_{attr.AttributeName} = {attr.AttributeName};");
-
-            _fragmentFormatDefine.AppendLine($"{attr.DataType} {attr.AttributeName};");
-            _fragmentShaderExtraCode.AppendLine($"    {attr.AttributeName} = pass_{attr.AttributeName};");
+            _vertexFormatDefine.AppendLine($"in {attr.DataType} pass_{attr.AttributeName};");
+            _vertexFormatDefine.AppendLine($"{attr.DataType} {attr.AttributeName} = pass_{attr.AttributeName};");
 
             if (endIf)
+                _vertexFormatDefine.AppendLine($"#endif");
+        }
+        _vertexFormatDefine.AppendLine($"#endif");
+
+        // Write pass code for the vertex shader
+        _vertShaderPassParameters.AppendLine("    // PASS LOGIC");
+        foreach (ShaderVertexAttribute attr in _vertAttribute)
+        {
+            bool endIf = false;
+            if (attr.Optional)
             {
-                _vertexFormatDefine.AppendLine("#endif");
-                _vertexShaderExtraCode.AppendLine("#endif");
-                _fragmentFormatDefine.AppendLine("#endif");
-                _fragmentShaderExtraCode.AppendLine("#endif");
+                _vertShaderPassParameters.AppendLine($"#ifdef HAS_{attr.AttributeType}");
+                endIf = true;
             }
+            _vertShaderPassParameters.AppendLine($"    pass_{attr.AttributeName} = {attr.AttributeName};");
+            if (endIf)
+                _vertShaderPassParameters.AppendLine("#endif");
         }
     }
 
     #endregion
 
-    private class CreateShaderParams
+    public class ShaderOut
     {
-        public string VertShaderSource;
-        public string FragShaderSource;
-        public string? CompileConstant;
-
+        public StringBuilder? FragmentSource;
+        public StringBuilder? VertexSource;
         public ShaderProgram? OutShaderProgram;
-
-        public CreateShaderParams(string vertShader, string fragShader, string? compilationConstant = null)
-        {
-            VertShaderSource = vertShader;
-            FragShaderSource = fragShader;
-            CompileConstant = compilationConstant;
-        }
     }
 
     private class ShaderVertexAttribute
@@ -440,9 +520,6 @@ public class ShaderGroup
         // Assigned programatically
         public int AttributeLocation;
         public string DataType = string.Empty;
-
-        public string OptionalIfDef = string.Empty;
-        public string OptionalDefine = string.Empty;
 
         public ShaderVertexAttribute(string attributeName, VertexDataFormatAttributeType attributeType, bool optional)
         {

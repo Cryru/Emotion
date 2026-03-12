@@ -4,6 +4,8 @@ using Emotion.Core;
 using Emotion.Game.World;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
+using Emotion.Graphics.Data;
+using Emotion.Graphics.Shader;
 using Emotion.Testing;
 using System.Collections;
 using System.Numerics;
@@ -30,45 +32,53 @@ public class Render3DTests : TestingScene
         Map.Update(16);
     }
 
-    public IEnumerator ScreenshotPointFromAllSides(Vector3 point, string funcName)
+    [DebugTest]
+    [Test]
+    public IEnumerator PipelineBasicBuild()
     {
-        var cam = Engine.Renderer.Camera;
+        string basicShader = @"// INCLUDE_FILE <Shaders/Common.h>
 
-        cam.Position = point + new Vector3(0, 0, 100);
-        cam.LookAtPoint(Vector3.Zero);
+// DEFINE_VERTEX_ATTRIBUTE Position V_Pos
+// DEFINE_VERTEX_ATTRIBUTE UV V_UV
 
-        yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(nameof(Render3DTests), funcName);
+VERT_TO_FRAGMENT vec3 F_Pos;
 
-        cam.Position = point + new Vector3(0, 0, -100);
-        cam.LookAtPoint(Vector3.Zero);
+#ifdef VERT_SHADER
 
-        yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(nameof(Render3DTests), funcName);
+vec4 VertexShaderMain()
+{
+    vec4 totalPosition = vec4(V_Pos, 1.0);
+    vec4 localPos = modelMatrix * totalPosition;
+    F_Pos = vec3(localPos);
+    return projectionMatrix * viewMatrix * localPos;
+}
 
-        cam.Position = point + new Vector3(100, 0, 0);
-        cam.LookAtPoint(Vector3.Zero);
+#endif
 
-        yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(nameof(Render3DTests), funcName);
+#ifdef FRAG_SHADER
 
-        cam.Position = point + new Vector3(-100, 0, 0);
-        cam.LookAtPoint(Vector3.Zero);
+#define ALPHA_DISCARD 0.01
 
-        yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(nameof(Render3DTests), funcName);
+uniform Texture diffuseTexture;
 
-        cam.Position = point + new Vector3(0, 100, 0);
-        cam.LookAtPoint(Vector3.Zero);
+vec4 FragmentShaderMain()
+{
+    vec4 textureColor = texture(diffuseTexture, V_UV);
 
-        yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(nameof(Render3DTests), funcName);
+    vec4 finalColor = textureColor;
+    if (finalColor.a < ALPHA_DISCARD) discard;
+    return finalColor;
+}
 
-        cam.Position = point + new Vector3(0, -100, 0);
-        cam.LookAtPoint(Vector3.Zero);
+#endif";
+        ShaderGroup pipeline = new ShaderGroup("Test", basicShader);
+        pipeline.VersionString = $"#version 330"; // Force for deterministic test
+        yield return pipeline.Init();
 
-        yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(nameof(Render3DTests), funcName);
+        ShaderGroup.ShaderOut shaderOut = new ShaderGroup.ShaderOut();
+        yield return pipeline.GetCompiledShaderForPipelineDefRoutine(shaderOut, new ShaderGroupDefinition(VertexData.Format));
+
+        Assert.NotNull(shaderOut.OutShaderProgram);
     }
 
     [Test]
@@ -80,4 +90,49 @@ public class Render3DTests : TestingScene
 
         yield return ScreenshotPointFromAllSides(Vector3.Zero, nameof(WorldWith2DCamera));
     }
+
+    #region Helpers
+
+    public IEnumerator ScreenshotPointFromAllSides(Vector3 point, string funcName)
+    {
+        var cam = Engine.Renderer.Camera;
+
+        cam.Position = point + new Vector3(0, 0, 100);
+        cam.LookAtPoint(Vector3.Zero);
+
+        yield return new TestWaiterRunLoops(1);
+        yield return VerifyScreenshot(nameof(Render3DTests), funcName);
+
+        cam.Position = point + new Vector3(0, 0, -100);
+        cam.LookAtPoint(Vector3.Zero);
+
+        yield return new TestWaiterRunLoops(1);
+        yield return VerifyScreenshot(nameof(Render3DTests), funcName);
+
+        cam.Position = point + new Vector3(100, 0, 0);
+        cam.LookAtPoint(Vector3.Zero);
+
+        yield return new TestWaiterRunLoops(1);
+        yield return VerifyScreenshot(nameof(Render3DTests), funcName);
+
+        cam.Position = point + new Vector3(-100, 0, 0);
+        cam.LookAtPoint(Vector3.Zero);
+
+        yield return new TestWaiterRunLoops(1);
+        yield return VerifyScreenshot(nameof(Render3DTests), funcName);
+
+        cam.Position = point + new Vector3(0, 100, 0);
+        cam.LookAtPoint(Vector3.Zero);
+
+        yield return new TestWaiterRunLoops(1);
+        yield return VerifyScreenshot(nameof(Render3DTests), funcName);
+
+        cam.Position = point + new Vector3(0, -100, 0);
+        cam.LookAtPoint(Vector3.Zero);
+
+        yield return new TestWaiterRunLoops(1);
+        yield return VerifyScreenshot(nameof(Render3DTests), funcName);
+    }
+
+    #endregion
 }
