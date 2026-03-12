@@ -6,6 +6,8 @@ using Emotion.Standard.GLTF;
 using Emotion.Graphics.Assets;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Standard.Parsers.GLTF;
+using Emotion.Graphics.Shader;
+
 
 #if MORE_MESH_TYPES
 using Emotion.Standard.Parsers.Assimp;
@@ -78,6 +80,20 @@ public class MeshAsset : Asset, IAssetContainingObject<MeshEntity>
         if (entity != null)
         {
             entity.Name = Name;
+
+            // Ensure pipelines for this entity's meshes are loaded
+            // Temp
+            foreach (Mesh mesh in entity.Meshes)
+            {
+                MeshMaterial material = mesh.Material;
+                AssetObjectReference<ShaderGroupAsset, ShaderGroup> materialPipeline = material.State.ShaderGroup;
+                ShaderGroupAsset? pipelineAsset = materialPipeline.ResolveAsset();
+                if (pipelineAsset != null && !pipelineAsset.Loaded) yield return pipelineAsset;
+                ShaderGroup? pipeline = pipelineAsset?.ShaderGroup;
+                if (pipeline != null)
+                    yield return pipeline.GetShaderRoutine(new ShaderGroup.ShaderOut(), new ShaderGroupDefinition(mesh.VertexFormat));
+            }
+
             Entity = entity;
 
             // Cache bounds for null animation at least to prevent loading on SetEntity.

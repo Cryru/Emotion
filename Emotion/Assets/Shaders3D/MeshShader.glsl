@@ -17,7 +17,6 @@ VERT_TO_FRAGMENT vec3 F_Normal;
 
 #ifdef HAS_BONES
 const int MAX_BONES = 200;
-const int MAX_BONE_INFLUENCE = 4;
 uniform mat4 boneMatrices[MAX_BONES];
 #endif
 
@@ -27,10 +26,9 @@ vec4 VertexShaderMain()
 
 #ifdef HAS_BONES
     mat4 totalTransform = boneMatrices[int(V_BoneIds[0])] * V_BoneWeights[0];
-    for (int i = 1; i < MAX_BONE_INFLUENCE; i++)
-    {
-        totalTransform += boneMatrices[int(V_BoneIds[i])] * V_BoneWeights[i];
-    }
+    totalTransform += boneMatrices[int(V_BoneIds[1])] * V_BoneWeights[1];
+    totalTransform += boneMatrices[int(V_BoneIds[2])] * V_BoneWeights[2];
+    totalTransform += boneMatrices[int(V_BoneIds[3])] * V_BoneWeights[3];
     totalPosition = totalTransform * totalPosition;
 #ifdef HAS_Normal
     F_Normal = normalize(mat3(transpose(inverse(modelMatrix * totalTransform))) * V_Normal);
@@ -50,7 +48,10 @@ vec4 VertexShaderMain()
 
 #ifdef FRAG_SHADER
 
-#define ALPHA_DISCARD (128.0 / 255.0)
+//#define ALPHA_DISCARD (128.0 / 255.0)
+#define ALPHA_DISCARD 0.01
+#define OPAQUE_OBJECT 1
+
 uniform Texture diffuseTexture;
 uniform vec4 diffuseColor;
 
@@ -64,11 +65,15 @@ uniform float diffuseStrength;
 vec4 FragmentShaderMain()
 {
     vec4 textureColor = texture(diffuseTexture, V_UV);
+#ifdef OPAQUE_OBJECT
+    textureColor.a = 1.0;
+#endif
 
     vec4 objectTint = vec4(1.0);
     vec4 objectColor = textureColor * diffuseColor;
     objectColor = ApplyColorTint(objectColor, objectTint);
 
+    vec4 finalColor = objectColor;
 #ifdef LIGHT_ENABLED
 #ifdef HAS_Normal
     vec3 fragLightDir = normalize(sunDirection);
@@ -82,12 +87,8 @@ vec4 FragmentShaderMain()
     vec3 diffuse = mix(objectColor.rgb, objectColor.rgb * diffuseFactor, diffuseStrength);
     vec3 litColor = diffuse * ambient;
 
-    vec4 finalColor = vec4(litColor.rgb, objectColor.a);
-#else
-    vec4 finalColor = objectColor;
+    finalColor = vec4(litColor.rgb, objectColor.a);
 #endif
-#else
-    vec4 finalColor = objectColor;
 #endif
 
     if (finalColor.a < ALPHA_DISCARD) discard;
