@@ -174,7 +174,7 @@ public class ShaderAsset : TextAsset, IAssetContainingObject<ShaderProgram>
         /// <summary>
         /// The path to another shader description to fallback to if the creation of this shader fails.
         /// </summary>
-        public string Fallback { get; set; } = "Shaders/DefaultShader.xml";
+        public string Fallback { get; set; } = "ShadersLegacy/DefaultShader.xml";
     }
 
     public ShaderDescription? Content { get; set; }

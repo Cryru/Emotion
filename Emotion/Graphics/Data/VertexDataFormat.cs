@@ -310,7 +310,13 @@ public sealed class VertexDataFormat : IEquatable<VertexDataFormat>
 
     public override string ToString()
     {
-        return $"VertexFormat {Hash} {(HasPosition ? "P" : "")}{(HasUVCount > 0 ? $"U({HasUVCount})" : "")}{(HasNormals ? $"N" : "")}{(HasVertexColors ? $"C" : "")}{(HasBones ? $"B" : "")}{(CustomData != null ? $"X({CustomData.Count})" : "")}";
+        return $"FMT {{ [{Hash}] " +
+            $"{(HasPosition ? "P" : "")}" +
+            $"{(HasUVCount > 0 ? $"U({HasUVCount})" : "")}" +
+            $"{(HasNormals ? $"N" : "")}" +
+            $"{(HasVertexColors ? $"C" : "")}" +
+            $"{(HasBones ? $"B" : "")}" +
+            $"{(CustomData != null ? $"X({CustomData.Count})" : "")} }}";
     }
 
     public override int GetHashCode()

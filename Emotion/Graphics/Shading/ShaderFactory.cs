@@ -6,6 +6,7 @@ using System.Text;
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Systems.Logging;
 using Emotion.Core.Utility.Threading;
+using Emotion.Graphics.Data;
 using Emotion.Graphics.Shader;
 using OpenGL;
 
@@ -355,46 +356,63 @@ public static class ShaderFactory
 
     internal static IEnumerator LoadDefaultShadersRoutineAsync()
     {
-        Engine.Log.Info($"Loading default shaders...", MessageSource.Renderer);
-
-        TextAsset vert = Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultVert.vert");
-        TextAsset frag = Engine.AssetLoader.Get<TextAsset>("Shaders/DefaultFrag.frag");
-
-        yield return vert;
-        yield return frag;
-        DefaultProgram_Vert = vert;
-        DefaultProgram_Frag = frag;
-
-        if (!vert.Loaded || !frag.Loaded)
-        {
-            Engine.CriticalError(new Exception("Couldn't find default shader code."));
-            yield break;
-        }
-
         Engine.Log.Info("Compiling default shaders...", MessageSource.Renderer);
-        yield return GLThread.ExecuteOnGLThreadAsync(() => // todo: execute gl thread coroutine waiter
+
+        // Load the default pipeline with the default vertex format before starting (as it is used by the renderer as a default)
         {
-            ShaderProgram? defaultShaderProgram = CreateShader(vert.Content, frag.Content);
-            DefaultProgram.CopyFrom(defaultShaderProgram);
-        });
-        if (DefaultProgram.Pointer == 0)
-        {
-            Engine.CriticalError(new Exception("Couldn't compile default shader."));
-            yield break;
+            ShaderGroupAsset defShader = Engine.AssetLoader.Get<ShaderGroupAsset>("Shaders/Default.glsl");
+            yield return defShader;
+
+            ShaderGroup? defPipeline = defShader.ShaderGroup;
+            ShaderGroup.ShaderOut shaderOut = new ShaderGroup.ShaderOut();
+            yield return defPipeline?.GetShaderRoutine(shaderOut, new ShaderGroupDefinition(VertexData.Format));
+
+            ShaderProgram? defaultVariant = shaderOut.OutShaderProgram;
+            if (defaultVariant == null)
+            {
+                Engine.CriticalError(new Exception("Couldn't initialize default shader."));
+                yield break;
+            }
+            DefaultProgram.CopyFrom(defaultVariant);
+            if (DefaultProgram.Pointer == 0)
+            {
+                Engine.CriticalError(new Exception("Couldn't copy into DefaultProgram."));
+                yield break;
+            }
         }
 
-        var blit = Engine.AssetLoader.Get<ShaderAsset>("Shaders/Blit.xml");
-        var blitPremultAlpha = Engine.AssetLoader.Get<ShaderAsset>("Shaders/BlitPremultAlpha.xml");
+        // Legacy - delete
+        {
+            TextAsset vert = Engine.AssetLoader.Get<TextAsset>("ShadersLegacy/DefaultVert.vert");
+            TextAsset frag = Engine.AssetLoader.Get<TextAsset>("ShadersLegacy/DefaultFrag.frag");
 
-        yield return blit;
-        yield return blitPremultAlpha;
+            yield return vert;
+            yield return frag;
 
-        Blit.CopyFrom(blit.Shader);
-        BlitPremultAlpha.CopyFrom(blitPremultAlpha.Shader);
+            DefaultProgram_Vert = vert;
+            DefaultProgram_Frag = frag;
+            if (!vert.Loaded || !frag.Loaded)
+            {
+                Engine.CriticalError(new Exception("Couldn't find default shader code."));
+                yield break;
+            }
+        }
 
-        // We could theoretically run /kinda/ without these, right?
-        Assert(Blit.Pointer != 0);
-        Assert(BlitPremultAlpha.Pointer != 0);
+        // Load the built-in shaders used by texture atlases
+        Engine.Log.Info("Compiling other built-in shaders...", MessageSource.Renderer);
+        {
+            var blit = Engine.AssetLoader.Get<ShaderAsset>("Shaders/Blit.xml");
+            var blitPremultAlpha = Engine.AssetLoader.Get<ShaderAsset>("Shaders/BlitPremultAlpha.xml");
+
+            yield return blit;
+            yield return blitPremultAlpha;
+
+            Blit.CopyFrom(blit.Shader);
+            BlitPremultAlpha.CopyFrom(blitPremultAlpha.Shader);
+
+            Assert(Blit.Pointer != 0);
+            Assert(BlitPremultAlpha.Pointer != 0);
+        }
 
         Engine.Log.Info($"Default shaders created!", MessageSource.Renderer);
     }
