@@ -52,6 +52,7 @@ public class TextureAsset : TextureAssetBase<Texture>
     {
         Texture.FlipY = flipped;
         Texture.CreationStack = Name;
+        Texture.Size = size;
 
         TextureUploadParams uploadParams = new()
         {
