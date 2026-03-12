@@ -277,6 +277,7 @@ namespace SourceGenerator
             StringBuilder sb = new StringBuilder(2000);
             WriteFileHeader(sb);
 
+            sb.AppendLine($"#nullable enable");
             sb.AppendLine($"namespace ReflectorGen;");
             sb.AppendLine("");
             sb.AppendLine($"public static class ReflectorData{safeName}");

@@ -37,7 +37,7 @@ public class AsyncJobManager
             Thread thread = new(JobSystemThreadProc)
             {
                 IsBackground = true,
-                Name = $"JobThread{i + 1}"
+                Name = $"Job{i + 1}"
             };
 
             JobThreadContext threadContext = new(i == 0, _taskQueuePriority, _taskQueue, thread, _jobTagCount);
