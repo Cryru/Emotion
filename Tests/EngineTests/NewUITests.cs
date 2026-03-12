@@ -7,6 +7,7 @@ using Emotion.Game.Systems.UI;
 using Emotion.Game.Systems.UI2;
 using Emotion.Game.Systems.UI2.Editor;
 using Emotion.Graphics;
+using Emotion.Graphics.Text;
 using Emotion.Primitives;
 using Emotion.Testing;
 using System;
@@ -284,6 +285,9 @@ public class NewUITests : TestingScene
             container.AddChild(item);
         }
 
+        // We need to run this a couple of times to get the TextRenderer to produce the text
+        yield return WaitUILayout();
+        yield return WaitUILayout();
         yield return WaitUILayout();
         yield return VerifyScreenshot(nameof(NewUITests), nameof(ComplicatedLayoutTest));
     }
