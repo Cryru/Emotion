@@ -3,6 +3,7 @@
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Game.World.Components;
+using Emotion.Game.World.Systems;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Game.World.TileMap;
 using Emotion.Graphics.Camera;
@@ -88,7 +89,33 @@ public partial class GameMap : IDisposable
                 yield return null;
         }
     }
-   
+
+    #region Systems
+
+    private List<IWorldSimulationSystem> _simulationSystems = new();
+    private List<IWorldRenderSystem> _renderSystems = new();
+    private Dictionary<Type, WorldSystem> _worldSystems = new();
+
+    public TSystem? GetSystem<TSystem>()
+        where TSystem : WorldSystem
+    {
+        if (_worldSystems.TryGetValue(typeof(TSystem), out WorldSystem? val))
+        {
+            return (TSystem)val;
+        }
+        return null;
+    }
+
+    public void AddSystem<TSystem>(TSystem system)
+        where TSystem : WorldSystem
+    {
+        system.AttachToMap(this);
+        _worldSystems.Add(typeof(TSystem), system);
+        if (system is IWorldSimulationSystem simSys) _simulationSystems.Add(simSys);
+        if (system is IWorldRenderSystem renderSys) _renderSystems.Add(renderSys);
+    }
+
+    #endregion
 
     #region Object Management
 
@@ -110,14 +137,16 @@ public partial class GameMap : IDisposable
             return id;
         }
 
-        public void OnObjectComponentAdded<TComponent>(GameObject obj) where TComponent : class, IGameObjectComponent
+        public void OnObjectComponentAdded(GameObject obj, IGameObjectComponent component)
         {
-
+            if (component is ISystemicComponent systemic)
+                systemic.Attach(Map, obj);
         }
 
-        public void OnObjectComponentRemoved<TComponent>(GameObject obj) where TComponent : class, IGameObjectComponent
+        public void OnObjectComponentRemoved(GameObject obj, IGameObjectComponent component)
         {
-
+            if (component is ISystemicComponent systemic)
+                systemic.Dettach(Map, obj);
         }
 
         public void AddObjectToWorld(GameObject obj)
@@ -132,13 +161,6 @@ public partial class GameMap : IDisposable
     {
         _objectsToLoad.Enqueue(obj);
     }
-
-    //public IEnumerator AddAndInitObject(GameObject obj)
-    //{
-    //    obj.Init(_gameObjectFriendAdapter);
-    //    while (obj.State != GameObjectState.Initialized)
-    //        yield return null;
-    //}
 
     public GameObject CreateObject()
     {
@@ -184,6 +206,12 @@ public partial class GameMap : IDisposable
             grid.Update(dt);
         }
 
+        for (int i = 0; i < _simulationSystems.Count; i++)
+        {
+            IWorldSimulationSystem sim = _simulationSystems[i];
+            sim.Update(dt);
+        }
+
         foreach (GameObject obj in ForEachObject())
         {
             obj.Update(dt);
@@ -223,6 +251,12 @@ public partial class GameMap : IDisposable
                 if (!obj.AlwaysRender && !frustum.IntersectsOrContainsCube(obj.GetBoundingCube())) continue;
                 obj.ForEachComponentOfType<IRenderableComponent, Renderer>(static (component, r) => component.Render(r), r);
             }
+        }
+
+        for (int i = 0; i < _renderSystems.Count; i++)
+        {
+            IWorldRenderSystem renderSys = _renderSystems[i];
+            renderSys.Render(r, culling);
         }
 
         // In case any component pushed to it
@@ -286,6 +320,40 @@ public partial class GameMap : IDisposable
             if (grid is TGrid tGrid) return tGrid;
         }
         return default;
+    }
+
+    #endregion
+
+    #region Object Creation Shortcuts
+
+    public GameObject NewMeshObject(MeshReference meshEntity)
+    {
+        GameObject gameObject = CreateObject();
+        gameObject.AddComponent(new MeshComponent(meshEntity));
+        return gameObject;
+    }
+
+    public GameObject NewSpriteObject(SpriteReference spriteEntity)
+    {
+        GameObject gameObject = CreateObject();
+        gameObject.AddComponent(new SpriteComponent(spriteEntity));
+        return gameObject;
+    }
+
+    public GameObject NewSimpleSpriteObject(TextureReference texture)
+    {
+        GameObject gameObject = CreateObject();
+        gameObject.AddComponent(new SimpleSpriteComponent(texture));
+        return gameObject;
+    }
+
+    public GameObject CreateSkyBox(CubeMapTextureReference cubeTexture)
+    {
+        GameObject gameObject = CreateObject();
+        gameObject.Name = "Skybox";
+        gameObject.AlwaysRender = true;
+        gameObject.AddComponent(new SkyBoxComponent(cubeTexture));
+        return gameObject;
     }
 
     #endregion

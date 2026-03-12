@@ -79,6 +79,9 @@ public partial class GameObject
                 componentRoutines ??= ArrayPool<IRoutineWaiter?>.Shared.Rent(_components.Count);
                 componentRoutines[componentIdx] = waiter;
             }
+
+            _adapter.OnObjectComponentAdded(this, component);
+
             componentIdx++;
         }
 
@@ -147,6 +150,7 @@ public partial class GameObject
     {
         foreach ((Type typ, IGameObjectComponent component) in _components)
         {
+            _adapter?.OnObjectComponentRemoved(this, component);
             component.Done(this);
         }
         _components.Clear();
@@ -205,7 +209,7 @@ public partial class GameObject
             if (State != GameObjectState.Uninitialized)
             {
                 AssertNotNull(_adapter);
-                _adapter.OnObjectComponentAdded<TComponent>(this);
+                _adapter.OnObjectComponentAdded(this, component);
 
                 if (component is IGameObjectTransformProvider transformProvider)
                     _transformProvider = transformProvider;
@@ -226,15 +230,13 @@ public partial class GameObject
     {
         if (_components.Remove(typeof(TComponent), out IGameObjectComponent? component))
         {
-            component.Done(this);
-
             if (component == _transformProvider)
             {
-                _transformProvider = null;
+                _transformProvider = new DefaultGameObjectTransformProvider();
                 InvalidateModelMatrix();
             }
-
-            _adapter?.OnObjectComponentRemoved<TComponent>(this);
+            _adapter?.OnObjectComponentRemoved(this, component);
+            component.Done(this);
             return true;
         }
 
@@ -249,43 +251,6 @@ public partial class GameObject
             if (componentInstance is TComponent asTComponent)
                 func(asTComponent, arg1);
         }
-    }
-
-    #endregion
-
-    #region Helper Constructors
-
-    public static GameObject NewMeshObject(GameMap map, string entityFile)
-    {
-        GameObject gameObject = map.CreateObject();
-        gameObject.Name = entityFile;
-        gameObject.AddComponent<MeshComponent>(new MeshComponent(entityFile));
-        return gameObject;
-    }
-
-    public static GameObject NewMeshObject(string entityFile)
-    {
-        var gameObject = new GameObject();
-        gameObject.Name = entityFile;
-        gameObject.AddComponent<MeshComponent>(new MeshComponent(entityFile));
-        return gameObject;
-    }
-
-    public static GameObject NewSpriteObject(string entityFile)
-    {
-        var gameObject = new GameObject();
-        gameObject.Name = entityFile;
-        gameObject.AddComponent<SpriteComponent>(new SpriteComponent(entityFile));
-        return gameObject;
-    }
-
-    public static GameObject CreateSkyBox(string textureFile)
-    {
-        var gameObject = new GameObject();
-        gameObject.Name = "Skybox";
-        gameObject.AlwaysRender = true;
-        gameObject.AddComponent<SkyBoxComponent>(new SkyBoxComponent(textureFile));
-        return gameObject;
     }
 
     #endregion

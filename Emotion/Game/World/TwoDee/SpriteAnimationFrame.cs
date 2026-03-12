@@ -106,7 +106,7 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
     {
         yield return null;
 
-        while (ve.State == Systems.UI.UIWindowState.Open)
+        while (ve.State == UIWindowState.Open)
         {
             Assert(false, "Todo");
             //yield return Texture.Load();
