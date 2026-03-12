@@ -447,4 +447,12 @@ public static class Helpers
             addItem(target, sourceItem);
         }
     }
+
+    public static void ListRemoveRotate<T>(List<T> list, T obj)
+    {
+        int idx = list.IndexOf(obj);
+        if (idx == -1) return;
+        (list[^1], list[idx]) = (list[idx], list[^1]);
+        list.RemoveAt(list.Count - 1);
+    }
 }
