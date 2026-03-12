@@ -107,9 +107,51 @@ public static partial class GameDatabase
             _objects[idx] = obj;
         }
 
+        // Reduce allocations by caching the workaround instances
+        private Dictionary<Type, object> _covariantListHandlers = new();
+
         public IReadOnlyList<T> GetCollection<T>() where T : GameDataObject
         {
-            return (IReadOnlyList<T>)_objects;
+            // If you've got a better idea...
+
+            Type typ = typeof(T);
+            if (typ == typeof(GameDataObject)) return (IReadOnlyList<T>) _objects;
+
+            if (_covariantListHandlers.TryGetValue(typ, out object? val))
+                return (IReadOnlyList<T>)val;
+
+            var newList = new CovariantListWorkaround<GameDataObject, T>(_objects)!;
+            _covariantListHandlers.Add(typ, newList);
+            return newList!;
+        }
+    }
+
+    // Workaround class for C# lists being invariant
+    public class CovariantListWorkaround<T, T2> : IReadOnlyList<T2?>
+        where T2 : T
+    {
+        private List<T> _list;
+
+        public CovariantListWorkaround(List<T> list)
+        {
+            _list = list;
+        }
+
+        public T2? this[int index] => (T2?)_list[index];
+
+        public int Count => _list.Count;
+
+        public IEnumerator<T2?> GetEnumerator()
+        {
+            foreach (T? item in _list)
+            {
+                yield return (T2?)item;
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

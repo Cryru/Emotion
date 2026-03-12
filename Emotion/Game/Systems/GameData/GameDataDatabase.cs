@@ -110,7 +110,10 @@ public static partial class GameDatabase
         where T : GameDataObject
     {
         Type typ = typeof(T);
-        return (IReadOnlyList<T>)GetObjectsOfType(typ);
+        _database.TryGetValue(typ, out GameDataTable? table);
+        if (table == null)
+            return Array.Empty<T>();
+        return table.GetCollection<T>();
     }
 
     public static GameDataObject? GetObject(Type typ, string? name)

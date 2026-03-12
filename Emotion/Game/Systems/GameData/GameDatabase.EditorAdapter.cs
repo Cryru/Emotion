@@ -26,7 +26,7 @@ public static partial class GameDatabase
             object? obj = handler.CreateNew();
             if (obj == null || obj is not GameDataObject dataObj) return null;
 
-            dataObj.Id = EditorAdapter.EnsureNonDuplicatedId(dataObj.Id, objs);
+            dataObj.Id = EditorAdapter.SanitizeGameDataId(dataObj.Id, objs);
             dataObj.Index = objs.Count;
             return dataObj;
         }
@@ -99,8 +99,11 @@ public static partial class GameDatabase
             writer.WriteLine("}");
         }
 
-        public static string EnsureNonDuplicatedId(string name, IList<GameDataObject> definitions)
+        public static string SanitizeGameDataId(string name, IList<GameDataObject> definitions)
         {
+            // Remove spaces
+            name = name.Replace(' ', '_');
+
             HashSet<string> idMap = new HashSet<string>();
             foreach (GameDataObject def in definitions)
             {

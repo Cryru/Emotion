@@ -91,7 +91,7 @@ public class ComplexTypeHandlerMember<ParentT, MyT> : ComplexTypeHandlerMemberBa
 
     public override bool SetValueInComplexObject<ParseIntoT>(ref ParseIntoT obj, object? val)
     {
-        if (!typeof(ParseIntoT).IsAssignableTo(typeof(ParentT))) return false;
+        if (obj == null || !obj.GetType().IsAssignableTo(typeof(ParentT))) return false;
 
         ref ParentT parentT = ref Unsafe.As<ParseIntoT, ParentT>(ref obj);
         if (val is MyT valType)
