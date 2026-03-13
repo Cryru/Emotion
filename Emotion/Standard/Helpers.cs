@@ -416,16 +416,16 @@ public static class Helpers
         {
             T2 targetItem = target[i];
 
-            bool noLongerPresent = false;
+            bool stillPresent = false;
             for (int j = 0; j < source.Count; j++)
             {
                 if (compareFunc(targetItem, source[j]))
                 {
-                    noLongerPresent = true;
+                    stillPresent = true;
                     break;
                 }
             }
-            if (noLongerPresent) continue;
+            if (stillPresent) continue;
             removeItem(target, targetItem);
         }
 
