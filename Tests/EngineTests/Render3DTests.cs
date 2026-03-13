@@ -16,9 +16,8 @@ public class Render3DTests : TestingScene
 {
     protected override IEnumerator InternalLoadSceneRoutineAsync()
     {
-        GameObject obj = GameObject.NewMeshObject("WoWModels/rabbit2/rabbit2_rabbitskin2_white.gltf");
+        GameObject obj = Map.NewMeshObject("WoWModels/rabbit2/rabbit2_rabbitskin2_white.gltf");
         obj.Scale3D = new Vector3(100);
-        Map.AddObject(obj);
         yield break;
     }
 
@@ -32,7 +31,6 @@ public class Render3DTests : TestingScene
         Map.Update(16);
     }
 
-    [DebugTest]
     [Test]
     public IEnumerator PipelineBasicBuild()
     {
