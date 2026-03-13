@@ -9,7 +9,7 @@ namespace Emotion.Network.LockStep;
 
 public class LockStepNetworkFunction<TMsg> : NetworkFunction<TMsg> where TMsg : unmanaged
 {
-    public LockStepNetworkFunction(uint messageType, NetworkFunc<TMsg> func) : base(messageType, func)
+    public LockStepNetworkFunction(uint messageType, NetworkFunc<TMsg> func, string? friendlyName = null) : base(messageType, func, friendlyName)
     {
     }
 

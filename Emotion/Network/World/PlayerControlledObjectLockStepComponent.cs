@@ -2,7 +2,9 @@
 
 using Emotion.Core.Systems.Scenography;
 using Emotion.Core.Utility.Coroutines;
+using Emotion.Core.Utility.Time;
 using Emotion.Game.World.Components;
+using Emotion.Game.World.Systems;
 using Emotion.Network.Base;
 using Emotion.Network.ClientSide;
 using Emotion.Network.LockStep;
@@ -12,7 +14,47 @@ using System.Runtime.InteropServices;
 
 namespace Emotion.Network.World;
 
-public abstract class PlayerControlledObjectLockStepComponent<T> : IGameObjectComponent
+public class PlayerControlledLockStepSystem<T> : WorldSystem<PlayerControlledObjectLockStepComponent<T>>, IWorldSimulationSystem
+    where T : unmanaged, INetworkMessageStruct, IPlayerControlledObjectLockStepComponentData<T>
+{
+    private ValueTimer _updateInterval = new ValueTimer(50);
+
+    protected override void InitInternal()
+    {
+
+    }
+
+    protected override void DoneInternal()
+    {
+
+    }
+
+    protected override void OnComponentListChanged()
+    {
+
+    }
+
+    public void Update(float dt)
+    {
+        _updateInterval.Update(dt);
+        if (!_updateInterval.Finished) return;
+        _updateInterval.Reset();
+
+        for (int i = 0; i < Components.Count; i++)
+        {
+            PlayerControlledObjectLockStepComponent<T> component = Components[i];
+
+            // This player will send only updates for the objects they control
+            if (component.PlayerId != Engine.Multiplayer.PlayerId) continue;
+
+            Engine.Multiplayer.SendLockStepMessage(component.GetPayload());
+        }
+    }
+}
+
+public abstract class PlayerControlledObjectLockStepComponent<T> :
+    IGameObjectComponent,
+    ISystemicComponent<PlayerControlledObjectLockStepComponent<T>, PlayerControlledLockStepSystem<T>>
     where T : unmanaged, INetworkMessageStruct, IPlayerControlledObjectLockStepComponentData<T>
 {
     public int PlayerId { get; init; }
@@ -28,36 +70,21 @@ public abstract class PlayerControlledObjectLockStepComponent<T> : IGameObjectCo
     public IRoutineWaiter? Init(GameObject obj)
     {
         _obj = obj;
-        Engine.Multiplayer.OnServerTick += Client_OnServerTick;
-
         return null;
     }
 
     public void Done(GameObject obj)
     {
-        Engine.Multiplayer.OnServerTick -= Client_OnServerTick;
-    }
 
-    private void Client_OnServerTick()
-    {
-        // Send messages only from the player who controls this
-        if (PlayerId != Engine.Multiplayer.PlayerId)
-            return;
-
-        // Object not added yet?
-        if (_obj?.State != GameObjectState.Initialized)
-            return;
-
-        Engine.Multiplayer.SendLockStepMessage(GetPayload());
     }
 
     public static void RegisterNetFunctions()
     {
         ServerRoom.NetworkFunctions.RegisterLockStepEvent(T.MessageType);
-        ClientBase.NetworkFunctions.RegisterLockStepFunc<T>(T.ProcessPayload);
+        ClientBase.NetworkFunctions.RegisterLockStepFunc<T>(T.ProcessPayload, "PlayerControlledPayload");
     }
 
-    protected abstract T GetPayload();
+    public abstract T GetPayload();
 }
 
 public class PlayerControlledObjectLockStepComponent : PlayerControlledObjectLockStepComponent<MessageObjectPositionUpdate>
@@ -66,7 +93,7 @@ public class PlayerControlledObjectLockStepComponent : PlayerControlledObjectLoc
     {
     }
 
-    protected override MessageObjectPositionUpdate GetPayload()
+    public override MessageObjectPositionUpdate GetPayload()
     {
         AssertNotNull(_obj);
 

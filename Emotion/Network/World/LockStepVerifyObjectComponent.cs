@@ -6,7 +6,7 @@ using Emotion.Game.World.Components;
 
 namespace Emotion.Network.World;
 
-public class LockStepObjectComponent : IGameObjectComponent, IUpdateableComponent
+public class LockStepVerifyObjectComponent : IGameObjectComponent, IUpdateableComponent
 {
     private GameObject _obj = null!;
     private ValueTimer _checkTimer = new ValueTimer(100);

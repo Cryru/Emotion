@@ -61,13 +61,13 @@ public class ClientNetworkFunctionInvoker : NetworkFunctionInvoker
         _functions.Add(typAsUint, netFunc);
     }
 
-    public void RegisterLockStepFunc<TMsg>(NetworkFunc<TMsg> func)
+    public void RegisterLockStepFunc<TMsg>(NetworkFunc<TMsg> func, string? friendlyName = null)
         where TMsg : unmanaged, INetworkMessageStruct
     {
         uint typAsUint = TMsg.MessageType;
 
         if (GetFunctionFromMessageType(typAsUint) != null) return;
-        var netFunc = new LockStepNetworkFunction<TMsg>(typAsUint, func);
+        var netFunc = new LockStepNetworkFunction<TMsg>(typAsUint, func, friendlyName);
         _functions.Add(typAsUint, netFunc);
     }
 
