@@ -125,7 +125,7 @@ public partial class GameMap
 
     public GameObject? GetObjectById(uint id)
     {
-        Assert(id > 0);
+        if (id == 0) return null;
         _idToGameObject.TryGetValue(id, out GameObject? obj);
         return obj;
     }

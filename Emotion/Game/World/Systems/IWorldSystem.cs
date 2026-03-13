@@ -8,6 +8,7 @@ namespace Emotion.Game.World.Systems;
 public abstract class WorldSystem
 {
     public abstract void AttachToMap(GameMap map);
+    public abstract void Dispose();
 }
 
 public abstract class WorldSystem<TComponent> : WorldSystem
@@ -23,6 +24,11 @@ public abstract class WorldSystem<TComponent> : WorldSystem
         InitInternal();
     }
 
+    public override void Dispose()
+    {
+        DoneInternal();
+    }
+
     public void ComponentAdded(GameObject obj, TComponent component)
     {
         Components.Add(component);
@@ -36,6 +42,10 @@ public abstract class WorldSystem<TComponent> : WorldSystem
     }
 
     protected abstract void InitInternal();
+    protected virtual void DoneInternal()
+    {
+
+    }
     protected abstract void OnComponentListChanged();
 }
 

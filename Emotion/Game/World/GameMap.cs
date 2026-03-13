@@ -29,8 +29,6 @@ public partial class GameMap : IDisposable
 
     public LightConfig LightConfig = LightConfig.Default;
 
-    private List<GameObject> _objectsOnMap = new(); // Objects the map was saved with, todo
-
     private Queue<GameObject> _objectsToLoad = new(); // Queue of objects to load
 
     public GameMap()
@@ -265,17 +263,25 @@ public partial class GameMap : IDisposable
 
     public void Dispose()
     {
+        foreach (GameObject obj in ForEachObject())
+        {
+            obj.Done();
+        }
+
+        foreach (KeyValuePair<Type, WorldSystem> sys in _worldSystems)
+        {
+            sys.Value.Dispose();
+        }
+        _worldSystems.Clear();
+        _simulationSystems.Clear();
+        _renderSystems.Clear();
+
         foreach (IMapGrid grid in Grids)
         {
             grid.Done();
         }
 
         _tileMapData?.Done();
-
-        foreach (GameObject obj in ForEachObject())
-        {
-            obj.Done();
-        }
     }
 
     #region Grids
