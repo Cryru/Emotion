@@ -6,7 +6,7 @@ public class CoroutineManagerGameTime : CoroutineManager
 {
     //public float GameTimeFactor = 1;
 
-    public float DeltaTime { get; protected set; }
+    public static float DeltaTime { get => Engine.DeltaTime; }
 
     public float GameTimeAdvanceLimit { get; protected set; } = -1;
     public float GameTimeBehindLimitSpeedUp = 100;
@@ -26,8 +26,6 @@ public class CoroutineManagerGameTime : CoroutineManager
 
     public override void Update(float dt)
     {
-        DeltaTime = dt;
-
         if (GameTimeAdvanceLimit == -1)
         {
             base.Update(dt);
@@ -45,10 +43,10 @@ public class CoroutineManagerGameTime : CoroutineManager
         }
 
         // We don't want to change the timestep size even when limited.
-        while (_accumulatedTime >= dt)
+        while (_accumulatedTime >= DeltaTime)
         {
-            base.Update(dt);
-            _accumulatedTime -= dt;
+            base.Update(DeltaTime);
+            _accumulatedTime -= DeltaTime;
         }
     }
 

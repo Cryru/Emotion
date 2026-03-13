@@ -145,11 +145,6 @@ public static class Engine
     public static float TotalTime { get; set; }
 
     /// <summary>
-    /// The index of the current tick.
-    /// </summary>
-    public static uint TickCount { get; set; }
-
-    /// <summary>
     /// The index of the current frame.
     /// </summary>
     public static uint FrameCount { get; set; }
@@ -505,8 +500,11 @@ public static class Engine
 
     private static void RunMainLoopTick()
     {
-        TotalTime += DeltaTime;
-        TickCount++;
+        float dt = DeltaTime;
+        if (EngineEditor.IsOpen)
+            dt = 0; // todo: do this via game time stop
+
+        TotalTime += dt;
 
         PerformanceMetrics.TickStart();
 
@@ -522,7 +520,7 @@ public static class Engine
         EngineEditor.UpdateEditor();
 
         Multiplayer.Update();
-        CoroutineManagerGameTime.Update(DeltaTime); // This will run SceneManagerTick
+        CoroutineManagerGameTime.Update(dt); // This will run SceneManagerTick
 
         // Updates camera input and target tracking
         // todo: split these, input should be probably outside simulation for least latency,

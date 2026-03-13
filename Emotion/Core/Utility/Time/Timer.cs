@@ -38,9 +38,9 @@ public class Timer : IRoutineWaiter
         TimePassed = Math.Min(TimePassed + timeToAdd, Duration);
 
 #if DEBUG
-        if (_dbgLastUpdate == Engine.TotalTime)
+        if (_dbgLastUpdate == Engine.CoroutineManagerGameTime.Time)
             Engine.Log.Warning($"Timer {_dbgTimerId} is being updated twice in one tick.", nameof(Timer), true);
-        _dbgLastUpdate = Engine.TotalTime;
+        _dbgLastUpdate = Engine.CoroutineManagerGameTime.Time;
 #endif
     }
 

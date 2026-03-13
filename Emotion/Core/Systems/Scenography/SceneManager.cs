@@ -44,9 +44,6 @@ public class SceneManager
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void Update(float dt)
     {
-        if (EngineEditor.IsOpen)
-            dt = 0; // todo: do this via game time stop
-
         if (Current.Status == SceneStatus.Active)
             Current.UpdateScene(dt);
         else
