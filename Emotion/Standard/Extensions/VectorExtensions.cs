@@ -317,19 +317,9 @@ public static class VectorExtensions
     /// Returns a vector in the same direction, but with a length of 1.
     /// If the vector is zero, zero is returned.
     /// </summary>
-    public static Vector2 SafeNormalize(this ref Vector2 v)
+    public static Vector2 SafeNormalize(this Vector2 v)
     {
-        v = v == Vector2.Zero ? v : Vector2.Normalize(v);
-        return v;
-    }
-
-    /// <summary>
-    /// Returns a vector in the same direction, but with a length of 1.
-    /// If the vector is zero, zero is returned.
-    /// </summary>
-    public static Vector2 SafeNormalize(Vector2 v)
-    {
-        return v.SafeNormalize();
+        return v == Vector2.Zero ? v : Vector2.Normalize(v);
     }
 
     public static void SortComponents(Vector3 v, out Vector3 sorted, out Vector3 remap)
