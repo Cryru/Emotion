@@ -3,6 +3,7 @@
 using Emotion.Network.LockStep;
 using Emotion.Network.New.Base;
 using Emotion.ThirdParty;
+using System.Runtime.CompilerServices;
 
 namespace Emotion.Standard;
 
@@ -57,21 +58,83 @@ public static class LocalRand
     /// <summary>
     /// Returns a random item from the array.
     /// </summary>
+    /// <inheritdoc cref="LocalRand.ArrayItem"/>
     public static T? ArrayItem<T>(T[] array)
     {
-        if (array.Length == 0) return default;
+        return ArrayItemInternal<T, T[]>(array);
+    }
 
-        int rand = Int(0, array.Length - 1);
+    /// <inheritdoc cref="LocalRand.ArrayItem"/>
+    public static T? ArrayItem<T>(List<T> array)
+    {
+        return ArrayItemInternal<T, List<T>>(array);
+    }
+
+    /// <inheritdoc cref="LocalRand.ArrayItem"/>
+    public static T? ArrayItem<T>(IReadOnlyList<T> array)
+    {
+        return ArrayItemInternal<T, IReadOnlyList<T>>(array);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static T? ArrayItemInternal<T, TList>(TList array)
+        where TList : IReadOnlyList<T>
+    {
+        if (array.Count == 0) return default;
+
+        int rand = Int(0, array.Count - 1);
         return array[rand];
     }
 
     /// <inheritdoc cref="LocalRand.ArrayItem"/>
-    public static T? ArrayItem<T>(IList<T> array)
+    public static T? ArrayItemExcept<T>(T?[] array, params ReadOnlySpan<T?> exceptions)
     {
-        if (array.Count == 0) return default;
+        return ArrayItemExceptInternal(array, exceptions);
+    }
 
-        int rand = Int(0, array.Count- 1);
-        return array[rand];
+    /// <inheritdoc cref="LocalRand.ArrayItem"/>
+    public static T? ArrayItemExcept<T>(List<T?> array, params ReadOnlySpan<T?> exceptions)
+    {
+        return ArrayItemExceptInternal(array, exceptions);
+    }
+
+    /// <inheritdoc cref="LocalRand.ArrayItem"/>
+    public static T? ArrayItemExcept<T>(IReadOnlyList<T?> array, params ReadOnlySpan<T?> exceptions)
+    {
+        return ArrayItemExceptInternal(array, exceptions);
+    }
+
+    /// <inheritdoc cref="LocalRand.ArrayItem"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static T? ArrayItemExceptInternal<T, TList>(TList array, params ReadOnlySpan<T?> exceptions)
+        where TList : IReadOnlyList<T?>
+    {
+        int total = array.Count;
+        if (total == 0) return default;
+
+        int start = Int(0, total - 1);
+
+        for (int i = 0; i < total; i++)
+        {
+            int currentIndex = (start + i) % total;
+            T? picked = array[currentIndex];
+
+            bool foundInExceptions = false;
+            for (int ii = 0; ii < exceptions.Length; ii++)
+            {
+                T? exception = exceptions[ii];
+                if (EqualityComparer<T>.Default.Equals(picked, exception))
+                {
+                    foundInExceptions = true;
+                    break;
+                }
+            }
+            if (!foundInExceptions)
+                return picked;
+        }
+
+        // All items are present in the exceptions?
+        return default;
     }
 
     public static T? ListItemAndRemove<T>(IList<T> list, bool keepOrder = false)
@@ -123,18 +186,79 @@ public static class NetworkRand
     /// <inheritdoc cref="LocalRand.ArrayItem"/>
     public static T? ArrayItem<T>(string tag, T[] array)
     {
-        if (array.Length == 0) return default;
-
-        int rand = Int(tag, 0, array.Length - 1);
-        return array[rand];
+        return ArrayItemInternal<T, T[]>(tag, array);
     }
 
     /// <inheritdoc cref="LocalRand.ArrayItem"/>
-    public static T? ArrayItem<T>(string tag, IList<T> array)
+    public static T? ArrayItem<T>(string tag, List<T> array)
+    {
+        return ArrayItemInternal<T, List<T>>(tag, array);
+    }
+
+    /// <inheritdoc cref="LocalRand.ArrayItem"/>
+    public static T? ArrayItem<T>(string tag, IReadOnlyList<T> array)
+    {
+        return ArrayItemInternal<T, IReadOnlyList<T>>(tag, array);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static T? ArrayItemInternal<T, TList>(string tag, TList array)
+        where TList : IReadOnlyList<T>
     {
         if (array.Count == 0) return default;
 
         int rand = Int(tag, 0, array.Count - 1);
         return array[rand];
+    }
+
+    /// <inheritdoc cref="LocalRand.ArrayItem"/>
+    public static T? ArrayItemExcept<T>(string tag, T?[] array, params ReadOnlySpan<T?> exceptions)
+    {
+        return ArrayItemExceptInternal(tag, array, exceptions);
+    }
+
+    /// <inheritdoc cref="LocalRand.ArrayItem"/>
+    public static T? ArrayItemExcept<T>(string tag, List<T?> array, params ReadOnlySpan<T?> exceptions)
+    {
+        return ArrayItemExceptInternal(tag, array, exceptions);
+    }
+
+    /// <inheritdoc cref="LocalRand.ArrayItem"/>
+    public static T? ArrayItemExcept<T>(string tag, IReadOnlyList<T?> array, params ReadOnlySpan<T?> exceptions)
+    {
+        return ArrayItemExceptInternal(tag, array, exceptions);
+    }
+
+    /// <inheritdoc cref="LocalRand.ArrayItem"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static T? ArrayItemExceptInternal<T, TList>(string tag, TList array, params ReadOnlySpan<T?> exceptions)
+        where TList : IReadOnlyList<T?>
+    {
+        int total = array.Count;
+        if (total == 0) return default;
+
+        int start = Int(tag, 0, total - 1);
+
+        for (int i = 0; i < total; i++)
+        {
+            int currentIndex = (start + i) % total;
+            T? picked = array[currentIndex];
+
+            bool foundInExceptions = false;
+            for (int ii = 0; ii < exceptions.Length; ii++)
+            {
+                T? exception = exceptions[ii];
+                if (EqualityComparer<T>.Default.Equals(picked, exception))
+                {
+                    foundInExceptions = true;
+                    break;
+                }
+            }
+            if (!foundInExceptions)
+                return picked;
+        }
+
+        // All items are present in the exceptions?
+        return default;
     }
 }
