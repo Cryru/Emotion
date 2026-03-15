@@ -86,7 +86,7 @@ public static class Helpers
 
     /// <inheritdoc cref="GetRandomArrayItem{T}(T[])" />
     [Obsolete("Use LocalRand.ArrayItem or NetworkRand.ArrayItem")]
-    public static T? GetRandomArrayItem<T>(IList<T> array)
+    public static T? GetRandomArrayItem<T>(List<T> array)
     {
         return LocalRand.ArrayItem(array);
     }
