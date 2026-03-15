@@ -8,6 +8,7 @@ using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
 using Emotion.Standard.Reflector.Handlers.Base;
 using OpenGL;
+using System.Collections.Concurrent;
 using System.Text;
 
 namespace Emotion.Graphics.Shader;
@@ -25,7 +26,7 @@ public class ShaderGroup
     private StringBuilder _vertexFormatDefine = new();
     private StringBuilder _vertShaderPassParameters = new();
 
-    private Dictionary<ShaderGroupDefinition, ShaderGroupCompileStatus> _compilations = new();
+    private ConcurrentDictionary<ShaderGroupDefinition, ShaderGroupCompileStatus> _compilations = new();
     private List<ShaderVertexAttribute> _vertAttribute = new();
 
     public ShaderGroup(
@@ -113,7 +114,7 @@ public class ShaderGroup
         if (_compilations.TryGetValue(def, out ShaderGroupCompileStatus? compilation))
             return compilation.Shader;
 
-        _compilations.Add(def, new ShaderGroupCompileStatus());
+        _compilations.TryAdd(def, new ShaderGroupCompileStatus());
         Engine.Jobs.AddNoFeedback(CompileShaderVariantRoutineAsync(this, def));
         return null;
     }
@@ -134,7 +135,7 @@ public class ShaderGroup
             yield break;
         }
 
-        _compilations.Add(def, new ShaderGroupCompileStatus());
+        _compilations.TryAdd(def, new ShaderGroupCompileStatus());
         yield return CompileShaderVariantRoutine(this, shaderOut, def);
     }
 
