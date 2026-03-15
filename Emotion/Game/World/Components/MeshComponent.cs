@@ -17,7 +17,7 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
     public MeshEntity Entity { get => _entity; }
     private AssetOwner<MeshAsset, MeshEntity> _entityOwner = new();
 
-    private MeshEntity _entity = null!;
+    private MeshEntity _entity = Cube.GetEntity();
 
     [DontSerialize]
     public MeshEntityMetaState RenderState { get; private set; } = null!;
@@ -87,6 +87,19 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
     public string GetCurrentAnimation()
     {
         return _currentAnimation?.Name ?? string.Empty;
+    }
+
+    public float GetCurrentAnimationDuration()
+    {
+        if (_currentAnimation == null) return 0f;
+        return _currentAnimation.Duration;
+    }
+
+    public float GetCurrentAnimationFactor()
+    {
+        float duration = GetCurrentAnimationDuration();
+        if (duration == 0) return 0f;
+        return _animationTime / duration;
     }
 
     public bool HasAnimation(string name)
@@ -223,8 +236,9 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
             _animationTime += dt;
 
             float duration = _currentAnimation.Duration;
-            RenderState.UpdateAnimationRigBones(_currentAnimation, _animationTime % duration);
-            if (_animationTime > duration) _animationTime -= duration;
+            _animationTime = _animationTime % duration;
+
+            RenderState.UpdateAnimationRigBones(_currentAnimation, _animationTime);
         }
     }
 
