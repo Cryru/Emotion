@@ -20,9 +20,21 @@ public interface IGrid
 
 public interface IGridWorldSpaceTiles : IGrid
 {
-    public Vector2 GetTilePosOfWorldPos(Vector2 location);
+    public Vector2 TileSize { get; }
 
-    public Vector2 GetWorldPosOfTile(Vector2 tileCoord2d);
+    public virtual Vector2 GetTilePosOfWorldPos(Vector2 location)
+    {
+        float left = MathF.Round(location.X / TileSize.X);
+        float top = MathF.Round(location.Y / TileSize.Y);
+
+        return new Vector2(left, top);
+    }
+
+    public virtual Vector2 GetWorldPosOfTile(Vector2 tileCoord2d)
+    {
+        Vector2 worldPos = (tileCoord2d * TileSize);
+        return worldPos;
+    }
 }
 
 public interface IGrid<T> : IGrid

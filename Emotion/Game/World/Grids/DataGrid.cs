@@ -4,10 +4,10 @@ using Emotion.Primitives.Grids.Chunked;
 
 namespace Emotion.Game.World.Grids;
 
-public class DataGrid<T> : ChunkedGrid<T, GenericGridChunk<T>>, IMapGrid
+public class DataGrid<T> : ChunkedGrid<T, GenericGridChunk<T>>, IMapGrid, IGridWorldSpaceTiles
     where T : unmanaged
 {
-    public Vector2 TileSize;
+    public Vector2 TileSize { get; set; }
 
     public DataGrid(Vector2 tileSize, float chunkSize) : base(chunkSize)
     {

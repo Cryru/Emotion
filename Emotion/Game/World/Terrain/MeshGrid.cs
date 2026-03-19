@@ -71,20 +71,6 @@ public abstract partial class TerrainGridBase<T, ChunkT, IndexT> : ChunkedGrid<T
 
     #region API
 
-    public virtual Vector2 GetTilePosOfWorldPos(Vector2 location)
-    {
-        float left = MathF.Round(location.X / TileSize.X);
-        float top = MathF.Round(location.Y / TileSize.Y);
-
-        return new Vector2(left, top);
-    }
-
-    public virtual Vector2 GetWorldPosOfTile(Vector2 tileCoord2d)
-    {
-        Vector2 worldPos = (tileCoord2d * TileSize);
-        return worldPos;
-    }
-
     public void Update(float dt)
     {
         if (!Initialized) return;
