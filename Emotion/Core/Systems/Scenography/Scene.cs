@@ -1,10 +1,8 @@
-﻿extern alias SilkNet;
-#nullable enable
+﻿#nullable enable
 
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Core.Utility.Threading;
-using SilkNet::Silk.NET.Assimp;
 
 namespace Emotion.Core.Systems.Scenography;
 

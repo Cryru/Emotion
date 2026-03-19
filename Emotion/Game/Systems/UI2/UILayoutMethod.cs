@@ -1,9 +1,29 @@
 ﻿#nullable enable
 
+using static Emotion.Game.Systems.UI.UIBaseWindow;
+
 namespace Emotion.Game.Systems.UI2;
 
 public record struct UILayoutMethod
 {
+    public static Dictionary<UIMethodName, LayoutMethodCodeClass> LayoutClasses = new();
+
+    static UILayoutMethod()
+    {
+        // todo
+        LayoutClasses.Add(UIMethodName.Free, new FreeLayout());
+        LayoutClasses.Add(UIMethodName.HorizontalList, new ListLayout());
+        LayoutClasses.Add(UIMethodName.VerticalList, new ListLayout());
+        LayoutClasses.Add(UIMethodName.HorizontalListWrap, new ListLayout());
+        LayoutClasses.Add(UIMethodName.VerticalListWrap, new ListLayout());
+    }
+
+    public static LayoutMethodCodeClass GetLayoutCode(in UILayoutMethod layoutMethod)
+    {
+        LayoutClasses.TryGetValue(layoutMethod.Mode, out LayoutMethodCodeClass? method);
+        return method!;
+    }
+
     public enum UIMethodName
     {
         Free,
