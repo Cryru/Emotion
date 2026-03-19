@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Core.Platform;
 using Emotion.Core.Platform.Implementation.CommonDesktop;
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
@@ -188,7 +189,7 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
 
     public static void SelectFile(UIBaseWindow window, Action<T?> onLoaded)
     {
-        var platform = Engine.Host;
+        PlatformBase platform = Engine.Host;
         if (platform is DesktopPlatform winPl)
             winPl.DeveloperMode_SelectFileNative(FileLoadProxy(onLoaded));
     }

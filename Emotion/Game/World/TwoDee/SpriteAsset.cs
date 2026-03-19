@@ -4,7 +4,7 @@ namespace Emotion.Game.World.TwoDee;
 
 #nullable enable
 
-public class SpriteAsset : XMLAsset<SpriteEntity>
+public class SpriteAsset : XMLAssetBase<SpriteEntity, SpriteAsset>
 {
     public SpriteEntity? Entity => Content;
 

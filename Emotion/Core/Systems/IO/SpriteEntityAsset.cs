@@ -5,7 +5,7 @@ using Emotion.Graphics.Assets;
 
 namespace Emotion.Core.Systems.IO;
 
-public class SpriteEntityAsset : XMLAsset<SpriteEntity>
+public class SpriteEntityAsset : XMLAssetBase<SpriteEntity, SpriteEntityAsset>
 {
     protected override IEnumerator Internal_LoadAssetRoutine(ReadOnlyMemory<byte> data)
     {

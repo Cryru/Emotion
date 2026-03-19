@@ -2,8 +2,6 @@
 
 #region Using
 
-using Emotion.Core.Systems.Logging;
-using Emotion.Standard.Parsers.XML;
 using Emotion.Standard.Serialization.XML;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -15,6 +13,16 @@ namespace Emotion.Core.Systems.IO;
 // Non generic marker class to differentiate XMLAsset classes
 public abstract class XMLAssetMarkerClass : Asset
 {
+    static XMLAssetMarkerClass()
+    {
+        RegisterFileExtensionSupport<XMLAssetMarkerClass>([".xml"]);
+    }
+
+    public XMLAssetMarkerClass()
+    {
+        _useNewLoading = true;
+    }
+
     /// <summary>
     /// Whether the file was successfully parsed,
     /// and an instance of the type was created.
@@ -32,26 +40,17 @@ public abstract class XMLAssetMarkerClass : Asset
     public abstract bool SaveAs(string name, bool backup = true);
 }
 
-/// <summary>
-/// An asset containg a xml serialized type.
-/// </summary>
-public class XMLAsset<T> : XMLAssetMarkerClass, IAssetContainingObject<T>
+public abstract class XMLAssetBase<T> : XMLAssetMarkerClass
 {
     /// <summary>
     /// The file deserialized as its type.
     /// </summary>
     public T? Content { get; protected set; }
+}
 
-    static XMLAsset()
-    {
-        RegisterFileExtensionSupport<XMLAsset<T>>([".xml"]);
-    }
-
-    public XMLAsset()
-    {
-        _useNewLoading = true;
-    }
-
+public abstract class XMLAssetBase<T, TSelf> : XMLAssetBase<T>, IAssetContainingObject<T>
+    where TSelf : XMLAssetBase<T, TSelf>, new()
+{
     protected override IEnumerator Internal_LoadAssetRoutine(ReadOnlyMemory<byte> data)
     {
         CreateInternal(data);
@@ -85,11 +84,44 @@ public class XMLAsset<T> : XMLAssetMarkerClass, IAssetContainingObject<T>
     {
     }
 
+
+    public T? GetObject()
+    {
+        return Content;
+    }
+
     /// <inheritdoc />
     public override bool HasContent()
     {
         return Content != null;
     }
+
+    /// <summary>
+    /// Create a new xml file from content and a name.
+    /// </summary>
+    public static TSelf CreateFromContent(T content, string name = "Untitled")
+    {
+        return new TSelf()
+        {
+            Content = content,
+            Name = name,
+            Processed = true
+        };
+    }
+
+    /// <summary>
+    /// Load a xml file via the asset loader, or create a new one if missing.
+    /// </summary>
+    public static TSelf LoadOrCreate(string name)
+    {
+        if (Engine.AssetLoader.Exists(name)) return Engine.AssetLoader.Get<TSelf>(name);
+
+        // If the file doesn't exist - create it.
+        TSelf newFile = CreateFromContent(Activator.CreateInstance<T>(), name);
+        newFile.Save();
+        return newFile;
+    }
+
 
     /// <inheritdoc />
     public override bool Save()
@@ -111,35 +143,11 @@ public class XMLAsset<T> : XMLAssetMarkerClass, IAssetContainingObject<T>
         if (!saved) Engine.Log.Warning($"Couldn't save file {name}.", MessageSource.Other);
         return saved;
     }
+}
 
-    /// <summary>
-    /// Create a new xml file from content and a name.
-    /// </summary>
-    public static XMLAsset<T> CreateFromContent(T content, string name = "Untitled")
-    {
-        return new()
-        {
-            Content = content,
-            Name = name
-        };
-    }
-
-    /// <summary>
-    /// Load a xml file via the asset loader, or create a new one if missing.
-    /// </summary>
-    public static XMLAsset<T> LoadOrCreate(string name)
-    {
-        if (Engine.AssetLoader.Exists(name)) return Engine.AssetLoader.Get<XMLAsset<T>>(name);
-
-        // If the file doesn't exist - create it.
-        XMLAsset<T> newFile = CreateFromContent(Activator.CreateInstance<T>(), name);
-        newFile.Processed = true;
-        newFile.Save();
-        return newFile;
-    }
-
-    public T? GetObject()
-    {
-        return Content;
-    }
+/// <summary>
+/// An asset containg a xml serialized type.
+/// </summary>
+public sealed class XMLAsset<T> : XMLAssetBase<T, XMLAsset<T>>
+{
 }

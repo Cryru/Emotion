@@ -155,7 +155,7 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
     {
         if (_typeHandler != null)
         {
-            Action<UIBaseWindow, Action<XMLAsset<T>?>> fileOpenFunc = GetFileOpenFunction();
+            Action<UIBaseWindow, Action<XMLAssetBase<T>?>> fileOpenFunc = GetFileOpenFunction();
             fileOpenFunc(this, (file) =>
             {
                 if (file == null) return;
@@ -181,7 +181,7 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
     #region API
 
     // You can overwrite this to provide custom XMLAsset specializations for file open
-    protected virtual Action<UIBaseWindow, Action<XMLAsset<T>?>> GetFileOpenFunction()
+    protected virtual Action<UIBaseWindow, Action<XMLAssetBase<T>?>> GetFileOpenFunction()
     {
         return FilePicker<XMLAsset<T>>.SelectFile;
     }
