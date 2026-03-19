@@ -4,10 +4,47 @@ using Emotion.Core.Utility.Coroutines;
 
 namespace Emotion.Core.Systems.IO;
 
+public interface IAssetOnwerOnChangeFunc<TOwner>
+{
+    Coroutine? ExecuteCallback(TOwner owner);
+}
+
+public class AssetOnwerOnChangeCallback<TOwner, TParam> : IAssetOnwerOnChangeFunc<TOwner>
+{
+    public delegate Coroutine? FuncSignatureAsync(TOwner self, TParam userState);
+    public delegate void FuncSignature(TOwner self, TParam userState);
+
+    private TParam _param;
+    private FuncSignatureAsync? _onChangeAsync = null;
+    private FuncSignature? _onChange = null;
+
+    public AssetOnwerOnChangeCallback(FuncSignatureAsync func, TParam param)
+    {
+        _param = param;
+        _onChangeAsync = func;
+    }
+
+    public AssetOnwerOnChangeCallback(FuncSignature func, TParam param)
+    {
+        _param = param;
+        _onChange = func;
+    }
+
+    public Coroutine? ExecuteCallback(TOwner owner)
+    {
+        if (_onChangeAsync != null)
+            return _onChangeAsync(owner, _param);
+
+        if (_onChange != null)
+            _onChange(owner, _param);
+        return Coroutine.CompletedRoutine;
+    }
+}
+
 [DontSerialize]
 public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingObject<TObject>, new()
 {
-    private Action<AssetOwner<TAsset, TObject>, object?>? _onChange = null;
+    private IAssetOnwerOnChangeFunc<AssetOwner<TAsset, TObject>>? _changeCallback;
     private object? _onChangeUserData = null;
 
     private bool _currentlyLoading = false;
@@ -50,8 +87,7 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
 
         if (TryUseRightAway(ref _loadingRef))
         {
-            AttachNewAsset(_loadingRef);
-            return null;
+            return AttachNewAsset(_loadingRef);
         }
 
         _currentLoadingRoutine = Engine.CoroutineManager.StartCoroutine(WaitForNewToLoadRoutine(_loadingRef));
@@ -116,7 +152,7 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
             else
                 handle = obj;
         }
-        AttachNewAsset(handle);
+        yield return AttachNewAsset(handle);
     }
 
     #region Public API
@@ -152,7 +188,7 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
         DetachOldAsset(_currentRef);
         _currentRef = AssetObjectReference<TAsset, TObject>.Invalid;
 
-        _onChange = null;
+        _changeCallback = null;
         _onChangeUserData = null;
     }
 
@@ -163,15 +199,25 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
         CallOnChange();
     }
 
-    public void SetOnChangeCallback(Action<AssetOwner<TAsset, TObject>, object?> onChangeCallback, object? param1)
+    public void SetOnChangeCallback<TParam>(
+        AssetOnwerOnChangeCallback<AssetOwner<TAsset, TObject>, TParam>.FuncSignatureAsync onChangeCallback,
+        TParam param
+    )
     {
-        _onChange = onChangeCallback;
-        _onChangeUserData = param1;
+        _changeCallback = new AssetOnwerOnChangeCallback<AssetOwner<TAsset, TObject>, TParam>(onChangeCallback, param);
     }
 
-    protected virtual void CallOnChange()
+    public void SetOnChangeCallback<TParam>(
+        AssetOnwerOnChangeCallback<AssetOwner<TAsset, TObject>, TParam>.FuncSignature onChangeCallback,
+        TParam param
+    )
     {
-        _onChange?.Invoke(this, _onChangeUserData);
+        _changeCallback = new AssetOnwerOnChangeCallback<AssetOwner<TAsset, TObject>, TParam>(onChangeCallback, param);
+    }
+
+    protected virtual Coroutine? CallOnChange()
+    {
+        return _changeCallback?.ExecuteCallback(this) ?? Coroutine.CompletedRoutine;
     }
 
     #endregion
@@ -185,7 +231,7 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
         RemoveOwnership(handle, this);
     }
 
-    private void AttachNewAsset(in AssetObjectReference<TAsset, TObject> handle)
+    private Coroutine? AttachNewAsset(in AssetObjectReference<TAsset, TObject> handle)
     {
         AssetObjectReference<TAsset, TObject> old = _currentRef;
         _currentRef = handle;
@@ -196,7 +242,7 @@ public class AssetOwner<TAsset, TObject> where TAsset : Asset, IAssetContainingO
         asset?.OnLoaded += AssetHotReloaded;
 
         AddOwnership(handle, this);
-        CallOnChange();
+        return CallOnChange();
     }
 
     #endregion
