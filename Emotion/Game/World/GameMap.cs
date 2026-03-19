@@ -19,8 +19,7 @@ public enum GameMapState
 
 public partial class GameMap : IDisposable
 {
-    [DontSerialize]
-    public string MapPath { get; internal set; } = "Untitled Map";
+    public GameMapFactory? FactoryCreatedFrom { get; set; }
 
     [DontSerialize]
     public GameMapState State { get; private set; } = GameMapState.Uninitialized;

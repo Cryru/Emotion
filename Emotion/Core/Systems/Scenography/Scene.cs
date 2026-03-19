@@ -1,8 +1,10 @@
-﻿#nullable enable
+﻿extern alias SilkNet;
+#nullable enable
 
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Core.Utility.Threading;
+using SilkNet::Silk.NET.Assimp;
 
 namespace Emotion.Core.Systems.Scenography;
 
@@ -66,29 +68,18 @@ public abstract class SceneWithMap : Scene
     {
         get
         {
-            GameMap? gameMap = _mapOwner.GetCurrentObject();
-            if (gameMap == null)
-            {
-                _mapOwner.Set(InitDefaultMap());
-                gameMap = _mapOwner.GetCurrentObject();
-                AssertNotNull(gameMap);
-            }
-
-            return gameMap;
+            if (_currentMap != null) return _currentMap;
+            _currentMap = InitDefaultMap();
+            return _currentMap;
         }
     }
+    private GameMap? _currentMap;
 
-    private AssetOwner<GameMapAsset, GameMap> _mapOwner = new AssetOwner<GameMapAsset, GameMap>();
+    private AssetOwner<GameMapAsset, GameMapFactory> _factoryAssetOwner = new();
 
     protected SceneWithMap()
     {
-        _mapOwner = new AssetOwner<GameMapAsset, GameMap>();
-        _mapOwner.SetOnChangeCallback(static (owner, scene) =>
-        {
-            GameMap? newMapObj = owner.GetCurrentObject();
-            if (newMapObj != null && scene is SceneWithMap sc)
-                sc.OnMapChanged(newMapObj);
-        }, this);
+        _factoryAssetOwner.SetOnChangeCallback(SceneWithMapFactoryAssetChanged, this);
     }
 
     public override IEnumerator Attach()
@@ -109,11 +100,14 @@ public abstract class SceneWithMap : Scene
     public override IEnumerator LoadSceneRoutineAsync()
     {
         Status = SceneStatus.Loading;
+
         yield return InternalLoadSceneRoutineAsync();
+
         if (Map.State != GameMapState.Initialized)
             yield return Map.InitRoutine();
         else
             yield return Map.PreloadAllObjects();
+
         yield return base.LoadSceneRoutineAsync();
     }
 
@@ -122,7 +116,7 @@ public abstract class SceneWithMap : Scene
     public override IEnumerator UnloadSceneRoutineAsync()
     {
         Map.Dispose();
-        _mapOwner.Done();
+        _factoryAssetOwner.Done();
 
         yield return base.UnloadSceneRoutineAsync();
     }
@@ -137,30 +131,50 @@ public abstract class SceneWithMap : Scene
         Map.Render(r);
     }
 
-    #region Map Helpers
+    #region Map Changing
 
     private static GameMap InitDefaultMap()
     {
         return new GameMap();
     }
 
-    public Coroutine SetCurrentMap(AssetObjectReference<GameMapAsset, GameMap> asset)
+    private static Coroutine SceneWithMapFactoryAssetChanged(AssetOwner<GameMapAsset, GameMapFactory> owner, SceneWithMap self)
     {
-        return _mapOwner.Set(asset) ?? Coroutine.CompletedRoutine;
+        GameMapFactory? newMapFactory = owner.GetCurrentObject();
+        if (newMapFactory != null)
+            return self.InternalSetMapFromFactory(newMapFactory);
+        return Coroutine.CompletedRoutine;
     }
 
-    private GameMap? _currentMap;
-
-    private void OnMapChanged(GameMap newMap)
+    public Coroutine SetCurrentMap(AssetObjectReference<GameMapAsset, GameMapFactory> factoryAsset)
     {
-        // Changing map while a map is active
-        if (_currentMap != null)
-            Engine.CoroutineManager.StartCoroutine(SwapMapRoutine(newMap));
-        else
-            _currentMap = newMap;
+        return _factoryAssetOwner.Set(factoryAsset) ?? Coroutine.CompletedRoutine;
     }
 
-    private IEnumerator SwapMapRoutine(GameMap newMap)
+    public Coroutine SetCurrentMap(GameMap map)
+    {
+        return InternalSetMapFromMap(map);
+    }
+
+    private Coroutine InternalSetMapFromFactory(GameMapFactory factory)
+    {
+        GameMap mapInstance = factory.CreateMapInstance();
+        return InternalSetMapFromMap(mapInstance);
+    }
+
+    private Coroutine InternalSetMapFromMap(GameMap map)
+    {
+        if (_currentMap == null)
+        {
+            _currentMap = map;
+            return Coroutine.CompletedRoutine;
+        }
+
+        // Setting map on a scene with an already loaded map
+        return Engine.CoroutineManager.StartCoroutine(InternalSetMapFromMapRoutine(map));
+    }
+
+    private IEnumerator InternalSetMapFromMapRoutine(GameMap newMap)
     {
         if (newMap.State == GameMapState.Initialized)
             yield return newMap.PreloadAllObjects();

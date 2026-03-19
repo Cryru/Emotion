@@ -26,4 +26,10 @@ public interface IMapGrid
     {
         yield break;
     }
+
+    internal IMapGrid Copy()
+    {
+        // todo :D
+        return null!;
+    }
 }

@@ -551,10 +551,9 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         return null;
     }
 
-    protected static void ProxyInvalidateLayout(object _, object? owner)
+    protected static void ProxyInvalidateLayout(object _, UIBaseWindow win)
     {
-        if (owner is UIBaseWindow win)
-            win.InvalidateLayout();
+        win.InvalidateLayout();
     }
 
     public IEnumerator WaitLoadingRoutine()
