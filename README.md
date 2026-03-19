@@ -72,8 +72,7 @@ Include the "LICENSE THIRD-PARTY" file from the repository in your exe when dist
 | [llvmpipe / Gallium / Mesa](https://mesa3d.org/) | MIT | Compatibility via Software Renderer | Precompiled for Win32 and Win64
 | [Glfw](https://github.com/glfw/glfw) & [Glfw.Net](https://github.com/Chman/Glfw.Net) | Zlib | Mac and Linux Window Creation | Precompiled for Mac64, Linux64, Win32, and Win64, Add "GLFW" symbol
 | [OpenAL-Soft](https://github.com/kcat/openal-soft) & [OpenAL.NetCore](https://github.com/nsglover/OpenAL.NETCore) | LGPL & MIT | Mac and Linux Audio | Precompiled for Mac64, Linux64, Win64, Add "OpenAL" symbol
-| [Assimp](https://github.com/assimp/assimp) & [AssimpNet](https://github.com/assimp/assimp-net) | Modified BSD | Reading FBX files | The Emotion build tool
-| [Assimp (Engine)](https://github.com/assimp/assimp) & [Silk.NET.Assimp](https://github.com/dotnet/Silk.NET/pkgs/nuget/Silk.NET.Assimp) | Modified BSD & MIT | 3D Model preview and conversion | Add "ASSIMP" symbol
+| [Assimp (Engine)](https://github.com/assimp/assimp) & [Silk.NET.Assimp](https://github.com/dotnet/Silk.NET/pkgs/nuget/Silk.NET.Assimp) | Modified BSD & MIT | .Fbx Conversion | Add "ASSIMP" symbol
 | [SixLabors.ImageSharp](https://github.com/SixLabors/ImageSharp) | Six Labors Split License | Developer loading and conversion of unsupported image types such as "jpg" | Add "MORE_IMAGE_TYPES" symbol
 
 ### Used as References and Research
@@ -88,3 +87,5 @@ Include the "LICENSE THIRD-PARTY" file from the repository in your exe when dist
 | [OpenAL-Soft](https://github.com/kcat/openal-soft/) | X | Audio Code Reference | None
 | [NAudio](https://github.com/naudio/NAudio) | X | Audio Code Reference | None
 | [Audacity](https://github.com/audacity) | X | Audio Code Reference | None
+
+and others!
