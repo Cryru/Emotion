@@ -100,12 +100,7 @@ public abstract class SceneWithMap : Scene
         Status = SceneStatus.Loading;
 
         yield return InternalLoadSceneRoutineAsync();
-
-        if (Map.State != GameMapState.Initialized)
-            yield return Map.InitRoutine();
-        else
-            yield return Map.PreloadAllObjects();
-
+        yield return EnsureMapInitializedRoutine(Map);
         yield return base.LoadSceneRoutineAsync();
     }
 
@@ -174,17 +169,21 @@ public abstract class SceneWithMap : Scene
 
     private IEnumerator InternalSetMapFromMapRoutine(GameMap newMap)
     {
-        if (newMap.State == GameMapState.Initialized)
-            yield return newMap.PreloadAllObjects();
-        else
-            yield return newMap.InitRoutine();
+        yield return EnsureMapInitializedRoutine(newMap);
 
         GameMap? oldMap = _currentMap;
         AssertNotNull(oldMap);
-
         _currentMap = newMap;
 
-        oldMap.Dispose();
+        oldMap?.Dispose();
+    }
+
+    private static IEnumerator EnsureMapInitializedRoutine(GameMap map)
+    {
+        if (map.State == GameMapState.Initialized)
+            yield return map.PreloadAllObjects();
+        else
+            yield return map.InitRoutine();
     }
 
     #endregion
