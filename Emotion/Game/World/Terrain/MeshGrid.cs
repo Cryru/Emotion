@@ -71,6 +71,16 @@ public abstract partial class TerrainGridBase<T, ChunkT, IndexT> : ChunkedGrid<T
 
     #region API
 
+    public virtual Vector2 GetTilePosOfWorldPos(Vector2 location)
+    {
+        return ((IGridWorldSpaceTiles) this).GetTilePosOfWorldPos(location);
+    }
+
+    public virtual Vector2 GetWorldPosOfTile(Vector2 tileCoord2d)
+    {
+        return ((IGridWorldSpaceTiles)this).GetWorldPosOfTile(tileCoord2d);
+    }
+
     public void Update(float dt)
     {
         if (!Initialized) return;
