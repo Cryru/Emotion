@@ -453,39 +453,144 @@ public struct Cube
 
             // Cube - 36 vertices, 12 triangles, 6 sides
             // Cube - 36 indices, 8 vertices, 6 quads
-            VertexDataAllocation alloc = VertexDataAllocation.Allocate(VertexData_Pos_UV_Normal.Format, 8);
+            VertexDataAllocation alloc = VertexDataAllocation.Allocate(VertexData_Pos_UV_Normal.Format, 24);
             Span<VertexData_Pos_UV_Normal> vertexData = alloc.GetAsSpan<VertexData_Pos_UV_Normal>();
             ushort[] indices = new ushort[36];
 
-            vertexData[0].Position = new Vector3(-0.5f, 0.5f, 0.5f);
-            vertexData[1].Position = new Vector3(0.5f, 0.5f, 0.5f);
-            vertexData[2].Position = new Vector3(0.5f, -0.5f, 0.5f);
-            vertexData[3].Position = new Vector3(-0.5f, -0.5f, 0.5f);
+            static void SetFace(Span<VertexData_Pos_UV_Normal> vertexData, ushort[] indices, ref int startIdx,
+                     Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3,
+                     Vector3 normal)
+            {
+                vertexData[startIdx + 0].Position = p0;
+                vertexData[startIdx + 0].Normal = normal;
+                vertexData[startIdx + 0].UV = new Vector2(0, 1);
 
-            vertexData[4].Position = new Vector3(-0.5f, 0.5f, -0.5f);
-            vertexData[5].Position = new Vector3(0.5f, 0.5f, -0.5f);
-            vertexData[6].Position = new Vector3(0.5f, -0.5f, -0.5f);
-            vertexData[7].Position = new Vector3(-0.5f, -0.5f, -0.5f);
+                vertexData[startIdx + 1].Position = p1;
+                vertexData[startIdx + 1].Normal = normal;
+                vertexData[startIdx + 1].UV = new Vector2(1, 1);
 
-            vertexData[0].UV = new Vector2(0, 0.5f);
-            vertexData[1].UV = new Vector2(0.5f, 0.5f);
-            vertexData[2].UV = new Vector2(0.5f, 0);
-            vertexData[3].UV = new Vector2(0, 0);
+                vertexData[startIdx + 2].Position = p2;
+                vertexData[startIdx + 2].Normal = normal;
+                vertexData[startIdx + 2].UV = new Vector2(1, 0);
 
-            vertexData[4].UV = new Vector2(0, 0.5f);
-            vertexData[5].UV = new Vector2(0.5f, 0.5f);
-            vertexData[6].UV = new Vector2(0.5f, 0);
-            vertexData[7].UV = new Vector2(0, 0);
+                vertexData[startIdx + 3].Position = p3;
+                vertexData[startIdx + 3].Normal = normal;
+                vertexData[startIdx + 3].UV = new Vector2(0, 0);
 
-            vertexData[0].Normal = new Vector3(0, 0, 1);
-            vertexData[1].Normal = new Vector3(0, 0, 1);
-            vertexData[2].Normal = new Vector3(0, 0, 1);
-            vertexData[3].Normal = new Vector3(0, 0, 1);
+                int tri = (startIdx / 4) * 6;
+                indices[tri + 0] = (ushort)(startIdx + 0);
+                indices[tri + 1] = (ushort)(startIdx + 1);
+                indices[tri + 2] = (ushort)(startIdx + 2);
+                indices[tri + 3] = (ushort)(startIdx + 2);
+                indices[tri + 4] = (ushort)(startIdx + 3);
+                indices[tri + 5] = (ushort)(startIdx + 0);
 
-            vertexData[4].Normal = new Vector3(0, 0, -1);
-            vertexData[5].Normal = new Vector3(0, 0, -1);
-            vertexData[6].Normal = new Vector3(0, 0, -1);
-            vertexData[7].Normal = new Vector3(0, 0, -1);
+                startIdx += 4;
+            }
+
+            int offset = 0;
+
+            // Front (X+)
+            SetFace(vertexData,
+                indices,
+                ref offset,
+                new Vector3(0.5f, 0.5f, 0.5f),
+                new Vector3(0.5f, -0.5f, 0.5f),
+                new Vector3(0.5f, -0.5f, -0.5f),
+                new Vector3(0.5f, 0.5f, -0.5f),
+                Renderer.Forward
+            );
+
+            // Back (X-)
+            SetFace(vertexData,
+                indices,
+                ref offset,
+                new Vector3(-0.5f, -0.5f, 0.5f),
+                new Vector3(-0.5f, 0.5f, 0.5f),
+                new Vector3(-0.5f, 0.5f, -0.5f),
+                new Vector3(-0.5f, -0.5f, -0.5f),
+                -Renderer.Forward
+            );
+
+            // Right (Y+)
+            SetFace(vertexData,
+                indices,
+                ref offset,
+                new Vector3(-0.5f, 0.5f, 0.5f),
+                new Vector3(0.5f, 0.5f, 0.5f),
+                new Vector3(0.5f, 0.5f, -0.5f),
+                new Vector3(-0.5f, 0.5f, -0.5f),
+                Renderer.Right
+            );
+
+            // Left (Y-)
+            SetFace(vertexData,
+                indices,
+                ref offset,
+                new Vector3(0.5f, -0.5f, 0.5f),
+                new Vector3(-0.5f, -0.5f, 0.5f),
+                new Vector3(-0.5f, -0.5f, -0.5f),
+                new Vector3(0.5f, -0.5f, -0.5f),
+                -Renderer.Right
+            );
+
+            // Up (Z+)
+            SetFace(vertexData,
+                indices,
+                ref offset,
+                new Vector3(-0.5f, 0.5f, 0.5f),
+                new Vector3(-0.5f, -0.5f, 0.5f),
+                new Vector3(0.5f, -0.5f, 0.5f),
+                new Vector3(0.5f, 0.5f, 0.5f),
+                Renderer.Up
+            );
+
+            // Bottom (Z-)
+            SetFace(vertexData,
+                indices,
+                ref offset,
+                new Vector3(-0.5f, -0.5f, -0.5f),
+                new Vector3(-0.5f, 0.5f, -0.5f),
+                new Vector3(0.5f, 0.5f, -0.5f),
+                new Vector3(0.5f, -0.5f, -0.5f),
+                -Renderer.Up
+            );
+
+            _entity = new MeshEntity([new Mesh(alloc, indices, MeshMaterial.DefaultMaterialTwoSided, "Cube")], "Cube");
+        }
+
+        return _entity;
+    }
+
+    /// <summary>
+    /// Get a mesh entity of a unit cube.
+    /// </summary>
+    public static MeshEntity GetEntityNoNormals()
+    {
+        // Check if created
+        if (_entity != null) return _entity;
+
+        // Create
+        lock (_entityCreationLock)
+        {
+            // Recheck if created
+            if (_entity != null) return _entity;
+
+            // Cube - 36 vertices, 12 triangles, 6 sides
+            // Cube - 36 indices, 8 vertices, 6 quads
+            VertexDataAllocation alloc = VertexDataAllocation.Allocate(VertexData_Pos.Format, 8);
+            Span<VertexData_Pos> vertexData = alloc.GetAsSpan<VertexData_Pos>();
+            ushort[] indices = new ushort[36];
+
+            vertexData[0].Position = new Vector3(0.5f, 0.5f, 0.5f);
+            vertexData[1].Position = new Vector3(0.5f, -0.5f, 0.5f);
+            vertexData[2].Position = new Vector3(0.5f, -0.5f, -0.5f);
+            vertexData[3].Position = new Vector3(0.5f, 0.5f, -0.5f);
+
+            vertexData[4].Position = new Vector3(-0.5f, 0.5f, 0.5f);
+            vertexData[5].Position = new Vector3(-0.5f, -0.5f, 0.5f);
+            vertexData[6].Position = new Vector3(-0.5f, -0.5f, -0.5f);
+            vertexData[7].Position = new Vector3(-0.5f, 0.5f, -0.5f);
 
             // Front
             indices[00] = 0;

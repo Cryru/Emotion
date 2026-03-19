@@ -16,8 +16,6 @@ public class Render3DTests : TestingScene
 {
     protected override IEnumerator InternalLoadSceneRoutineAsync()
     {
-        GameObject obj = Map.NewMeshObject("WoWModels/rabbit2/rabbit2_rabbitskin2_white.gltf");
-        obj.Scale3D = new Vector3(100);
         yield break;
     }
 
@@ -80,13 +78,31 @@ vec4 FragmentShaderMain()
     }
 
     [Test]
-    public IEnumerator WorldWith2DCamera()
+    public IEnumerator RenderGLTFModel()
     {
+        GameObject obj = Map.NewMeshObject("WoWModels/rabbit2/rabbit2_rabbitskin2_white.gltf");
+        obj.Scale3D = new Vector3(100);
+
         Camera3D cam = new Camera3D(Vector3.Zero);
         Engine.Renderer.Camera = cam;
-        yield return new TestWaiterRunLoops(1);
+        yield return new TestWaiterRunLoops(41); // Workaround to ensure the pipeline is loaded :/
 
-        yield return ScreenshotPointFromAllSides(Vector3.Zero, nameof(WorldWith2DCamera));
+        yield return ScreenshotPointFromAllSides(Vector3.Zero, nameof(RenderGLTFModel));
+        Map.RemoveObject(obj);
+    }
+
+    [Test]
+    public IEnumerator CubeRender()
+    {
+        GameObject obj = Map.NewMeshObject("");
+        obj.Scale3D = new Vector3(50);
+
+        Camera3D cam = new Camera3D(Vector3.Zero);
+        Engine.Renderer.Camera = cam;
+        yield return new TestWaiterRunLoops(41); 
+
+        yield return ScreenshotPointFromAllSides(Vector3.Zero, nameof(CubeRender));
+        Map.RemoveObject(obj);
     }
 
     #region Helpers
