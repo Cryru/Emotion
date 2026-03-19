@@ -10,7 +10,7 @@ using Emotion.Graphics.Memory;
 
 namespace Emotion.Game.World.Terrain;
 
-public abstract partial class MeshGrid<T, ChunkT, IndexT>
+public abstract partial class TerrainGridBase<T, ChunkT, IndexT>
 {
     protected struct ChunkStreamRequest(Vector2 chunkCoord, float distance, ChunkState state)
     {

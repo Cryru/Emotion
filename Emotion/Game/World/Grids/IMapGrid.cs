@@ -3,7 +3,7 @@
 using Emotion.Core.Systems.IO;
 using Emotion.Graphics.Camera;
 
-namespace Emotion.Game.World;
+namespace Emotion.Game.World.Grids;
 
 public interface IMapGrid
 {
@@ -13,9 +13,9 @@ public interface IMapGrid
 
     public void Done();
 
-    public void Update(float dt);
+    public void Update(float dt); // todo: IUpdatableMapGrid
 
-    public void Render(GameMap map, Renderer r, CameraCullingContext culling);
+    public void Render(GameMap map, Renderer r, CameraCullingContext culling); // todo: IRenderableMapGrid
 
     internal bool _Save(string folder)
     {

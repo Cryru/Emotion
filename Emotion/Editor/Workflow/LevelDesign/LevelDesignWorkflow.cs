@@ -3,6 +3,7 @@
 using Emotion.Editor.EditorUI;
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Editor.Workflow.LevelDesign.Terrain;
+using Emotion.Game.World.Grids;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 

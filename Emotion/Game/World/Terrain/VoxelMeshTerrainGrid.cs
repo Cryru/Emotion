@@ -3,6 +3,7 @@
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Core.Utility.Threading;
+using Emotion.Game.World.Grids;
 using Emotion.Game.World.Terrain.MeshGridStreaming;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Assets;
@@ -20,7 +21,7 @@ public class VoxelMeshTerrainGrid : VoxelMeshTerrainGrid<uint, MeshGridStreamabl
     }
 }
 
-public class VoxelMeshTerrainGrid<TData, TChunk, TIndex> : MeshGrid<TData, TChunk, TIndex>, IMapGrid
+public class VoxelMeshTerrainGrid<TData, TChunk, TIndex> : TerrainGridBase<TData, TChunk, TIndex>, IMapGrid
     where TData : unmanaged, IEquatable<TData>
     where TChunk : MeshGridStreamableChunk<TData, TIndex>, new()
     where TIndex : unmanaged, INumber<TIndex>

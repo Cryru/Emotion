@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Core.Utility.Threading;
+using Emotion.Game.World.Grids;
 using Emotion.Game.World.Terrain.MeshGridStreaming;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Camera;
@@ -12,7 +13,7 @@ using TerrainMeshGridChunk = Emotion.Game.World.Terrain.MeshGridStreaming.MeshGr
 namespace Emotion.Game.World.Terrain;
 
 [Obsolete("Use TerrainMeshGridNew")]
-public partial class TerrainMeshGrid : MeshGrid<float, TerrainMeshGridChunk, ushort>, IMapGrid
+public partial class TerrainMeshGrid : TerrainGridBase<float, TerrainMeshGridChunk, ushort>, IMapGrid
 {
     public string UniqueId { get; set; } = Guid.NewGuid().ToString("N");
 

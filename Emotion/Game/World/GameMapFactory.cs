@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using Emotion.Game.World.Grids;
+
 namespace Emotion.Game.World;
 
 public class GameMapFactory

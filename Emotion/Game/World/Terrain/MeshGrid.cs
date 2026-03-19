@@ -15,7 +15,7 @@ using OpenGL;
 
 namespace Emotion.Game.World.Terrain;
 
-public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGridWorldSpaceTiles, ITerrainGrid3D, ICustomReflectorMeta_ExtraMembers
+public abstract partial class TerrainGridBase<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGridWorldSpaceTiles, ITerrainGrid3D, ICustomReflectorMeta_ExtraMembers
     where ChunkT : MeshGridStreamableChunk<T, IndexT>, new()
     where T : unmanaged
     where IndexT : INumber<IndexT>
@@ -24,7 +24,7 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
 
     public Vector2 TileSize { get; private set; }
 
-    public MeshGrid(Vector2 tileSize, float chunkSize) : base(chunkSize)
+    public TerrainGridBase(Vector2 tileSize, float chunkSize) : base(chunkSize)
     {
         TileSize = tileSize;
 
@@ -58,9 +58,9 @@ public abstract partial class MeshGrid<T, ChunkT, IndexT> : ChunkedGrid<T, Chunk
     public static new ComplexTypeHandlerMemberBase[] GetExtraReflectorMembers()
     {
         return [
-           new ComplexTypeHandlerMember<MeshGrid<T, ChunkT, IndexT>, Vector2>(
+           new ComplexTypeHandlerMember<TerrainGridBase<T, ChunkT, IndexT>, Vector2>(
                 "TileSize",
-                static (ref MeshGrid<T, ChunkT, IndexT> p, Vector2 v) => p.TileSize = v,
+                static (ref TerrainGridBase<T, ChunkT, IndexT> p, Vector2 v) => p.TileSize = v,
                 static (p) => p.TileSize
            )
        ];

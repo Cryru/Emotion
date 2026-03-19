@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Core.Utility.Threading;
+using Emotion.Game.World.Grids;
 using Emotion.Game.World.Terrain.MeshGridStreaming;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Camera;
@@ -43,7 +44,7 @@ public class TerrainChunk : MeshGridStreamableChunk<TerrainData, ushort>
 
 }
 
-public partial class TerrainMeshGridNew : MeshGrid<TerrainData, TerrainChunk, ushort>, IMapGrid, ICustomReflectorMeta_CustomCreateNew<TerrainMeshGridNew>
+public partial class TerrainMeshGridNew : TerrainGridBase<TerrainData, TerrainChunk, ushort>, IMapGrid, ICustomReflectorMeta_CustomCreateNew<TerrainMeshGridNew>
 {
     public string UniqueId { get; set; } = Guid.NewGuid().ToString("N");
 

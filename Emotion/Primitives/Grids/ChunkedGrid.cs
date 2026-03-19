@@ -2,7 +2,6 @@
 
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
-using Emotion.Game.World.Terrain;
 using Emotion.Primitives.Grids.Chunked;
 using Emotion.Standard.Reflector.Handlers;
 using Emotion.Standard.Reflector.Handlers.Base;
