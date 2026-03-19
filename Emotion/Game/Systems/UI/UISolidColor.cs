@@ -2,6 +2,7 @@
 
 namespace Emotion.Game.Systems.UI;
 
+[Obsolete("Use UIBaseWindow with Visuals.BackgroundColor")]
 public class UISolidColor : UIBaseWindow
 {
     protected override bool RenderInternal(Renderer c)
@@ -9,13 +10,4 @@ public class UISolidColor : UIBaseWindow
         c.RenderSprite(Position, Size, _calculatedColor);
         return true;
     }
-}
-
-public class UISolidOutline : UIBaseWindow
-{
-    //protected override void AfterRenderChildren(Renderer c)
-    //{
-    //    base.AfterRenderChildren(c);
-    //    c.RenderRectOutline(Bounds, _calculatedColor, 1 * GetScale());
-    //}
 }

@@ -7,7 +7,6 @@ using Emotion.Game.Systems.UI;
 using Emotion.Game.Systems.UI2;
 using Emotion.Game.Systems.UI2.Editor;
 using Emotion.Graphics;
-using Emotion.Graphics.Text;
 using Emotion.Primitives;
 using Emotion.Testing;
 using System;
@@ -53,6 +52,60 @@ public class NewUITests : TestingScene
     {
         base.BetweenEachTest();
         SceneUI.ClearChildren();
+    }
+
+    [Test]
+    public IEnumerator TestWindow()
+    {
+        var win = new UIBaseWindow()
+        {
+            Visuals =
+            {
+                BackgroundColor = Color.White
+            },
+            Layout =
+            {
+                SizingX = UISizing.Grow(),
+                SizingY = UISizing.Grow()
+            }
+        };
+        SceneUI.AddChild(win);
+
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(TestWindow));
+    }
+
+    [Test]
+    public IEnumerator TestFreeLayout()
+    {
+        // Test all anchor combinations
+        UIAnchor[] anchorValues = Enum.GetValues<UIAnchor>();
+        foreach (UIAnchor anchorVal in anchorValues)
+        {
+            foreach (UIAnchor parentAnchor in anchorValues)
+            {
+                var win = new UIBaseWindow()
+                {
+                    Name = $"{anchorVal}-{parentAnchor}",
+                    Visuals =
+                    {
+                        BackgroundColor = Color.White
+                    },
+                    Layout =
+                    {
+                        SizingX = UISizing.Fixed(45),
+                        SizingY = UISizing.Fixed(45),
+                        Anchor = anchorVal,
+                        ParentAnchor = parentAnchor
+                    }
+                };
+
+                SceneUI.AddChild(win);
+            }
+        }
+
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(TestFreeLayout));
     }
 
     [Test]
@@ -446,7 +499,7 @@ public class NewUITests : TestingScene
     public IEnumerator TwoSquaresInFillY()
     {
         {
-            var win = new UISolidColor()
+            var win = new UIBaseWindow()
             {
                 Name = "test",
                 Visuals =
@@ -461,7 +514,7 @@ public class NewUITests : TestingScene
             SceneUI.AddChild(win);
 
             {
-                var a = new UISolidColor()
+                var a = new UIBaseWindow()
                 {
                     Visuals =
                     {
@@ -477,7 +530,7 @@ public class NewUITests : TestingScene
             }
 
             {
-                var a = new UISolidColor()
+                var a = new UIBaseWindow()
                 {
                     Visuals =
                     {
@@ -828,7 +881,7 @@ public class NewUITests : TestingScene
                         Name = "list",
                         Layout =
                         {
-                            LayoutMethod = UILayoutMethod.HorizontalList(27),
+                            LayoutMethod = UILayoutMethod.HorizontalList(9),
                             Margins = new UISpacing(9, 9, 9, 9),
                             SizingY = UISizing.Fit()
                         },
@@ -876,243 +929,325 @@ public class NewUITests : TestingScene
         yield return WaitUILayout();
         yield return WaitUILayout();
         yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorTopBar));
+
+        {
+            UIBaseWindow list = SceneUI.GetWindowById("list")!;
+
+            {
+                var a = new UIBaseWindow()
+                {
+                    Name = "text-bg",
+                    Visuals =
+                    {
+                        BackgroundColor = Color.White,
+                    },
+                    Layout =
+                    {
+                        Padding = new UISpacing(6, 3, 6, 3),
+                        SizingX = UISizing.Fit()
+                    }
+                };
+                list.AddChild(a);
+
+                var text = new UIText()
+                {
+                    Name = "text",
+                    TextColor = Color.Black,
+                    FontSize = 27,
+                    Text = "White",
+                    Layout =
+                    {
+                        AnchorAndParentAnchor = UIAnchor.CenterLeft
+                    }
+                };
+                a.AddChild(text);
+            }
+
+            {
+                var a = new UIBaseWindow()
+                {
+                    Visuals =
+                    {
+                        BackgroundColor = Color.PrettyPink
+                    },
+                    Layout =
+                    {
+                        Padding = new UISpacing(6, 3, 6, 3),
+                        SizingX = UISizing.Fit()
+                    }
+                };
+                list.AddChild(a);
+
+                var text = new UIText()
+                {
+                    Name = "text",
+                    TextColor = Color.White,
+                    FontSize = 27,
+                    Text = "Pink",
+                    Layout =
+                    {
+                        AnchorAndParentAnchor = UIAnchor.CenterLeft
+                    }
+                };
+                a.AddChild(text);
+            }
+
+            yield return WaitUILayout();
+            yield return WaitUILayout();
+            yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorTopBar));
+        }
+
+        // Bar v2 (Possible only with the new UI)
+        {
+            UIBaseWindow list = SceneUI.GetWindowById("list")!;
+
+            list.Layout.Margins = new UISpacing(9, 0, 9, 0);
+            list.Layout.AnchorAndParentAnchor = UIAnchor.CenterLeft;
+            list.InvalidateLayout();
+        }
+
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorTopBar));
+
+        // Add text on the right
+        {
+            UIBaseWindow parent = SceneUI.GetWindowById("top-parent")!;
+
+            var a = new UIText()
+            {
+                Layout =
+                {
+                    AnchorAndParentAnchor = UIAnchor.CenterRight,
+                    Margins = new UISpacing(0, 0, 15, 0)
+                },
+                Text = "Text on the right",
+                FontSize = 18,
+                TextColor = Color.Black
+            };
+            parent.AddChild(a);
+        }
+
+        yield return WaitUILayout();
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorTopBar));
     }
-    //    {
-    //        UIBaseWindow list = UI.GetWindowById("list")!;
 
-    //        {
-    //            var a = new UISolidColor();
-    //            a.WindowColor = Color.White;
-    //            a.Paddings = new Rectangle(2, 1, 2, 1);
-    //            //a.Id = "text-bg";
-    //            list.AddChild(a);
+    [Test]
+    public IEnumerator VerticalListWithText()
+    {
+        {
+            var list = new UIBaseWindow
+            {
+                Visuals =
+                {
+                    BackgroundColor = Color.PrettyOrange
+                },
+                Layout =
+                {
+                    SizingX = UISizing.Fit(),
+                    SizingY = UISizing.Fit(),
+                    LayoutMethod = UILayoutMethod.VerticalList(0)
+                }
+            };
 
-    //            var text = new UIText();
-    //            text.FontSize = 9;
-    //            text.Text = "White";
-    //            text.WindowColor = Color.Black;
-    //            text.ScaleMode = UIScaleMode.FloatScale;
-    //            text.Id = "text";
-    //            text.ParentAnchor = UIAnchor.CenterLeft;
-    //            text.Anchor = UIAnchor.CenterLeft;
+            {
+                var a = new UIBaseWindow()
+                {
+                    Name = "text-bg",
+                    Visuals =
+                    {
+                        BackgroundColor = Color.Black
+                    },
+                    Layout =
+                    {
+                       Padding = new UISpacing(6, 3, 6, 3)
+                    }
+                };
+                list.AddChild(a);
 
-    //            a.AddChild(text);
-    //        }
+                var text = new UIText()
+                {
+                    Name = "text",
+                    FontSize = 27,
+                    Text = "Black",
+                    TextColor = Color.White,
+                    Layout =
+                    {
+                        AnchorAndParentAnchor = UIAnchor.CenterLeft
+                    }
+                };
+                a.AddChild(text);
+            }
 
-    //        {
-    //            var a = new UISolidColor();
-    //            a.WindowColor = Color.PrettyPink;
-    //            a.Paddings = new Rectangle(2, 1, 2, 1);
-    //            //a.Id = "text-bg";
-    //            a.GrowX = false;
-    //            list.AddChild(a);
+            {
+                var a = new UIBaseWindow()
+                {
+                    Visuals =
+                    {
+                        BackgroundColor = Color.White
+                    },
+                    Layout =
+                    {
+                        Padding = new UISpacing(6, 3, 6, 3)
+                    }
+                };
+                list.AddChild(a);
 
-    //            var text = new UIText();
-    //            text.FontSize = 9;
-    //            text.Text = "Pink";
-    //            text.WindowColor = Color.White;
-    //            text.ScaleMode = UIScaleMode.FloatScale;
-    //            text.Id = "text";
-    //            text.ParentAnchor = UIAnchor.CenterLeft;
-    //            text.Anchor = UIAnchor.CenterLeft;
+                var text = new UIText()
+                {
+                    Name = "text",
+                    FontSize = 27,
+                    Text = "White",
+                    TextColor = Color.Black,
+                    Layout =
+                    {
+                        AnchorAndParentAnchor = UIAnchor.CenterLeft
+                    }
+                };
+                a.AddChild(text);
+            }
 
-    //            a.AddChild(text);
-    //        }
-    //    }
+            {
+                var a = new UIBaseWindow()
+                {
+                    Visuals =
+                    {
+                        BackgroundColor = Color.PrettyPink
+                    },
+                    Layout =
+                    {
+                        Padding = new UISpacing(6, 3, 6, 3),
+                        SizingX = UISizing.Fit()
+                    }
+                };
+                list.AddChild(a);
 
-    //    yield return WaitUILayout();
-    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorTopBar));
+                var text = new UIText()
+                {
+                    Name = "text",
+                    FontSize = 27,
+                    Text = "Pink",
+                    TextColor = Color.White,
+                    Layout =
+                    {
+                        AnchorAndParentAnchor = UIAnchor.CenterLeft,
+                        SizingX = UISizing.Fit()
+                    }
+                };
+                a.AddChild(text);
+            }
 
-    //    // Bar v2 (Possible only with the new UI)
-    //    {
-    //        UIBaseWindow list = UI.GetWindowById("list")!;
+            SceneUI.AddChild(list);
+        }
 
-    //        list.Margins = new Rectangle(3, 0, 3, 0);
-    //        list.AnchorAndParentAnchor = UIAnchor.CenterLeft;
-    //    }
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(VerticalListWithText));
 
-    //    yield return WaitUILayout();
-    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorTopBar));
+        SceneUI.ClearChildren();
 
-    //    // Add text on the right
-    //    {
-    //        UIBaseWindow parent = UI.GetWindowById("top-parent")!;
+        // Prototype of the editor dropdown.
+        // This tests:
+        // 1. paddings on all sides of a fill
+        // 2. Vertical UIList
+        // 3. FillInListX
 
-    //        var a = new UIText();
-    //        a.ParentAnchor = UIAnchor.CenterRight;
-    //        a.Anchor = UIAnchor.CenterRight;
-    //        a.WindowColor = Color.Black;
-    //        a.Text = "Text on the right";
-    //        a.FontSize = 6;
-    //        a.Margins = new Rectangle(0, 0, 5, 0);
-    //        a.TextHeightMode = GlyphHeightMeasurement.NoMinY;
+        {
+            var dropDown = new UIBaseWindow
+            {
+                Visuals =
+                {
+                    BackgroundColor = Color.PrettyOrange
+                },
+                Layout =
+                {
+                    SizingX = UISizing.Fit(),
+                    SizingY = UISizing.Fit(),
+                }
+            };
 
-    //        parent.AddChild(a);
-    //    }
+            var innerBg = new UIBaseWindow
+            {
+                Visuals =
+                {
+                  BackgroundColor = Color.PrettyGreen,
+                },
+                Layout =
+                {
+                    Padding = new UISpacing(9, 9, 9, 9)
+                }
+                //IgnoreParentColor = true,
+            };
+            dropDown.AddChild(innerBg);
 
-    //    yield return WaitUILayout();
-    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorTopBar));
-    //}
+            var list = new UIBaseWindow // UIList
+            {
+                Name = "list",
+                Layout =
+                {
+                    LayoutMethod = UILayoutMethod.VerticalList(6)
+                }
+            };
+            innerBg.AddChild(list);
 
-    //[Test]
-    //public IEnumerator VerticalListWithText()
-    //{
-    //    {
-    //        var list = new UISolidColor
-    //        {
-    //            WindowColor = Color.PrettyOrange,
-    //            GrowX = false,
-    //            GrowY = false,
-    //            LayoutMode = LayoutMode.VerticalList
-    //        };
+            for (var i = 0; i < 5; i++)
+            {
+                var a = new UIBaseWindow()
+                {
+                    Visuals =
+                    {
+                        BackgroundColor = Color.Black
+                    },
+                    Layout =
+                    {
+                        Padding = new UISpacing(6, 3, 6, 3),
+                        SizingX = UISizing.Fit()
+                    }
+                };
+                list.AddChild(a);
 
-    //        {
-    //            var a = new UISolidColor();
-    //            a.WindowColor = Color.Black;
-    //            a.Paddings = new Rectangle(2, 1, 2, 1);
-    //            a.Id = "text-bg";
-    //            list.AddChild(a);
+                var text = new UIText()
+                {
+                    Name = "text",
+                    FontSize = 27,
+                    Text = "Black " + new string('A', i),
+                    TextColor = Color.White,
+                    Layout =
+                    {
+                        AnchorAndParentAnchor = UIAnchor.CenterLeft
+                    }
+                };
+                a.AddChild(text);
+            }
 
-    //            var text = new UIText();
-    //            text.FontSize = 9;
-    //            text.Text = "Black";
-    //            text.WindowColor = Color.White;
-    //            text.ScaleMode = UIScaleMode.FloatScale;
-    //            text.Id = "text";
-    //            text.ParentAnchor = UIAnchor.CenterLeft;
-    //            text.Anchor = UIAnchor.CenterLeft;
+            SceneUI.AddChild(dropDown);
+        }
 
-    //            a.AddChild(text);
-    //        }
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(VerticalListWithText));
 
-    //        {
-    //            var a = new UISolidColor();
-    //            a.WindowColor = Color.White;
-    //            a.Paddings = new Rectangle(2, 1, 2, 1);
-    //            //a.Id = "text-bg";
-    //            list.AddChild(a);
+        {
+            UIBaseWindow? list = SceneUI.GetWindowById("list");
+            Assert.NotNull(list);
+            Assert.NotNull(list.Children);
+            for (var i = 0; i < list.Children.Count; i++)
+            {
+                UIBaseWindow child = list.Children[i];
+                child.Layout.SizingX = UISizing.Grow();
+            }
+        }
 
-    //            var text = new UIText();
-    //            text.FontSize = 9;
-    //            text.Text = "White";
-    //            text.WindowColor = Color.Black;
-    //            text.ScaleMode = UIScaleMode.FloatScale;
-    //            text.Id = "text";
-    //            text.ParentAnchor = UIAnchor.CenterLeft;
-    //            text.Anchor = UIAnchor.CenterLeft;
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(VerticalListWithText));
 
-    //            a.AddChild(text);
-    //        }
+        {
+            UIBaseWindow? list = SceneUI.GetWindowById("list");
+            Assert.NotNull(list);
+            list.Layout.Margins = new UISpacing(0, 0, 24, 0);
+        }
 
-    //        {
-    //            var a = new UISolidColor();
-    //            a.WindowColor = Color.PrettyPink;
-    //            a.Paddings = new Rectangle(2, 1, 2, 1);
-    //            //a.Id = "text-bg";
-    //            a.GrowX = false;
-    //            list.AddChild(a);
-
-    //            var text = new UIText();
-    //            text.FontSize = 9;
-    //            text.Text = "Pink";
-    //            text.WindowColor = Color.White;
-    //            text.ScaleMode = UIScaleMode.FloatScale;
-    //            text.Id = "text";
-    //            text.ParentAnchor = UIAnchor.CenterLeft;
-    //            text.Anchor = UIAnchor.CenterLeft;
-    //            text.GrowX = false;
-
-    //            a.AddChild(text);
-    //        }
-
-    //        UI.AddChild(list);
-    //    }
-
-    //    yield return WaitUILayout();
-    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(VerticalListWithText));
-
-    //    UI.ClearChildren();
-
-    //    // Prototype of the editor dropdown.
-    //    // This tests:
-    //    // 1. paddings on all sides of a fill
-    //    // 2. Vertical UIList
-    //    // 3. FillInListX
-
-    //    {
-    //        var dropDown = new UISolidColor
-    //        {
-    //            WindowColor = Color.PrettyOrange,
-    //            GrowX = false,
-    //            GrowY = false
-    //        };
-
-    //        var innerBg = new UISolidColor
-    //        {
-    //            IgnoreParentColor = true,
-    //            WindowColor = Color.PrettyGreen,
-    //            Paddings = new Rectangle(3, 3, 3, 3),
-    //        };
-    //        dropDown.AddChild(innerBg);
-
-    //        var list = new UIList
-    //        {
-    //            Id = "list",
-    //            LayoutMode = LayoutMode.VerticalList,
-    //            ListSpacing = new Vector2(0, 2),
-    //        };
-    //        innerBg.AddChild(list);
-
-    //        for (var i = 0; i < 5; i++)
-    //        {
-    //            var a = new UISolidColor();
-    //            a.WindowColor = Color.Black;
-    //            a.Paddings = new Rectangle(2, 1, 2, 1);
-    //            a.GrowX = false;
-    //            //a.Id = "text-bg";
-    //            list.AddChild(a);
-
-    //            var text = new UIText();
-    //            text.FontSize = 9;
-    //            text.Text = "Black " + new string('A', i);
-    //            text.WindowColor = Color.White;
-    //            text.ScaleMode = UIScaleMode.FloatScale;
-    //            text.Id = "text";
-    //            text.ParentAnchor = UIAnchor.CenterLeft;
-    //            text.Anchor = UIAnchor.CenterLeft;
-
-    //            a.AddChild(text);
-    //        }
-
-    //        UI.AddChild(dropDown);
-    //    }
-
-    //    yield return WaitUILayout();
-    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(VerticalListWithText));
-
-    //    {
-    //        UIBaseWindow? list = UI.GetWindowById("list");
-    //        Assert.NotNull(list);
-    //        Assert.NotNull(list.Children);
-    //        for (var i = 0; i < list.Children.Count; i++)
-    //        {
-    //            UIBaseWindow child = list.Children[i];
-    //            child.GrowX = true;
-    //        }
-    //    }
-
-    //    yield return WaitUILayout();
-    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(VerticalListWithText));
-
-    //    {
-    //        UIBaseWindow? list = UI.GetWindowById("list");
-    //        Assert.NotNull(list);
-    //        list.Margins = new Rectangle(0, 0, 8, 0);
-    //    }
-
-    //    yield return WaitUILayout();
-    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(VerticalListWithText));
-    //}
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(VerticalListWithText));
+    }
 
     //[Test]
     //public IEnumerator TextWithBackground()

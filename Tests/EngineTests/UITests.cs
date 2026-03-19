@@ -44,45 +44,6 @@ public class UITests : TestingScene
     }
 
     //[Test]
-    //public IEnumerator TestWindow()
-    //{
-    //    UI.ClearChildren();
-
-    //    var win = new UIBaseWindow();
-    //    win.StretchX = true;
-    //    win.StretchY = true;
-    //    UI.AddChild(win);
-
-    //    yield break;
-    //    //yield return new TestWaiterRunLoops(-1);
-    //}
-
-    //[Test]
-    //private IEnumerator TestFreeLayout()
-    //{
-    //    UI.ClearChildren();
-
-    //    // Test all anchor combinations
-    //    UIAnchor[] anchorValues = Enum.GetValues<UIAnchor>();
-    //    foreach (UIAnchor anchorVal in anchorValues)
-    //    {
-    //        foreach (UIAnchor parentAnchor in anchorValues)
-    //        {
-    //            var win = new UIBaseWindow();
-    //            win.SetExactRequestedSize(new Vector2(15, 15));
-    //            win.WindowColor = Color.White;
-    //            win.Anchor = anchorVal;
-    //            win.ParentAnchor = parentAnchor;
-    //            win.Id = $"{anchorVal}-{parentAnchor}";
-    //            UI.AddChild(win);
-    //        }
-    //    }
-
-    //    yield break;
-    //    //yield return new TestWaiterRunLoops(-1);
-    //}
-
-    //[Test]
     //public IEnumerator TestFreeLayoutWithStretching()
     //{
     //    UI.ClearChildren();
