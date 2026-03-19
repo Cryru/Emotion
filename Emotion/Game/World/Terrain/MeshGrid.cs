@@ -7,6 +7,7 @@ using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Memory;
 using Emotion.Graphics.Shading;
+using Emotion.Primitives;
 using Emotion.Primitives.Grids;
 using Emotion.Standard.Reflector.Handlers;
 using Emotion.Standard.Reflector.Handlers.Base;
@@ -104,8 +105,7 @@ public abstract partial class TerrainGridBase<T, ChunkT, IndexT> : ChunkedGrid<T
         foreach (KeyValuePair<Vector2, ChunkT> item in chunks)
         {
             ChunkT chunk = item.Value;
-            VertexDataAllocation vertices = chunk.VertexMemory;
-            if (!vertices.Allocated) continue;
+
             if (chunk.Bounds.IsEmpty) continue;
             if (!chunk.Bounds.Intersects(cube)) continue;
 
@@ -124,6 +124,9 @@ public abstract partial class TerrainGridBase<T, ChunkT, IndexT> : ChunkedGrid<T
             }
             else
             {
+                VertexDataAllocation? vertices = chunk.VertexMemory;
+                if (vertices == null || !vertices.Allocated) continue;
+
                 IndexT[]? indices = chunk.CPUIndexBuffer;
                 if (indices == null) continue;
 
@@ -266,11 +269,31 @@ public abstract partial class TerrainGridBase<T, ChunkT, IndexT> : ChunkedGrid<T
             if (chunk.Bounds.IsEmpty) continue;
             if (!ray.IntersectWithCube(chunk.Bounds, out Vector3 _, out Vector3 __)) continue;
 
-            if (chunk.Colliders == null) continue; // todo: vertices based chunks? triangle collision
-
-            foreach (Cube other in chunk.Colliders)
+            if (chunk.Colliders != null)
             {
-                if (ray.IntersectWithCube(other, out Vector3 colPoint, out Vector3 colSurfaceNormal))
+                foreach (Cube other in chunk.Colliders)
+                {
+                    if (ray.IntersectWithCube(other, out Vector3 colPoint, out Vector3 colSurfaceNormal))
+                    {
+                        float dist = Vector3.Distance(colPoint, ray.Start);
+                        if (dist < closestIntersectionDist)
+                        {
+                            closestIntersection = colPoint;
+                            closestIntersectionDist = dist;
+                            surfaceNormal = colSurfaceNormal;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                VertexDataAllocation? vertices = chunk.VertexMemory;
+                if (vertices == null || !vertices.Allocated) continue;
+
+                IndexT[]? indices = chunk.CPUIndexBuffer;
+                if (indices == null) continue;
+
+                if (ray.IntersectWithVertices(indices, chunk.IndicesUsed, vertices, out Vector3 colPoint, out Vector3 colSurfaceNormal, out _))
                 {
                     float dist = Vector3.Distance(colPoint, ray.Start);
                     if (dist < closestIntersectionDist)

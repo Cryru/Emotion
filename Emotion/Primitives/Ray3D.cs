@@ -53,6 +53,12 @@ public struct Ray3D
 
     public bool IntersectWithVertices(ushort[] indices, VertexDataAllocation vertices, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
     {
+        return IntersectWithVertices(indices, indices.Length, vertices, out collisionPoint, out normal, out triangleIndex);
+    }
+
+    public bool IntersectWithVertices<TIndex>(TIndex[] indices, int indicesUsed, VertexDataAllocation vertices, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex)
+        where TIndex : INumber<TIndex>
+    {
         collisionPoint = Vector3.Zero;
         normal = Vector3.Zero;
         triangleIndex = -1;
@@ -63,13 +69,13 @@ public struct Ray3D
         var closestDistance = float.MaxValue;
         var intersectionFound = false;
 
-        for (var i = 0; i < indices.Length; i += 3)
+        for (var i = 0; i < indicesUsed; i += 3)
         {
-            ushort idx1 = indices[i];
-            ushort idx2 = indices[i + 1];
-            ushort idx3 = indices[i + 2];
+            TIndex idx1 = indices[i];
+            TIndex idx2 = indices[i + 1];
+            TIndex idx3 = indices[i + 2];
 
-            Triangle triangle = vertices.GetTriangleAtIndices(idx1, idx2, idx3);
+            Triangle triangle = vertices.GetTriangleAtIndices<TIndex>(idx1, idx2, idx3);
             Vector3 triangleNormal = triangle.Normal;
 
             if (!IntersectWithTriangle(triangle.A, triangle.B, triangle.C, triangleNormal, out float t)) continue;
