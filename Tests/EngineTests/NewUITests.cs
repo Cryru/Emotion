@@ -18,6 +18,7 @@ using System.Numerics;
 
 namespace Tests.EngineTests;
 
+[DebugTest]
 public class NewUITests : TestingScene
 {
     protected override IEnumerator InternalLoadSceneRoutineAsync()
@@ -249,7 +250,7 @@ public class NewUITests : TestingScene
                 Layout =
                 {
                     LayoutMethod = UILayoutMethod.HorizontalList(32),
-                   
+
                     Padding = new UISpacing(32, 16, 32, 16),
                     MinSizeY = 80
                 },
@@ -286,7 +287,6 @@ public class NewUITests : TestingScene
         }
 
         // We need to run this a couple of times to get the TextRenderer to produce the text
-        yield return WaitUILayout();
         yield return WaitUILayout();
         yield return WaitUILayout();
         yield return VerifyScreenshot(nameof(NewUITests), nameof(ComplicatedLayoutTest));
@@ -363,54 +363,85 @@ public class NewUITests : TestingScene
         yield return VerifyScreenshot(nameof(NewUITests), nameof(ListOfBars));
     }
 
-    //[Test]
-    //public IEnumerator FillXAxisMinHeightAndWidth()
-    //{
-    //    {
-    //        var win = new UISolidColor();
-    //        win.WindowColor = Color.PrettyOrange;
-    //        win.GrowY = false;
-    //        win.Id = "test";
+    [Test]
+    public IEnumerator FillXAxisMinHeightAndWidth()
+    {
+        {
+            var win = new UIBaseWindow()
+            {
+                Name = "test",
+                Visuals =
+                {
+                    BackgroundColor = Color.PrettyOrange,
+                },
+                Layout =
+                {
+                    SizingY = UISizing.Fit()
+                }
+            };
 
-    //        {
-    //            var a = new UISolidColor();
-    //            a.WindowColor = Color.White;
-    //            a.MinSizeY = 20;
-    //            a.MinSizeX = 20;
-    //            win.AddChild(a);
-    //        }
+            {
+                var a = new UIBaseWindow()
+                {
+                    Visuals =
+                    {
+                        BackgroundColor = Color.White
+                    },
+                    Layout =
+                    {
+                        SizingY = UISizing.Fixed(60)
+                    }
+                };
+                win.AddChild(a);
+            }
 
-    //        UI.AddChild(win);
-    //    }
+            SceneUI.AddChild(win);
+        }
 
-    //    yield return WaitUILayout();
-    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(FillXAxisMinHeightAndWidth));
-    //}
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(FillXAxisMinHeightAndWidth));
+    }
 
-    //[Test]
-    //public IEnumerator FillNeitherAxisMinHeightAndWidth()
-    //{
-    //    {
-    //        var win = new UISolidColor();
-    //        win.WindowColor = Color.PrettyOrange;
-    //        win.GrowY = false;
-    //        win.GrowX = false;
-    //        win.Id = "test";
+    [Test]
+    public IEnumerator FillNeitherAxisMinHeightAndWidth()
+    {
+        {
+            var win = new UIBaseWindow()
+            {
+                Name = "test",
+                Visuals =
+                {
+                    BackgroundColor = Color.PrettyOrange,
+                },
+                Layout =
+                {
+                    SizingX = UISizing.Fit(),
+                    SizingY = UISizing.Fit(),
+                }
+            };
 
-    //        {
-    //            var a = new UISolidColor();
-    //            a.WindowColor = Color.White;
-    //            a.MinSizeY = 20;
-    //            a.MinSizeX = 20;
-    //            win.AddChild(a);
-    //        }
+            {
+                var a = new UIBaseWindow()
+                {
+                    Visuals =
+                    {
+                        BackgroundColor = Color.White
+                    },
+                    Layout =
+                    {
+                        MinSizeX = 60,
+                        MinSizeY = 60
+                    }
+                };
+                win.AddChild(a);
+            }
 
-    //        UI.AddChild(win);
-    //    }
+            SceneUI.AddChild(win);
+        }
 
-    //    yield return WaitUILayout();
-    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(FillNeitherAxisMinHeightAndWidth));
-    //}
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(FillNeitherAxisMinHeightAndWidth));
+    }
 
     [Test]
     public IEnumerator TwoSquaresInFillY()
@@ -511,271 +542,342 @@ public class NewUITests : TestingScene
         yield return VerifyScreenshot(nameof(NewUITests), nameof(FillList));
     }
 
-    //[Test]
-    //public IEnumerator FillListThreeItems()
-    //{
-    //    {
-    //        var win = new UISolidColor();
-    //        win.WindowColor = Color.PrettyOrange;
-    //        win.Id = "test";
-    //        win.LayoutMode = LayoutMode.HorizontalList;
+    [Test]
+    public IEnumerator FillListThreeItems()
+    {
+        {
+            var win = new UIBaseWindow()
+            {
+                Name = "test",
+                Visuals =
+                {
+                    BackgroundColor = Color.PrettyOrange
+                },
+                Layout =
+                {
+                    LayoutMethod = UILayoutMethod.HorizontalList(0)
+                }
+            };
 
-    //        {
-    //            var a = new UISolidColor();
-    //            a.WindowColor = Color.White;
-    //            a.MinSize = new Vector2(20);
-    //            a.MaxSize = new Vector2(20);
-    //            win.AddChild(a);
-    //        }
+            {
+                var a = new UIBaseWindow()
+                {
+                    Visuals =
+                    {
+                        BackgroundColor = Color.White
+                    },
+                    Layout =
+                    {
+                        SizingX = UISizing.Fixed(60),
+                        SizingY = UISizing.Fixed(60),
+                    }
+                };
+                win.AddChild(a);
+            }
 
-    //        {
-    //            var a = new UISolidColor();
-    //            a.WindowColor = Color.Black;
-    //            a.MinSize = new Vector2(20);
-    //            a.MaxSize = new Vector2(20);
-    //            win.AddChild(a);
-    //        }
+            {
+                var a = new UIBaseWindow()
+                {
+                    Visuals =
+                    {
+                        BackgroundColor = Color.Black
+                    },
+                    Layout =
+                    {
+                        SizingX = UISizing.Fixed(60),
+                        SizingY = UISizing.Fixed(60),
+                    }
+                };
+                win.AddChild(a);
+            }
 
-    //        {
-    //            var a = new UISolidColor();
-    //            a.WindowColor = Color.PrettyPink;
-    //            a.MinSize = new Vector2(20);
-    //            a.MaxSize = new Vector2(20);
-    //            win.AddChild(a);
-    //        }
+            {
+                var a = new UIBaseWindow()
+                {
+                    Visuals =
+                    {
+                        BackgroundColor = Color.PrettyPink
+                    },
+                    Layout =
+                    {
+                        SizingX = UISizing.Fixed(60),
+                        SizingY = UISizing.Fixed(60),
+                    }
+                };
+                win.AddChild(a);
+            }
 
-    //        UI.AddChild(win);
-    //    }
+            SceneUI.AddChild(win);
+        }
 
-    //    for (var i = 0; i < 2; i++)
-    //    {
-    //        // Do second pass with vertical layout.
-    //        string? screenshotExtraText = null;
-    //        if (i == 1)
-    //        {
-    //            UIBaseWindow list = UI.GetWindowById("test")!;
-    //            list.LayoutMode = LayoutMode.VerticalList;
-    //            list.GrowY = true;
-    //            list.GrowX = true;
-    //            list.ListSpacing = Vector2.Zero;
-    //            screenshotExtraText = "+VerticalList";
-    //        }
+        for (var i = 0; i < 2; i++)
+        {
+            // Do second pass with vertical layout.
+            string? screenshotExtraText = null;
+            if (i == 1)
+            {
+                UIBaseWindow list = SceneUI.GetWindowById("test")!;
+                list.Layout.LayoutMethod = UILayoutMethod.VerticalList(0);
+                list.Layout.SizingX = UISizing.Grow();
+                list.Layout.SizingY = UISizing.Grow();
+                screenshotExtraText = "+VerticalList";
+            }
 
-    //        yield return WaitUILayout();
-    //        yield return VerifyScreenshot(nameof(NewUITests), nameof(FillListThreeItems), screenshotExtraText);
+            yield return WaitUILayout();
+            yield return VerifyScreenshot(nameof(NewUITests), nameof(FillListThreeItems), screenshotExtraText);
 
-    //        {
-    //            UIBaseWindow list = UI.GetWindowById("test")!;
-    //            list.GrowX = false;
-    //        }
+            {
+                UIBaseWindow list = SceneUI.GetWindowById("test")!;
+                list.Layout.SizingX = UISizing.Fit();
+            }
 
-    //        yield return WaitUILayout();
-    //        yield return VerifyScreenshot(nameof(NewUITests), nameof(FillListThreeItems), screenshotExtraText);
+            yield return WaitUILayout();
+            yield return VerifyScreenshot(nameof(NewUITests), nameof(FillListThreeItems), screenshotExtraText);
 
-    //        {
-    //            UIBaseWindow list = UI.GetWindowById("test")!;
-    //            list.GrowY = false;
-    //            list.GrowX = true;
-    //        }
+            {
+                UIBaseWindow list = SceneUI.GetWindowById("test")!;
+                list.Layout.SizingX = UISizing.Grow();
+                list.Layout.SizingY = UISizing.Fit();
+            }
 
-    //        yield return WaitUILayout();
-    //        VerifyScreenshot(nameof(NewUITests), nameof(FillListThreeItems), screenshotExtraText);
+            yield return WaitUILayout();
+            yield return VerifyScreenshot(nameof(NewUITests), nameof(FillListThreeItems), screenshotExtraText);
 
-    //        {
-    //            UIBaseWindow list = UI.GetWindowById("test")!;
-    //            list.GrowY = false;
-    //            list.GrowX = false;
-    //        }
+            {
+                UIBaseWindow list = SceneUI.GetWindowById("test")!;
+                list.Layout.SizingX = UISizing.Fit();
+                list.Layout.SizingY = UISizing.Fit();
+            }
 
-    //        yield return WaitUILayout();
-    //        yield return VerifyScreenshot(nameof(NewUITests), nameof(FillListThreeItems), screenshotExtraText);
+            yield return WaitUILayout();
+            yield return VerifyScreenshot(nameof(NewUITests), nameof(FillListThreeItems), screenshotExtraText);
 
-    //        {
-    //            UIBaseWindow list = UI.GetWindowById("test")!;
-    //            list.ListSpacing = new Vector2(5, 5);
-    //        }
+            {
+                UIBaseWindow list = SceneUI.GetWindowById("test")!;
+                if (i == 0)
+                    list.Layout.LayoutMethod = UILayoutMethod.HorizontalList(15);
+                else
+                    list.Layout.LayoutMethod = UILayoutMethod.VerticalList(15);
+            }
 
-    //        yield return WaitUILayout();
-    //        yield return VerifyScreenshot(nameof(NewUITests), nameof(FillListThreeItems), screenshotExtraText);
-    //    }
-    //}
+            yield return WaitUILayout();
+            yield return VerifyScreenshot(nameof(NewUITests), nameof(FillListThreeItems), screenshotExtraText);
+        }
+    }
 
-    //[Test]
-    //public IEnumerator FillListFillingItems()
-    //{
-    //    yield break;
+    [Test]
+    public IEnumerator FillListFillingItems()
+    {
+        {
+            var win = new UIBaseWindow()
+            {
+                Name = "test",
+                Visuals =
+                {
+                    BackgroundColor = Color.PrettyOrange
+                },
+                Layout =
+                {
+                    LayoutMethod = UILayoutMethod.HorizontalList(0)
+                }
+            };
 
-    //    //{
-    //    //    var win = new UISolidColor();
-    //    //    win.WindowColor = Color.PrettyOrange;
-    //    //    win.Id = "test";
-    //    //    win.LayoutMode = LayoutMode.HorizontalList;
+            {
+                var a = new UIBaseWindow()
+                {
+                    Visuals =
+                    {
+                        BackgroundColor = Color.White
+                    },
+                    Layout =
+                    {
+                        SizingX = UISizing.Grow(),
+                        SizingY = UISizing.Grow(),
+                    }
+                };
+                win.AddChild(a);
+            }
 
-    //    //    {
-    //    //        var a = new UISolidColor();
-    //    //        a.WindowColor = Color.White;
-    //    //        a.FillXInList = true;
-    //    //        a.FillYInList = true;
-    //    //        win.AddChild(a);
-    //    //    }
+            {
+                var a = new UIBaseWindow()
+                {
+                    Visuals =
+                    {
+                        BackgroundColor = Color.PrettyPink
+                    },
+                    Layout =
+                    {
+                        SizingX = UISizing.Fixed(60),
+                        SizingY = UISizing.Fixed(60)
+                    }
+                };
+                win.AddChild(a);
+            }
 
-    //    //    {
-    //    //        var a = new UISolidColor();
-    //    //        a.WindowColor = Color.PrettyPink;
-    //    //        a.MinSize = new Vector2(20);
-    //    //        a.MaxSize = new Vector2(20);
-    //    //        win.AddChild(a);
-    //    //    }
+            {
+                var a = new UIBaseWindow()
+                {
+                    Visuals =
+                    {
+                        BackgroundColor = Color.Black
+                    },
+                    Layout =
+                    {
+                        SizingX = UISizing.Grow(),
+                        SizingY = UISizing.Grow(),
+                    }
+                };
+                win.AddChild(a);
+            }
 
-    //    //    {
-    //    //        var a = new UISolidColor();
-    //    //        a.WindowColor = Color.Black;
-    //    //        a.FillXInList = true;
-    //    //        a.FillYInList = true;
-    //    //        win.AddChild(a);
-    //    //    }
+            SceneUI.AddChild(win);
+        }
 
-    //    //    UI.AddChild(win);
-    //    //}
+        for (var i = 0; i < 2; i++)
+        {
+            // Do second pass with vertical layout.
+            string? screenshotExtraText = null;
+            if (i == 1)
+            {
+                UIBaseWindow list = SceneUI.GetWindowById("test")!;
+                list.Layout.LayoutMethod = UILayoutMethod.VerticalList(0);
+                list.Layout.SizingX = UISizing.Grow();
+                list.Layout.SizingY = UISizing.Grow();
+                screenshotExtraText = "+VerticalList";
+            }
 
-    //    //for (var i = 0; i < 2; i++)
-    //    //{
-    //    //    // Do second pass with vertical layout.
-    //    //    string? screenshotExtraText = null;
-    //    //    if (i == 1)
-    //    //    {
-    //    //        UIBaseWindow list = UI.GetWindowById("test")!;
-    //    //        list.LayoutMode = LayoutMode.VerticalList;
-    //    //        list.FillY = true;
-    //    //        list.FillX = true;
-    //    //        list.ListSpacing = Vector2.Zero;
-    //    //        screenshotExtraText = "+VerticalList";
-    //    //    }
+            yield return WaitUILayout();
+            yield return VerifyScreenshot(nameof(NewUITests), nameof(FillListFillingItems), screenshotExtraText);
 
-    //    //    yield return WaitUILayout();
-    //    //    VerifyScreenshot(screenshotExtraText);
+            {
+                UIBaseWindow list = SceneUI.GetWindowById("test")!;
+                list.Layout.SizingX = UISizing.Fit();
+            }
 
-    //    //    {
-    //    //        UIBaseWindow list = UI.GetWindowById("test")!;
-    //    //        list.FillX = false;
-    //    //    }
+            yield return WaitUILayout();
+            yield return VerifyScreenshot(nameof(NewUITests), nameof(FillListFillingItems), screenshotExtraText);
 
-    //    //    yield return WaitUILayout();
-    //    //    VerifyScreenshot(screenshotExtraText);
+            {
+                UIBaseWindow list = SceneUI.GetWindowById("test")!;
+                list.Layout.SizingX = UISizing.Grow();
+                list.Layout.SizingY = UISizing.Fit();
+            }
 
-    //    //    {
-    //    //        UIBaseWindow list = UI.GetWindowById("test")!;
-    //    //        list.FillY = false;
-    //    //        list.FillX = true;
-    //    //    }
+            yield return WaitUILayout();
+            yield return VerifyScreenshot(nameof(NewUITests), nameof(FillListFillingItems), screenshotExtraText);
 
-    //    //    yield return WaitUILayout();
-    //    //    VerifyScreenshot(screenshotExtraText);
+            {
+                UIBaseWindow list = SceneUI.GetWindowById("test")!;
+                list.Layout.SizingX = UISizing.Fit();
+                list.Layout.SizingY = UISizing.Fit();
+            }
 
-    //    //    {
-    //    //        UIBaseWindow list = UI.GetWindowById("test")!;
-    //    //        list.FillY = false;
-    //    //        list.FillX = false;
-    //    //    }
+            yield return WaitUILayout();
+            yield return VerifyScreenshot(nameof(NewUITests), nameof(FillListFillingItems), screenshotExtraText);
 
-    //    //    yield return WaitUILayout();
-    //    //    VerifyScreenshot(screenshotExtraText);
+            {
+                UIBaseWindow list = SceneUI.GetWindowById("test")!;
+                if (i == 0)
+                    list.Layout.LayoutMethod = UILayoutMethod.HorizontalList(15);
+                else
+                    list.Layout.LayoutMethod = UILayoutMethod.VerticalList(15);
+            }
 
-    //    //    {
-    //    //        UIBaseWindow list = UI.GetWindowById("test")!;
-    //    //        list.ListSpacing = new Vector2(5, 5);
-    //    //    }
+            yield return WaitUILayout();
+            yield return VerifyScreenshot(nameof(NewUITests), nameof(FillListFillingItems), screenshotExtraText);
 
-    //    //    yield return WaitUILayout();
-    //    //    VerifyScreenshot(screenshotExtraText);
+            {
+                UIBaseWindow list = SceneUI.GetWindowById("test")!;
+                list.Layout.SizingX = UISizing.Grow();
+                list.Layout.SizingY = UISizing.Grow();
+            }
 
-    //    //    {
-    //    //        UIBaseWindow list = UI.GetWindowById("test")!;
-    //    //        list.FillY = true;
-    //    //        list.FillX = true;
-    //    //    }
+            yield return WaitUILayout();
+            yield return VerifyScreenshot(nameof(NewUITests), nameof(FillListFillingItems), screenshotExtraText);
+        }
+    }
 
-    //    //    yield return WaitUILayout();
-    //    //    VerifyScreenshot(screenshotExtraText);
-    //    //}
-    //}
+    [Test]
+    public IEnumerator WorldEditorTopBar()
+    {
+        // This tests:
+        // 1. Whether the world editor toolbar (first UI you see) layouts the same.
+        // 2. list spacing
+        // 3. margins in free layout
+        // 4. anchors in free layout
+        // 5. paddings in free layout
+        // 6. UIText in a window in a list
+        // 7. UIText in a window with paddings
+        // 8. Whether children can expand their parents beyond grandparent's maxsize.
 
-    //[Test]
-    //public IEnumerator WorldEditorTopBar()
-    //{
-    //    // This tests:
-    //    // 1. Whether the world editor toolbar (first UI you see) layouts the same.
-    //    // 2. list spacing
-    //    // 3. margins in free layout
-    //    // 4. anchors in free layout
-    //    // 5. paddings in free layout
-    //    // 6. UIText in a window in a list
-    //    // 7. UIText in a window with paddings
-    //    // 8. Whether children can expand their parents beyond grandparent's maxsize.
+        {
+            var win = new UIBaseWindow()
+            {
+                Name = "top-parent",
+                Layout =
+                {
+                    SizingY = UISizing.Fixed(51)
+                },
+                Visuals =
+                {
+                    BackgroundColor = Color.PrettyOrange
+                },
+                Children =
+                {
+                    new UIBaseWindow
+                    {
+                        Name = "list",
+                        Layout =
+                        {
+                            LayoutMethod = UILayoutMethod.HorizontalList(27),
+                            Margins = new UISpacing(9, 9, 9, 9),
+                            SizingY = UISizing.Fit()
+                        },
+                        Visuals =
+                        {
+                            BackgroundColor = Color.PrettyGreen
+                        },
+                        Children =
+                        {
+                            new UIBaseWindow
+                            {
+                                Name = "text-bg",
+                                Visuals =
+                                {
+                                    BackgroundColor = Color.Black,
+                                },
+                                Layout =
+                                {
+                                    Padding = new UISpacing(6, 3, 6, 3),
+                                    SizingX = UISizing.Fit()
+                                },
+                                Children =
+                                {
+                                    new UIText
+                                    {
+                                        Name = "text",
+                                        FontSize = 27,
+                                        Text = "Black",
+                                        TextColor = Color.White,
+                                        Layout =
+                                        {
+                                            AnchorAndParentAnchor = UIAnchor.CenterLeft
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
 
-    //    {
-    //        var win = new UIBaseWindow()
-    //        {
-    //            Name = "top-parent",
-    //            Layout =
-    //            {
-    //                SizingY = UISizing.Fixed(17)
-    //            },
-    //            Visuals =
-    //            {
-    //                BackgroundColor = Color.PrettyOrange
-    //            },
-    //            Children =
-    //            {
-    //                new UIBaseWindow
-    //                {
-    //                    LayoutMode = LayoutMode.HorizontalList,
-    //                    ListSpacing = new Vector2(3, 0),
-    //                    Margins = new Rectangle(3, 3, 3, 3),
-    //                    Name = "list",
-    //                    WindowColor = Color.PrettyGreen,
-    //                    GrowY = false,
+            SceneUI.AddChild(win);
+        }
 
-    //                    Children =
-    //                    {
-    //                        new UIBaseWindow
-    //                        {
-    //                            Name = "text-bg",
-    //                            Visuals =
-    //                            {
-    //                                BackgroundColor = Color.Black,
-    //                            },
-    //                            Layout =
-    //                            {
-    //                                Padding = new UISpacing(2, 1, 2, 1),
-    //                                SizingX = UISizing.Fit()
-    //                            },
-    //                            Children =
-    //                            {
-    //                                new NewUIText
-    //                                {
-    //                                    Name = "text",
-    //                                    FontSize = 9,
-    //                                    Text = "Black",
-    //                                    TextColor = Color.White,
-    //                                    Layout =
-    //                                    {
-    //                                        AnchorAndParentAnchor = UIAnchor.CenterLeft
-    //                                    }
-    //                                }
-    //                            }
-    //                        }
-    //                    }
-    //                }
-    //            }
-    //        };
-
-    //        UI.AddChild(win);
-    //    }
-
-    //    yield return WaitUILayout();
-    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorTopBar));
-
+        yield return WaitUILayout();
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorTopBar));
+    }
     //    {
     //        UIBaseWindow list = UI.GetWindowById("list")!;
 
