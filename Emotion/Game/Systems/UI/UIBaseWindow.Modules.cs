@@ -844,6 +844,9 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     private void Layout_Step1_Measure()
     {
+        CalculatedMetrics.MinSize = Layout.MinSize.CeilMultiply(CalculatedMetrics.Scale);
+        CalculatedMetrics.MaxSize = Layout.MaxSize.CeilMultiply(CalculatedMetrics.Scale);
+
         LayoutMethodCodeClass layoutCode = GetLayoutCode(Layout.LayoutMethod);
         layoutCode.Step1_Measure(this, out IntVector2 childrenSize);
 
@@ -861,11 +864,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         IntVector2 mySize = IntVector2.Max(IntVector2.Max(childrenSize, fixedSize), InternalGetWindowMinSize());
 
         // Clamp to limits
-        mySize = IntVector2.Clamp(
-            mySize,
-            Layout.MinSize.CeilMultiply(CalculatedMetrics.Scale),
-            Layout.MaxSize.CeilMultiply(CalculatedMetrics.Scale)
-        );
+        mySize = IntVector2.Clamp(mySize, CalculatedMetrics.MinSize, CalculatedMetrics.MaxSize);
 
         CalculatedMetrics.Size = mySize;
         CalculatedMetrics.ChildrenSize = childrenSize;

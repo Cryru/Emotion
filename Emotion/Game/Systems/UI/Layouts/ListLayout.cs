@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using System.Buffers;
 using static Emotion.Game.Systems.UI2.UILayoutMethod;
 
 namespace Emotion.Game.Systems.UI;
@@ -22,16 +23,8 @@ public partial class UIBaseWindow
             {
                 if (SkipWindowLayout(child)) continue;
 
-                IntVector2 childSize;
-                if (child.IsLoading())
-                {
-                    childSize = IntVector2.Zero;
-                }
-                else
-                {
-                    child.Layout_Step1_Measure();
-                    childSize = child.CalculatedMetrics.Size;
-                }
+                child.Layout_Step1_Measure();
+                IntVector2 childSize = child.CalculatedMetrics.Size;
                 pen[listMask] += childSize[listMask] + child.CalculatedMetrics.MarginTotalSize[listMask];
                 pen[inverseListMask] = Math.Max(pen[inverseListMask], childSize[inverseListMask] + child.CalculatedMetrics.MarginTotalSize[inverseListMask]);
                 listChildrenCount++;
@@ -67,81 +60,7 @@ public partial class UIBaseWindow
                 child.CalculatedMetrics.Size[inverseListMask] = myMeasuredSize[inverseListMask] - child.CalculatedMetrics.MarginTotalSize[inverseListMask];
             }
 
-            // Grow along list
-            int listChildrenCount = 0;
-            float listRemainingSize = myMeasuredSize[listMask];
-            foreach (UIBaseWindow child in self.Children)
-            {
-                if (SkipWindowLayout(child)) continue;
-
-                float childSize = child.CalculatedMetrics.Size[listMask] + child.CalculatedMetrics.MarginTotalSize[listMask];
-                listRemainingSize -= childSize;
-                listChildrenCount++;
-            }
-            listRemainingSize -= GetListSpacing(self, listMask) * (listChildrenCount - 1);
-
-            int infinitePrevention = 0;
-            while (listRemainingSize > self.Children.Count - 1) // Until list remaining size cannot be split
-            {
-                infinitePrevention++;
-                if (infinitePrevention > 50)
-                {
-                    Assert(false, "Infinite loop in GrowWindow() :(");
-                    break;
-                }
-
-                int smallest = int.MaxValue;
-                int secondSmallest = int.MaxValue;
-                int growingCount = 0;
-                foreach (UIBaseWindow child in self.Children)
-                {
-                    if (SkipWindowLayout(child)) continue;
-
-                    bool growAlongList = layoutMethod.GrowingAlongList(child.Layout);
-                    if (!growAlongList) continue;
-
-                    growingCount++;
-
-                    int sizeListDirection = child.CalculatedMetrics.Size[listMask];
-                    // Initialize smallest
-                    if (smallest == int.MaxValue)
-                    {
-                        smallest = sizeListDirection;
-                        continue;
-                    }
-                    // Smaller than smallest
-                    else if (sizeListDirection < smallest)
-                    {
-                        secondSmallest = smallest;
-                        smallest = sizeListDirection;
-                    }
-                    // Bigger than smallest but smaller than second smallest
-                    else if (sizeListDirection > smallest && sizeListDirection < secondSmallest)
-                    {
-                        secondSmallest = sizeListDirection;
-                    }
-                }
-
-                // Nothing to do.
-                if (growingCount == 0)
-                    break;
-
-                int widthToAdd = Math.Min(secondSmallest - smallest, (int)Math.Round(listRemainingSize / growingCount));
-                foreach (UIBaseWindow child in self.Children)
-                {
-                    if (SkipWindowLayout(child)) continue;
-
-                    bool growAlongList = layoutMethod.GrowingAlongList(child.Layout);
-                    if (!growAlongList) continue;
-
-                    int sizeListDirection = child.CalculatedMetrics.Size[listMask];
-                    if (sizeListDirection == smallest)
-                    {
-                        child.CalculatedMetrics.Size[listMask] += widthToAdd;
-                        listRemainingSize -= widthToAdd;
-                    }
-                }
-            }
+            GrowAlongList(self, myMeasuredSize, listMask);
 
             // Now the children can grow their children
             foreach (UIBaseWindow child in self.Children)
@@ -149,6 +68,85 @@ public partial class UIBaseWindow
                 if (SkipWindowLayout(child)) continue;
                 child.Layout_Step2_Grow();
             }
+        }
+
+        private void GrowAlongList(UIBaseWindow self, IntVector2 myMeasuredSize, int listMask)
+        {
+            UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
+
+            // Fixed/non-growing children
+            int listChildrenCount = 0;
+            float listRemainingSize = myMeasuredSize[listMask];
+            foreach (UIBaseWindow child in self.Children)
+            {
+                if (SkipWindowLayout(child)) continue;
+                listRemainingSize -= child.CalculatedMetrics.Size[listMask] + child.CalculatedMetrics.MarginTotalSize[listMask];
+                listChildrenCount++;
+            }
+            listRemainingSize -= GetListSpacing(self, listMask) * (listChildrenCount - 1);
+            if (listRemainingSize <= 0) return; // No space left for the growing ones
+
+            // Collect window limits
+            var growingChildren = new List<UIBaseWindow>(); // todo: pool
+            foreach (UIBaseWindow child in self.Children)
+            {
+                if (SkipWindowLayout(child)) continue;
+                if (!layoutMethod.GrowingAlongList(child.Layout)) continue;
+                growingChildren.Add(child);
+            }
+
+            // Distribute remaining size among growers
+            bool[] frozen = ArrayPool<bool>.Shared.Rent(growingChildren.Count);
+            int unfrozenCount = growingChildren.Count;
+            while (unfrozenCount > 0 && listRemainingSize > 1f)
+            {
+                float share = listRemainingSize / unfrozenCount;
+                float newRemaining = 0f;
+
+                // Distribute the share to growing children
+                for (int i = 0; i < growingChildren.Count; i++)
+                {
+                    if (frozen[i]) continue;
+
+                    UIBaseWindow child = growingChildren[i];
+                    int baseSize = child.CalculatedMetrics.Size[listMask] + child.CalculatedMetrics.MarginTotalSize[listMask];
+                    int desired = (int)Math.Floor(baseSize + share);
+                    int clamped = Math.Clamp(desired, child.CalculatedMetrics.MinSize[listMask], child.CalculatedMetrics.MaxSize[listMask]);
+
+                    child.CalculatedMetrics.Size[listMask] = clamped;
+
+                    // Hit the max for this window, freeze it
+                    if (clamped < desired) 
+                    {
+                        frozen[i] = true;
+                        unfrozenCount--;
+                        newRemaining += desired - clamped;
+                    }
+                }
+
+                // Nothing was frozen this pass we distribute the leftover pixels one pixel at a time
+                if (newRemaining == 0f)
+                {
+                    int distributed = 0;
+                    for (int i = 0; i < growingChildren.Count; i++)
+                    {
+                        if (frozen[i]) continue;
+                        distributed += (int)Math.Floor(share);
+                    }
+
+                    int remainderPixels = (int)listRemainingSize - distributed;
+                    for (int i = 0; i < growingChildren.Count && remainderPixels > 0; i++)
+                    {
+                        if (frozen[i]) continue;
+                        growingChildren[i].CalculatedMetrics.Size[listMask]++;
+                        remainderPixels--;
+                    }
+                    break;
+                }
+
+                listRemainingSize = newRemaining;
+            }
+            ArrayPool<bool>.Shared.Return(frozen);
         }
 
         public override void Step3_Position(UIBaseWindow self, IntRectangle contentRect)

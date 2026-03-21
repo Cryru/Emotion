@@ -13,7 +13,6 @@ public partial class UIBaseWindow
             foreach (UIBaseWindow child in self.Children)
             {
                 if (SkipWindowLayout(child)) continue;
-                if (child.IsLoading()) continue;
 
                 child.Layout_Step1_Measure();
                 IntVector2 childSize = child.CalculatedMetrics.Size;

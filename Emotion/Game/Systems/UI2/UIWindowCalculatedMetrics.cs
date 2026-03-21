@@ -16,6 +16,8 @@ public struct UIWindowCalculatedMetrics
     public readonly IntVector2 MarginTotalSize => MarginLeftTop + MarginRightBottom;
 
     public IntVector2 Offsets;
+    public IntVector2 MinSize;
+    public IntVector2 MaxSize;
 
     public IntVector2 GetContentSize() => Size - PaddingTotalSize;
     public IntRectangle GetContentRect() => new IntRectangle(

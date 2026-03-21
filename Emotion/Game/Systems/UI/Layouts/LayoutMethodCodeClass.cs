@@ -30,6 +30,7 @@ public partial class UIBaseWindow
 
         public static bool SkipWindowLayout(UIBaseWindow window)
         {
+            if (window.IsLoading()) return true;
             if (!window.Visuals.Visible && window.Visuals.DontTakeSpaceWhenHidden) return true;
             if (window._useCustomLayout) return true;
             return false;
