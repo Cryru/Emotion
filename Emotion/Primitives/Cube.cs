@@ -451,8 +451,7 @@ public struct Cube
             // Recheck if created
             if (_entity != null) return _entity;
 
-            // Cube - 36 vertices, 12 triangles, 6 sides
-            // Cube - 36 indices, 8 vertices, 6 quads
+            // Cube - 24 vertices, 12 triangles, 6 sides (4 vertices per face, 6 indices per face)
             VertexDataAllocation alloc = VertexDataAllocation.Allocate(VertexData_Pos_UV_Normal.Format, 24);
             Span<VertexData_Pos_UV_Normal> vertexData = alloc.GetAsSpan<VertexData_Pos_UV_Normal>();
             ushort[] indices = new ushort[36];
@@ -534,7 +533,7 @@ public struct Cube
                 -Renderer.Right
             );
 
-            // Up (Z+)
+            // Top (Z+)
             SetFace(vertexData,
                 indices,
                 ref offset,
@@ -562,19 +561,22 @@ public struct Cube
         return _entity;
     }
 
+    private static MeshEntity? _entityNoNormal;
+    private static Lock _entityNoNormalCreationLock = new();
+
     /// <summary>
     /// Get a mesh entity of a unit cube.
     /// </summary>
     public static MeshEntity GetEntityNoNormals()
     {
         // Check if created
-        if (_entity != null) return _entity;
+        if (_entityNoNormal != null) return _entityNoNormal;
 
         // Create
-        lock (_entityCreationLock)
+        lock (_entityNoNormalCreationLock)
         {
             // Recheck if created
-            if (_entity != null) return _entity;
+            if (_entityNoNormal != null) return _entityNoNormal;
 
             // Cube - 36 vertices, 12 triangles, 6 sides
             // Cube - 36 indices, 8 vertices, 6 quads
@@ -640,10 +642,10 @@ public struct Cube
             indices[34] = 7;
             indices[35] = 3;
 
-            _entity = new MeshEntity([new Mesh(alloc, indices, MeshMaterial.DefaultMaterialTwoSided, "Cube")], "Cube");
+            _entityNoNormal = new MeshEntity([new Mesh(alloc, indices, MeshMaterial.DefaultMaterialTwoSided, "Cube")], "Cube");
         }
 
-        return _entity;
+        return _entityNoNormal;
     }
 
     #endregion

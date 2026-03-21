@@ -12,7 +12,7 @@ public static class Maths
     /// <summary>
     /// The natural logarithmic base.
     /// </summary>
-    public const float E = (float)Math.E;
+    public const float E = float.Epsilon;
 
     /// <summary>
     /// Logarithm of 10E.

@@ -29,19 +29,24 @@ public struct Ray3D
         Direction = direction;
     }
 
-    public Vector3 IntersectWithPlane(Vector3 planeNormal, Vector3 planePoint)
+    public readonly Vector3 IntersectWithPlane(Vector3 planeNormal, Vector3 planePoint)
     {
         // Check if the ray is parallel to the plane
         float dot = Vector3.Dot(Direction, planeNormal);
-        if (dot == 0) return Vector3.Zero;
+        if (MathF.Abs(dot) < float.Epsilon) return Vector3.Zero;
 
         float distance = Vector3.Dot(planeNormal, planePoint - Start) / dot;
         return Start + distance * Direction;
     }
 
-    // todo
-    public bool IntersectWithObject(GameObject obj, MeshComponent meshComponent,
-        out Mesh? collidedMesh, out Vector3 collisionPoint, out Vector3 normal, out int triangleIndex, bool closest = false)
+    public readonly bool IntersectWithObject(GameObject obj,
+        MeshComponent meshComponent,
+        out Mesh? collidedMesh,
+        out Vector3 collisionPoint,
+        out Vector3 normal,
+        out int triangleIndex,
+        bool closest = false
+    )
     {
         collidedMesh = null;
         collisionPoint = Vector3.Zero;
@@ -76,14 +81,13 @@ public struct Ray3D
             TIndex idx3 = indices[i + 2];
 
             Triangle triangle = vertices.GetTriangleAtIndices<TIndex>(idx1, idx2, idx3);
-            Vector3 triangleNormal = triangle.Normal;
 
-            if (!IntersectWithTriangle(triangle.A, triangle.B, triangle.C, triangleNormal, out float t)) continue;
+            if (!IntersectsTriangle(triangle, out float t)) continue;
 
             if (t < closestDistance)
             {
                 closestDistance = t;
-                normal = triangleNormal;
+                normal = triangle.Normal;
                 triangleIndex = i;
                 intersectionFound = true;
             }
@@ -94,115 +98,56 @@ public struct Ray3D
         return intersectionFound;
     }
 
-    public bool IntersectsTriangle(Triangle tri, out float distance)
+    public readonly bool IntersectsTriangle(Triangle tri, out float distance)
     {
-        // Check if the ray is parallel to the triangle
-        Vector3 normal = tri.Normal;
-        float normalRayDot = Vector3.Dot(normal, Direction);
-        if (Math.Abs(normalRayDot) < float.Epsilon)
-        {
-            distance = 0;
-            return false;
-        }
+        distance = 0;
 
-        // Calculate the intersection point
-        Vector3 rayToTriangle = tri.A - Start;
-        distance = Vector3.Dot(rayToTriangle, normal) / normalRayDot;
-
-        // The intersection point is behind the ray's origin
-        if (distance < 0)
-            return false;
-
-        // Calculate the barycentric coordinates of the intersection point
         Vector3 edge1 = tri.B - tri.A;
         Vector3 edge2 = tri.C - tri.A;
 
-        // Calculate the area of the triangle.
-        // The magnitude of the cross product is equal to twice the area of the triangle
-        float triangleArea = 0.5f * Vector3.Cross(edge1, edge2).Length();
+        Vector3 h = Vector3.Cross(Direction, edge2);
+        float a = Vector3.Dot(edge1, h);
 
-        // Degenerate triangle, area is too small.
-        if (triangleArea < 0.0001f) return false;
+        // Ray is parallel to triangle, or triangle is degenerate
+        if (MathF.Abs(a) < float.Epsilon) return false;
 
-        Vector3 intersectionPoint = Start + distance * Direction;
-        Vector3 c = intersectionPoint - tri.A;
-        float d00 = Vector3.Dot(edge1, edge1);
-        float d01 = Vector3.Dot(edge1, edge2);
-        float d11 = Vector3.Dot(edge2, edge2);
-        float denom = d00 * d11 - d01 * d01;
+        float f = 1f / a;
+        Vector3 s = Start - tri.A;
+        float u = f * Vector3.Dot(s, h);
+        if (u < 0 || u > 1) return false;
 
-        float u = (d11 * Vector3.Dot(edge1, c) - d01 * Vector3.Dot(edge2, c)) / denom;
-        float v = (d00 * Vector3.Dot(edge2, c) - d01 * Vector3.Dot(edge1, c)) / denom;
+        Vector3 q = Vector3.Cross(s, edge1);
+        float v = f * Vector3.Dot(Direction, q);
+        if (v < 0 || u + v > 1) return false;
 
-        // Check if the intersection point is inside the triangle
-        return u >= 0 && v >= 0 && u + v <= 1;
+        distance = f * Vector3.Dot(edge2, q);
+        return distance >= 0;
     }
 
-    public bool IntersectWithTriangle(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 normal, out float distance)
+    public readonly bool IntersectWithSphere(Sphere sphere, out Vector3 entryPoint, out Vector3 exitPoint)
     {
-        // Check if the ray is parallel to the triangle
-        float normalRayDot = Vector3.Dot(normal, Direction);
-        if (Math.Abs(normalRayDot) < float.Epsilon)
-        {
-            distance = 0;
-            return false;
-        }
-
-        // Calculate the intersection point
-        Vector3 rayToTriangle = p1 - Start;
-        distance = Vector3.Dot(rayToTriangle, normal) / normalRayDot;
-
-        // The intersection point is behind the ray's origin
-        if (distance < 0)
-            return false;
-
-        // Calculate the barycentric coordinates of the intersection point
-        Vector3 edge1 = p2 - p1;
-        Vector3 edge2 = p3 - p1;
-
-        // Calculate the area of the triangle.
-        // The magnitude of the cross product is equal to twice the area of the triangle
-        float triangleArea = 0.5f * Vector3.Cross(edge1, edge2).Length();
-
-        // Degenerate triangle, area is too small.
-        if (triangleArea < 0.001f) return false;
-
-        Vector3 intersectionPoint = Start + distance * Direction;
-        Vector3 c = intersectionPoint - p1;
-        float d00 = Vector3.Dot(edge1, edge1);
-        float d01 = Vector3.Dot(edge1, edge2);
-        float d11 = Vector3.Dot(edge2, edge2);
-        float denom = d00 * d11 - d01 * d01;
-
-        float u = (d11 * Vector3.Dot(edge1, c) - d01 * Vector3.Dot(edge2, c)) / denom;
-        float v = (d00 * Vector3.Dot(edge2, c) - d01 * Vector3.Dot(edge1, c)) / denom;
-
-        // Check if the intersection point is inside the triangle
-        return u >= 0 && v >= 0 && u + v <= 1;
-    }
-
-    public bool IntersectWithSphere(Sphere sphere, out Vector3 intersectionPoint1, out Vector3 intersectionPoint2)
-    {
-        intersectionPoint1 = Vector3.Zero;
-        intersectionPoint2 = Vector3.Zero;
+        entryPoint = Vector3.Zero;
+        exitPoint = Vector3.Zero;
 
         Vector3 sphereToRay = Start - sphere.Origin;
 
-        // Calculate the coefficients for the quadratic equation
+        // Quadratic equation
         float a = Vector3.Dot(Direction, Direction);
-        float b = 2 * Vector3.Dot(sphereToRay, Direction);
+        float halfB = Vector3.Dot(sphereToRay, Direction);
         float c = Vector3.Dot(sphereToRay, sphereToRay) - sphere.Radius * sphere.Radius;
 
-        // Calculate the discriminant, if negative - no intersections.
-        float discriminant = b * b - 4 * a * c;
-        if (discriminant < 0) return false;
+        float discriminant = halfB * halfB - a * c;
+        if (discriminant < 0) return false; // no intersections
 
-        // Calculate the two possible values for t (intersection points)
-        float t1 = (-b + (float)Math.Sqrt(discriminant)) / (2 * a);
-        float t2 = (-b - (float)Math.Sqrt(discriminant)) / (2 * a);
+        float sqrtD = MathF.Sqrt(discriminant);
+        float invA = 1f / a;
 
-        intersectionPoint1 = Start + t1 * Direction;
-        intersectionPoint2 = Start + t2 * Direction;
+        float tNear = (-halfB - sqrtD) * invA;
+        float tFar = (-halfB + sqrtD) * invA;
+        if (tNear < 0 && tFar < 0) return false;
+
+        entryPoint = tNear >= 0 ? Start + tNear * Direction : Vector3.Zero;
+        exitPoint = tFar >= 0 ? Start + tFar * Direction : Vector3.Zero;
 
         return true;
     }
@@ -212,54 +157,28 @@ public struct Ray3D
         intersectionPoint = Vector3.Zero;
         surfaceNormal = Vector3.Zero;
 
-        Vector3 minBounds = cube.Origin - cube.HalfExtents;
-        Vector3 maxBounds = cube.Origin + cube.HalfExtents;
+        Vector3 invDirection = Vector3.One / Direction;
 
-        Vector3 invDirection = new Vector3(1.0f / Direction.X, 1.0f / Direction.Y, 1.0f / Direction.Z);
+        Vector3 t1 = (cube.Origin - cube.HalfExtents - Start) * invDirection;
+        Vector3 t2 = (cube.Origin + cube.HalfExtents - Start) * invDirection;
 
-        // x slab
-        float tx1 = (minBounds.X - Start.X) * invDirection.X;
-        float tx2 = (maxBounds.X - Start.X) * invDirection.X;
-        float tMinX = Math.Min(tx1, tx2);
-        float tMaxX = Math.Max(tx1, tx2);
+        Vector3 tMins = Vector3.Min(t1, t2);
+        Vector3 tMaxs = Vector3.Max(t1, t2);
 
-        // y slab
-        float ty1 = (minBounds.Y - Start.Y) * invDirection.Y;
-        float ty2 = (maxBounds.Y - Start.Y) * invDirection.Y;
-        float tMinY = Math.Min(ty1, ty2);
-        float tMaxY = Math.Max(ty1, ty2);
+        float tMin = MathF.Max(MathF.Max(tMins.X, tMins.Y), tMins.Z);
+        float tMax = MathF.Min(MathF.Min(tMaxs.X, tMaxs.Y), tMaxs.Z);
 
-        // No intersection along the x or y axis
-        if (tMinX > tMaxY || tMinY > tMaxX)
+        if (tMax < 0 || tMin > tMax)
             return false;
 
-        float tMin = Math.Max(tMinX, tMinY);
-        float tMax = Math.Min(tMaxX, tMaxY);
+        float t = tMin >= 0 ? tMin : tMax;
+        intersectionPoint = Start + t * Direction;
 
-        // z slab
-        float tz1 = (minBounds.Z - Start.Z) * invDirection.Z;
-        float tz2 = (maxBounds.Z - Start.Z) * invDirection.Z;
-        float tMinZ = Math.Min(tz1, tz2);
-        float tMaxZ = Math.Max(tz1, tz2);
-
-        // No intersection along the z-axis
-        if (tMin > tMaxZ || tMinZ > tMax)
-            return false;
-
-        tMin = Math.Max(tMin, tMinZ);
-        tMax = Math.Min(tMax, tMaxZ);
-
-        // Behind the ray starting point
-        if (tMax < 0)
-            return false;
-
-        intersectionPoint = Start + tMin * Direction;
-
-        if (tMin == tMinX)
+        if (t == tMins.X)
             surfaceNormal = new Vector3(invDirection.X < 0 ? 1 : -1, 0, 0);
-        else if (tMin == tMinY)
+        else if (t == tMins.Y)
             surfaceNormal = new Vector3(0, invDirection.Y < 0 ? 1 : -1, 0);
-        else if (tMin == tMinZ)
+        else
             surfaceNormal = new Vector3(0, 0, invDirection.Z < 0 ? 1 : -1);
 
         return true;
