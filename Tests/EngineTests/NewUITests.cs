@@ -18,6 +18,7 @@ using System.Numerics;
 
 namespace Tests.EngineTests;
 
+[DebugTest]
 public class NewUITests : TestingScene
 {
     protected override IEnumerator InternalLoadSceneRoutineAsync()
@@ -46,6 +47,7 @@ public class NewUITests : TestingScene
     private IEnumerator WaitUILayout()
     {
         Engine.UI.Update();
+        yield return Engine.UI.WaitLoadingRoutine();
         yield return new TestWaiterRunLoops(1);
     }
 
@@ -339,9 +341,6 @@ public class NewUITests : TestingScene
             container.AddChild(item);
         }
 
-        // We need to run this a couple of times to get the TextRenderer to produce the text
-        yield return WaitUILayout();
-        yield return WaitUILayout();
         yield return WaitUILayout();
         yield return VerifyScreenshot(nameof(NewUITests), nameof(ComplicatedLayoutTest));
     }
@@ -929,7 +928,6 @@ public class NewUITests : TestingScene
         }
 
         yield return WaitUILayout();
-        yield return WaitUILayout();
         yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorTopBar));
 
         {
@@ -995,7 +993,6 @@ public class NewUITests : TestingScene
             }
 
             yield return WaitUILayout();
-            yield return WaitUILayout();
             yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorTopBar));
         }
 
@@ -1029,7 +1026,6 @@ public class NewUITests : TestingScene
             parent.AddChild(a);
         }
 
-        yield return WaitUILayout();
         yield return WaitUILayout();
         yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorTopBar));
     }
@@ -1283,7 +1279,6 @@ public class NewUITests : TestingScene
         SceneUI.AddChild(container);
 
         yield return WaitUILayout();
-        yield return WaitUILayout();
         yield return VerifyScreenshot(nameof(NewUITests), nameof(TextWithBackground));
     }
 
@@ -1403,7 +1398,6 @@ public class NewUITests : TestingScene
 
         SceneUI.AddChild(bottomBar);
 
-        yield return WaitUILayout();
         yield return WaitUILayout();
         yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorBottomBar));
     }

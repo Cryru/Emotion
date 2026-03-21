@@ -56,7 +56,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(nameof(BasicRenderTests), nameof(RenderComposerSpriteLimit));
+        yield return VerifyScreenshot(nameof(BasicRenderTests), nameof(RenderComposerSpriteLimit));
     }
 
     /// <summary>
@@ -104,7 +104,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(nameof(BasicRenderTests), nameof(RenderComposerRandomInvalidation));
+        yield return VerifyScreenshot(nameof(BasicRenderTests), nameof(RenderComposerRandomInvalidation));
     }
 
     /// <summary>
@@ -209,7 +209,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(2);
-        VerifyScreenshot(nameof(BasicRenderTests), nameof(RenderText));
+        yield return VerifyScreenshot(nameof(BasicRenderTests), nameof(RenderText));
     }
 
     /// <summary>
@@ -268,7 +268,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(nameof(BasicRenderTests), nameof(RenderDepthTest));
+        yield return VerifyScreenshot(nameof(BasicRenderTests), nameof(RenderDepthTest));
     }
 
     /// <summary>
@@ -306,7 +306,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
          };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(nameof(BasicRenderTests), nameof(TestDepthFromOtherFrameBuffer));
+        yield return VerifyScreenshot(nameof(BasicRenderTests), nameof(TestDepthFromOtherFrameBuffer));
     }
 
     /// <summary>
@@ -342,7 +342,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(nameof(BasicRenderTests), nameof(TestUVMapping));
+        yield return VerifyScreenshot(nameof(BasicRenderTests), nameof(TestUVMapping));
     }
 
     /// <summary>
@@ -376,7 +376,7 @@ public class BasicRenderTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(nameof(BasicRenderTests), nameof(FramebufferResizing));
+        yield return VerifyScreenshot(nameof(BasicRenderTests), nameof(FramebufferResizing));
     }
 
     /// <summary>
@@ -424,6 +424,6 @@ public class BasicRenderTests : ProxyRenderTestingScene
         };
 
         yield return new TestWaiterRunLoops(1);
-        VerifyScreenshot(nameof(BasicRenderTests), nameof(LineDrawing));
+        yield return VerifyScreenshot(nameof(BasicRenderTests), nameof(LineDrawing));
     }
 }
