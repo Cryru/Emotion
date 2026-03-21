@@ -16,19 +16,18 @@ using OpenGL;
 
 namespace Emotion.Game.World.Terrain;
 
-public abstract partial class TerrainGridBase<T, ChunkT, IndexT> : ChunkedGrid<T, ChunkT>, IGridWorldSpaceTiles, ITerrainGrid3D, ICustomReflectorMeta_ExtraMembers
+public abstract partial class TerrainGridBase<T, ChunkT, IndexT> :
+    ChunkedWorldSpaceGrid<T, ChunkT>,
+    ITerrainGrid3D,
+    ICustomReflectorMeta_ExtraMembers
     where ChunkT : MeshGridStreamableChunk<T, IndexT>, new()
     where T : unmanaged
     where IndexT : INumber<IndexT>
 {
     public bool Initialized { get; private set; }
 
-    public Vector2 TileSize { get; private set; }
-
-    public TerrainGridBase(Vector2 tileSize, float chunkSize) : base(chunkSize)
+    public TerrainGridBase(Vector2 tileSize, float chunkSize) : base(tileSize, chunkSize)
     {
-        TileSize = tileSize;
-
         // todo: do this in chunks rather than world units
         if (SimulationRange == 0 || RenderRange == 0)
         {
@@ -70,16 +69,6 @@ public abstract partial class TerrainGridBase<T, ChunkT, IndexT> : ChunkedGrid<T
     #endregion
 
     #region API
-
-    public virtual Vector2 GetTilePosOfWorldPos(Vector2 location)
-    {
-        return ((IGridWorldSpaceTiles) this).GetTilePosOfWorldPos(location);
-    }
-
-    public virtual Vector2 GetWorldPosOfTile(Vector2 tileCoord2d)
-    {
-        return ((IGridWorldSpaceTiles)this).GetWorldPosOfTile(tileCoord2d);
-    }
 
     public void Update(float dt)
     {

@@ -44,7 +44,7 @@ public sealed class TileEditorWindow : GridEditorWindow
         return "TileMap";
     }
 
-    protected override IGridWorldSpaceTiles? GetCurrentGrid()
+    protected override TileMapLayer? GetCurrentGrid()
     {
         return CurrentLayer;
     }

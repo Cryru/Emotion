@@ -3,6 +3,7 @@
 using Emotion.Editor.Editor2D;
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
+using Emotion.Game.World.TileMap;
 using Emotion.Primitives.Grids;
 using System.ComponentModel;
 
@@ -149,7 +150,7 @@ public abstract class GridEditorWindow : UIBaseWindow
     {
         CursorTilePos = null;
 
-        IGridWorldSpaceTiles? currentGrid = GetCurrentGrid();
+        TileMapLayer? currentGrid = GetCurrentGrid();
         if (currentGrid == null || !MouseInside)
         {
             if (_bottomText != null)
@@ -194,7 +195,7 @@ public abstract class GridEditorWindow : UIBaseWindow
 
     private void PrecisePaintApplyTool(LineSegment moveSegment)
     {
-        IGridWorldSpaceTiles? currentGrid = GetCurrentGrid();
+        TileMapLayer? currentGrid = GetCurrentGrid();
         AssertNotNull(currentGrid);
 
         // Draw as a line
@@ -214,7 +215,7 @@ public abstract class GridEditorWindow : UIBaseWindow
 
     protected abstract GridEditorTool[] GetTools();
     protected abstract string GetGridName();
-    protected abstract IGridWorldSpaceTiles? GetCurrentGrid();
+    protected abstract TileMapLayer? GetCurrentGrid();
     protected abstract Vector2 UpdateCursor();
     protected abstract bool CanEdit();
     protected abstract void UseCurrentToolAtPosition(Vector2 tilePos);

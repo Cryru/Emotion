@@ -4,37 +4,23 @@ using Emotion.Primitives.Grids.Chunked;
 
 namespace Emotion.Game.World.Grids;
 
-public class DataGrid<T> : ChunkedGrid<T, GenericGridChunk<T>>, IMapGrid, IGridWorldSpaceTiles
+public class DataGrid<T> : ChunkedWorldSpaceGrid<T, GenericGridChunk<T>>, IMapGrid
     where T : unmanaged
 {
-    public Vector2 TileSize { get; set; }
-
-    public DataGrid(Vector2 tileSize, float chunkSize) : base(chunkSize)
+    public DataGrid(Vector2 tileSize, float chunkSize) : base(tileSize, chunkSize)
     {
-        TileSize = tileSize;
     }
-
-    public virtual Vector2 GetTilePosOfWorldPos(Vector2 location)
-    {
-        return ((IGridWorldSpaceTiles)this).GetTilePosOfWorldPos(location);
-    }
-
-    public virtual Vector2 GetWorldPosOfTile(Vector2 tileCoord2d)
-    {
-        return ((IGridWorldSpaceTiles)this).GetWorldPosOfTile(tileCoord2d);
-    }
-
 
     public string UniqueId { get; set; } = Guid.NewGuid().ToString("N");
-
-    public void Done()
-    {
-
-    }
 
     public IEnumerator InitRoutine(GameMap.GridFriendAdapter mapAdapter)
     {
         yield break;
+    }
+
+    public void Done()
+    {
+
     }
 
     public void Render(GameMap map, Renderer r, CameraCullingContext culling)

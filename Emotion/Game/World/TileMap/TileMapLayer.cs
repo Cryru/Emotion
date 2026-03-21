@@ -8,7 +8,7 @@ using Emotion.Primitives.Grids;
 
 namespace Emotion.Game.World.TileMap;
 
-public class TileMapLayer : ChunkedGrid<TileMapTile, TileMapChunk>, IGridWorldSpaceTiles, IMapGrid
+public class TileMapLayer : ChunkedGrid<TileMapTile, TileMapChunk>, IMapGrid
 {
     public string UniqueId { get; set; } = Guid.NewGuid().ToString("N");
 

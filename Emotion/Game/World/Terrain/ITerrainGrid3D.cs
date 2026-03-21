@@ -3,11 +3,17 @@ using Emotion.Primitives.Grids;
 
 namespace Emotion.Game.World.Terrain;
 
+public interface IGridWorldSpaceTiles : IGrid
+{
+    public Vector2 TileSize { get; }
+
+    public Vector2 GetTilePosOfWorldPos(Vector2 location);
+    public Vector2 GetWorldPosOfTile(Vector2 tileCoord2d);
+}
+
 public interface ITerrainGrid3D : IGridWorldSpaceTiles
 {
     public Vector2 ChunkSize { get; }
-
-    public Vector2 TileSize { get; }
 
     public float GetHeightAt(Vector2 worldSpace);
 
