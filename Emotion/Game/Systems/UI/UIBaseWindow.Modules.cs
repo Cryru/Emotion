@@ -846,6 +846,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     {
         CalculatedMetrics.MinSize = Layout.MinSize.CeilMultiply(CalculatedMetrics.Scale);
         CalculatedMetrics.MaxSize = Layout.MaxSize.CeilMultiply(CalculatedMetrics.Scale);
+        CalculatedMetrics.InsideParent = AnchorsInsideParent(Layout.ParentAnchor, Layout.Anchor);
 
         LayoutMethodCodeClass layoutCode = GetLayoutCode(Layout.LayoutMethod);
         layoutCode.Step1_Measure(this, out IntVector2 childrenSize);
@@ -882,10 +883,8 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     {
         CalculatedMetrics.Position = pos;
 
-        IntRectangle contentRect = CalculatedMetrics.GetContentRect();
-
         LayoutMethodCodeClass layoutCode = GetLayoutCode(Layout.LayoutMethod);
-        layoutCode.Step3_Position(this, contentRect);
+        layoutCode.Step3_Position(this);
 
         // Custom layout is last so it can react to other window's layouts (UIAttachedWindow)
         foreach (UIBaseWindow child in Children)

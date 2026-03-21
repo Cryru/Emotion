@@ -70,7 +70,7 @@ public partial class UIBaseWindow
             }
         }
 
-        private void GrowAlongList(UIBaseWindow self, IntVector2 myMeasuredSize, int listMask)
+        private static void GrowAlongList(UIBaseWindow self, IntVector2 myMeasuredSize, int listMask)
         {
             UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
 
@@ -116,7 +116,7 @@ public partial class UIBaseWindow
                     child.CalculatedMetrics.Size[listMask] = clamped;
 
                     // Hit the max for this window, freeze it
-                    if (clamped < desired) 
+                    if (clamped < desired)
                     {
                         frozen[i] = true;
                         unfrozenCount--;
@@ -149,8 +149,11 @@ public partial class UIBaseWindow
             ArrayPool<bool>.Shared.Return(frozen);
         }
 
-        public override void Step3_Position(UIBaseWindow self, IntRectangle contentRect)
+        public override void Step3_Position(UIBaseWindow self)
         {
+            IntRectangle contentRect = self.CalculatedMetrics.GetContentRect();
+            IntRectangle boundsRect = self.CalculatedMetrics.Bounds;
+
             UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
             int listMask = layoutMethod.GetListMask();
             int inverseListMask = layoutMethod.GetListInverseMask();
@@ -160,8 +163,12 @@ public partial class UIBaseWindow
             foreach (UIBaseWindow child in self.Children)
             {
                 if (SkipWindowLayout(child)) continue;
-
-                child.CalculatedMetrics.InsideParent = true;
+                if (!child.CalculatedMetrics.InsideParent)
+                {
+                    // Parents outisde the parent list are free layout
+                    FreeLayout.FreeLayoutChild(child, contentRect, boundsRect);
+                    continue;
+                }
 
                 IntVector2 childPosition = pen;
                 ListLayoutItemsAlign alignAcrossList = GetItemsAlignAcrossFromList(layoutMethod.Mode, child.Layout.Anchor);
@@ -185,7 +192,7 @@ public partial class UIBaseWindow
             }
         }
 
-        private int GetListSpacing(UIBaseWindow self, int listMask)
+        private static int GetListSpacing(UIBaseWindow self, int listMask)
         {
             return (int)Maths.RoundAwayFromZero(self.Layout.LayoutMethod.ListSpacing[listMask] * self.CalculatedMetrics.Scale[listMask]);
         }

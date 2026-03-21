@@ -3,6 +3,7 @@
 #region Using
 
 using Emotion.Core;
+using Emotion.Editor.EditorUI.Components;
 using Emotion.Game.Systems.UI;
 using Emotion.Game.Systems.UI2;
 using Emotion.Game.Systems.UI2.Editor;
@@ -1250,30 +1251,41 @@ public class NewUITests : TestingScene
         yield return VerifyScreenshot(nameof(NewUITests), nameof(VerticalListWithText));
     }
 
-    //[Test]
-    //public IEnumerator TextWithBackground()
-    //{
-    //    // This is a layout that is not possible in the old UI system.
+    [Test]
+    public IEnumerator TextWithBackground()
+    {
+        var container = new UIBaseWindow()
+        {
+            Layout =
+            {
+                SizingX = UISizing.Fit(),
+                SizingY = UISizing.Fit(),
+            }
+        };
 
-    //    {
-    //        var container = new UIBaseWindow();
-    //        container.GrowX = false;
-    //        container.GrowY = false;
+        var bg = new UIBaseWindow()
+        {
+            Visuals =
+            {
+                BackgroundColor = Color.Red * 0.5f
+            }
+        };
+        container.AddChild(bg);
 
-    //        var bg = new UISolidColor();
-    //        bg.WindowColor = Color.Red * 0.5f;
-    //        container.AddChild(bg);
+        var text = new UIText()
+        {
+            Text = "Hello ladies and gentlemen, and welcome to the show!",
+            TextColor = Color.White,
+            FontSize = 35
+        };
+        container.AddChild(text);
 
-    //        var textc = new UIText();
-    //        textc.Text = "Hello ladies and gentlemen, and welcome to the show!";
-    //        container.AddChild(textc);
+        SceneUI.AddChild(container);
 
-    //        UI.AddChild(container);
-    //    }
-
-    //    yield return WaitUILayout();
-    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(TextWithBackground));
-    //}
+        yield return WaitUILayout();
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(TextWithBackground));
+    }
 
     //[Test]
     //public IEnumerator EditorDropDownRelativeToAndOutsideParent()
@@ -1357,131 +1369,160 @@ public class NewUITests : TestingScene
     //    yield return VerifyScreenshot(nameof(NewUITests), nameof(EditorDropDownRelativeToAndOutsideParent));
     //}
 
+    [Test]
+    public IEnumerator WorldEditorBottomBar()
+    {
+        var bottomBar = new UIBaseWindow()
+        {
+            Layout =
+            {
+                MaxSizeY = 36,
+                SizingY = UISizing.Fit(),
+                AnchorAndParentAnchor = UIAnchor.BottomLeft,
+            },
+            Visuals =
+            {
+                BackgroundColor = Color.PrettyOrange
+            },
+            Name = "BottomBar"
+        };
+
+        var label = new UIText()
+        {
+            Text = "No object selected",
+            FontSize = 21,
+            TextColor = Color.White,
+            Layout =
+            {
+                Margins = new UISpacing(9, 9, 9, 9),
+                AnchorAndParentAnchor = UIAnchor.CenterLeft,
+            },
+            Name = "Label"
+        };
+        bottomBar.AddChild(label);
+
+        SceneUI.AddChild(bottomBar);
+
+        yield return WaitUILayout();
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorBottomBar));
+    }
+
     //[Test]
-    //public IEnumerator WorldEditorBottomBar()
+    //public IEnumerator EditorPanelEmpty()
     //{
-    //    // This also tests margins on all sides.
-
     //    {
-    //        var bottomBar = new UISolidColor();
-    //        bottomBar.MaxSizeY = 12;
-    //        bottomBar.GrowY = false;
-    //        bottomBar.WindowColor = Color.PrettyOrange;
-    //        bottomBar.Id = "BottomBar";
-    //        bottomBar.Anchor = UIAnchor.BottomLeft;
-    //        bottomBar.ParentAnchor = UIAnchor.BottomLeft;
-
-    //        var label = new UIText();
-    //        label.Text = "No object selected";
-    //        label.Margins = new Rectangle(3, 3, 3, 3);
-    //        label.FontSize = 7;
-    //        label.ParentAnchor = UIAnchor.CenterLeft;
-    //        label.Anchor = UIAnchor.CenterLeft;
-    //        label.Id = "Label";
-    //        bottomBar.AddChild(label);
-
-    //        UI.AddChild(bottomBar);
+    //        var editorPanel = new EditorWindow("Test");
+    //        SceneUI.AddChild(editorPanel);
     //    }
 
     //    yield return WaitUILayout();
-    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(WorldEditorBottomBar));
+    //    VerifyScreenshot(nameof(NewUITests), nameof(EditorPanelEmpty));
     //}
 
-    ////[Test]
-    ////public IEnumerator EditorPanelEmpty()
-    ////{
-    ////    int oldTextSize = EditorColorPalette.EditorButtonTextSize;
-    ////    EditorColorPalette.EditorButtonTextSize = 9;
-    ////    {
-    ////        var editorPanel = new EditorWindow("Test");
-    ////        UI.AddChild(editorPanel);
-    ////    }
+    [Test]
+    public IEnumerator OutsideParentWindow()
+    {
+        var list = new UIBaseWindow()
+        {
+            Visuals =
+            {
+                BackgroundColor = Color.PrettyRed
+            },
+            Layout =
+            {
+                Anchor = UIAnchor.TopLeft,
+                ParentAnchor = UIAnchor.CenterCenter,
+                MinSize = new IntVector2(60, 60),
+                SizingY = UISizing.Fit(),
+            }
+        };
+        SceneUI.AddChild(list);
 
-    ////    yield return WaitUILayout();
-    ////    VerifyScreenshot(nameof(NewUITests), nameof(EditorPanelEmpty));
+        var greenChild = new UIBaseWindow()
+        {
+            Visuals =
+            {
+                BackgroundColor = Color.PrettyGreen
+            },
+            Layout =
+            {
+                SizingX = UISizing.Fixed(60),
+                SizingY = UISizing.Fixed(60),
+                Anchor = UIAnchor.TopRight,
+                ParentAnchor = UIAnchor.TopLeft,
+            }
+        };
+        list.AddChild(greenChild);
 
-    ////    EditorColorPalette.EditorButtonTextSize = oldTextSize;
-    ////}
+        var purpleChild = new UIBaseWindow()
+        {
+            Visuals =
+            {
+                BackgroundColor = Color.PrettyPurple
+            },
+            Layout =
+            {
+                SizingX = UISizing.Fixed(60),
+                SizingY = UISizing.Fixed(60),
+                Anchor = UIAnchor.TopLeft,
+                ParentAnchor = UIAnchor.BottomLeft,
+            }
+        };
+        list.AddChild(purpleChild);
 
-    //[Test]
-    //public IEnumerator OutsideParentWindow()
-    //{
-    //    var win = new UISolidColor
-    //    {
-    //        WindowColor = Color.PrettyRed,
-    //        Anchor = UIAnchor.TopLeft,
-    //        ParentAnchor = UIAnchor.CenterCenter,
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(OutsideParentWindow));
 
-    //        MinSize = new Vector2(20, 20),
-    //        GrowY = false,
+        list.Layout.Padding = new UISpacing(15, 15, 15, 15);
 
-    //        SetChildren = new()
-    //        {
-    //            new UISolidColor()
-    //            {
-    //                WindowColor = Color.PrettyGreen,
-    //                MinSize = new Vector2(20),
-    //                Anchor = UIAnchor.TopRight,
-    //                ParentAnchor = UIAnchor.TopLeft,
-    //            },
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(OutsideParentWindow));
 
-    //            new UISolidColor()
-    //            {
-    //                WindowColor = Color.PrettyPurple,
-    //                MinSize = new Vector2(20),
-    //                Anchor = UIAnchor.TopLeft,
-    //                ParentAnchor = UIAnchor.BottomLeft
-    //            },
-    //        },
-    //    };
-    //    UI.AddChild(win);
+        list.Layout.Padding = new UISpacing(0, 0, 0, 0);
+        list.Layout.LayoutMethod = UILayoutMethod.HorizontalList(0);
 
-    //    yield return WaitUILayout();
-    //    VerifyScreenshot(nameof(NewUITests), nameof(OutsideParentWindow));
+        var whiteChild = new UIBaseWindow()
+        {
+            Visuals = { BackgroundColor = Color.White },
+            Layout =
+            {
+                SizingX = UISizing.Fixed(60),
+                SizingY = UISizing.Fixed(60),
+            }
+        };
+        list.AddChild(whiteChild);
 
-    //    win.Paddings = new Rectangle(5, 5, 5, 5);
+        var blackChild = new UIBaseWindow()
+        {
+            Visuals = { BackgroundColor = Color.Black },
+            Layout =
+            {
+                SizingX = UISizing.Fixed(60),
+                SizingY = UISizing.Grow(),
+            }
+        };
+        list.AddChild(blackChild);
 
-    //    yield return WaitUILayout();
-    //    VerifyScreenshot(nameof(NewUITests), nameof(OutsideParentWindow));
+        var whiteChild2 = new UIBaseWindow()
+        {
+            Visuals = { BackgroundColor = Color.White },
+            Layout =
+            {
+                SizingX = UISizing.Fixed(60),
+                SizingY = UISizing.Fixed(60),
+            }
+        };
+        list.AddChild(whiteChild2);
 
-    //    win.Paddings = Rectangle.Empty;
-    //    win.LayoutMode = LayoutMode.HorizontalList;
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(OutsideParentWindow));
 
-    //    var a = new UISolidColor()
-    //    {
-    //        WindowColor = Color.White,
-    //        MinSize = new Vector2(20),
-    //        GrowX = false,
-    //        GrowY = false,
-    //    };
-    //    win.AddChild(a);
+        list.Layout.Padding = new UISpacing(15, 15, 15, 15);
 
-    //    var b = new UISolidColor()
-    //    {
-    //        WindowColor = Color.Black,
-    //        MinSize = new Vector2(20),
-    //        GrowX = false,
-    //        GrowY = false,
-    //    };
-    //    win.AddChild(b);
-
-    //    var c = new UISolidColor()
-    //    {
-    //        WindowColor = Color.White,
-    //        MinSize = new Vector2(20),
-    //        GrowX = false,
-    //        GrowY = false,
-    //    };
-    //    win.AddChild(c);
-
-    //    yield return WaitUILayout();
-    //    VerifyScreenshot(nameof(NewUITests), nameof(OutsideParentWindow));
-
-    //    win.Paddings = new Rectangle(5, 5, 5, 5);
-
-    //    yield return WaitUILayout();
-    //    VerifyScreenshot(nameof(NewUITests), nameof(OutsideParentWindow));
-    //}
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(OutsideParentWindow));
+    }
 
     //[Test]
     //public IEnumerator BackgroundWindow()
@@ -1570,35 +1611,33 @@ public class NewUITests : TestingScene
     //    yield break;
     //}
 
-    //[Test]
-    //public IEnumerator IsWithinTest()
-    //{
-    //    UIBaseWindow parent = new UIBaseWindow();
-    //    UI.AddChild(parent);
+    [Test]
+    public void IsWithinTest()
+    {
+        UIBaseWindow parent = new UIBaseWindow();
+        SceneUI.AddChild(parent);
 
-    //    UIBaseWindow child = new UIBaseWindow();
-    //    parent.AddChild(child);
+        UIBaseWindow child = new UIBaseWindow();
+        parent.AddChild(child);
 
-    //    Assert.True(child.IsWithin(parent));
-    //    Assert.False(parent.IsWithin(child));
+        Assert.True(child.IsWithin(parent));
+        Assert.False(parent.IsWithin(child));
 
-    //    UIBaseWindow otherParent = new UIBaseWindow();
-    //    UI.AddChild(otherParent);
+        UIBaseWindow otherParent = new UIBaseWindow();
+        SceneUI.AddChild(otherParent);
 
-    //    UIBaseWindow relative = new UIBaseWindow();
-    //    parent.Id = "Parent";
-    //    relative.RelativeTo = "Parent";
-    //    otherParent.AddChild(relative);
+        //UIBaseWindow relative = new UIBaseWindow();
+        //parent.Name = "Parent";
+        //relative.RelativeTo = "Parent";
+        //otherParent.AddChild(relative);
 
-    //    Assert.True(relative.IsWithin(parent));
-    //    Assert.False(relative.IsWithin(otherParent));
+        //Assert.True(relative.IsWithin(parent));
+        //Assert.False(relative.IsWithin(otherParent));
 
-    //    Assert.True(parent.IsWithin(UI));
-    //    Assert.True(child.IsWithin(UI));
-    //    Assert.True(otherParent.IsWithin(UI));
-
-    //    yield break;
-    //}
+        Assert.True(parent.IsWithin(SceneUI));
+        Assert.True(child.IsWithin(SceneUI));
+        Assert.True(otherParent.IsWithin(SceneUI));
+    }
 
     //[Test]
     //public IEnumerator OverlayWindow()

@@ -24,7 +24,7 @@ public partial class UIBaseWindow
         /// <summary>
         /// Calls Layout_Step3_Position on all children and determines the position of each child.
         /// </summary>
-        public abstract void Step3_Position(UIBaseWindow self, IntRectangle rect);
+        public abstract void Step3_Position(UIBaseWindow self);
 
         #region Layout Helpers
 
