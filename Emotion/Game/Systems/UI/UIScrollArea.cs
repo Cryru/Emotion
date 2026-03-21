@@ -224,9 +224,6 @@ public class UIScrollArea : UIBaseWindow
             ScrollTranslationMatrix = Matrix4x4.CreateTranslation(-posToScrollTo.X, -posToScrollTo.Y, 0);
             CurrentScroll = posToScrollTo;
 
-            _renderBoundsCalculatedFrom = Rectangle.Empty;
-            _renderBounds = Rectangle.Empty;
-
             return true;
         }
 
@@ -245,7 +242,7 @@ public class UIScrollArea : UIBaseWindow
             for (var i = 0; i < children.Count; i++)
             {
                 UIBaseWindow child = children[i];
-                child.EnsureRenderBoundsCached(c);
+                //child.EnsureRenderBoundsCached(c);
 
                 if (!child.Visible) continue;
 

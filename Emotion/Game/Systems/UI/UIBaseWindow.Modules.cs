@@ -184,61 +184,6 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         return false;
     }
 
-    protected Rectangle _renderBoundsCalculatedFrom; // .Bounds at time of caching.
-    private Matrix4x4? _renderBoundsCachedMatrix; // The matrix _renderBounds was generated from.
-    protected Rectangle _renderBounds; // Bounds but with any displacements active on the window applied 
-    protected Rectangle _renderBoundsWithChildren; // _inputBoundsWithChildren but with any displacements active on the window applied
-    private Rectangle _inputBoundsWithChildren; // Bounds unioned with all children bounds.
-
-    public Rectangle RenderBounds
-    {
-        get => _renderBoundsWithChildren;
-    }
-
-    public void EnsureRenderBoundsCached(Renderer c)
-    {
-        if (c.ModelMatrix == _renderBoundsCachedMatrix && _renderBoundsCalculatedFrom == _inputBoundsWithChildren) return;
-        _renderBoundsWithChildren = Rectangle.Transform(_inputBoundsWithChildren, c.ModelMatrix);
-        _renderBoundsWithChildren.Position = _renderBoundsWithChildren.Position.Floor();
-        _renderBoundsWithChildren.Size = _renderBoundsWithChildren.Size.Ceiling();
-
-        _renderBounds = Rectangle.Transform(Bounds, c.ModelMatrix);
-        _renderBounds.Position = _renderBounds.Position.Floor();
-        _renderBounds.Size = _renderBounds.Size.Ceiling();
-
-        _renderBoundsCachedMatrix = c.ModelMatrix;
-        _renderBoundsCalculatedFrom = _inputBoundsWithChildren;
-    }
-
-    public virtual bool IsPointInside(Vector2 pt)
-    {
-        return _renderBoundsCalculatedFrom != Rectangle.Empty ? _renderBoundsWithChildren.Contains(pt) : _inputBoundsWithChildren.Contains(pt);
-    }
-
-    public virtual bool IsInsideRect(Rectangle rect)
-    {
-        return _renderBoundsCalculatedFrom != Rectangle.Empty ? rect.ContainsInclusive(_renderBoundsWithChildren) : rect.ContainsInclusive(_inputBoundsWithChildren);
-    }
-
-    public virtual bool IsInsideOrIntersectRect(Rectangle rect, out bool inside)
-    {
-        Rectangle checkAgainst = _renderBoundsCalculatedFrom != Rectangle.Empty ? _renderBoundsWithChildren : _inputBoundsWithChildren;
-        if (rect.ContainsInclusive(checkAgainst))
-        {
-            inside = true;
-            return true;
-        }
-
-        if (rect.IntersectsInclusive(checkAgainst))
-        {
-            inside = false;
-            return true;
-        }
-
-        inside = false;
-        return false;
-    }
-
     /// <summary>
     /// The point in the parent to anchor the window to.
     /// </summary>
@@ -798,15 +743,6 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     {
         window = GetWindowById<TWindow>(id);
         return window != null;
-    }
-
-    private static UIBaseWindow _invalidWindow = new UIBaseWindow() { Name = "Invalid Window" };
-
-    public UIBaseWindow GetWindowByIdSafe(string id)
-    {
-        UIBaseWindow? win = GetWindowById(id);
-        if (win == null) return _invalidWindow;
-        return win;
     }
 
     public bool VisibleAlongTree()

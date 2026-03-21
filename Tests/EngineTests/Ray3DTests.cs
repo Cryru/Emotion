@@ -9,7 +9,6 @@ using System.Numerics;
 
 namespace Tests.EngineTests;
 
-[DebugTest]
 public class Ray3DTests : ProxyRenderTestingScene
 {
     #region IntersectWithPlane

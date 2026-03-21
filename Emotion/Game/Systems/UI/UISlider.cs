@@ -95,7 +95,7 @@ public class UISlider : UIBaseWindow
     protected override bool UpdateInternal()
     {
         Vector2 mouse = MouseInside ? Engine.Host.MousePosition : Vector2.Zero;
-        _selector.WindowColor = _dragging || _selector.RenderBounds.Contains(mouse) ? RolloverColor : DefaultSelectorColor;
+        //_selector.WindowColor = _dragging || _selector.RenderBounds.Contains(mouse) ? RolloverColor : DefaultSelectorColor;
         return base.UpdateInternal();
     }
 
@@ -123,14 +123,14 @@ public class UISlider : UIBaseWindow
 
     public void SetValueFromPos(Vector2 pos)
     {
-        Vector2 relativePos = pos - _renderBoundsWithChildren.Position;
-        int range = MaxValue - MinValue;
-        Vector2 size = Size;
+        //Vector2 relativePos = pos - _renderBoundsWithChildren.Position;
+        //int range = MaxValue - MinValue;
+        //Vector2 size = Size;
 
-        if (Horizontal)
-            Value = MinValue + (int) MathF.Round(relativePos.X / size.X * range);
-        else
-            Value = MinValue + (int) MathF.Round(relativePos.Y / size.Y * range);
+        //if (Horizontal)
+        //    Value = MinValue + (int) MathF.Round(relativePos.X / size.X * range);
+        //else
+        //    Value = MinValue + (int) MathF.Round(relativePos.Y / size.Y * range);
     }
 
     public override void OnMouseMove(Vector2 mousePos)

@@ -47,9 +47,6 @@ namespace Emotion.Game.Systems.UI
             );
             pos = VerifyWorldPos(pos);
 
-            _renderBounds = new Rectangle(pos + Position, Size);
-            _renderBoundsWithChildren = new Rectangle(pos + Position, Size);
-
             c.PushModelMatrix(Matrix4x4.CreateTranslation(pos));
         }
 
