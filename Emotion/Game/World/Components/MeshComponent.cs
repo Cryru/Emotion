@@ -24,7 +24,7 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
 
     public MeshComponent(MeshReference? entity)
     {
-        _entityOwner.SetOnChangeCallback(static (_, component) => (component as MeshComponent)?.OnEntityChanged(), this);
+        _entityOwner.SetOnChangeCallback(static (_, component) => component.OnEntityChanged(), this);
         _entityOwner.Set(entity ?? MeshReference.Invalid, true);
     }
 
@@ -169,6 +169,15 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
 
     public Matrix4x4 CalculateModelMatrix(GameObject obj, out Matrix4x4 scaleMatrix, out Matrix4x4 rotationMatrix, out Matrix4x4 translationMatrix)
     {
+        if (RenderState == null)
+        {
+            // Not initialized yet - happens in race conidtions :/
+            scaleMatrix = Matrix4x4.Identity;
+            rotationMatrix = Matrix4x4.Identity;
+            translationMatrix = Matrix4x4.Identity;
+            return Matrix4x4.Identity;
+        }
+
         float entityScale = _entity.Scale * RenderState.Scale;
         Matrix4x4 entityLocalTransform = _entity.LocalTransform;
 

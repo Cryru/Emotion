@@ -7,6 +7,7 @@ using Emotion.Game.World.Systems;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Game.World.TileMap;
 using Emotion.Graphics.Camera;
+using System.Collections.Concurrent;
 
 namespace Emotion.Game.World;
 
@@ -28,7 +29,7 @@ public partial class GameMap : IDisposable
 
     public LightConfig LightConfig = LightConfig.Default;
 
-    private Queue<GameObject> _objectsToLoad = new(); // Queue of objects to load
+    private ConcurrentQueue<GameObject> _objectsToLoad = new(); // Queue of objects to load
 
     public GameMap()
     {
