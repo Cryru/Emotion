@@ -267,6 +267,22 @@ public static class AssimpFormat
         return false;
     }
 
+    private static unsafe bool GetMaterialFloat(Material* material, string key, out float data)
+    {
+        for (var i = 0; i < material->MNumProperties; i++)
+        {
+            MaterialProperty* prop = material->MProperties[i];
+            if (prop->MKey == key && prop->MType == PropertyTypeInfo.Float)
+            {
+                data = *(float*)prop->MData;
+                return true;
+            }
+        }
+
+        data = 0f;
+        return false;
+    }
+
     #endregion
 
     #region Animations
