@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Core.Systems.Scenography;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Game.World.Components;
 using Emotion.Game.World.Grids;
@@ -20,6 +21,18 @@ public enum GameMapState
 
 public partial class GameMap : IDisposable
 {
+    public static GameMap? Current
+    {
+        get
+        {
+            var currentScene = Engine.SceneManager.Current;
+            if (currentScene is SceneWithMap sceneWithMap)
+                return sceneWithMap.Map;
+
+            return null;
+        }
+    }
+
     public GameMapFactory? FactoryCreatedFrom { get; set; }
 
     [DontSerialize]
@@ -117,7 +130,7 @@ public partial class GameMap : IDisposable
 
     #region Object Management
 
-    private Dictionary<uint, GameObject> _idToGameObject = new(); 
+    private Dictionary<uint, GameObject> _idToGameObject = new();
 
     public class ObjectFriendAdapter(GameMap map)
     {

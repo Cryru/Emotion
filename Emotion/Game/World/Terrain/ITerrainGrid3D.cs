@@ -1,4 +1,6 @@
-﻿using Emotion.Game.World.Terrain.GridStreaming;
+﻿#nullable enable
+
+using Emotion.Game.World.Terrain.GridStreaming;
 using Emotion.Primitives.Grids;
 
 namespace Emotion.Game.World.Terrain;
@@ -13,6 +15,11 @@ public interface IGridWorldSpaceTiles : IGrid
 
 public interface ITerrainGrid3D : IGridWorldSpaceTiles
 {
+    public static ITerrainGrid3D? Current
+    {
+        get => GameMap.Current?.GetFirstGridOfType<ITerrainGrid3D>();
+    }
+
     public Vector2 ChunkSize { get; }
 
     public float GetHeightAt(Vector2 worldSpace);
@@ -24,6 +31,8 @@ public interface ITerrainGrid3D : IGridWorldSpaceTiles
     public bool CollideWithCube<TUserData>(Cube cube, Func<Cube, TUserData, bool> onIntersect, TUserData userData);
 
     public Vector3 SweepCube(Cube cube, Vector3 movement);
+
+    public bool CollideRay(Ray3D ray, out Vector3 collisionPoint, out Vector3 surfaceNormal);
 
     #endregion
 
