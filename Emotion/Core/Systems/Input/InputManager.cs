@@ -61,6 +61,7 @@ public class InputManager
 
     public void ReportKeyInput(Key key, KeyState state)
     {
+        if (key == Key.Unknown) return;
         lock (_eventLock)
         {
             if (_eventsThisTick == MAX_EVENTS_PER_TICK) return;

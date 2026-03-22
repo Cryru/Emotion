@@ -20,6 +20,7 @@ namespace Emotion.Core.Systems.Input;
 public enum Key : short
 {
     Unknown = -1,
+    None = -1,
 
     KeyboardStart = 31,
 
