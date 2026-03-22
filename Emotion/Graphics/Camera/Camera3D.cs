@@ -33,7 +33,7 @@ public class Camera3D : CameraBase
 
     // Settings
     protected bool _invertXMouseMovement = false;
-    protected float _cameraMovementSpeed = 0.1f;
+    protected float _cameraMouseMovementSpeed = 0.1f;
 
     public Camera3D(Vector3 position, float zoom = 1, KeyListenerType inputPriority = KeyListenerType.Game) : base(position, zoom, inputPriority)
     {
@@ -92,21 +92,21 @@ public class Camera3D : CameraBase
         ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfViewLeftHanded(Maths.DegreesToRadians(_fieldOfView), aspectRatio, Maths.Clamp(NearZ, 0.1f, FarZ), FarZ);
     }
 
-    protected override bool CameraKeyHandler(Key key, KeyState status)
+    protected override bool CameraKeyHandler(Key key, KeyState state)
     {
         // Hack: Editor camera workaround for laptops with touchpads.
         bool editorCameraWorkaround = EngineEditor.IsOpen && DragKey == Key.MouseKeyMiddle && key == Key.MouseKeyLeft && Engine.Host.IsCtrlModifierHeld();
 
         if (key == DragKey || editorCameraWorkaround)
         {
-            if (status == KeyState.Down)
+            if (state == KeyState.Down)
             {
                 _lastMousePos = Engine.Host.MousePosition;
                 _mouseKeyHeld = true;
                 return false;
             }
 
-            if (status == KeyState.Up)
+            if (state == KeyState.Up)
             {
                 _mouseKeyHeld = false;
                 return false;
@@ -116,23 +116,23 @@ public class Camera3D : CameraBase
         Vector2 keyAxisPart = Engine.Host.GetKeyAxisPart(key, Key.AxisWASD);
         if (keyAxisPart != Vector2.Zero)
         {
-            if (status == KeyState.Down)
+            if (state == KeyState.Down)
                 _inputDirection += keyAxisPart;
-            else if (status == KeyState.Up)
+            else if (state == KeyState.Up)
                 _inputDirection -= keyAxisPart;
             return false;
         }
 
         if (key == Key.Space || key == Key.LeftShift)
         {
-            if (status == KeyState.Down)
+            if (state == KeyState.Down)
             {
                 if (key == Key.Space)
                     _inputDirectionZ += 1;
                 else
                     _inputDirectionZ -= 1;
             }
-            else if (status == KeyState.Up)
+            else if (state == KeyState.Up)
             {
                 if (key == Key.Space)
                     _inputDirectionZ -= 1;
@@ -153,8 +153,8 @@ public class Camera3D : CameraBase
         if (_mouseKeyHeld || firstPersonMode)
         {
             Vector2 mousePos = Engine.Host.MousePosition;
-            float xOffset = (mousePos.X - _lastMousePos.X) * _cameraMovementSpeed;
-            float yOffset = (mousePos.Y - _lastMousePos.Y) * _cameraMovementSpeed;
+            float xOffset = (mousePos.X - _lastMousePos.X) * _cameraMouseMovementSpeed;
+            float yOffset = (mousePos.Y - _lastMousePos.Y) * _cameraMouseMovementSpeed;
 
             // Non scientific
             if (firstPersonMode)

@@ -1,6 +1,5 @@
 ﻿#nullable enable
 
-using Emotion.Game.World;
 using Emotion.Graphics.Camera;
 
 namespace Emotion.Game.PremadeControllers.WorldOfWarcraft;
@@ -18,7 +17,7 @@ public class WoWCamera : Camera3D
     public WoWCamera(Vector3 position, float zoom = 1, KeyListenerType inputPriority = KeyListenerType.Game) : base(position, zoom, inputPriority)
     {
         _invertXMouseMovement = true;
-        _cameraMovementSpeed = 0.15f;
+        _cameraMouseMovementSpeed = 0.15f;
     }
 
     public void SetTarget(GameObject? target, Vector3 targetOffset)

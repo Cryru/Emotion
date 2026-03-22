@@ -306,9 +306,9 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
             Matrix4x4 rotationMatrix = Matrix4x4.CreateFromAxisAngle(rotationAxis, rotationAngle);
 
             Matrix4x4 boneMeshMatrix = Object.GetModelMatrixScale().Inverted() * rotationMatrix * Matrix4x4.CreateTranslation(conePos);
-            Mesh coneMesh = coneMeshGenerator.GenerateMesh().TransformMeshVertices(boneMeshMatrix);
-            coneMesh.Material = skeletonVisualizationMaterial;
-            visualizationMeshes.Add(coneMesh);
+            //Mesh coneMesh = coneMeshGenerator.GenerateMesh().TransformMeshVertices(boneMeshMatrix);
+            //coneMesh.Material = skeletonVisualizationMaterial;
+            //visualizationMeshes.Add(coneMesh);
         }
 
         c.PushModelMatrix(Object.GetModelMatrix());
