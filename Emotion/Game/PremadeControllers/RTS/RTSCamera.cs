@@ -6,7 +6,7 @@ namespace Emotion.Game.PremadeControllers.RTS;
 
 public class RTSCamera : Camera3D
 {
-    public float RotateSpeed = 1f;
+    public float RotateSpeed = 0.09f;
 
     private Vector3 _lookAtPoint;
     private float _angle;
@@ -25,6 +25,22 @@ public class RTSCamera : Camera3D
     public override void Update()
     {
         base.Update();
+
+        if (_inputRotate != 0)
+        {
+            float rollRad = Maths.DegreesToRadians(_inputRotate * RotateSpeed * Engine.DeltaTime);
+            Matrix4x4 rotation = Matrix4x4.CreateRotationZ(rollRad);
+
+            Vector3 orbitPoint = Position + LookAt;
+            Ray3D lookatRay = new Ray3D(Position, LookAt);
+            orbitPoint = lookatRay.IntersectWithPlane(Renderer.Up, Vector3.Zero);
+
+            Vector3 offset = Position - orbitPoint;
+            offset = Vector3.Transform(offset, rotation);
+
+            Position = orbitPoint + offset;
+            LookAt = Vector3.Normalize(orbitPoint - Position);
+        }
     }
 
     private void InitializeCameraAngle()
