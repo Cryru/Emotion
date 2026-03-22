@@ -63,7 +63,7 @@ public sealed class MeshEntityRenderer
                 if (material.DiffuseTexture != null) texture = material.DiffuseTexture;
                 Texture.EnsureBound(texture.Pointer);
 
-                currentShader.SetUniformColor("diffuseColor", material.DiffuseColor);
+                currentShader.SetUniformColor("diffuseColor", entityState.Tint != Color.White ? entityState.Tint : material.DiffuseColor);
             }
 
             // Render Scene Properties

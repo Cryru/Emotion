@@ -315,7 +315,7 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
         for (var i = 0; i < visualizationMeshes.Count; i++)
         {
             Mesh mesh = visualizationMeshes[i];
-            mesh.Render(c);
+            //mesh.Render(c);
         }
         c.PopModelMatrix();
 

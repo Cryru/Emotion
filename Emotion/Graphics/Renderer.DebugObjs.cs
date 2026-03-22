@@ -14,7 +14,7 @@ namespace Emotion.Graphics;
 public sealed partial class Renderer
 {
     private List<Vector3>? _triangles;
-    private List<Mesh>? _spheres;
+    private List<MeshEntityMetaState>? _spheres;
     private List<(Vector3, Vector3)>? _lines;
     private List<Cube>? _cubes;
     private List<(Vector3, string)>? _texts;
@@ -43,17 +43,15 @@ public sealed partial class Renderer
 
         color ??= _defaultDbgObjectColor;
 
-        var meshGen = new SphereMeshGenerator();
-        Mesh sphereMesh = meshGen.GenerateMesh().TransformMeshVertices(
-            Matrix4x4.CreateScale(radius) * Matrix4x4.CreateTranslation(p)
-        );
-        sphereMesh.Material = new MeshMaterial()
+        MeshEntity entity = Sphere.GetEntity();
+        var entityState = new MeshEntityMetaState(entity)
         {
-            DiffuseColor = color.Value
+            ModelMatrix = Matrix4x4.CreateScale(radius) * Matrix4x4.CreateTranslation(p)
         };
+        if (color.HasValue) entityState.Tint = color.Value;
 
         _spheres ??= new();
-        _spheres.Add(sphereMesh);
+        _spheres.Add(entityState);
     }
 
     public void DbgAddCube(Cube cube)
@@ -117,10 +115,14 @@ public sealed partial class Renderer
         }
 
         if (_spheres != null)
+        {
+            MeshEntityRenderer.StartScene(null);
             for (var i = 0; i < _spheres.Count; i++)
             {
-                _spheres[i]?.Render(this);
+                MeshEntityRenderer.AddToCurrentScene(this, _spheres[i]);
             }
+            MeshEntityRenderer.EndScene();
+        }
 
         if (_lines != null)
             for (int i = 0; i < _lines.Count; i++)

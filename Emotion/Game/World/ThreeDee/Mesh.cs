@@ -22,32 +22,14 @@ public class Mesh
     public MeshMaterial Material = MeshMaterial.DefaultMaterial;
     public ushort[] Indices;
 
-    public VertexData[] Vertices;
-    public VertexDataMesh3DExtra[] ExtraVertexData;
-    public Mesh3DVertexDataBones[]? BoneData;
+    public VertexData[]? Vertices { get => null; }
+    public VertexDataMesh3DExtra[]? ExtraVertexData { get => null; }
+    public Mesh3DVertexDataBones[]? BoneData { get => null; }
 
     public int AnimationSkin = 0;
 
     public VertexDataFormat VertexFormat { get => VertexAllocation.Format; }
     public VertexDataAllocation VertexAllocation;
-
-    public Mesh(VertexData[] vertices, VertexDataMesh3DExtra[] extraData, ushort[] indices)
-    {
-        Name = DEFAULT_MESH_NAME;
-        Vertices = vertices;
-        ExtraVertexData = extraData;
-        Indices = indices;
-        Material = MeshMaterial.DefaultMaterial;
-    }
-
-    public Mesh(string name, VertexData[] vertices, VertexDataMesh3DExtra[] extraData, ushort[] indices)
-    {
-        Name = name;
-        Vertices = vertices;
-        ExtraVertexData = extraData;
-        Indices = indices;
-        Material = MeshMaterial.DefaultMaterial;
-    }
 
     public Mesh(VertexDataAllocation memory, ushort[] indices, MeshMaterial? material = null, string? name = null)
     {
@@ -76,30 +58,8 @@ public class Mesh
 
     #region Transformations
 
-    public Mesh ColorMeshVertices(Color col)
-    {
-        uint val = col.ToUint();
-
-        VertexData[]? vertices = Vertices;
-        if (vertices == null) return this;
-        for (var i = 0; i < vertices.Length; i++)
-        {
-            ref VertexData vertex = ref vertices[i];
-            vertex.Color = val;
-        }
-
-        return this;
-    }
-
     public Mesh SetVerticesAlpha(byte alpha)
     {
-        VertexData[]? vertices = Vertices;
-        for (var i = 0; i < vertices.Length; i++)
-        {
-            ref VertexData vertex = ref vertices[i];
-            vertex.Color = new Color(vertex.Color).SetAlpha(alpha).ToUint();
-        }
-
         return this;
     }
 
@@ -179,53 +139,5 @@ public class Mesh
         return combinedMesh;
     }
 
-    [Obsolete("DELETE MEEEE")]
-    public Mesh TransformMeshVertices(Matrix4x4 tra)
-    {
-        if (Vertices != null)
-        {
-            for (int i = 0; i < Vertices.Length; i++)
-            {
-                Vertices[i].Vertex = Vector3.Transform(Vertices[i].Vertex, tra);
-            }
-        }
-        else
-        {
-            for (int i = 0; i < VertexAllocation.VertexCount; i++)
-            {
-                Vector3 vertPos = VertexAllocation.GetVertexPositionAtIndex(i);
-                VertexAllocation.SetVertexPositionAtIndex(i, Vector3.Transform(vertPos, tra));
-            }
-        }
-
-        return this;
-    }
-
     #endregion
-
-    [Obsolete("DELETE MEEEE")]
-    public void Render(Renderer c)
-    {
-        VertexData[]? vertData = Vertices;
-
-        ushort[] indices = Indices;
-        Texture? texture = null;
-        if (Material.DiffuseTexture != null) texture = Material.DiffuseTexture;
-        StreamData<VertexData> memory = c.RenderStream.GetStreamMemory((uint)vertData!.Length, (uint)indices.Length, BatchMode.SequentialTriangles, texture);
-
-        vertData.CopyTo(memory.VerticesData);
-        indices.CopyTo(memory.IndicesData);
-
-        for (int i = 0; i < memory.VerticesData.Length; i++)
-        {
-            ref VertexData vert = ref memory.VerticesData[i];
-            vert.Color = Material.DiffuseColor.ToUint();
-        }
-
-        ushort structOffset = memory.StructIndex;
-        for (var j = 0; j < memory.IndicesData.Length; j++)
-        {
-            memory.IndicesData[j] = (ushort)(memory.IndicesData[j] + structOffset);
-        }
-    }
 }
