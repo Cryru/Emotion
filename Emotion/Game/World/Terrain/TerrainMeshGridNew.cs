@@ -738,14 +738,16 @@ public partial class TerrainMeshGridNew : TerrainGridBase<TerrainData, TerrainCh
 
     private bool GetHeightAtGridCoord(IntVector2 gridPos, out float height)
     {
-        height = 0;
-
         int chunkWidth = (int)ChunkSize.X;
         int chunkHeight = (int)ChunkSize.Y * 2;
         IntVector2 chunkCoord = gridPos.FloorDiv(new IntVector2(chunkWidth, chunkHeight));
 
         TerrainChunk? chunk = GetChunk(chunkCoord);
-        if (chunk == null) return false;
+        if (chunk == null)
+        {
+            height = 0;
+            return false;
+        }
 
         TerrainData[] data = chunk.GetRawData();
 
@@ -754,6 +756,55 @@ public partial class TerrainMeshGridNew : TerrainGridBase<TerrainData, TerrainCh
         int idx = lY * chunkWidth + lX;
         Assert(idx >= 0 && idx < data.Length);
         height = data[idx].Height;
+        return true;
+    }
+
+    #endregion
+
+    #region Setting
+
+    public bool SetAtWorldPos(Vector2 worldPos, TerrainData val, bool expanding = false)
+    {
+        Vector2 chunkWorldSize = ChunkSize * TileSize;
+        int chunkX = (int)MathF.Floor(worldPos.X / chunkWorldSize.X);
+        int chunkY = (int)MathF.Floor(worldPos.Y / chunkWorldSize.Y);
+
+        Vector2 chunkCoord = new Vector2(chunkX, chunkY);
+        TerrainChunk? chunk = GetChunk(chunkCoord);
+        if (chunk == null)
+        {
+            if (!expanding) return false;
+
+            TerrainChunk newChunk = InitializeNewChunk();
+            _chunks.Add(chunkCoord, newChunk);
+            OnChunkCreated(chunkCoord, newChunk);
+            _chunkBoundsCacheValid = false;
+
+            chunk = newChunk;
+        }
+
+        Vector2 tileSize = TileSize;
+        Vector2 halfTileSize = TileSize / 2f;
+        Vector2 chunkWorldOffset = chunkCoord * (ChunkSize * tileSize);
+
+        Vector2 brushChunkSpace = worldPos - chunkWorldOffset;
+
+        int y = (int)MathF.Floor((brushChunkSpace.Y) / halfTileSize.Y);
+        y = Math.Max(0, y);
+
+        bool oddRow = y % 2 != 0;
+        float xOffset = oddRow ? halfTileSize.X : 0;
+        int rowWidth = (int)ChunkSize.X;
+        int rowStartIndex = y * rowWidth;
+
+        int x = (int)MathF.Round((brushChunkSpace.X - xOffset) / tileSize.X);
+        Vector2 vertPos = new Vector2(x * tileSize.X + xOffset, y * halfTileSize.Y) + chunkWorldOffset;
+
+        int idx = rowStartIndex + x;
+        TerrainData[] data = chunk.GetRawData();
+        data[idx] = val;
+
+        OnChunkChanged(chunkCoord, chunk);
         return true;
     }
 
