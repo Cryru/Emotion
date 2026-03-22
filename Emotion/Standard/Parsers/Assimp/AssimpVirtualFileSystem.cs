@@ -49,7 +49,7 @@ public unsafe struct AssimpVirtualFileSystem
         //string assetPath = AssetLoader.GetDirectoryName(Name);
         //if (!fileName.StartsWith(assetPath))
         //    fileName = AssetLoader.GetNonRelativePath(assetPath, fileName);
-        var byteAsset = Engine.AssetLoader.Get<OtherAsset>(fileName);
+        var byteAsset = Engine.AssetLoader.Get<OtherAsset>(fileName, null, true);
         if (byteAsset == null) return null;
 
         var assimpStream = new AssimpStream(fileName);

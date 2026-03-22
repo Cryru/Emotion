@@ -207,7 +207,7 @@ public static class AssimpFormat
             {
                 Name = materialName,
                 DiffuseColor = diffColor,
-                DiffuseTextureName = diffuseTexture ?? Texture.EmptyWhiteTexture
+                DiffuseTexture = diffuseTexture
             };
 
             list.Add(emotionMaterial);
