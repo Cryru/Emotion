@@ -163,4 +163,15 @@ public class Camera2D : CameraBase
     {
         return Engine.Host.MousePosition;
     }
+
+    public override Frustum GetCameraView3D()
+    {
+        // We need to invert these from the base variant because of the -Yscale flip in the view matrix
+        var vp = ViewMatrix * ProjectionMatrix;
+        vp.M12 = -vp.M12;
+        vp.M22 = -vp.M22;
+        vp.M32 = -vp.M32;
+        vp.M42 = -vp.M42;
+        return new Frustum(vp);
+    }
 }

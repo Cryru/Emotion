@@ -334,7 +334,7 @@ public abstract class CameraBase : IDisposable
         );
     }
 
-    public Frustum GetCameraView3D()
+    public virtual Frustum GetCameraView3D()
     {
         return new Frustum(ViewMatrix * ProjectionMatrix);
     }
