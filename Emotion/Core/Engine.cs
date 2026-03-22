@@ -522,6 +522,14 @@ public static class Engine
         Multiplayer.Update();
         CoroutineManagerGameTime.Update(dt); // This will run SceneManagerTick
 
+        // if the editor is open we need to explicitly call
+        // the scene manager since the SimulationTickRoutine tick waits for dt,
+        // which is needed for stuff like editing terrain and other stuff
+        // todo: maybe the scene should have a separate Update for the editor so
+        // we dont have to run 
+        if (EngineEditor.IsOpen)
+            SceneManager.Update(0);
+
         // Updates camera input and target tracking
         // todo: split these, input should be probably outside simulation for least latency,
         // and the target tracking should be in the renderer probably.
