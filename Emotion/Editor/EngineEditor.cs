@@ -2,6 +2,7 @@
 
 #region Using
 
+using Emotion.Core.Systems.Scenography;
 using Emotion.Core.Utility.Profiling;
 using Emotion.Editor.EditorUI;
 using Emotion.Editor.EditorUI.Components;
@@ -20,11 +21,13 @@ public static partial class EngineEditor
 {
     public static bool IsOpen { get; private set; }
 
+    public static bool TimePaused { get => IsOpen && _editorTimePaused; }
+    private static bool _editorTimePaused = true;
+
     public static UIBaseWindow EditorUI { get; private set; } = null!;
 
     private static UIText _perfText = null!;
 
-    private static UIBaseWindow _editorUIHorizontalParent = null!;
     private static UIBaseWindow? _editorBars;
     private static UIBaseWindow? _workflowParent;
 
@@ -38,18 +41,8 @@ public static partial class EngineEditor
         {
             Name = "EditorRoot",
             OrderInParent = 999
-            
         };
         Engine.UI.AddChild(EditorUI);
-
-        _editorUIHorizontalParent = new UIBaseWindow()
-        {
-            Layout =
-            {
-                LayoutMethod = UILayoutMethod.HorizontalList(0)
-            }
-        };
-        EditorUI.AddChild(_editorUIHorizontalParent);
     }
 
     private static bool EditorButtonHandler(Key key, KeyState status)
@@ -72,7 +65,45 @@ public static partial class EngineEditor
         Engine.Host.OnKey.BlockListenersOfType(KeyListenerType.Game);
 
         _editorBars = new UIBaseWindow();
-        _editorUIHorizontalParent.AddChild(_editorBars);
+        EditorUI.AddChild(_editorBars);
+
+        var topButtons = new UIContainer()
+        {
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalList(5),
+                AnchorAndParentAnchor = UIAnchor.TopCenter,
+                Margins = new UISpacing(0, 50, 0, 0)
+            }
+        };
+        EditorUI.AddChild(topButtons);
+
+        var pauseButton = new OneButton(_editorTimePaused ? "Resume" : "Pause", static (b) =>
+        {
+            if (b is OneButton butt)
+            {
+                _editorTimePaused = !_editorTimePaused;
+                butt.Text = _editorTimePaused ? "Resume" : "Pause";
+            }
+        });
+        topButtons.AddChild(pauseButton);
+
+        var restartButton = new OneButton("Restart", static (b) =>
+        {
+            Scene currentScene = Engine.SceneManager.Current;
+            Type currentSceneType = currentScene.GetType();
+            try
+            {
+                var newInstance = Activator.CreateInstance(currentSceneType, true);
+                if (newInstance is Scene newScene)
+                    Engine.SceneManager.SetScene(newScene);
+            }
+            catch (Exception)
+            {
+
+            }
+        });
+        topButtons.AddChild(restartButton);
 
         UIBaseWindow barContainer = new()
         {
@@ -119,8 +150,7 @@ public static partial class EngineEditor
         Engine.Input.SuppressMouseFirstPersonMode(false, "Editor");
         Engine.Host.OnKey.BlockListenersOfType(null);
 
-        AssertNotNull(_editorBars);
-        _editorUIHorizontalParent.RemoveChild(_editorBars);
+        EditorUI.ClearChildren();
         _editorBars = null;
         _workflowParent = null;
 

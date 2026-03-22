@@ -501,7 +501,7 @@ public static class Engine
     private static void RunMainLoopTick()
     {
         float dt = DeltaTime;
-        if (EngineEditor.IsOpen)
+        if (EngineEditor.TimePaused)
             dt = 0; // todo: do this via game time stop
 
         TotalTime += dt;
@@ -527,7 +527,7 @@ public static class Engine
         // which is needed for stuff like editing terrain and other stuff
         // todo: maybe the scene should have a separate Update for the editor so
         // we dont have to run 
-        if (EngineEditor.IsOpen)
+        if (EngineEditor.TimePaused)
             SceneManager.Update(0);
 
         // Updates camera input and target tracking
