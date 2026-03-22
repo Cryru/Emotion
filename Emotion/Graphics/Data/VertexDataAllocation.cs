@@ -152,6 +152,25 @@ public class VertexDataAllocation
         return true;
     }
 
+    public bool SetVertexColorAtIndex(int idx, uint color)
+    {
+        if (!Format.HasVertexColors) return false;
+        if (!Allocated) return false;
+        if (idx >= VertexCount) return false;
+
+        nint mem = Pointer;
+        Assert(mem != 0);
+
+        Format.GetVertexColorsOffsetAndStride(out int byteOffset, out int byteStride);
+        mem += byteOffset + byteStride * idx;
+
+        unsafe
+        {
+            *(uint*)mem = color;
+        }
+        return true;
+    }
+
     public bool SetNormalAtIndex(int idx, Vector3 pos)
     {
         if (!Format.HasNormals) return false;

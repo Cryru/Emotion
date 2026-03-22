@@ -74,26 +74,6 @@ public class Mesh
         return $"Mesh {Name}";
     }
 
-    #region Iterators
-
-    public IEnumerable<Triangle> ForEachTriangle()
-    {
-        for (int i = 0; i < Indices.Length; i += 3)
-        {
-            int i1 = Indices[i];
-            int i2 = Indices[i + 1];
-            int i3 = Indices[i + 2];
-
-            VertexData v1 = Vertices[i1];
-            VertexData v2 = Vertices[i2];
-            VertexData v3 = Vertices[i3];
-
-            yield return new Triangle(v1.Vertex, v2.Vertex, v3.Vertex);
-        }
-    }
-
-    #endregion
-
     #region Transformations
 
     public Mesh ColorMeshVertices(Color col)
@@ -144,8 +124,8 @@ public class Mesh
         int totalVertices = alloc1.VertexCount + alloc2.VertexCount;
         VertexDataAllocation combinedVerts = VertexDataAllocation.Allocate(alloc1.Format, totalVertices);
 
-        Span<byte> mem1 = new Span<byte>((byte*) alloc1.Pointer, alloc1.VertexCount * alloc1.Format.ElementSize);
-        Span<byte> mem2 = new Span<byte>((byte*) alloc2.Pointer, alloc2.VertexCount * alloc2.Format.ElementSize);
+        Span<byte> mem1 = new Span<byte>((byte*)alloc1.Pointer, alloc1.VertexCount * alloc1.Format.ElementSize);
+        Span<byte> mem2 = new Span<byte>((byte*)alloc2.Pointer, alloc2.VertexCount * alloc2.Format.ElementSize);
 
         Span<byte> memNew = new Span<byte>((byte*)combinedVerts.Pointer, totalVertices * alloc1.Format.ElementSize);
         mem1.CopyTo(memNew);
@@ -202,12 +182,28 @@ public class Mesh
     [Obsolete("DELETE MEEEE")]
     public Mesh TransformMeshVertices(Matrix4x4 tra)
     {
+        if (Vertices != null)
+        {
+            for (int i = 0; i < Vertices.Length; i++)
+            {
+                Vertices[i].Vertex = Vector3.Transform(Vertices[i].Vertex, tra);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < VertexAllocation.VertexCount; i++)
+            {
+                Vector3 vertPos = VertexAllocation.GetVertexPositionAtIndex(i);
+                VertexAllocation.SetVertexPositionAtIndex(i, Vector3.Transform(vertPos, tra));
+            }
+        }
+
         return this;
     }
 
     #endregion
 
-    // deprecate?
+    [Obsolete("DELETE MEEEE")]
     public void Render(Renderer c)
     {
         VertexData[]? vertData = Vertices;
@@ -215,7 +211,7 @@ public class Mesh
         ushort[] indices = Indices;
         Texture? texture = null;
         if (Material.DiffuseTexture != null) texture = Material.DiffuseTexture;
-        StreamData<VertexData> memory = c.RenderStream.GetStreamMemory((uint) vertData!.Length, (uint) indices.Length, BatchMode.SequentialTriangles, texture);
+        StreamData<VertexData> memory = c.RenderStream.GetStreamMemory((uint)vertData!.Length, (uint)indices.Length, BatchMode.SequentialTriangles, texture);
 
         vertData.CopyTo(memory.VerticesData);
         indices.CopyTo(memory.IndicesData);
@@ -229,7 +225,7 @@ public class Mesh
         ushort structOffset = memory.StructIndex;
         for (var j = 0; j < memory.IndicesData.Length; j++)
         {
-            memory.IndicesData[j] = (ushort) (memory.IndicesData[j] + structOffset);
+            memory.IndicesData[j] = (ushort)(memory.IndicesData[j] + structOffset);
         }
     }
 }

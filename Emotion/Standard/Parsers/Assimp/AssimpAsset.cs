@@ -162,7 +162,7 @@ public static class AssimpFormat
         for (var i = 0; i < scene->MNumMaterials; i++)
         {
             Material* material = scene->MMaterials[i];
-            string materialName = GetMaterialString(material, AssContext.DefaultMaterialName);
+            string materialName = GetMaterialString(material, AssContext.MatkeyName);
             Color diffColor = GetMaterialColor(material, AssContext.MaterialColorDiffuseBase);
 
             Texture? diffuseTexture = null;
@@ -207,8 +207,7 @@ public static class AssimpFormat
             {
                 Name = materialName,
                 DiffuseColor = diffColor,
-                DiffuseTextureName = diffuseTextureName,
-                DiffuseTexture = diffuseTexture ?? Texture.EmptyWhiteTexture
+                DiffuseTextureName = diffuseTexture ?? Texture.EmptyWhiteTexture
             };
 
             list.Add(emotionMaterial);
@@ -449,8 +448,25 @@ public static class AssimpFormat
         }
 
         // Copy vertices (todo: separate path for boneless)
-        var vertices = new VertexData[m->MNumVertices];
-        var meshData = new VertexDataMesh3DExtra[m->MNumVertices];
+        VertexDataFormat vertexFormat = new VertexDataFormat().AddVertexPosition();
+        if ((nint)m->MColors[0] != nint.Zero)
+        {
+            vertexFormat.AddVertexColor();
+        }
+        if ((nint)m->MNumUVComponents != nint.Zero && m->MNumUVComponents[0] >= 2)
+        {
+            vertexFormat.AddUV(1);
+        }
+        if ((nint)m->MNormals != nint.Zero)
+        {
+            vertexFormat.AddNormal();
+        }
+        if (m->MNumBones != 0)
+        {
+            vertexFormat.AddBoneData();
+        }
+        vertexFormat.Build();
+        var vertexDataAllocation = VertexDataAllocation.Allocate(vertexFormat, (int)m->MNumVertices);
 
         for (var i = 0; i < m->MNumVertices; i++)
         {
@@ -463,27 +479,21 @@ public static class AssimpFormat
                 assVertex.Y = -z;
                 //assVertex.X = assVertex.X;
             }
+            vertexDataAllocation.SetVertexPositionAtIndex(i, assVertex);
 
-            var uv = new Vector2(0, 0);
             if ((nint)m->MNumUVComponents != nint.Zero && m->MNumUVComponents[0] >= 2)
             {
                 Vector3 uv3 = m->MTextureCoords[0][i];
-                uv = new Vector2(uv3.X, uv3.Y);
+                Vector2 uv = new Vector2(uv3.X, uv3.Y);
+                vertexDataAllocation.SetUVAtIndex(0, i, uv);
             }
 
-            Color vertexColor = Color.White;
             if ((nint)m->MColors[0] != nint.Zero)
             {
                 Vector4 assVertColor = m->MColors[0][i]; // RGBA
-                vertexColor = new Color(assVertColor);
+                Color vertexColor = new Color(assVertColor);
+                vertexDataAllocation.SetVertexColorAtIndex(i, vertexColor.ToUint());
             }
-
-            vertices[i] = new VertexData
-            {
-                Vertex = assVertex,
-                UV = uv,
-                Color = vertexColor.ToUint()
-            };
 
             if ((nint)m->MNormals != nint.Zero)
             {
@@ -494,120 +504,104 @@ public static class AssimpFormat
                     (normal.Z, normal.Y) = (normal.Y, -normal.Z);
                     (normal.X, normal.Y) = (normal.Y, normal.X);
                 }
-
-                meshData[i] = new VertexDataMesh3DExtra
-                {
-                    Normal = normal
-                };
-            }
-            else
-            {
-                meshData[i] = new VertexDataMesh3DExtra
-                {
-                    Normal = Renderer.Up
-                };
+                vertexDataAllocation.SetNormalAtIndex(i, normal);
             }
         }
-
-        var newMesh = new Mesh(m->MName.AsString, vertices, meshData, emotionIndices)
-        {
-            Material = materials[(int)m->MMaterialIndex]
-        };
-
-        if (m->MNumBones == 0) return newMesh;
 
         // Initialize bone data.
-        var boneData = new Mesh3DVertexDataBones[m->MNumVertices];
-        for (var i = 0; i < boneData.Length; i++)
+        int animSkin = 0;
+        if (m->MNumBones != 0)
         {
-            boneData[i] = new Mesh3DVertexDataBones
+            var animationSkin = new SkeletalAnimationSkin
             {
-                BoneIds = new Vector4(0, 0, 0, 0),
-                BoneWeights = new Vector4(1, 0, 0, 0)
+                Name = $"{m->MName.AsString} Skin",
+                Joints = new SkeletalAnimationSkinJoint[m->MNumBones]
             };
-        }
-        newMesh.BoneData = boneData;
+            skins.Add(animationSkin);
+            animSkin = skins.Count - 1;
 
-        var animationSkin = new SkeletalAnimationSkin
-        {
-            Name = $"{m->MName.AsString} Skin",
-            Joints = new SkeletalAnimationSkinJoint[m->MNumBones]
-        };
-        skins.Add(animationSkin);
-        newMesh.AnimationSkin = skins.Count - 1;
-
-        for (var i = 0; i < m->MNumBones; i++)
-        {
-            Bone* bone = m->MBones[i];
-            string boneName = bone->MName.AsString;
-
-            int rigIdx = i;
-            for (int r = 0; r < animRig.Length; r++)
+            for (var i = 0; i < m->MNumBones; i++)
             {
-                SkeletonAnimRigNode rigItem = animRig[r];
-                if (rigItem.Name == boneName)
+                Bone* bone = m->MBones[i];
+                string boneName = bone->MName.AsString;
+
+                int rigIdx = i;
+                for (int r = 0; r < animRig.Length; r++)
                 {
-                    rigIdx = r;
-                    break;
-                }
-            }
-
-            SkeletalAnimationSkinJoint newSkinJoint = new SkeletalAnimationSkinJoint()
-            {
-                RigNodeIdx = rigIdx,
-                OffsetMatrix = Matrix4x4.Transpose(bone->MOffsetMatrix)
-            };
-            animationSkin.Joints[i] = newSkinJoint;
-
-            int boneIdx = i;
-            for (var j = 0; j < bone->MNumWeights; j++)
-            {
-                ref VertexWeight boneDef = ref bone->MWeights[j];
-                float weight = boneDef.MWeight;
-
-                // Sanity checks
-                if (boneDef.MVertexId > vertices.Length - 1) continue;
-                if (weight == 0) continue;
-
-                ref Mesh3DVertexDataBones vertex = ref boneData[boneDef.MVertexId];
-
-                var found = false;
-                for (var dim = 0; dim < 4; dim++)
-                {
-                    if (vertex.BoneIds[dim] != 0) continue;
-
-                    vertex.BoneIds[dim] = boneIdx;
-                    vertex.BoneWeights[dim] = weight;
-                    found = true;
-                    break;
+                    SkeletonAnimRigNode rigItem = animRig[r];
+                    if (rigItem.Name == boneName)
+                    {
+                        rigIdx = r;
+                        break;
+                    }
                 }
 
-                // If no free bone weight replace the lowest weight if it is lower than this one.
-                if (!found)
+                SkeletalAnimationSkinJoint newSkinJoint = new SkeletalAnimationSkinJoint()
                 {
-                    Engine.Log.Warning($"Bone {bone->MName.AsString} affects more than 4 vertices in mesh {m->MName.AsString}.", "Assimp", true);
+                    RigNodeIdx = rigIdx,
+                    OffsetMatrix = Matrix4x4.Transpose(bone->MOffsetMatrix)
+                };
+                animationSkin.Joints[i] = newSkinJoint;
 
-                    var lowestWeight = float.MaxValue;
-                    int lowestWeightIdx = -1;
+                int boneIdx = i;
+                for (var j = 0; j < bone->MNumWeights; j++)
+                {
+                    ref VertexWeight boneDef = ref bone->MWeights[j];
+                    float weight = boneDef.MWeight;
 
+                    // Sanity checks
+                    if (boneDef.MVertexId > m->MNumVertices - 1) continue;
+                    if (weight == 0) continue;
+
+                    Vector4 boneIds = Vector4.Zero;
+                    Vector4 boneWeights = Vector4.Zero;
+
+                    var found = false;
                     for (var dim = 0; dim < 4; dim++)
                     {
-                        float thisWeight = vertex.BoneWeights[dim];
-                        if (thisWeight < lowestWeight && thisWeight != 0)
+                        if (boneIds[dim] != 0) continue;
+
+                        boneIds[dim] = boneIdx;
+                        boneWeights[dim] = weight;
+                        found = true;
+                        break;
+                    }
+
+                    // If no free bone weight replace the lowest weight if it is lower than this one.
+                    if (!found)
+                    {
+                        Engine.Log.Warning($"Bone {bone->MName.AsString} affects more than 4 vertices in mesh {m->MName.AsString}.", "Assimp", true);
+
+                        var lowestWeight = float.MaxValue;
+                        int lowestWeightIdx = -1;
+
+                        for (var dim = 0; dim < 4; dim++)
                         {
-                            lowestWeight = thisWeight;
-                            lowestWeightIdx = dim;
+                            float thisWeight = boneWeights[dim];
+                            if (thisWeight < lowestWeight && thisWeight != 0)
+                            {
+                                lowestWeight = thisWeight;
+                                lowestWeightIdx = dim;
+                            }
+                        }
+
+                        if (lowestWeight < weight)
+                        {
+                            boneIds[lowestWeightIdx] = boneIdx;
+                            boneWeights[lowestWeightIdx] = weight + lowestWeight;
                         }
                     }
 
-                    if (lowestWeight < weight)
-                    {
-                        vertex.BoneIds[lowestWeightIdx] = boneIdx;
-                        vertex.BoneWeights[lowestWeightIdx] = weight + lowestWeight;
-                    }
+                    vertexDataAllocation.SetBoneWeightsAtIndex((int) boneDef.MVertexId, boneWeights);
+                    vertexDataAllocation.SetBoneIdAtIndex((int) boneDef.MVertexId, boneWeights);
                 }
             }
         }
+
+        var newMesh = new Mesh(vertexDataAllocation, emotionIndices, materials[(int)m->MMaterialIndex], m->MName.AsString)
+        {
+            AnimationSkin = animSkin
+        };
 
         // Normalize bone weights to 1.
         //for (var i = 0; i < vertices.Length; i++)
