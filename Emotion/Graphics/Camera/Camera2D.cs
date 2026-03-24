@@ -168,10 +168,10 @@ public class Camera2D : CameraBase
     {
         // We need to invert these from the base variant because of the -Yscale flip in the view matrix
         var vp = ViewMatrix * ProjectionMatrix;
-        vp.M12 = -vp.M12;
-        vp.M22 = -vp.M22;
-        vp.M32 = -vp.M32;
-        vp.M42 = -vp.M42;
+        vp.M33 = -vp.M33;
+        vp.M13 = -vp.M13;
+        vp.M23 = -vp.M23;
+        vp.M43 = -vp.M43;
         return new Frustum(vp);
     }
 }
