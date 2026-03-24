@@ -1,3 +1,6 @@
+# Emotion
+Emotion.ExecTest/Assets/test/*
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
@@ -38,21 +41,9 @@ TestResults
 # Nuget
 packages/*
 *.nupkg
-EmotionCore/Emotion.targets
-Emotion.ExecTest/Assets/test/*
-
-# Soul
-Logs
-
-# Emotion Games
-HealerGame
-ElectricSleep
-MoS
-DetectiveGame
-LLZ
-SM
 
 # Other
+.vscode/*
 *.DotSettings.user
 cmake-build-debug
 .idea
