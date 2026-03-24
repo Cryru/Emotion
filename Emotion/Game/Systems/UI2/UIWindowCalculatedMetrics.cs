@@ -19,6 +19,12 @@ public struct UIWindowCalculatedMetrics
     public IntVector2 MinSize;
     public IntVector2 MaxSize;
 
+    public int GridRowCount;
+    public List<int>? GridRowHeights;
+    public List<int>? GridColumnWidths;
+    public int GridTotalWidth;
+    public int GridTotalHeight;
+
     public IntVector2 GetContentSize() => Size - PaddingTotalSize;
     public IntRectangle GetContentRect() => new IntRectangle(
         Position + PaddingLeftTop,

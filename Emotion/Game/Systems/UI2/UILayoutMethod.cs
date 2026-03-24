@@ -16,6 +16,7 @@ public record struct UILayoutMethod
         LayoutClasses.Add(UIMethodName.VerticalList, new ListLayout());
         LayoutClasses.Add(UIMethodName.HorizontalListWrap, new ListLayout());
         LayoutClasses.Add(UIMethodName.VerticalListWrap, new ListLayout());
+        LayoutClasses.Add(UIMethodName.Grid, new GridLayout());
     }
 
     public static LayoutMethodCodeClass GetLayoutCode(in UILayoutMethod layoutMethod)
@@ -31,6 +32,7 @@ public record struct UILayoutMethod
         VerticalList,
         HorizontalListWrap,
         VerticalListWrap,
+        Grid,
     }
 
     public enum ListLayoutItemsAlign
@@ -40,9 +42,17 @@ public record struct UILayoutMethod
         End
     }
 
+    public struct LayoutPropertiesGrid
+    {
+        public int ColumnCount;
+        public bool UniformRowHeight;
+        public bool UniformColumnWidth;
+    }
+
     public UIMethodName Mode;
     public IntVector2 ListSpacing;
     public ListLayoutItemsAlign ListItemsAlign; // todo
+    public LayoutPropertiesGrid GridProperties;
 
     public readonly int GetListMask()
     {
@@ -115,10 +125,28 @@ public record struct UILayoutMethod
         };
     }
 
+    public static UILayoutMethod Grid(int columnCount, int cellSpacingX = 0, int cellSpacingY = 0, bool uniformRowHeight = false, bool uniformColumnWidth = false)
+    {
+        return new UILayoutMethod()
+        {
+            Mode = UIMethodName.Grid,
+            ListSpacing = new IntVector2(cellSpacingX, cellSpacingY),
+            GridProperties = new LayoutPropertiesGrid()
+            {
+                ColumnCount = columnCount,
+                UniformRowHeight = uniformRowHeight,
+                UniformColumnWidth = uniformColumnWidth,
+            }
+        };
+    }
+
     public override readonly string ToString()
     {
         if (Mode == UIMethodName.HorizontalList || Mode == UIMethodName.VerticalList)
             return $"{Mode} {ListSpacing} (Align {ListItemsAlign})";
+
+        if (Mode == UIMethodName.Grid)
+            return $"{Mode} Cols={GridProperties.ColumnCount}";
 
         return $"{Mode}";
     }

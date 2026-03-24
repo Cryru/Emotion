@@ -18,7 +18,6 @@ using System.Numerics;
 
 namespace Tests.EngineTests;
 
-[DebugTest]
 public class NewUITests : TestingScene
 {
     protected override IEnumerator InternalLoadSceneRoutineAsync()
@@ -44,7 +43,7 @@ public class NewUITests : TestingScene
         Engine.UI.Render(c);
     }
 
-    private IEnumerator WaitUILayout()
+    protected IEnumerator WaitUILayout()
     {
         Engine.UI.Update();
         yield return Engine.UI.WaitLoadingRoutine();
