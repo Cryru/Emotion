@@ -73,22 +73,32 @@ public abstract class TestingScene : SceneWithMap
 
         if (_screenShotBuffer == null || _lastFrameScreenShot == null) return new VerifyScreenshotResult(false);
         Vector2 screenShotSize = _screenShotBuffer.Size;
-        byte[] screenshot = _lastFrameScreenShot;
-        ImageUtil.FlipImageY(screenshot, (int) screenShotSize.Y);
+        byte[] screenShot = _lastFrameScreenShot;
+        ImageUtil.FlipImageY(screenShot, (int) screenShotSize.Y);
 
-        string screenShotFolder = Path.Join(TestExecutor.TestRunFolder, "Renders");
-        screenShotFolder = Path.Join(screenShotFolder, testClass);
-        Directory.CreateDirectory(screenShotFolder);
+        static void WriteImageFiles(string testClass, string fileName, byte[] screenShot, Vector2 screenShotSize, ReadOnlySpan<byte> refereceImageSpan)
+        {
+            string screenShotFolder = Path.Join(TestExecutor.TestRunFolder, "Renders");
+            screenShotFolder = Path.Join(screenShotFolder, testClass);
+            Directory.CreateDirectory(screenShotFolder);
 
-        string screenShotFilePath = Path.Join(screenShotFolder, $"{fileName}.png");
-        byte[] screenShotAsPng = PngFormat.Encode(screenshot, screenShotSize, PixelFormat.Rgba);
-        File.WriteAllBytes(screenShotFilePath, screenShotAsPng);
+            string screenShotFilePath = Path.Join(screenShotFolder, $"{fileName}.png");
+            byte[] screenShotAsPng = PngFormat.Encode(screenShot, screenShotSize, PixelFormat.Rgba);
+            File.WriteAllBytes(screenShotFilePath, screenShotAsPng);
+
+            if (!refereceImageSpan.IsEmpty)
+            {
+                string referenceFilePath = Path.Join(screenShotFolder, $"{fileName}_reference.png");
+                File.WriteAllBytes(referenceFilePath, refereceImageSpan);
+            }
+        }
 
         // Load reference screenshot.
         var referenceRenderName = $"ReferenceRenders/{testClass}/{fileName}.png";
         var referenceImage = Engine.AssetLoader.Get<OtherAsset>(referenceRenderName, null, true);
         if (!referenceImage.Loaded)
         {
+            WriteImageFiles(testClass, fileName, screenShot, screenShotSize, []);
             Engine.Log.Error($"    - Missing reference image {referenceRenderName}!", MessageSource.Test);
             return new VerifyScreenshotResult(false);
         }
@@ -100,10 +110,7 @@ public abstract class TestingScene : SceneWithMap
             return new VerifyScreenshotResult(false);
         }
 
-        string referenceFilePath = Path.Join(screenShotFolder, $"{fileName}_reference.png");
-        File.WriteAllBytes(referenceFilePath, referenceImage.Content.Span);
-
-        Assert(dataReference.Length == screenshot.Length);
+        Assert(dataReference.Length == screenShot.Length);
 
         Engine.Log.Info($"    Comparing images {fileName}", MessageSource.Test);
 
@@ -112,10 +119,10 @@ public abstract class TestingScene : SceneWithMap
         var totalPixels = 0;
         for (var i = 0; i < dataReference.Length; i += 4)
         {
-            byte r = screenshot[i];
-            byte g = screenshot[i + 1];
-            byte b = screenshot[i + 2];
-            byte a = screenshot[i + 3];
+            byte r = screenShot[i];
+            byte g = screenShot[i + 1];
+            byte b = screenShot[i + 2];
+            byte a = screenShot[i + 3];
 
             byte refR = dataReference[i];
             byte refG = dataReference[i + 1];
@@ -134,6 +141,9 @@ public abstract class TestingScene : SceneWithMap
         float derivationPercent = totalPixels == 0 ? 0 : (float) differentPixels / totalPixels;
         derivationPercent *= 100;
         Engine.Log.Info($"    Derivation is {derivationPercent}%", MessageSource.Test);
+
+        if (derivationPercent != 0)
+            WriteImageFiles(testClass, fileName, screenShot, screenShotSize, referenceImage.Content.Span);
 
         if (derivationPercent > TestExecutor.PixelDerivationTolerance)
         {

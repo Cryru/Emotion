@@ -134,7 +134,8 @@ public static class TestExecutor
                 if (_testsFilter != null && classType != _testsFilter) continue;
 
                 // Get all test functions in this class.
-                IEnumerable<MethodInfo> methodsInTestClass = classType.GetMethods().Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0);
+                IEnumerable<MethodInfo> methodsInTestClass = classType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                    .Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0);
 
                 testFunctionsDebugOnly.AddRange(GetFunctionsWithDebugThis(classType, methodsInTestClass));
                 testFunctions.AddRange(methodsInTestClass);
@@ -156,7 +157,8 @@ public static class TestExecutor
                 List<MethodInfo> methodsInThisClassDebugThis = new();
 
                 // Get all test functions
-                IEnumerable<MethodInfo> methodsInTestScene = sceneType.GetMethods().Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0);
+                IEnumerable<MethodInfo> methodsInTestScene = sceneType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                    .Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0);
 
                 methodsInThisClassDebugThis.AddRange(GetFunctionsWithDebugThis(sceneType, methodsInTestScene));
                 if (methodsInThisClassDebugThis.Count > 0)
@@ -197,7 +199,7 @@ public static class TestExecutor
 #endif
 
 #if !AUTOBUILD
-        if (Engine.Host is Win32Platform win32) win32.OpenFolderAndSelectFile(TestRunFolder + "\\");
+        if (completed != total && Engine.Host is Win32Platform win32) win32.OpenFolderAndSelectFile(TestRunFolder + "\\");
 #endif
     }
 
