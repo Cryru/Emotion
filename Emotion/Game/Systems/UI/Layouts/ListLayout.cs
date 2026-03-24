@@ -97,6 +97,8 @@ public partial class UIBaseWindow
 
             // Distribute remaining size among growers
             bool[] frozen = ArrayPool<bool>.Shared.Rent(growingChildren.Count);
+            Array.Clear(frozen, 0, growingChildren.Count);
+
             int unfrozenCount = growingChildren.Count;
             while (unfrozenCount > 0 && listRemainingSize > 1f)
             {
@@ -192,7 +194,7 @@ public partial class UIBaseWindow
             }
         }
 
-        private static int GetListSpacing(UIBaseWindow self, int listMask)
+        public static int GetListSpacing(UIBaseWindow self, int listMask)
         {
             return (int)Maths.RoundAwayFromZero(self.Layout.LayoutMethod.ListSpacing[listMask] * self.CalculatedMetrics.Scale[listMask]);
         }
