@@ -12,11 +12,22 @@ public static class GridHelpers
         return new Vector2(x, y);
     }
 
+    public static void GetCoordinate2DFrom1D(int oneD, int width, out int x, out int y)
+    {
+        x = oneD % width;
+        y = oneD / width;
+    }
+
     public static int GetCoordinate1DFrom2D(Vector2 twoD, Vector2 size)
     {
         var top = (int)twoD.Y;
         var left = (int)twoD.X;
         return (int)(left + size.X * top);
+    }
+
+    public static int GetCoordinate1DFrom2D(int x, int y, int width)
+    {
+        return y * width + x;
     }
 
     public static Vector3 GetCoordinate3DFrom1D(int oneD, Vector3 size)
