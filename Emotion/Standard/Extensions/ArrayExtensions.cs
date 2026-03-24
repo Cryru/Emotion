@@ -113,6 +113,20 @@ public static class ArrayExtensions
         return -1;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int CountTrue(this bool[] array, int lengthOverride = -1)
+    {
+        if (lengthOverride == -1 || lengthOverride > array.Length) lengthOverride = array.Length;
+
+        int c = 0;
+        for (var i = 0; i < lengthOverride; i++)
+        {
+            c += array[i] ? 1 : 0;
+        }
+
+        return c;
+    }
+
     /// <summary>
     /// Swap two items in an array by index.
     /// </summary>
