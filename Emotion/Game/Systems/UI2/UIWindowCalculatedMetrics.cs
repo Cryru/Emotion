@@ -19,6 +19,7 @@ public struct UIWindowCalculatedMetrics
     public IntVector2 MinSize;
     public IntVector2 MaxSize;
 
+    public int GridColumnCount;
     public int GridRowCount;
     public List<int>? GridRowHeights;
     public List<int>? GridColumnWidths;

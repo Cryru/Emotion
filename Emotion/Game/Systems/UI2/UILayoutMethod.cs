@@ -44,7 +44,11 @@ public record struct UILayoutMethod
 
     public struct LayoutPropertiesGrid
     {
+        // 0 in the column or row count means auto calculate
+
         public int ColumnCount;
+        public int RowCount;
+
         public bool UniformRowHeight;
         public bool UniformColumnWidth;
     }
@@ -53,29 +57,6 @@ public record struct UILayoutMethod
     public IntVector2 ListSpacing;
     public ListLayoutItemsAlign ListItemsAlign; // todo
     public LayoutPropertiesGrid GridProperties;
-
-    public readonly int GetListMask()
-    {
-        return Mode == UIMethodName.HorizontalList ? 0 : 1;
-    }
-
-    public int GetListInverseMask()
-    {
-        int mask = GetListMask();
-        return mask == 0 ? 1 : 0;
-    }
-
-    public bool GrowingAlongList(UIWindowLayoutConfig layout)
-    {
-        int mask = GetListMask();
-        return mask == 0 ? layout.SizingX.Mode == UISizing.UISizingMode.Grow : layout.SizingY.Mode == UISizing.UISizingMode.Grow;
-    }
-
-    public bool GrowingAcrossList(UIWindowLayoutConfig layout)
-    {
-        int inverseMask = GetListInverseMask();
-        return inverseMask == 0 ? layout.SizingX.Mode == UISizing.UISizingMode.Grow : layout.SizingY.Mode == UISizing.UISizingMode.Grow;
-    }
 
     public static UILayoutMethod Free()
     {
@@ -87,21 +68,49 @@ public record struct UILayoutMethod
 
     public static UILayoutMethod HorizontalList(int spacing, ListLayoutItemsAlign alignItems = ListLayoutItemsAlign.Beginning)
     {
+        //return new UILayoutMethod()
+        //{
+        //    Mode = UIMethodName.HorizontalList,
+        //    ListSpacing = new IntVector2(spacing, 0),
+        //    ListItemsAlign = alignItems
+        //};
+
         return new UILayoutMethod()
         {
-            Mode = UIMethodName.HorizontalList,
+            Mode = UIMethodName.Grid,
             ListSpacing = new IntVector2(spacing, 0),
-            ListItemsAlign = alignItems
+            ListItemsAlign = alignItems,
+            GridProperties = new LayoutPropertiesGrid()
+            {
+                ColumnCount = 0,
+                RowCount = 1,
+                UniformRowHeight = false,
+                UniformColumnWidth = false,
+            }
         };
     }
 
     public static UILayoutMethod VerticalList(int spacing, ListLayoutItemsAlign alignItems = ListLayoutItemsAlign.Beginning)
     {
+        //return new UILayoutMethod()
+        //{
+        //    Mode = UIMethodName.VerticalList,
+        //    ListSpacing = new IntVector2(0, spacing),
+        //    ListItemsAlign = alignItems
+        //};
+
         return new UILayoutMethod()
         {
-            Mode = UIMethodName.VerticalList,
+            Mode = UIMethodName.Grid,
             ListSpacing = new IntVector2(0, spacing),
-            ListItemsAlign = alignItems
+            ListItemsAlign = alignItems,
+            GridProperties = new LayoutPropertiesGrid()
+            {
+                ColumnCount = 1,
+                RowCount = 0,
+                UniformRowHeight = false,
+                UniformColumnWidth = false,
+            }
         };
     }
 
@@ -125,7 +134,7 @@ public record struct UILayoutMethod
         };
     }
 
-    public static UILayoutMethod Grid(int columnCount, int cellSpacingX = 0, int cellSpacingY = 0, bool uniformRowHeight = false, bool uniformColumnWidth = false)
+    public static UILayoutMethod Grid_FixedColumns(int columnCount, int cellSpacingX = 0, int cellSpacingY = 0, bool uniformRowHeight = false, bool uniformColumnWidth = false)
     {
         return new UILayoutMethod()
         {
@@ -134,6 +143,39 @@ public record struct UILayoutMethod
             GridProperties = new LayoutPropertiesGrid()
             {
                 ColumnCount = columnCount,
+                RowCount = 0,
+                UniformRowHeight = uniformRowHeight,
+                UniformColumnWidth = uniformColumnWidth,
+            }
+        };
+    }
+
+    public static UILayoutMethod Grid_FixedRows(int rowCount, int cellSpacingX = 0, int cellSpacingY = 0, bool uniformRowHeight = false, bool uniformColumnWidth = false)
+    {
+        return new UILayoutMethod()
+        {
+            Mode = UIMethodName.Grid,
+            ListSpacing = new IntVector2(cellSpacingX, cellSpacingY),
+            GridProperties = new LayoutPropertiesGrid()
+            {
+                ColumnCount = 0,
+                RowCount = rowCount,
+                UniformRowHeight = uniformRowHeight,
+                UniformColumnWidth = uniformColumnWidth,
+            }
+        };
+    }
+
+    public static UILayoutMethod Grid_Auto(int cellSpacingX = 0, int cellSpacingY = 0, bool uniformRowHeight = false, bool uniformColumnWidth = false)
+    {
+        return new UILayoutMethod()
+        {
+            Mode = UIMethodName.Grid,
+            ListSpacing = new IntVector2(cellSpacingX, cellSpacingY),
+            GridProperties = new LayoutPropertiesGrid()
+            {
+                ColumnCount = 0,
+                RowCount = 0,
                 UniformRowHeight = uniformRowHeight,
                 UniformColumnWidth = uniformColumnWidth,
             }

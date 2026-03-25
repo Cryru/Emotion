@@ -14,8 +14,8 @@ public partial class UIBaseWindow
             childrenSize = IntVector2.Zero;
 
             UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
-            int listMask = layoutMethod.GetListMask();
-            int inverseListMask = layoutMethod.GetListInverseMask();
+            int listMask = GetListMask(layoutMethod);
+            int inverseListMask = GetListInverseMask(layoutMethod);
 
             int listChildrenCount = 0;
             IntVector2 pen = IntVector2.Zero;
@@ -33,8 +33,8 @@ public partial class UIBaseWindow
             int totalSpacing = GetListSpacing(self, listMask) * (listChildrenCount - 1);
 
             //bool fitAlongList = listMask == 0 ? Layout.SizingX.Mode == UISizing.UISizingMode.Fit : Layout.SizingY.Mode == UISizing.UISizingMode.Fit;
-            childrenSize[listMask] += pen[listMask] + totalSpacing;
-            childrenSize[inverseListMask] += pen[inverseListMask];
+            childrenSize[listMask] = pen[listMask] + totalSpacing;
+            childrenSize[inverseListMask] = pen[inverseListMask];
 
             //bool fitAcrossList = inverseListMask == 0 ? Layout.SizingX.Mode == UISizing.UISizingMode.Fit : Layout.SizingY.Mode == UISizing.UISizingMode.Fit;
             //if (fitAcrossList)
@@ -44,8 +44,8 @@ public partial class UIBaseWindow
         public override void Step2_Grow(UIBaseWindow self)
         {
             UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
-            int listMask = layoutMethod.GetListMask();
-            int inverseListMask = layoutMethod.GetListInverseMask();
+            int listMask = GetListMask(layoutMethod);
+            int inverseListMask = GetListInverseMask(layoutMethod);
 
             IntVector2 myMeasuredSize = self.CalculatedMetrics.GetContentSize();
 
@@ -54,7 +54,7 @@ public partial class UIBaseWindow
             {
                 if (SkipWindowLayout(child)) continue;
 
-                bool growingAcross = layoutMethod.GrowingAcrossList(child.Layout);
+                bool growingAcross = GrowingAcrossList(layoutMethod, child.Layout);
                 if (!growingAcross) continue;
 
                 child.CalculatedMetrics.Size[inverseListMask] = myMeasuredSize[inverseListMask] - child.CalculatedMetrics.MarginTotalSize[inverseListMask];
@@ -91,7 +91,7 @@ public partial class UIBaseWindow
             foreach (UIBaseWindow child in self.Children)
             {
                 if (SkipWindowLayout(child)) continue;
-                if (!layoutMethod.GrowingAlongList(child.Layout)) continue;
+                if (!GrowingAlongList(layoutMethod, child.Layout)) continue;
                 growingChildren.Add(child);
             }
 
@@ -157,8 +157,8 @@ public partial class UIBaseWindow
             IntRectangle boundsRect = self.CalculatedMetrics.Bounds;
 
             UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
-            int listMask = layoutMethod.GetListMask();
-            int inverseListMask = layoutMethod.GetListInverseMask();
+            int listMask = GetListMask(layoutMethod);
+            int inverseListMask = GetListInverseMask(layoutMethod);
 
             int listSpacing = GetListSpacing(self, listMask);
             IntVector2 pen = contentRect.Position;
@@ -197,6 +197,29 @@ public partial class UIBaseWindow
         public static int GetListSpacing(UIBaseWindow self, int listMask)
         {
             return (int)Maths.RoundAwayFromZero(self.Layout.LayoutMethod.ListSpacing[listMask] * self.CalculatedMetrics.Scale[listMask]);
+        }
+
+        public static int GetListMask(in UILayoutMethod layout)
+        {
+            return layout.Mode == UIMethodName.HorizontalList ? 0 : 1;
+        }
+
+        public static int GetListInverseMask(in UILayoutMethod layout)
+        {
+            int mask = GetListMask(layout);
+            return mask == 0 ? 1 : 0;
+        }
+
+        public static bool GrowingAlongList(in UILayoutMethod parentLayoutMethod, in UIWindowLayoutConfig layout)
+        {
+            int mask = GetListMask(parentLayoutMethod);
+            return mask == 0 ? layout.SizingX.Mode == UISizing.UISizingMode.Grow : layout.SizingY.Mode == UISizing.UISizingMode.Grow;
+        }
+
+        public static bool GrowingAcrossList(in UILayoutMethod parentLayoutMethod, in UIWindowLayoutConfig layout)
+        {
+            int inverseMask = GetListInverseMask(parentLayoutMethod);
+            return inverseMask == 0 ? layout.SizingX.Mode == UISizing.UISizingMode.Grow : layout.SizingY.Mode == UISizing.UISizingMode.Grow;
         }
     }
 }

@@ -18,6 +18,7 @@ using System.Numerics;
 
 namespace Tests.EngineTests;
 
+[DebugTest]
 public class NewUITests : TestingScene
 {
     protected override IEnumerator InternalLoadSceneRoutineAsync()
@@ -277,6 +278,7 @@ public class NewUITests : TestingScene
         }
     }
 
+    [DebugTest]
     [Test]
     public IEnumerator ComplicatedLayoutTest()
     {

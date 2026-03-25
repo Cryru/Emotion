@@ -15,26 +15,37 @@ public partial class UIBaseWindow
             childrenSize = IntVector2.Zero;
 
             UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
-            int columnCount = Math.Max(1, layoutMethod.GridProperties.ColumnCount);
 
             // Measure children
-            foreach (UIBaseWindow child in self.Children)
-            {
-                if (SkipWindowLayout(child)) continue;
-                child.Layout_Step1_Measure();
-            }
-
-            ref UIWindowCalculatedMetrics calc = ref self.CalculatedMetrics;
-
-            // Config says column count - rows are determined by child count
             int childrenToLayout = 0;
             foreach (UIBaseWindow child in self.Children)
             {
                 if (SkipWindowLayout(child)) continue;
+                child.Layout_Step1_Measure();
                 childrenToLayout++;
             }
 
-            int rowCount = (childrenToLayout + columnCount - 1) / columnCount;
+            ref UIWindowCalculatedMetrics calc = ref self.CalculatedMetrics;
+
+            bool fixedColumns = HasFixedColumns(layoutMethod);
+            bool fixedRows = HasFixedRows(layoutMethod);
+            int columnCount = layoutMethod.GridProperties.ColumnCount;
+            int rowCount = layoutMethod.GridProperties.RowCount;
+            if (fixedColumns && fixedRows)
+            {
+                columnCount = Math.Max(1, columnCount);
+                rowCount = Math.Max(1, rowCount);
+            }
+            else if (fixedRows)
+            {
+                columnCount = Math.Max(1, (childrenToLayout + rowCount - 1) / rowCount);
+            }
+            else if (fixedColumns)
+            {
+                rowCount = Math.Max(1, (childrenToLayout + columnCount - 1) / columnCount);
+            }
+
+            calc.GridColumnCount = columnCount;
             calc.GridRowCount = rowCount;
 
             List<int>? columnWidths = calc.GridColumnWidths ?? new List<int>(columnCount);
@@ -70,9 +81,6 @@ public partial class UIBaseWindow
 
         public override void Step2_Grow(UIBaseWindow self)
         {
-            UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
-            int columnCount = Math.Max(1, layoutMethod.GridProperties.ColumnCount);
-
             IntVector2 myMeasuredSize = self.CalculatedMetrics.GetContentSize();
 
             List<int>? columnWidths = self.CalculatedMetrics.GridColumnWidths;
@@ -81,9 +89,11 @@ public partial class UIBaseWindow
             AssertNotNull(rowHeights);
             if (columnWidths == null || rowHeights == null) return;
 
+            int columnCount = Math.Max(1, columnWidths.Count);
+            int rowCount = Math.Max(1, rowHeights.Count);
+
             int totalWidth = self.CalculatedMetrics.GridTotalWidth;
             int totalHeight = self.CalculatedMetrics.GridTotalHeight;
-            int rowCount = self.CalculatedMetrics.GridRowCount;
 
             if (totalWidth <= myMeasuredSize.X || totalHeight <= myMeasuredSize.Y)
             {
@@ -142,24 +152,25 @@ public partial class UIBaseWindow
 
         public override void Step3_Position(UIBaseWindow self)
         {
-            IntRectangle contentRect = self.CalculatedMetrics.GetContentRect();
-            IntRectangle boundsRect = self.CalculatedMetrics.Bounds;
-
+            ref UIWindowCalculatedMetrics calc = ref self.CalculatedMetrics;
             UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
-            int columnCount = Math.Max(1, layoutMethod.GridProperties.ColumnCount);
+
+            IntRectangle contentRect = calc.GetContentRect();
+            IntRectangle boundsRect = calc.Bounds;
 
             int spacingX = ListLayout.GetListSpacing(self, 0);
             int spacingY = ListLayout.GetListSpacing(self, 1);
 
-            List<int>? columnWidths = self.CalculatedMetrics.GridColumnWidths;
-            List<int>? rowHeights = self.CalculatedMetrics.GridRowHeights;
+            List<int>? columnWidths = calc.GridColumnWidths;
+            List<int>? rowHeights = calc.GridRowHeights;
             AssertNotNull(columnWidths);
             AssertNotNull(rowHeights);
             if (columnWidths == null || rowHeights == null) return;
 
             RecalculateUniformGridConfig(self, columnWidths, rowHeights);
 
-            int rowCount = self.CalculatedMetrics.GridRowCount;
+            int columnCount = calc.GridColumnCount;
+            int rowCount = calc.GridRowCount;
 
             int childrenToLayout = 0;
             int currentRow = 0;
@@ -167,6 +178,12 @@ public partial class UIBaseWindow
             foreach (UIBaseWindow child in self.Children)
             {
                 if (SkipWindowLayout(child)) continue;
+                if (!child.CalculatedMetrics.InsideParent)
+                {
+                    // Parents outisde the parent list are free layout
+                    FreeLayout.FreeLayoutChild(child, contentRect, boundsRect);
+                    continue;
+                }
 
                 GridHelpers.GetCoordinate2DFrom1D(childrenToLayout, columnCount, out int col, out int row);
 
@@ -194,10 +211,10 @@ public partial class UIBaseWindow
                 switch (alignContent)
                 {
                     case ListLayoutItemsAlign.Center:
-                        childPosition.X += cellRect.Width / 2 - child.CalculatedMetrics.Size.X / 2;
+                        childPosition.Y += cellRect.Height / 2 - child.CalculatedMetrics.Size.Y / 2;
                         break;
                     case ListLayoutItemsAlign.End:
-                        childPosition.X += cellRect.Width - child.CalculatedMetrics.Size.X;
+                        childPosition.Y += cellRect.Height - child.CalculatedMetrics.Size.Y;
                         break;
                 }
 
@@ -216,7 +233,7 @@ public partial class UIBaseWindow
             UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
             ref UIWindowCalculatedMetrics calc = ref self.CalculatedMetrics;
 
-            int columnCount = Math.Max(1, layoutMethod.GridProperties.ColumnCount);
+            int columnCount = calc.GridColumnCount;
             int rowCount = calc.GridRowCount;
 
             // If uniform size enabled then all rows/columns are of the size of the largest one.
@@ -264,6 +281,16 @@ public partial class UIBaseWindow
                 sizesInDirection[i]++;
                 remainingPixels--;
             }
+        }
+
+        private static bool HasFixedColumns(in UILayoutMethod layoutMethod)
+        {
+            return layoutMethod.GridProperties.ColumnCount > 0;
+        }
+
+        private static bool HasFixedRows(in UILayoutMethod layoutMethod)
+        {
+            return layoutMethod.GridProperties.RowCount > 0;
         }
     }
 }

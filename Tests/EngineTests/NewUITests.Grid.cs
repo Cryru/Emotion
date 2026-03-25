@@ -21,7 +21,7 @@ public class NewUITestsGrids : NewUITests
             },
             Layout =
             {
-                LayoutMethod = UILayoutMethod.Grid(3, 5, 5),
+                LayoutMethod = UILayoutMethod.Grid_FixedColumns(3, 5, 5),
                 Padding = new UISpacing(10, 10, 10, 10),
                 SizingX = UISizing.Fit(),
                 SizingY = UISizing.Fit()
@@ -72,7 +72,7 @@ public class NewUITestsGrids : NewUITests
             },
             Layout =
             {
-                LayoutMethod = UILayoutMethod.Grid(3, 5, 5),
+                LayoutMethod = UILayoutMethod.Grid_FixedColumns(3, 5, 5),
                 Padding = new UISpacing(10, 10, 10, 10),
                 SizingX = UISizing.Fit(),
                 SizingY = UISizing.Fit()
@@ -144,6 +144,201 @@ public class NewUITestsGrids : NewUITests
     }
 
     [Test]
+    public IEnumerator GridBasic2x3()
+    {
+        var gridContainer = new UIBaseWindow
+        {
+            Visuals =
+            {
+                BackgroundColor = Color.PrettyPurple
+            },
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.Grid_FixedRows(3, 5, 5),
+                Padding = new UISpacing(10, 10, 10, 10),
+                SizingX = UISizing.Fit(),
+                SizingY = UISizing.Fit()
+            }
+        };
+        SceneUI.AddChild(gridContainer);
+
+        for (int i = 0; i < 6; i++)
+        {
+            var cell = new UIBaseWindow
+            {
+                Visuals =
+                {
+                    BackgroundColor = Color.White
+                },
+                Layout =
+                {
+                    MinSize = new IntVector2(50),
+                    SizingX = UISizing.Grow(),
+                    SizingY = UISizing.Grow()
+                }
+            };
+            gridContainer.AddChild(cell);
+        }
+
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITestsGrids), nameof(GridBasic2x3));
+
+        gridContainer.Layout.SizingX = UISizing.Grow();
+
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITestsGrids), nameof(GridBasic2x3));
+
+        gridContainer.Layout.SizingY = UISizing.Grow();
+
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITestsGrids), nameof(GridBasic2x3));
+
+        // For fun lets also compare a list and a grid with a single row
+        // Should look and behave the same
+        SceneUI.ClearChildren();
+
+        gridContainer = new UIBaseWindow
+        {
+            Visuals =
+            {
+                BackgroundColor = Color.PrettyPurple
+            },
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.Grid_FixedRows(3, 5, 5),
+                Padding = new UISpacing(10, 10, 10, 10),
+                SizingX = UISizing.Fit(),
+                SizingY = UISizing.Fit()
+            }
+        };
+        SceneUI.AddChild(gridContainer);
+
+        for (int i = 0; i < 3; i++)
+        {
+            var cell = new UIBaseWindow
+            {
+                Visuals =
+                {
+                    BackgroundColor = Color.White
+                },
+                Layout =
+                {
+                    MinSize = new IntVector2(50),
+                    SizingX = UISizing.Grow(),
+                    SizingY = UISizing.Grow()
+                }
+            };
+            gridContainer.AddChild(cell);
+        }
+
+        var list = new UIBaseWindow
+        {
+            Visuals =
+            {
+                BackgroundColor = Color.PrettyPurple
+            },
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.VerticalList(5),
+                Padding = new UISpacing(10, 10, 10, 10),
+                SizingX = UISizing.Fit(),
+                SizingY = UISizing.Fit(),
+                Margins = new UISpacing(0, 300, 0, 0)
+            }
+        };
+        SceneUI.AddChild(list);
+
+        for (int i = 0; i < 3; i++)
+        {
+            var cell = new UIBaseWindow
+            {
+                Visuals =
+                {
+                    BackgroundColor = Color.White
+                },
+                Layout =
+                {
+                    MinSize = new IntVector2(50),
+                    SizingX = UISizing.Grow(),
+                    SizingY = UISizing.Grow()
+                }
+            };
+            list.AddChild(cell);
+        }
+
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITestsGrids), nameof(GridBasic2x3));
+
+        gridContainer.Layout.SizingX = UISizing.Grow();
+        list.Layout.SizingX = UISizing.Grow();
+
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITestsGrids), nameof(GridBasic2x3));
+    }
+
+    //[Test]
+    //public IEnumerator GridAutoWrap()
+    //{
+    //    var gridContainer = new UIBaseWindow
+    //    {
+    //        Visuals =
+    //        {
+    //            BackgroundColor = Color.PrettyPurple
+    //        },
+    //        Layout =
+    //        {
+    //            LayoutMethod = UILayoutMethod.Grid_Auto(5, 5),
+    //            Padding = new UISpacing(10, 10, 10, 10),
+    //            SizingX = UISizing.Fixed(220),
+    //            SizingY = UISizing.Fixed(140)
+    //        }
+    //    };
+    //    SceneUI.AddChild(gridContainer);
+
+    //    for (int i = 0; i < 5; i++)
+    //    {
+    //        var cell = new UIBaseWindow
+    //        {
+    //            Visuals =
+    //            {
+    //                BackgroundColor = Color.White
+    //            },
+    //            Layout =
+    //            {
+    //                MinSize = new IntVector2(50),
+    //                SizingX = UISizing.Fit(),
+    //                SizingY = UISizing.Fit()
+    //            }
+    //        };
+    //        gridContainer.AddChild(cell);
+    //    }
+
+    //    yield return WaitUILayout();
+    //    yield return VerifyScreenshot(nameof(NewUITestsGrids), nameof(GridAutoWrap));
+
+    //    for (int i = 0; i < 50; i++)
+    //    {
+    //        var cell = new UIBaseWindow
+    //        {
+    //            Visuals =
+    //            {
+    //                BackgroundColor = Color.White
+    //            },
+    //            Layout =
+    //            {
+    //                MinSize = new IntVector2(50),
+    //                SizingX = UISizing.Fit(),
+    //                SizingY = UISizing.Fit()
+    //            }
+    //        };
+    //        gridContainer.AddChild(cell);
+    //    }
+
+    //    yield return WaitUILayout();
+    //    yield return VerifyScreenshot(nameof(NewUITestsGrids), nameof(GridAutoWrap));
+    //}
+
+    [Test]
     public IEnumerator GridUniformRows()
     {
         var gridContainer = new UIBaseWindow
@@ -154,7 +349,7 @@ public class NewUITestsGrids : NewUITests
             },
             Layout =
             {
-                LayoutMethod = UILayoutMethod.Grid(3, 5, 5, true),
+                LayoutMethod = UILayoutMethod.Grid_FixedColumns(3, 5, 5, true),
                 Padding = new UISpacing(10, 10, 10, 10),
                 SizingX = UISizing.Fit(),
                 SizingY = UISizing.Fit()
@@ -232,7 +427,7 @@ public class NewUITestsGrids : NewUITests
             },
             Layout =
             {
-                LayoutMethod = UILayoutMethod.Grid(3, 5, 5, true),
+                LayoutMethod = UILayoutMethod.Grid_FixedColumns(3, 5, 5, true),
                 Padding = new UISpacing(10, 10, 10, 10),
                 SizingX = UISizing.Fit(),
                 SizingY = UISizing.Fit()
@@ -310,7 +505,7 @@ public class NewUITestsGrids : NewUITests
             },
             Layout =
             {
-                LayoutMethod = UILayoutMethod.Grid(3, 5, 5, true, true),
+                LayoutMethod = UILayoutMethod.Grid_FixedColumns(3, 5, 5, true, true),
                 Padding = new UISpacing(10, 10, 10, 10),
                 SizingX = UISizing.Fit(),
                 SizingY = UISizing.Fit()
@@ -362,7 +557,7 @@ public class NewUITestsGrids : NewUITests
             },
             Layout =
             {
-                LayoutMethod = UILayoutMethod.Grid(columnCount: 4, cellSpacingX: 5, cellSpacingY: 5),
+                LayoutMethod = UILayoutMethod.Grid_FixedColumns(columnCount: 4, cellSpacingX: 5, cellSpacingY: 5),
                 Padding = new UISpacing(10, 10, 10, 10),
                 SizingX = UISizing.Fit(),
                 SizingY = UISizing.Fit()
@@ -403,7 +598,7 @@ public class NewUITestsGrids : NewUITests
             },
             Layout =
             {
-                LayoutMethod = UILayoutMethod.Grid(2, 8, 8),
+                LayoutMethod = UILayoutMethod.Grid_FixedColumns(2, 8, 8),
                 Padding = new UISpacing(15, 15, 15, 15),
                 SizingX = UISizing.Fit(),
                 SizingY = UISizing.Fit()
@@ -433,7 +628,7 @@ public class NewUITestsGrids : NewUITests
         yield return VerifyScreenshot(nameof(NewUITestsGrids), nameof(GridWithMargins));
 
         gridContainer.Layout.SizingX = UISizing.Grow();
-        gridContainer.Layout.LayoutMethod = UILayoutMethod.Grid(2, 8, 8, true, true);
+        gridContainer.Layout.LayoutMethod = UILayoutMethod.Grid_FixedColumns(2, 8, 8, true, true);
 
         yield return WaitUILayout();
         yield return VerifyScreenshot(nameof(NewUITestsGrids), nameof(GridWithMargins));
@@ -450,7 +645,7 @@ public class NewUITestsGrids : NewUITests
             },
             Layout =
             {
-                LayoutMethod = UILayoutMethod.Grid(1, 0, 5),
+                LayoutMethod = UILayoutMethod.Grid_FixedColumns(1, 0, 5),
                 Padding = new UISpacing(10, 10, 10, 10),
                 SizingX = UISizing.Fit(),
                 SizingY = UISizing.Fit()
