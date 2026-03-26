@@ -18,7 +18,6 @@ using System.Numerics;
 
 namespace Tests.EngineTests;
 
-[DebugTest]
 public class NewUITests : TestingScene
 {
     protected override IEnumerator InternalLoadSceneRoutineAsync()
@@ -278,7 +277,6 @@ public class NewUITests : TestingScene
         }
     }
 
-    [DebugTest]
     [Test]
     public IEnumerator ComplicatedLayoutTest()
     {
@@ -850,6 +848,384 @@ public class NewUITests : TestingScene
             yield return VerifyScreenshot(nameof(NewUITests), nameof(FillListFillingItems), screenshotExtraText);
         }
     }
+
+    //[DebugTest]
+    //[Test]
+    //public IEnumerator HorizontalListWrap()
+    //{
+    //    var container = new UIBaseWindow
+    //    {
+    //        Visuals =
+    //        {
+    //            BackgroundColor = Color.PrettyPurple
+    //        },
+    //        Layout =
+    //        {
+    //            LayoutMethod = UILayoutMethod.HorizontalListWrap(5, 5),
+    //            Padding = new UISpacing(10, 10, 10, 10),
+    //            //SizingX = UISizing.Fixed(220),
+    //            //SizingY = UISizing.Fixed(140)
+    //        }
+    //    };
+    //    SceneUI.AddChild(container);
+
+    //    for (int i = 0; i < 5; i++)
+    //    {
+    //        var cell = new UIBaseWindow
+    //        {
+    //            Visuals =
+    //            {
+    //                BackgroundColor = Color.White
+    //            },
+    //            Layout =
+    //            {
+    //                MinSize = new IntVector2(50),
+    //                SizingX = UISizing.Fit(),
+    //                SizingY = UISizing.Fit()
+    //            }
+    //        };
+    //        container.AddChild(cell);
+    //    }
+
+    //    yield return WaitUILayout();
+    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(HorizontalListWrap));
+
+    //    for (int i = 0; i < 50; i++)
+    //    {
+    //        var cell = new UIBaseWindow
+    //        {
+    //            Visuals =
+    //            {
+    //                BackgroundColor = Color.White
+    //            },
+    //            Layout =
+    //            {
+    //                MinSize = new IntVector2(50),
+    //                SizingX = UISizing.Fit(),
+    //                SizingY = UISizing.Fit()
+    //            }
+    //        };
+    //        container.AddChild(cell);
+    //    }
+
+    //    yield return WaitUILayout();
+    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(HorizontalListWrap));
+    //}
+
+    //[Test]
+    //public IEnumerator VerticalListWrap()
+    //{
+    //    // Test wrapping in vertical direction
+    //    var container = new UIBaseWindow
+    //    {
+    //        Visuals =
+    //        {
+    //            BackgroundColor = Color.PrettyPurple
+    //        },
+    //        Layout =
+    //        {
+    //            LayoutMethod = UILayoutMethod.VerticalListWrap(5, 5),
+    //            Padding = new UISpacing(10, 10, 10, 10),
+    //            SizingX = UISizing.Fit(),
+    //            SizingY = UISizing.Fit()
+    //        }
+    //    };
+    //    SceneUI.AddChild(container);
+
+    //    for (int i = 0; i < 12; i++)
+    //    {
+    //        var cell = new UIBaseWindow
+    //        {
+    //            Visuals =
+    //            {
+    //                BackgroundColor = i % 2 == 0 ? Color.White : Color.Black
+    //            },
+    //            Layout =
+    //            {
+    //                MinSize = new IntVector2(50),
+    //                SizingX = UISizing.Fit(),
+    //                SizingY = UISizing.Fit()
+    //            }
+    //        };
+    //        container.AddChild(cell);
+    //    }
+
+    //    yield return WaitUILayout();
+    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(VerticalListWrap));
+    //}
+
+    //[Test]
+    //public IEnumerator HorizontalListWrapFixedContainer()
+    //{
+    //    // Test wrapping with fixed container size - forces wrapping at specific boundary
+    //    var container = new UIBaseWindow
+    //    {
+    //        Visuals =
+    //        {
+    //            BackgroundColor = Color.PrettyPurple
+    //        },
+    //        Layout =
+    //        {
+    //            LayoutMethod = UILayoutMethod.HorizontalListWrap(5, 5),
+    //            Padding = new UISpacing(10, 10, 10, 10),
+    //            SizingX = UISizing.Fixed(220),  // Forces wrapping: 10+50+5+50+5+50+5+50+10 = 235 > 220
+    //            SizingY = UISizing.Fixed(140)
+    //        }
+    //    };
+    //    SceneUI.AddChild(container);
+
+    //    for (int i = 0; i < 8; i++)
+    //    {
+    //        var cell = new UIBaseWindow
+    //        {
+    //            Visuals =
+    //            {
+    //                BackgroundColor = Color.White
+    //            },
+    //            Layout =
+    //            {
+    //                MinSize = new IntVector2(50),
+    //                SizingX = UISizing.Fit(),
+    //                SizingY = UISizing.Fit()
+    //            }
+    //        };
+    //        container.AddChild(cell);
+    //    }
+
+    //    yield return WaitUILayout();
+    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(HorizontalListWrapFixedContainer));
+    //}
+
+    //[Test]
+    //public IEnumerator HorizontalListWrapVariableSizes()
+    //{
+    //    // Test wrapping with varying child sizes (not uniform 50x50)
+    //    var container = new UIBaseWindow
+    //    {
+    //        Visuals =
+    //        {
+    //            BackgroundColor = Color.PrettyPurple
+    //        },
+    //        Layout =
+    //        {
+    //            LayoutMethod = UILayoutMethod.HorizontalListWrap(5, 5),
+    //            Padding = new UISpacing(10, 10, 10, 10)
+    //        }
+    //    };
+    //    SceneUI.AddChild(container);
+
+    //    int[] sizes = { 40, 60, 50, 70, 45, 55, 60, 40, 65, 50 };
+    //    Color[] colors = { Color.White, Color.Black, Color.PrettyGreen, Color.PrettyRed, Color.PrettyPink, Color.PrettyOrange, Color.PrettyYellow, Color.PrettyBlue, Color.Cyan, Color.Magenta };
+
+    //    for (int i = 0; i < sizes.Length; i++)
+    //    {
+    //        var cell = new UIBaseWindow
+    //        {
+    //            Visuals =
+    //            {
+    //                BackgroundColor = colors[i]
+    //            },
+    //            Layout =
+    //            {
+    //                SizingX = UISizing.Fixed(sizes[i]),
+    //                SizingY = UISizing.Fixed(50)
+    //            }
+    //        };
+    //        container.AddChild(cell);
+    //    }
+
+    //    yield return WaitUILayout();
+    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(HorizontalListWrapVariableSizes));
+    //}
+
+    //[Test]
+    //public IEnumerator ListInList()
+    //{
+    //    // Test nested lists - horizontal list containing vertical lists
+    //    var outerContainer = new UIBaseWindow
+    //    {
+    //        Name = "outer",
+    //        Visuals =
+    //        {
+    //            BackgroundColor = Color.PrettyPurple
+    //        },
+    //        Layout =
+    //        {
+    //            LayoutMethod = UILayoutMethod.HorizontalList(5),
+    //            Padding = new UISpacing(10, 10, 10, 10),
+    //            SizingX = UISizing.Fit(),
+    //            SizingY = UISizing.Fit()
+    //        }
+    //    };
+    //    SceneUI.AddChild(outerContainer);
+
+    //    // Create 3 inner vertical lists
+    //    for (int row = 0; row < 3; row++)
+    //    {
+    //        var innerContainer = new UIBaseWindow
+    //        {
+    //            Visuals =
+    //            {
+    //                BackgroundColor = Color.PrettyGreen
+    //            },
+    //            Layout =
+    //            {
+    //                LayoutMethod = UILayoutMethod.VerticalList(3),
+    //                Padding = new UISpacing(5, 5, 5, 5),
+    //                SizingX = UISizing.Fit(),
+    //                SizingY = UISizing.Fit()
+    //            }
+    //        };
+    //        outerContainer.AddChild(innerContainer);
+
+    //        // Add cells to inner list
+    //        for (int col = 0; col < 3; col++)
+    //        {
+    //            var cell = new UIBaseWindow
+    //            {
+    //                Visuals =
+    //                {
+    //                    BackgroundColor = (row + col) % 2 == 0 ? Color.White : Color.Black
+    //                },
+    //                Layout =
+    //                {
+    //                    MinSize = new IntVector2(40),
+    //                    SizingX = UISizing.Fit(),
+    //                    SizingY = UISizing.Fit()
+    //                }
+    //            };
+    //            innerContainer.AddChild(cell);
+    //        }
+    //    }
+
+    //    yield return WaitUILayout();
+    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(ListInList));
+    //}
+
+    //[Test]
+    //public IEnumerator HorizontalListWrapWithGrowChildren()
+    //{
+    //    // Test wrapping with growing children - mixed Fit and Grow sizing
+    //    var container = new UIBaseWindow
+    //    {
+    //        Visuals =
+    //        {
+    //            BackgroundColor = Color.PrettyPurple
+    //        },
+    //        Layout =
+    //        {
+    //            LayoutMethod = UILayoutMethod.HorizontalListWrap(5, 5),
+    //            Padding = new UISpacing(10, 10, 10, 10),
+    //            SizingX = UISizing.Fixed(350),  // Constrained width
+    //            SizingY = UISizing.Fit()
+    //        }
+    //    };
+    //    SceneUI.AddChild(container);
+
+    //    for (int i = 0; i < 6; i++)
+    //    {
+    //        var cell = new UIBaseWindow
+    //        {
+    //            Visuals =
+    //            {
+    //                BackgroundColor = i % 2 == 0 ? Color.White : Color.Black
+    //            },
+    //            Layout =
+    //            {
+    //                MinSize = new IntVector2(50),
+    //                // Alternate between Fit and Grow to test mixed sizing in wrap
+    //                SizingX = i % 2 == 0 ? UISizing.Fit() : UISizing.Grow(),
+    //                SizingY = UISizing.Fit()
+    //            }
+    //        };
+    //        container.AddChild(cell);
+    //    }
+
+    //    yield return WaitUILayout();
+    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(HorizontalListWrapWithGrowChildren));
+    //}
+
+    //[Test]
+    //public IEnumerator VerticalListWrapFixedContainer()
+    //{
+    //    // Test vertical wrapping with fixed container size
+    //    var container = new UIBaseWindow
+    //    {
+    //        Visuals =
+    //        {
+    //            BackgroundColor = Color.PrettyPurple
+    //        },
+    //        Layout =
+    //        {
+    //            LayoutMethod = UILayoutMethod.VerticalListWrap(5, 5),
+    //            Padding = new UISpacing(10, 10, 10, 10),
+    //            SizingX = UISizing.Fixed(150),
+    //            SizingY = UISizing.Fixed(180)  // Forces wrapping after ~2 items per column
+    //        }
+    //    };
+    //    SceneUI.AddChild(container);
+
+    //    for (int i = 0; i < 9; i++)
+    //    {
+    //        var cell = new UIBaseWindow
+    //        {
+    //            Visuals =
+    //            {
+    //                BackgroundColor = Color.White
+    //            },
+    //            Layout =
+    //            {
+    //                MinSize = new IntVector2(50),
+    //                SizingX = UISizing.Fit(),
+    //                SizingY = UISizing.Fit()
+    //            }
+    //        };
+    //        container.AddChild(cell);
+    //    }
+
+    //    yield return WaitUILayout();
+    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(VerticalListWrapFixedContainer));
+    //}
+
+    //[Test]
+    //public IEnumerator HorizontalListWrapWithMargins()
+    //{
+    //    // Test wrapping respects margins correctly at wrap boundaries
+    //    var container = new UIBaseWindow
+    //    {
+    //        Visuals =
+    //        {
+    //            BackgroundColor = Color.PrettyPurple
+    //        },
+    //        Layout =
+    //        {
+    //            LayoutMethod = UILayoutMethod.HorizontalListWrap(8, 8),
+    //            Padding = new UISpacing(15, 15, 15, 15)
+    //        }
+    //    };
+    //    SceneUI.AddChild(container);
+
+    //    for (int i = 0; i < 8; i++)
+    //    {
+    //        var cell = new UIBaseWindow
+    //        {
+    //            Visuals =
+    //            {
+    //                BackgroundColor = Color.White
+    //            },
+    //            Layout =
+    //            {
+    //                SizingX = UISizing.Fixed(50),
+    //                SizingY = UISizing.Fixed(50),
+    //                Margins = new UISpacing(3, 3, 3, 3)  // Margins should be included in wrap calculation
+    //            }
+    //        };
+    //        container.AddChild(cell);
+    //    }
+
+    //    yield return WaitUILayout();
+    //    yield return VerifyScreenshot(nameof(NewUITests), nameof(HorizontalListWrapWithMargins));
+    //}
 
     [Test]
     public IEnumerator WorldEditorTopBar()

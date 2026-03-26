@@ -14,8 +14,6 @@ public record struct UILayoutMethod
         LayoutClasses.Add(UIMethodName.Free, new FreeLayout());
         LayoutClasses.Add(UIMethodName.HorizontalList, new ListLayout());
         LayoutClasses.Add(UIMethodName.VerticalList, new ListLayout());
-        LayoutClasses.Add(UIMethodName.HorizontalListWrap, new ListLayout());
-        LayoutClasses.Add(UIMethodName.VerticalListWrap, new ListLayout());
         LayoutClasses.Add(UIMethodName.Grid, new GridLayout());
     }
 
@@ -30,8 +28,6 @@ public record struct UILayoutMethod
         Free,
         HorizontalList,
         VerticalList,
-        HorizontalListWrap,
-        VerticalListWrap,
         Grid,
     }
 
@@ -68,13 +64,7 @@ public record struct UILayoutMethod
 
     public static UILayoutMethod HorizontalList(int spacing, ListLayoutItemsAlign alignItems = ListLayoutItemsAlign.Beginning)
     {
-        //return new UILayoutMethod()
-        //{
-        //    Mode = UIMethodName.HorizontalList,
-        //    ListSpacing = new IntVector2(spacing, 0),
-        //    ListItemsAlign = alignItems
-        //};
-
+        // Non wrapping lists just use a grid with a fixed dimension (its pretty much the same :P)
         return new UILayoutMethod()
         {
             Mode = UIMethodName.Grid,
@@ -92,13 +82,7 @@ public record struct UILayoutMethod
 
     public static UILayoutMethod VerticalList(int spacing, ListLayoutItemsAlign alignItems = ListLayoutItemsAlign.Beginning)
     {
-        //return new UILayoutMethod()
-        //{
-        //    Mode = UIMethodName.VerticalList,
-        //    ListSpacing = new IntVector2(0, spacing),
-        //    ListItemsAlign = alignItems
-        //};
-
+        // Non wrapping lists just use a grid with a fixed dimension (its pretty much the same :P)
         return new UILayoutMethod()
         {
             Mode = UIMethodName.Grid,
@@ -118,7 +102,7 @@ public record struct UILayoutMethod
     {
         return new UILayoutMethod()
         {
-            Mode = UIMethodName.HorizontalListWrap,
+            Mode = UIMethodName.HorizontalList,
             ListSpacing = new IntVector2(spacingX, spacingY),
             ListItemsAlign = alignItems
         };
@@ -128,7 +112,7 @@ public record struct UILayoutMethod
     {
         return new UILayoutMethod()
         {
-            Mode = UIMethodName.VerticalListWrap,
+            Mode = UIMethodName.VerticalList,
             ListSpacing = new IntVector2(spacingX, spacingY),
             ListItemsAlign = alignItems
         };
@@ -169,10 +153,18 @@ public record struct UILayoutMethod
     public override readonly string ToString()
     {
         if (Mode == UIMethodName.HorizontalList || Mode == UIMethodName.VerticalList)
-            return $"{Mode} {ListSpacing} (Align {ListItemsAlign})";
+            return $"{Mode}Wrap {ListSpacing} (Align {ListItemsAlign})";
 
         if (Mode == UIMethodName.Grid)
-            return $"{Mode} Cols={GridProperties.ColumnCount}";
+        {
+            if (GridProperties.ColumnCount == 1 && GridProperties.RowCount == 0)
+                return $"VerticalList {ListSpacing}";
+
+            if (GridProperties.RowCount == 0 && GridProperties.ColumnCount == 1)
+                return $"HorizontalList {ListSpacing}";
+
+            return $"{Mode} Cols={GridProperties.ColumnCount} Rows={GridProperties.RowCount}";
+        }
 
         return $"{Mode}";
     }
