@@ -166,22 +166,6 @@ public record struct UILayoutMethod
         };
     }
 
-    public static UILayoutMethod Grid_Auto(int cellSpacingX = 0, int cellSpacingY = 0, bool uniformRowHeight = false, bool uniformColumnWidth = false)
-    {
-        return new UILayoutMethod()
-        {
-            Mode = UIMethodName.Grid,
-            ListSpacing = new IntVector2(cellSpacingX, cellSpacingY),
-            GridProperties = new LayoutPropertiesGrid()
-            {
-                ColumnCount = 0,
-                RowCount = 0,
-                UniformRowHeight = uniformRowHeight,
-                UniformColumnWidth = uniformColumnWidth,
-            }
-        };
-    }
-
     public override readonly string ToString()
     {
         if (Mode == UIMethodName.HorizontalList || Mode == UIMethodName.VerticalList)

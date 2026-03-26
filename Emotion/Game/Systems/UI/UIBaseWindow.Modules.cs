@@ -573,8 +573,9 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     protected virtual void RenderChildren(Renderer r)
     {
-        foreach (UIBaseWindow child in Children)
+        for (int i = 0; i < Children.Count; i++)
         {
+            UIBaseWindow child = Children[i];
             if (!child.Visuals.Visible) continue;
             if (child.IsLoading()) continue;
             child.Render(r);

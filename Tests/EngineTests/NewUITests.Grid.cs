@@ -276,68 +276,6 @@ public class NewUITestsGrids : NewUITests
         yield return VerifyScreenshot(nameof(NewUITestsGrids), nameof(GridBasic2x3));
     }
 
-    //[Test]
-    //public IEnumerator GridAutoWrap()
-    //{
-    //    var gridContainer = new UIBaseWindow
-    //    {
-    //        Visuals =
-    //        {
-    //            BackgroundColor = Color.PrettyPurple
-    //        },
-    //        Layout =
-    //        {
-    //            LayoutMethod = UILayoutMethod.Grid_Auto(5, 5),
-    //            Padding = new UISpacing(10, 10, 10, 10),
-    //            SizingX = UISizing.Fixed(220),
-    //            SizingY = UISizing.Fixed(140)
-    //        }
-    //    };
-    //    SceneUI.AddChild(gridContainer);
-
-    //    for (int i = 0; i < 5; i++)
-    //    {
-    //        var cell = new UIBaseWindow
-    //        {
-    //            Visuals =
-    //            {
-    //                BackgroundColor = Color.White
-    //            },
-    //            Layout =
-    //            {
-    //                MinSize = new IntVector2(50),
-    //                SizingX = UISizing.Fit(),
-    //                SizingY = UISizing.Fit()
-    //            }
-    //        };
-    //        gridContainer.AddChild(cell);
-    //    }
-
-    //    yield return WaitUILayout();
-    //    yield return VerifyScreenshot(nameof(NewUITestsGrids), nameof(GridAutoWrap));
-
-    //    for (int i = 0; i < 50; i++)
-    //    {
-    //        var cell = new UIBaseWindow
-    //        {
-    //            Visuals =
-    //            {
-    //                BackgroundColor = Color.White
-    //            },
-    //            Layout =
-    //            {
-    //                MinSize = new IntVector2(50),
-    //                SizingX = UISizing.Fit(),
-    //                SizingY = UISizing.Fit()
-    //            }
-    //        };
-    //        gridContainer.AddChild(cell);
-    //    }
-
-    //    yield return WaitUILayout();
-    //    yield return VerifyScreenshot(nameof(NewUITestsGrids), nameof(GridAutoWrap));
-    //}
-
     [Test]
     public IEnumerator GridUniformRows()
     {
