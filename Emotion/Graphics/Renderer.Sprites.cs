@@ -91,13 +91,6 @@ namespace Emotion.Graphics
             RenderSprite(position, textureUnderlying.Size, Color.White, textureUnderlying, textureArea, flipX, flipY);
         }
 
-        public enum RenderLineMode
-        {
-            Center,
-            Inward,
-            Outward
-        }
-
         /// <summary>
         /// Render a line made out of quads.
         /// </summary>
@@ -240,10 +233,12 @@ namespace Emotion.Graphics
             Vector3 np = new Vector3(position.X, position.Y + size.Y, position.Z);
             Vector3 pp = new Vector3(position.X + size.X, position.Y + size.Y, position.Z);
 
-            RenderLine(nn, pn, color, thickness, RenderLineMode.Inward);
-            RenderLine(pn, pp, color, thickness, RenderLineMode.Inward);
-            RenderLine(pp, np, color, thickness, RenderLineMode.Inward);
-            RenderLine(np, nn, color, thickness, RenderLineMode.Inward);
+            StartLineRender();
+            AddLineRender(nn, pn, color, thickness, RenderLineMode.Inward);
+            AddLineRender(pn, pp, color, thickness, RenderLineMode.Inward);
+            AddLineRender(pp, np, color, thickness, RenderLineMode.Inward);
+            AddLineRender(np, nn, color, thickness, RenderLineMode.Inward);
+            EndLineRender();
         }
 
         /// <inheritdoc cref="RenderRectOutline(Vector3, Vector2, Color, float)" />
