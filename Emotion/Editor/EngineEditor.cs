@@ -78,17 +78,22 @@ public static partial class EngineEditor
         };
         EditorUI.AddChild(topButtons);
 
-        var pauseButton = new OneButton(_editorTimePaused ? "Resume" : "Pause", static (b) =>
+        static string GetPauseIcon(bool currentlyPaused)
         {
-            if (b is OneButton butt)
+            return currentlyPaused ? "Editor/Play.png" : "Editor/Pause.png";
+        }
+
+        var pauseButton = new OneIconButton(GetPauseIcon(_editorTimePaused), static (b) =>
+        {
+            if (b is OneIconButton butt)
             {
                 _editorTimePaused = !_editorTimePaused;
-                butt.Text = _editorTimePaused ? "Resume" : "Pause";
+                butt.Texture = GetPauseIcon(_editorTimePaused);
             }
-        });
+        }, ButtonType.Outlined);
         topButtons.AddChild(pauseButton);
 
-        var restartButton = new OneButton("Restart", static (b) =>
+        var restartButton = new OneIconButton("Editor/Reset.png", static (b) =>
         {
             Scene currentScene = Engine.SceneManager.Current;
             Type currentSceneType = currentScene.GetType();
@@ -102,7 +107,7 @@ public static partial class EngineEditor
             {
 
             }
-        });
+        }, ButtonType.Outlined);
         topButtons.AddChild(restartButton);
 
         UIBaseWindow barContainer = new()

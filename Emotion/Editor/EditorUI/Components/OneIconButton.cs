@@ -1,42 +1,28 @@
 ﻿#nullable enable
 
+using Emotion.Game.Systems.UI2.Editor;
+
 namespace Emotion.Editor.EditorUI.Components;
 
-public enum ButtonType
+public class OneIconButton : UIBaseButton
 {
-    Default,
-    Outlined,
-    Important,
-    Destructive,
-    Warning
-}
-
-public enum ButtonState
-{
-    Default,
-    Hover,
-    Disabled
-}
-
-public class OneButton : UIBaseButton
-{
-    public string Text
+    public TextureReference Texture
     {
-        get => _label.Text;
-        set => _label.Text = value;
+        get => _pic.Texture;
+        set => _pic.Texture = value;
     }
 
-    protected UIText _label;
+    protected UIPicture _pic;
     protected ButtonState _state = ButtonState.Default;
     protected ButtonType _type = ButtonType.Default;
 
     private Color _defaultColor;
     private Color _hoverColor;
     private Color _disabledColor;
-    private Color _textColor;
-    private Color _textColorDisabled;
+    private Color _iconColor;
+    private Color _iconColorDisabled;
 
-    public OneButton(string labelText, Action<UIBaseButton>? onClicked = null, ButtonType buttonType = ButtonType.Default)
+    public OneIconButton(TextureReference texture, Action<UIBaseButton>? onClicked = null, ButtonType buttonType = ButtonType.Default)
     {
         Visuals = new UIWindowVisualConfig()
         {
@@ -44,31 +30,31 @@ public class OneButton : UIBaseButton
         };
         Layout = new UIWindowLayoutConfig()
         {
-            Padding = new UISpacing(16, 0, 16, 0),
-            SizingX = UISizing.Fit(),
+            SizingX = UISizing.Fixed(28),
             SizingY = UISizing.Fixed(28),
         };
 
-        var label = new UIText()
+        var pic = new UIPicture()
         {
-            FontSize = OnePalette.FONT_SIZE,
-            Font = OnePalette.FONT,
-            Text = labelText,
+            Texture = texture,
+            Smooth = true,
             Layout =
             {
-                AnchorAndParentAnchor = UIAnchor.CenterCenter
+                AnchorAndParentAnchor = UIAnchor.CenterCenter,
+                SizingX = UISizing.Fixed(20), // todo: This shouldn't be needed - the parent is fixed so it shouldn't be expanded
+                SizingY = UISizing.Fixed(20),
             }
         };
-        AddChild(label);
-        _label = label;
+        AddChild(pic);
+        _pic = pic;
 
         // Setup style
         _type = buttonType;
         _defaultColor = OnePalette.PRIMARY_6;
         _hoverColor = OnePalette.PRIMARY_5;
         _disabledColor = OnePalette.PRIMARY_DISABLED_3;
-        _textColor = OnePalette.PRIMARY_2;
-        _textColorDisabled = OnePalette.PRIMARY_DISABLED_1;
+        _iconColor = OnePalette.PRIMARY_2;
+        _iconColorDisabled = OnePalette.PRIMARY_DISABLED_1;
 
         if (_type == ButtonType.Outlined)
         {
@@ -91,7 +77,8 @@ public class OneButton : UIBaseButton
             _defaultColor = OnePalette.WARNING_3;
             _hoverColor = OnePalette.WARNING_2;
             _disabledColor = OnePalette.WARNING_DISABLED_1;
-            _textColor = OnePalette.PRIMARY_5;
+
+            _iconColor = OnePalette.PRIMARY_5;
         }
 
         // Initialize
@@ -110,12 +97,12 @@ public class OneButton : UIBaseButton
             ButtonState.Disabled => _disabledColor,
             _ => _defaultColor
         };
-        _label.TextColor = _state switch
+        _pic.ImageColor = _state switch
         {
-            ButtonState.Default => _textColor,
-            ButtonState.Hover => _textColor,
-            ButtonState.Disabled => _textColorDisabled,
-            _ => _textColor
+            ButtonState.Default => _iconColor,
+            ButtonState.Hover => _iconColor,
+            ButtonState.Disabled => _iconColorDisabled,
+            _ => _iconColor
         };
     }
 
