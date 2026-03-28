@@ -2,6 +2,17 @@
 
 namespace Emotion.Game.Systems.UI2;
 
+public struct GridLayoutVisualConfig
+{
+    public Color LineColor = Color.White;
+    public bool LineAfterFirstRow;
+
+    public GridLayoutVisualConfig()
+    {
+
+    }
+}
+
 public struct UIWindowVisualConfig
 {
     public Color BackgroundColor = Color.White.SetAlpha(0);
@@ -12,6 +23,8 @@ public struct UIWindowVisualConfig
     public Color BorderColor = Color.Black;
 
     public bool Visible = true;
+
+    public GridLayoutVisualConfig GridVisual;
 
     /// <summary>
     /// Whether to consider this window as part of the layout when invisible.

@@ -552,6 +552,22 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                 );
         }
 
+        if (Visuals.GridVisual.LineAfterFirstRow)
+        {
+            List<int>? rows = CalculatedMetrics.GridRowHeights;
+            if (rows != null && rows.Count > 0)
+            {
+                int firstRowHeight = rows[0];
+
+                Vector3 pos = CalculatedMetrics.Position.ToVec3();
+                pos += CalculatedMetrics.PaddingLeftTop.ToVec3();
+                pos.Y += firstRowHeight;
+
+                int width = CalculatedMetrics.Size.X - CalculatedMetrics.PaddingRightBottom.X - CalculatedMetrics.PaddingLeftTop.X;
+                r.RenderLine(pos, pos + new Vector3(width, 0, 0), Visuals.GridVisual.LineColor);
+            }
+        }
+
         InternalRender(r);
 
         InternalBeforeRenderChildren(r);

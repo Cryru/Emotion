@@ -201,29 +201,10 @@ public partial class UIBaseWindow
                     penX += columnWidths[c] + spacingX;
                 }
 
-                // Position within cell
+                // Free layout within the cell
                 IntVector2 cellPosition = new IntVector2(penX, penY);
                 IntRectangle cellRect = new IntRectangle(cellPosition, new IntVector2(columnWidths[col], rowHeights[row]));
-
-                ListLayoutItemsAlign alignContent = GetItemsAlignAcrossFromList(UIMethodName.HorizontalList, child.Layout.Anchor);
-                IntVector2 childPosition = cellPosition;
-
-                switch (alignContent)
-                {
-                    case ListLayoutItemsAlign.Center:
-                        childPosition.Y += cellRect.Height / 2 - child.CalculatedMetrics.Size.Y / 2;
-                        break;
-                    case ListLayoutItemsAlign.End:
-                        childPosition.Y += cellRect.Height - child.CalculatedMetrics.Size.Y;
-                        break;
-                }
-
-                // Apply margins
-                IntVector2 childTopLeftMargin = child.CalculatedMetrics.MarginLeftTop;
-                childPosition += childTopLeftMargin;
-
-                child.Layout_Step3_Position(childPosition + child.CalculatedMetrics.Offsets);
-
+                FreeLayout.FreeLayoutChild(child, cellRect, cellRect);
                 childrenToLayout++;
             }
         }
