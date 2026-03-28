@@ -873,10 +873,20 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
         // Fixed sizing
         IntVector2 fixedSize = IntVector2.Zero;
-        if (Layout.SizingX.Mode == UISizing.UISizingMode.Fixed)
+        bool fixedX = Layout.SizingX.Mode == UISizing.UISizingMode.Fixed;
+        bool fixedY = Layout.SizingY.Mode == UISizing.UISizingMode.Fixed;
+        if (fixedX && fixedY && Layout.SizingX.Size == Layout.SizingY.Size) // Special case for squares to remain square
+        {
             fixedSize.X = (int)MathF.Ceiling(Layout.SizingX.Size * CalculatedMetrics.Scale.X);
-        if (Layout.SizingY.Mode == UISizing.UISizingMode.Fixed)
-            fixedSize.Y = (int)MathF.Ceiling(Layout.SizingY.Size * CalculatedMetrics.Scale.Y);
+            fixedSize.Y = fixedSize.X;
+        }
+        else
+        {
+            if (fixedX)
+                fixedSize.X = (int)MathF.Ceiling(Layout.SizingX.Size * CalculatedMetrics.Scale.X);
+            if (fixedY)
+                fixedSize.Y = (int)MathF.Ceiling(Layout.SizingY.Size * CalculatedMetrics.Scale.Y);
+        }
 
         // Window size is whichever is the largest between the children, internal measurements, and fixed sizing.
         IntVector2 mySize = IntVector2.Max(IntVector2.Max(childrenSize, fixedSize), InternalGetWindowMinSize());

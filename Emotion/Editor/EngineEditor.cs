@@ -67,48 +67,7 @@ public static partial class EngineEditor
         _editorBars = new UIBaseWindow();
         EditorUI.AddChild(_editorBars);
 
-        var topButtons = new UIContainer()
-        {
-            Layout =
-            {
-                LayoutMethod = UILayoutMethod.HorizontalList(5),
-                AnchorAndParentAnchor = UIAnchor.TopCenter,
-                Margins = new UISpacing(0, 50, 0, 0)
-            }
-        };
-        EditorUI.AddChild(topButtons);
-
-        static string GetPauseIcon(bool currentlyPaused)
-        {
-            return currentlyPaused ? "Editor/Play.png" : "Editor/Pause.png";
-        }
-
-        var pauseButton = new OneIconButton(GetPauseIcon(_editorTimePaused), static (b) =>
-        {
-            if (b is OneIconButton butt)
-            {
-                _editorTimePaused = !_editorTimePaused;
-                butt.Texture = GetPauseIcon(_editorTimePaused);
-            }
-        }, ButtonType.Outlined);
-        topButtons.AddChild(pauseButton);
-
-        var restartButton = new OneIconButton("Editor/Reset.png", static (b) =>
-        {
-            Scene currentScene = Engine.SceneManager.Current;
-            Type currentSceneType = currentScene.GetType();
-            try
-            {
-                var newInstance = Activator.CreateInstance(currentSceneType, true);
-                if (newInstance is Scene newScene)
-                    Engine.SceneManager.SetScene(newScene);
-            }
-            catch (Exception)
-            {
-
-            }
-        }, ButtonType.Outlined);
-        topButtons.AddChild(restartButton);
+        SpawnTopButtons();
 
         UIBaseWindow barContainer = new()
         {
@@ -376,6 +335,57 @@ public static partial class EngineEditor
         CurrentWorkflow = workflow;
         workflow?.Init(_workflowParent);
     }
+
+    #endregion
+
+    #region Top Buttons
+
+    private static void SpawnTopButtons()
+    {
+        var topButtons = new UIContainer()
+        {
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalList(5),
+                AnchorAndParentAnchor = UIAnchor.TopCenter,
+                Margins = new UISpacing(0, 50, 0, 0)
+            }
+        };
+        EditorUI.AddChild(topButtons);
+
+        static string GetPauseIcon(bool currentlyPaused)
+        {
+            return currentlyPaused ? "Editor/Play.png" : "Editor/Pause.png";
+        }
+
+        var pauseButton = new OneIconButton(GetPauseIcon(_editorTimePaused), static (b) =>
+        {
+            if (b is OneIconButton butt)
+            {
+                _editorTimePaused = !_editorTimePaused;
+                butt.Texture = GetPauseIcon(_editorTimePaused);
+            }
+        }, ButtonType.Outlined);
+        topButtons.AddChild(pauseButton);
+
+        var restartButton = new OneIconButton("Editor/Reset.png", static (b) =>
+        {
+            Scene currentScene = Engine.SceneManager.Current;
+            Type currentSceneType = currentScene.GetType();
+            try
+            {
+                object? newInstance = Activator.CreateInstance(currentSceneType, true);
+                if (newInstance is Scene newScene)
+                    Engine.SceneManager.SetScene(newScene);
+            }
+            catch (Exception)
+            {
+
+            }
+        }, ButtonType.Outlined);
+        topButtons.AddChild(restartButton);
+    }
+
 
     #endregion
 }
