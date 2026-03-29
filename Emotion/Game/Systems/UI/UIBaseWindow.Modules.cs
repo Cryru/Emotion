@@ -564,7 +564,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                 pos.Y += firstRowHeight;
 
                 int width = CalculatedMetrics.Size.X - CalculatedMetrics.PaddingRightBottom.X - CalculatedMetrics.PaddingLeftTop.X;
-                r.RenderSingleLine(pos, pos + new Vector3(width, 0, 0), Visuals.GridVisual.LineColor);
+                r.RenderLine(pos, pos + new Vector3(width, 0, 0), Visuals.GridVisual.LineColor, Maths.RoundAwayFromZero(1 * CalculatedMetrics.ScaleF));
             }
         }
 

@@ -48,15 +48,6 @@ public sealed partial class Renderer
     private bool _lineRenderStarted = false;
     private readonly List<LineRenderItem> _lineQueue = new();
 
-    internal int LineRenderQueueCount => _lineQueue.Count;
-
-    public void RenderSingleLine(Vector3 from, Vector3 to, Color color, float thickness = 1f, RenderLineMode renderMode = RenderLineMode.Center)
-    {
-        StartLineRender();
-        AddLineRender(from, to, color, thickness, renderMode);
-        EndLineRender();
-    }
-
     public void StartLineRender()
     {
         _lineRenderStarted = true;
@@ -74,9 +65,9 @@ public sealed partial class Renderer
         Assert(_lineRenderStarted);
 
         // In 3D we need to convert pixels to meters
-        if (_lineRenderState.RenderMode == LineRenderMode.ThreeDee)  
+        if (_lineRenderState.RenderMode == LineRenderMode.ThreeDee)
             thickness *= LinePixelsToMeters;
-     
+
         _lineQueue.Add(new LineRenderItem
         {
             From = from,
@@ -204,15 +195,22 @@ public sealed partial class Renderer
         Vector3 p2 = item.To;
         Color color = item.Color;
 
-        float thicknessPx = MathF.Max(item.Thickness, 0.5f);
+        float thicknessPx = MathF.Max(item.Thickness, 1f);
 
-        // Align to texel centers
         Vector2 s1 = new Vector2(p1.X, p1.Y);
         Vector2 s2 = new Vector2(p2.X, p2.Y);
-        s1.X = MathF.Round(s1.X - 0.5f) + 0.5f;
-        s1.Y = MathF.Round(s1.Y - 0.5f) + 0.5f;
-        s2.X = MathF.Round(s2.X - 0.5f) + 0.5f;
-        s2.Y = MathF.Round(s2.Y - 0.5f) + 0.5f;
+
+        // Scientifically chosen offset lol
+        // Not but for real this little offset and texel snap prevents some lines
+        // from disappearing during rasterization (aligning to the texel center however
+        // often leads to them jumping a whole pixel though, which is also undesirable)
+        if (item.RenderMode == RenderLineMode.Center)
+        {
+            s1.X = MathF.Round(s1.X - 0.5f) + 0.001f;
+            s1.Y = MathF.Round(s1.Y - 0.5f) + 0.001f;
+            s2.X = MathF.Round(s2.X - 0.5f) + 0.001f;
+            s2.Y = MathF.Round(s2.Y - 0.5f) + 0.001f;
+        }
         Vector3 snappedP1 = new Vector3(s1, p1.Z);
         Vector3 snappedP2 = new Vector3(s2, p2.Z);
 
@@ -249,4 +247,110 @@ public sealed partial class Renderer
             vertices[v].Color = c;
         }
     }
+
+    #region Individual API
+
+    /// <summary>
+    /// Render a line made out of quads.
+    /// </summary>
+    /// <param name="pointOne">The point to start the line.</param>
+    /// <param name="pointTwo">The point to end the line at.</param>
+    /// <param name="color">The color of the line.</param>
+    /// <param name="thickness">The thickness of the line in world units. The line will always be at least 1 pixel thick.</param>
+    /// <param name="renderMode">How to treat the points given.</param>
+    public void RenderLine(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f, RenderLineMode renderMode = RenderLineMode.Center)
+    {
+        StartLineRender();
+        AddLineRender(pointOne, pointTwo, color, thickness, renderMode);
+        EndLineRender();
+    }
+
+    /// <inheritdoc cref="RenderLine(Vector3, Vector3, Color, float, RenderLineMode)" />
+    public void RenderLine(Vector2 pointOne, Vector2 pointTwo, Color color, float thickness = 1f)
+    {
+        RenderLine(pointOne.ToVec3(), pointTwo.ToVec3(), color, thickness);
+    }
+
+    /// <summary>
+    /// Render a line, from a line segment.
+    /// </summary>
+    /// <param name="segment">The line segment to render.</param>
+    /// <param name="color">The color of the line.</param>
+    /// <param name="thickness">The thickness of the line.</param>
+    public void RenderLine(ref LineSegment segment, Color color, float thickness = 1f)
+    {
+        RenderLine(segment.Start, segment.End, color, thickness);
+    }
+
+    public void RenderLine(LineSegment segment, Color color, float thickness = 1f)
+    {
+        RenderLine(segment.Start, segment.End, color, thickness);
+    }
+
+    /// <summary>
+    /// Render a line with an arrow at the end.
+    /// </summary>
+    /// <inheritdoc cref="RenderLine(Vector3, Vector3, Color, float, RenderLineMode)" />
+    public void RenderArrow(Vector3 pointOne, Vector3 pointTwo, Color color, float thickness = 1f)
+    {
+        RenderLine(pointOne, pointTwo, color, thickness);
+
+        Vector3 diff = pointTwo - pointOne;
+        const float maxArrowHeadLength = 10;
+        float length = Math.Min(diff.Length() / 2, maxArrowHeadLength);
+        float width = length / 2;
+
+        Vector3 direction = Vector3.Normalize(diff);
+        var normal = new Vector3(-direction.Y, direction.X, 0);
+        Vector3 lengthDelta = length * direction;
+        Vector3 delta = width * normal;
+        Vector3 arrowPointOne = pointTwo - lengthDelta + delta;
+        Vector3 arrowPointTwo = pointTwo - lengthDelta - delta;
+
+        RenderLine(pointTwo, arrowPointOne, color, thickness);
+        RenderLine(pointTwo, arrowPointTwo, color, thickness);
+    }
+
+    /// <inheritdoc cref="RenderArrow(Vector3, Vector3, Color, float)" />
+    public void RenderArrow(Vector2 pointOne, Vector2 pointTwo, Color color, float thickness = 1f)
+    {
+        RenderArrow(pointOne.ToVec3(), pointTwo.ToVec3(), color, thickness);
+    }
+
+    /// <summary>
+    /// Render a rectangle outline.
+    /// </summary>
+    /// <param name="position">The position of the rectangle.</param>
+    /// <param name="size">The size of the rectangle.</param>
+    /// <param name="color">The color of the lines.</param>
+    /// <param name="thickness">How thick the line should be.</param>
+    public void RenderRectOutline(Vector3 position, Vector2 size, Color color, float thickness = 1)
+    {
+        Vector3 nn = position;
+        Vector3 pn = new Vector3(position.X + size.X, position.Y, position.Z);
+        Vector3 np = new Vector3(position.X, position.Y + size.Y, position.Z);
+        Vector3 pp = new Vector3(position.X + size.X, position.Y + size.Y, position.Z);
+
+        StartLineRender();
+        AddLineRender(nn, pn, color, thickness, RenderLineMode.Inward);
+        AddLineRender(pn, pp, color, thickness, RenderLineMode.Inward);
+        AddLineRender(pp, np, color, thickness, RenderLineMode.Inward);
+        AddLineRender(np, nn, color, thickness, RenderLineMode.Inward);
+        EndLineRender();
+    }
+
+    /// <inheritdoc cref="RenderRectOutline(Vector3, Vector2, Color, float)" />
+    public void RenderRectOutline(Vector2 position, Vector2 size, Color color, float thickness = 1)
+    {
+        RenderRectOutline(position.ToVec3(), size, color, thickness);
+    }
+
+    /// <inheritdoc cref="RenderRectOutline(Vector3, Vector2, Color, float)" />
+    public void RenderRectOutline(Rectangle rect, Color color, float thickness = 1)
+    {
+        RenderRectOutline(rect.Position.ToVec3(), rect.Size, color, thickness);
+    }
+
+
+    #endregion
 }

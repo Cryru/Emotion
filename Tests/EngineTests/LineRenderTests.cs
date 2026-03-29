@@ -1,8 +1,5 @@
 ﻿#region Using
 
-using System;
-using System.Collections;
-using System.Numerics;
 using Emotion.Core;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
@@ -10,6 +7,10 @@ using Emotion.Graphics.Objects;
 using Emotion.Primitives;
 using Emotion.Testing;
 using OpenGL;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Numerics;
 
 #endregion
 
@@ -96,10 +97,8 @@ public class LineRenderTests : ProxyRenderTestingScene
                     composer.RenderRectOutline(new Vector3(50, 53 + offset, 0), new Vector2(220, 120), Color.White, thickness);
                     composer.RenderRectOutline(new Vector3(70, 73 + offset, 0), new Vector2(180, 80), Color.PrettyPurple, thickness);
 
-                    composer.StartLineRender();
-                    composer.AddLineRender(new Vector3(60, 63 + offset, 0), new Vector3(280, 170, 0), Color.PrettyGreen, thickness);
-                    composer.AddLineRender(new Vector3(280, 63 + offset, 0), new Vector3(60, 170, 0), Color.Cyan, thickness);
-                    composer.EndLineRender();
+                    composer.RenderLine(new Vector3(60, 63 + offset, 0), new Vector3(280, 170, 0), Color.PrettyGreen, thickness);
+                    composer.RenderLine(new Vector3(280, 63 + offset, 0), new Vector3(60, 170, 0), Color.Cyan, thickness);
                 };
 
                 yield return new TestWaiterRunLoops(1);
@@ -108,5 +107,18 @@ public class LineRenderTests : ProxyRenderTestingScene
                 offset += moveAmount;
             }
         }
+
+        ToRender = (composer) =>
+        {
+            composer.SetUseViewMatrix(false);
+
+            for (int i = 0; i < 20; i++)
+            {
+                composer.RenderLine(new Vector3(30, 200 + (2.05f * i), 0), new Vector3(500, 200 + (2.05f * i), 0), Color.Yellow, 1f);
+            }
+        };
+
+        yield return new TestWaiterRunLoops(1);
+        yield return VerifyScreenshot(nameof(LineRenderTests), nameof(LinesUI));
     }
 }
