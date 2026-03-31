@@ -229,7 +229,7 @@ public class UIDebugTool : EditorWindow
                 var parent = cur.Parent;
                 if (parent != null)
                 {
-                    int index = parent.Children.IndexOf(cur);
+                    int index = parent.Children.GetIndexOf(cur);
                     pathBuild.Insert(0, index);
                 }
                 else

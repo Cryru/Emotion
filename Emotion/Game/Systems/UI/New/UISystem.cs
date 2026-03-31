@@ -28,6 +28,9 @@ public class UISystem : UIBaseWindow
 
     public void UpdateSystem()
     {
+        _needsLoading = false;
+        UpdatePass_ChildrenChanges();
+
         InUpdate = true;
         Update();
         InUpdate = false;
@@ -79,6 +82,13 @@ public class UISystem : UIBaseWindow
         Layout.Scale = scaledCurrent / scaledTarget;
         Engine.Log.Info($"UI Scale is {Layout.Scale}", MessageSource.UI);
         InvalidateLayout();
+    }
+
+    protected override void InternalLayoutCollectSize(out IntVector2 preferredSize, out IntVector2 minSize, out IntVector2 maxSize)
+    {
+        preferredSize = IntVector2.FromVec2Ceiling(Engine.Renderer.ScreenBuffer.Size);
+        minSize = preferredSize;
+        maxSize = preferredSize;
     }
 
     protected override IntVector2 InternalGetWindowMinSize()
@@ -482,7 +492,7 @@ public class UISystem : UIBaseWindow
 
     private static void Debug_GetWindowsUnderMouseInner(UIBaseWindow win, Vector2 mousePos, List<(UIBaseWindow, int)> output, int depth)
     {
-        List<UIBaseWindow> children = win.Children;
+        IReadOnlyList<UIBaseWindow> children = win.Children;
         output.Add((win, depth));
 
         for (int i = children.Count - 1; i >= 0; i--)

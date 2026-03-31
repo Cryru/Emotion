@@ -1,7 +1,6 @@
 ﻿using Emotion.Editor.EditorUI.Base;
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Game.Systems.UI;
-using Emotion.Game.Systems.UI2.Editor;
 
 #nullable enable
 

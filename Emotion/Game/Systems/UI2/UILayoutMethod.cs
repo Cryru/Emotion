@@ -100,6 +100,7 @@ public record struct UILayoutMethod
 
     public static UILayoutMethod HorizontalListWrap(int spacingX, int spacingY, ListLayoutItemsAlign alignItems = ListLayoutItemsAlign.Beginning)
     {
+        return HorizontalList(spacingX);
         return new UILayoutMethod()
         {
             Mode = UIMethodName.HorizontalList,
@@ -110,6 +111,7 @@ public record struct UILayoutMethod
 
     public static UILayoutMethod VerticalListWrap(int spacingX, int spacingY, ListLayoutItemsAlign alignItems = ListLayoutItemsAlign.Beginning)
     {
+        return VerticalList(spacingY);
         return new UILayoutMethod()
         {
             Mode = UIMethodName.VerticalList,

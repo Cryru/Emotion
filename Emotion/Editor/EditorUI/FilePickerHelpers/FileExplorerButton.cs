@@ -4,7 +4,6 @@ using System.IO;
 using Emotion.Core.Systems.IO;
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Game.Systems.UI;
-using Emotion.Game.Systems.UI2.Editor;
 
 #endregion
 

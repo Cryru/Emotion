@@ -6,41 +6,46 @@ public partial class UIBaseWindow
 {
     public class FreeLayout : LayoutMethodCodeClass
     {
-        public override void Step1_Measure(UIBaseWindow self, out IntVector2 childrenSize)
+        public override int GetMainAxis(UIBaseWindow self)
         {
-            childrenSize = IntVector2.Zero;
+            return 0;
+        }
+
+        public override int GetChildrenSize(UIBaseWindow self, int axis)
+        {
+            int childrenSize = 0;
 
             foreach (UIBaseWindow child in self.Children)
             {
                 if (SkipWindowLayout(child)) continue;
-
-                child.Layout_Step1_Measure();
-
                 if (!child.CalculatedMetrics.InsideParent) continue;
 
-                IntVector2 childSize = child.CalculatedMetrics.Size;
-                childrenSize = IntVector2.Max(childrenSize, childSize + child.CalculatedMetrics.MarginTotalSize);
+                int childSize = child.CalculatedMetrics.Size[axis] + child.CalculatedMetrics.MarginTotalSize[axis];
+                childrenSize = Math.Max(childrenSize, childSize);
             }
+
+            return childrenSize;
         }
 
-        public override void Step2_Grow(UIBaseWindow self)
+        public override void GrowShrinkAxis(UIBaseWindow self, int axis)
         {
             IntVector2 myMeasuredSize = self.CalculatedMetrics.GetContentSize();
+            int availableSize = myMeasuredSize[axis];
             foreach (UIBaseWindow child in self.Children)
             {
                 if (SkipWindowLayout(child)) continue;
 
-                if (child.Layout.SizingX.Mode == UISizing.UISizingMode.Grow)
-                    child.CalculatedMetrics.Size.X = Math.Max(child.CalculatedMetrics.Size.X, myMeasuredSize.X - child.CalculatedMetrics.MarginTotalSize.X);
+                UISizing sizing = GetSizingInDirection(child, axis);
+                if (sizing.CanGrowAndShrink()) continue;
 
-                if (child.Layout.SizingY.Mode == UISizing.UISizingMode.Grow)
-                    child.CalculatedMetrics.Size.Y = Math.Max(child.CalculatedMetrics.Size.Y, myMeasuredSize.Y - child.CalculatedMetrics.MarginTotalSize.Y);
-
-                child.Layout_Step2_Grow();
+                child.CalculatedMetrics.Size[axis] = Math.Max(
+                    child.CalculatedMetrics.Size[axis],
+                    availableSize - child.CalculatedMetrics.MarginTotalSize[axis]
+                );
             }
         }
 
-        public override void Step3_Position(UIBaseWindow self)
+        public override void PositionChildren(UIBaseWindow self)
         {
             IntRectangle contentRect = self.CalculatedMetrics.GetContentRect();
             IntRectangle boundsRect = self.CalculatedMetrics.Bounds;
@@ -48,16 +53,16 @@ public partial class UIBaseWindow
             foreach (UIBaseWindow child in self.Children)
             {
                 if (SkipWindowLayout(child)) continue;
-                FreeLayoutChild(child, contentRect, boundsRect);
+                FreeLayoutPosition(child, contentRect, boundsRect);
             }
         }
 
-        public static void FreeLayoutChild(UIBaseWindow child, in IntRectangle contentRect, in IntRectangle boundsRect)
+        public static void FreeLayoutPosition(UIBaseWindow child, in IntRectangle contentRect, in IntRectangle boundsRect)
         {
             // Shortcut for most common
             if (child.Layout.Anchor == UIAnchor.TopLeft && child.Layout.ParentAnchor == UIAnchor.TopLeft)
             {
-                child.Layout_Step3_Position(contentRect.Position + child.CalculatedMetrics.MarginLeftTop + child.CalculatedMetrics.Offsets);
+                child.Layout_Position(contentRect.Position + child.CalculatedMetrics.MarginLeftTop + child.CalculatedMetrics.Offsets);
                 return;
             }
 
@@ -70,7 +75,7 @@ public partial class UIBaseWindow
                 child.Layout.ParentAnchor, contentRectForThisChild,
                 child.Layout.Anchor, child.CalculatedMetrics.Size
             );
-            child.Layout_Step3_Position(anchorPos + child.CalculatedMetrics.Offsets);
+            child.Layout_Position(anchorPos + child.CalculatedMetrics.Offsets);
         }
     }
 }

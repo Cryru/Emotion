@@ -17,24 +17,23 @@ public struct UIWindowCalculatedMetrics
 
     public IntVector2 Offsets;
     public IntVector2 MinSize;
+    public IntVector2 PreferredSize;
     public IntVector2 MaxSize;
 
     public int GridColumnCount;
     public int GridRowCount;
     public List<int>? GridRowHeights;
     public List<int>? GridColumnWidths;
-    public int GridTotalWidth;
-    public int GridTotalHeight;
 
-    public IntVector2 GetContentSize() => Size - PaddingTotalSize;
-    public IntRectangle GetContentRect() => new IntRectangle(
-        Position + PaddingLeftTop,
-        GetContentSize()
-    );
+    public int MainAxis;
+    public int CrossAxis;
 
-    public IntRectangle Bounds
+    public readonly IntVector2 GetContentSize() => Size - PaddingTotalSize;
+    public readonly IntRectangle GetContentRect() => new(Position + PaddingLeftTop, GetContentSize());
+
+    public readonly IntRectangle Bounds
     {
-        get => new IntRectangle(Position, Size);
+        get => new(Position, Size);
     }
 
     public Vector2 Scale;

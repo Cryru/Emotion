@@ -71,6 +71,10 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
         // nop - to be overriden
     }
 
+    public float Z { get => 0; }
+
+    public Vector2 Size { get; protected set; }
+
     #endregion
 
     #region Color

@@ -203,7 +203,7 @@ public class UISlider : UIBaseWindow
 
     protected override bool RenderInternal(Renderer c)
     {
-        c.RenderSprite(Position, Size, _calculatedColor);
+        //c.RenderSprite(Position, Size, _calculatedColor);
         // c.RenderSprite(Parent.Position, Parent.Size, Color.Red);
         return true;
     }

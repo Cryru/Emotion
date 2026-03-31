@@ -20,15 +20,10 @@ public abstract class TestingScene : SceneWithMap
 
     public override void UpdateScene(float dt)
     {
-        if (ShouldRunLoop())
-        {
-            TestUpdate();
-        }
     }
 
     public virtual void BetweenEachTest()
     {
-
     }
 
     public override void RenderScene(Renderer composer)
@@ -38,6 +33,8 @@ public abstract class TestingScene : SceneWithMap
 
         if (ShouldRunLoop())
         {
+            TestUpdate();
+
             composer.RenderToAndClear(_screenShotBuffer);
 
             TestDraw(composer);

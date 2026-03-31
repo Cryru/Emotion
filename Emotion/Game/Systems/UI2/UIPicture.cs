@@ -5,7 +5,7 @@ using Emotion.Core.Utility.Coroutines;
 using Emotion.Game.Systems.Animation.TwoDee;
 using Emotion.Graphics.Assets;
 
-namespace Emotion.Game.Systems.UI2.Editor;
+namespace Emotion.Game.Systems.UI2;
 
 public class UIPicture : UIBaseWindow
 {

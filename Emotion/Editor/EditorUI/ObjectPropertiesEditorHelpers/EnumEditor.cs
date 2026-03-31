@@ -2,7 +2,6 @@
 
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Game.Systems.UI;
-using Emotion.Game.Systems.UI2.Editor;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers;
 

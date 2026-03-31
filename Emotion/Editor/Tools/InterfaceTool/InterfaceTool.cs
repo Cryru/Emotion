@@ -32,7 +32,7 @@ public class InterfaceTool : TwoSplitEditorWindowFileSupport<UIViewport, ObjectP
                 Padding = new UISpacing(5, 5, 5, 5)
             },
 
-            Children = [
+            AddChildren = [
                 new UIBaseWindow() {
                     Layout =
                     {

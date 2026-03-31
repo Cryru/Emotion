@@ -248,4 +248,9 @@ public struct UIWindowLayoutConfig
     {
         return "Metrics";
     }
+
+    public readonly UISizing GetSizingInDirection(int axis)
+    {
+        return axis == 0 ? _sizingX : _sizingY;
+    }
 }

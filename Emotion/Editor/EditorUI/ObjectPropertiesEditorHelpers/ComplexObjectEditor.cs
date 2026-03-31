@@ -5,7 +5,6 @@ using Emotion.Editor.EditorUI.Components;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector;
-using Emotion.Game.Systems.UI2.Editor;
 
 namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 

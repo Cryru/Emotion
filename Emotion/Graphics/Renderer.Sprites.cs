@@ -91,6 +91,12 @@ namespace Emotion.Graphics
             RenderSprite(position, textureUnderlying.Size, Color.White, textureUnderlying, textureArea, flipX, flipY);
         }
 
+        /// <inheritdoc cref="RenderSprite(Vector3, Vector2, Color, Texture, Rectangle?, bool, bool)" />
+        public void RenderSprite(IntVector2 position, IntVector2 size, Color color, Texture? texture = null, Rectangle? textureArea = null)
+        {
+            RenderSprite(position.ToVec3(), size.ToVec2(), color, texture, textureArea);
+        }
+
         public void RenderGrid(Vector3 pos, Vector2 size, Vector2 tileSize, Color color, Vector2? offset = null)
         {
             ShaderAsset gridShader = Engine.AssetLoader.Get<ShaderAsset>("Shaders/3DGrid.xml");

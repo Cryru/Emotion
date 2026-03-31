@@ -28,7 +28,7 @@ public class UIViewport : EditorProxyRender
 
         protected override Vector2 GetZoomMousePos()
         {
-            return Engine.Host.MousePosition - _ui.Position2;
+            return Vector2.Zero;// Engine.Host.MousePosition - _ui.Position2;
         }
 
         /// <inheritdoc />
@@ -92,27 +92,27 @@ public class UIViewport : EditorProxyRender
 
     protected override bool RenderInternal(Renderer c)
     {
-        c.RenderSprite(Position, Size, _calculatedColor);
-        var oldClip = c.CurrentState.ClipRect;
-        c.SetClipRect(Bounds);
+        //c.RenderSprite(CalculatedMetrics.Position.ToVec2(), CalculatedMetrics.Size.ToVec2(), _calculatedColor);
+        //var oldClip = c.CurrentState.ClipRect;
+        //c.SetClipRect(Bounds);
 
-        c.PushModelMatrix(
-            _camera.ViewMatrix *
-            Matrix4x4.CreateTranslation(X, Y, 0)
-        );
-        base.RenderInternal(c);
+        //c.PushModelMatrix(
+        //    _camera.ViewMatrix *
+        //    Matrix4x4.CreateTranslation(X, Y, 0)
+        //);
+        //base.RenderInternal(c);
         
-        if (_camera.CalculatedScale > 8f)
-        {
-            float pixelAlpha = Maths.Map(_camera.CalculatedScale, 8, 15, 0, 1);
-            pixelAlpha = Maths.Clamp(pixelAlpha, 0f, 1f);
+        //if (_camera.CalculatedScale > 8f)
+        //{
+        //    float pixelAlpha = Maths.Map(_camera.CalculatedScale, 8, 15, 0, 1);
+        //    pixelAlpha = Maths.Clamp(pixelAlpha, 0f, 1f);
 
-            Color gridColor = Color.White * pixelAlpha;
-            c.RenderGrid(Vector3.Zero, new Vector2(1000), new Vector2(1f), gridColor, new Vector2(0.45f));
-        }
+        //    Color gridColor = Color.White * pixelAlpha;
+        //    c.RenderGrid(Vector3.Zero, new Vector2(1000), new Vector2(1f), gridColor, new Vector2(0.45f));
+        //}
 
-        c.PopModelMatrix();
-        c.SetClipRect(oldClip);
+        //c.PopModelMatrix();
+        //c.SetClipRect(oldClip);
         return true;
     }
 }

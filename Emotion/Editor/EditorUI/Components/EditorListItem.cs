@@ -92,7 +92,7 @@ public class EditorListItem<T> : EditorButton
 
     protected override bool RenderInternal(Renderer c)
     {
-        c.RenderSprite(Position, Size, _calculatedColor);
+        //c.RenderSprite(Position, Size, _calculatedColor);
         return true;
     }
 
@@ -103,10 +103,10 @@ public class EditorListItem<T> : EditorButton
 
     protected override void RecalculateButtonColor()
     {
-        base.RecalculateButtonColor();
-        if (Selected)
-            WindowColor = SelectedColor;
+        //base.RecalculateButtonColor();
+        //if (Selected)
+        //    WindowColor = SelectedColor;
 
-        _label.IgnoreParentColor = true;
+        //_label.IgnoreParentColor = true;
     }
 }

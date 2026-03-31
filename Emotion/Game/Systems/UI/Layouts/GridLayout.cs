@@ -2,7 +2,6 @@
 
 using Emotion.Primitives.Grids;
 using System.Buffers;
-using static Emotion.Game.Systems.UI2.UILayoutMethod;
 
 namespace Emotion.Game.Systems.UI;
 
@@ -10,22 +9,17 @@ public partial class UIBaseWindow
 {
     public class GridLayout : LayoutMethodCodeClass
     {
-        public override void Step1_Measure(UIBaseWindow self, out IntVector2 childrenSize)
+        public override void PreLayout(UIBaseWindow self)
         {
-            childrenSize = IntVector2.Zero;
-
+            ref UIWindowCalculatedMetrics calc = ref self.CalculatedMetrics;
             UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
 
-            // Measure children
             int childrenToLayout = 0;
             foreach (UIBaseWindow child in self.Children)
             {
                 if (SkipWindowLayout(child)) continue;
-                child.Layout_Step1_Measure();
                 childrenToLayout++;
             }
-
-            ref UIWindowCalculatedMetrics calc = ref self.CalculatedMetrics;
 
             bool fixedColumns = HasFixedColumns(layoutMethod);
             bool fixedRows = HasFixedRows(layoutMethod);
@@ -55,102 +49,130 @@ public partial class UIBaseWindow
             List<int>? rowHeights = calc.GridRowHeights ?? new List<int>(rowCount);
             calc.GridRowHeights = rowHeights;
             rowHeights.Reset(rowCount);
+        }
 
-            childrenToLayout = 0;
-            for (int i = 0; i < self.Children.Count; i++)
+        public override int GetMainAxis(UIBaseWindow self)
+        {
+            UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
+
+            // If the columns (axis 0 - X) are fixed we are actually layout out in the row direction (axis 1 - Y)
+            bool fixedColumns = HasFixedColumns(layoutMethod);
+            return fixedColumns ? 1 : 0;
+        }
+
+        public override int GetChildrenSize(UIBaseWindow self, int axis)
+        {
+            UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
+            ref UIWindowCalculatedMetrics calc = ref self.CalculatedMetrics;
+
+            List<int>? listForAxis = axis == 0 ? calc.GridColumnWidths : calc.GridRowHeights;
+            AssertNotNull(listForAxis);
+            if (listForAxis == null) return 0;
+
+            int columnCount = calc.GridColumnCount;
+
+            int childrenToLayout = 0;
+            foreach (UIBaseWindow child in self.Children)
             {
-                UIBaseWindow child = self.Children[i];
                 if (SkipWindowLayout(child)) continue;
 
                 GridHelpers.GetCoordinate2DFrom1D(childrenToLayout, columnCount, out int col, out int row);
+                int idxForAxis = axis == 0 ? col : row;
 
-                IntVector2 childSize = child.CalculatedMetrics.Size + child.CalculatedMetrics.MarginTotalSize;
+                int childSizeInAxis = child.CalculatedMetrics.Size[axis] + child.CalculatedMetrics.MarginTotalSize[axis];
 
-                // The row/column size is dependant on the largest child in it
-                columnWidths[col] = Math.Max(columnWidths[col], childSize.X);
-                rowHeights[row] = Math.Max(rowHeights[row], childSize.Y);
+                // The column/row size is dependant on the largest child in it.
+                listForAxis[idxForAxis] = Math.Max(listForAxis[idxForAxis], childSizeInAxis);
 
                 childrenToLayout++;
             }
 
-            RecalculateUniformGridConfig(self, columnWidths, rowHeights);
+            // If uniform size enabled then all rows/columns should be the same size (meaning as big as the largest)
+            bool directionIsUniform = axis == 0 ? layoutMethod.GridProperties.UniformColumnWidth : layoutMethod.GridProperties.UniformRowHeight;
+            if (directionIsUniform)
+            {
+                int max = listForAxis.GetMax();
+                listForAxis.SetAll(max);
+            }
 
-            childrenSize.X = calc.GridTotalWidth;
-            childrenSize.Y = calc.GridTotalHeight;
+            int spacingAxis = ListLayout.GetListSpacing(self, axis);
+            int total = listForAxis.GetSum();
+            total += spacingAxis * (listForAxis.Count - 1);
+            return total;
         }
 
-        public override void Step2_Grow(UIBaseWindow self)
+        public override void GrowShrinkAxis(UIBaseWindow self, int axis)
         {
+            UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
+            ref UIWindowCalculatedMetrics calc = ref self.CalculatedMetrics;
+
+            List<int>? listForAxis = axis == 0 ? calc.GridColumnWidths : calc.GridRowHeights;
+            AssertNotNull(listForAxis);
+            if (listForAxis == null) return;
+
+            int columnCount = calc.GridColumnCount;
+
             IntVector2 myMeasuredSize = self.CalculatedMetrics.GetContentSize();
+            int availableSize = myMeasuredSize[axis];
 
-            List<int>? columnWidths = self.CalculatedMetrics.GridColumnWidths;
-            List<int>? rowHeights = self.CalculatedMetrics.GridRowHeights;
-            AssertNotNull(columnWidths);
-            AssertNotNull(rowHeights);
-            if (columnWidths == null || rowHeights == null) return;
+            int spacingAxis = ListLayout.GetListSpacing(self, axis);
+            int sizeTaken = listForAxis.GetSum();
+            sizeTaken += spacingAxis * (listForAxis.Count - 1);
 
-            int columnCount = Math.Max(1, columnWidths.Count);
-            int rowCount = Math.Max(1, rowHeights.Count);
+            availableSize -= sizeTaken;
 
-            int totalWidth = self.CalculatedMetrics.GridTotalWidth;
-            int totalHeight = self.CalculatedMetrics.GridTotalHeight;
-
-            if (totalWidth <= myMeasuredSize.X || totalHeight <= myMeasuredSize.Y)
+            if (availableSize != 0)
             {
-                // Calculate growing count per directions
-                bool[] growingColumns = ArrayPool<bool>.Shared.Rent(columnCount); // Renting can be deffered to first growing found
-                Array.Clear(growingColumns, 0, columnCount);
-
-                bool[] growingRows = ArrayPool<bool>.Shared.Rent(rowCount);
-                Array.Clear(growingRows, 0, rowCount);
+                bool[] growingAxis = ArrayPool<bool>.Shared.Rent(listForAxis.Count); // Renting can be deffered to first growing found
+                Array.Clear(growingAxis, 0, listForAxis.Count);
 
                 int childrenToLayout = 0;
                 foreach (UIBaseWindow child in self.Children)
                 {
                     if (SkipWindowLayout(child)) continue;
 
-                    GridHelpers.GetCoordinate2DFrom1D(childrenToLayout, columnCount, out int col, out int row);
-                    if (child.Layout.SizingX.Mode == UISizing.UISizingMode.Grow)
-                        growingColumns[col] = true;
-                    if (child.Layout.SizingY.Mode == UISizing.UISizingMode.Grow)
-                        growingRows[row] = true;
+                    UISizing sizing = GetSizingInDirection(child, axis);
+                    if (sizing.CanGrowAndShrink())
+                    {
+                        GridHelpers.GetCoordinate2DFrom1D(childrenToLayout, columnCount, out int col, out int row);
+                        int idxForAxis = axis == 0 ? col : row;
+                        growingAxis[idxForAxis] = true;
+                    }
 
                     childrenToLayout++;
                 }
 
-                DistributeInDirection(growingColumns, columnCount, myMeasuredSize, 0, totalWidth, columnWidths);
-                DistributeInDirection(growingRows, rowCount, myMeasuredSize, 1, totalHeight, rowHeights);
-                RecalculateUniformGridConfig(self, columnWidths, rowHeights);
+                ShrinkGrowAxis(growingAxis, listForAxis.Count, availableSize, listForAxis);
+                ArrayPool<bool>.Shared.Return(growingAxis);
 
-                ArrayPool<bool>.Shared.Return(growingColumns);
-                ArrayPool<bool>.Shared.Return(growingRows);
-
-                // Apply the growth to the children
-                childrenToLayout = 0;
-                foreach (UIBaseWindow child in self.Children)
+                // If uniform size enabled then all rows/columns should be the same size (meaning as big as the largest)
+                bool directionIsUniform = axis == 0 ? layoutMethod.GridProperties.UniformColumnWidth : layoutMethod.GridProperties.UniformRowHeight;
+                if (directionIsUniform)
                 {
-                    if (SkipWindowLayout(child)) continue;
-
-                    GridHelpers.GetCoordinate2DFrom1D(childrenToLayout, columnCount, out int col, out int row);
-                    if (child.Layout.SizingX.Mode == UISizing.UISizingMode.Grow)
-                        child.CalculatedMetrics.Size.X = Math.Max(child.CalculatedMetrics.Size.X, columnWidths[col] - child.CalculatedMetrics.MarginTotalSize.X);
-
-                    if (child.Layout.SizingY.Mode == UISizing.UISizingMode.Grow)
-                        child.CalculatedMetrics.Size.Y = Math.Max(child.CalculatedMetrics.Size.Y, rowHeights[row] - child.CalculatedMetrics.MarginTotalSize.Y);
-
-                    childrenToLayout++;
+                    int max = listForAxis.GetMax();
+                    listForAxis.SetAll(max);
                 }
             }
 
-            // Now the children can grow their children
+            // Apply the growth to the children
+            int childIdx = 0;
             foreach (UIBaseWindow child in self.Children)
             {
                 if (SkipWindowLayout(child)) continue;
-                child.Layout_Step2_Grow();
+
+                UISizing sizing = GetSizingInDirection(child, axis);
+                if (sizing.CanGrowAndShrink())
+                {
+                    GridHelpers.GetCoordinate2DFrom1D(childIdx, columnCount, out int col, out int row);
+                    int idxForAxis = axis == 0 ? col : row;
+                    child.CalculatedMetrics.Size[axis] = listForAxis[idxForAxis] - child.CalculatedMetrics.MarginTotalSize[axis];
+                }
+
+                childIdx++;
             }
         }
 
-        public override void Step3_Position(UIBaseWindow self)
+        public override void PositionChildren(UIBaseWindow self)
         {
             ref UIWindowCalculatedMetrics calc = ref self.CalculatedMetrics;
             UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
@@ -167,10 +189,7 @@ public partial class UIBaseWindow
             AssertNotNull(rowHeights);
             if (columnWidths == null || rowHeights == null) return;
 
-            RecalculateUniformGridConfig(self, columnWidths, rowHeights);
-
             int columnCount = calc.GridColumnCount;
-            int rowCount = calc.GridRowCount;
 
             int childrenToLayout = 0;
             int currentRow = 0;
@@ -181,7 +200,7 @@ public partial class UIBaseWindow
                 if (!child.CalculatedMetrics.InsideParent)
                 {
                     // Parents outisde the parent list are free layout
-                    FreeLayout.FreeLayoutChild(child, contentRect, boundsRect);
+                    FreeLayout.FreeLayoutPosition(child, contentRect, boundsRect);
                     continue;
                 }
 
@@ -196,71 +215,125 @@ public partial class UIBaseWindow
 
                 // Sum columns up to this
                 int penX = contentRect.Position.X;
-                for (int c = 0; c < col; c++)
-                {
-                    penX += columnWidths[c] + spacingX;
-                }
+                penX += spacingX * col;
+                penX += columnWidths.GetSum(col);
 
                 // Free layout within the cell
                 IntVector2 cellPosition = new IntVector2(penX, penY);
                 IntRectangle cellRect = new IntRectangle(cellPosition, new IntVector2(columnWidths[col], rowHeights[row]));
-                FreeLayout.FreeLayoutChild(child, cellRect, cellRect);
+                FreeLayout.FreeLayoutPosition(child, cellRect, cellRect);
                 childrenToLayout++;
             }
         }
 
-        private static void RecalculateUniformGridConfig(UIBaseWindow self, List<int> columnWidths, List<int> rowHeights)
+        private static void ShrinkGrowAxis(bool[] growingMask, int arrLength, int remaining, List<int> sizes)
         {
-            UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
-            ref UIWindowCalculatedMetrics calc = ref self.CalculatedMetrics;
-
-            int columnCount = calc.GridColumnCount;
-            int rowCount = calc.GridRowCount;
-
-            // If uniform size enabled then all rows/columns are of the size of the largest one.
-            if (layoutMethod.GridProperties.UniformColumnWidth)
+            // Growing
+            while (remaining > float.Epsilon)
             {
-                int maxWidth = columnWidths.GetMax();
-                columnWidths.SetAll(maxWidth);
+                int smallest = int.MaxValue;
+                int secondSmallest = int.MaxValue;
+                int growable = 0;
+                for (int i = 0; i < arrLength; i++)
+                {
+                    bool growing = growingMask[i];
+                    if (!growing) continue;
+                    growable++;
+
+                    int size = sizes[i];
+
+                    if (smallest == int.MaxValue)
+                    {
+                        smallest = size;
+                        secondSmallest = size;
+                        continue;
+                    }
+                    else if (size < smallest)
+                    {
+                        secondSmallest = smallest;
+                        smallest = size;
+                    }
+                    else if (size > smallest && size < secondSmallest)
+                    {
+                        secondSmallest = size;
+                    }
+                }
+                if (growable == 0) break;
+
+                int diff = secondSmallest - smallest;
+                diff = Math.Max(diff, remaining / growable);
+                if (diff == 0)
+                {
+                    // Distribute last pixels sequentially so we don't have leftover space at the end.
+                    if (remaining > 0)
+                    {
+                        for (int i = 0; i < arrLength; i++)
+                        {
+                            if (!growingMask[i]) continue;
+
+                            sizes[i]++;
+                            remaining--;
+                            if (remaining == 0) break;
+                        }
+                    }
+                    break;
+                }
+
+                for (int i = 0; i < arrLength; i++)
+                {
+                    bool growing = growingMask[i];
+                    if (!growing) continue;
+
+                    int size = sizes[i];
+                    if (size == smallest)
+                    {
+                        sizes[i] += diff;
+                        remaining -= diff;
+                    }
+                }
             }
 
-            if (layoutMethod.GridProperties.UniformRowHeight)
+            // Shrinking
+            while (remaining < -float.Epsilon)
             {
-                int maxHeight = rowHeights.GetMax();
-                rowHeights.SetAll(maxHeight);
-            }
+                int largest = 0;
+                int secondLargest = 0;
+                int shrinkable = 0;
+                for (int i = 0; i < arrLength; i++)
+                {
+                    bool growing = growingMask[i];
+                    if (!growing) continue;
+                    shrinkable++;
 
-            int spacingX = ListLayout.GetListSpacing(self, 0);
-            int spacingY = ListLayout.GetListSpacing(self, 1);
+                    int size = sizes[i];
+                    if (size > largest)
+                    {
+                        secondLargest = largest;
+                        largest = size;
+                    }
+                    if (size < largest && size > secondLargest)
+                    {
+                        secondLargest = size;
+                    }
+                }
+                if (shrinkable == 0) break;
 
-            // Calculate total size
-            int totalWidth = columnWidths.GetSum();
-            totalWidth += spacingX * (columnCount - 1);
-            calc.GridTotalWidth = totalWidth;
+                int diff = secondLargest - largest;
+                diff = Math.Max(diff, remaining / shrinkable);
+                if (diff == 0) break;
 
-            int totalHeight = rowHeights.GetSum();
-            totalHeight += spacingY * (rowCount - 1);
-            calc.GridTotalHeight = totalHeight;
-        }
+                for (int i = 0; i < arrLength; i++)
+                {
+                    bool growing = growingMask[i];
+                    if (!growing) continue;
 
-        private static void DistributeInDirection(bool[] growingMask, int arrLength, IntVector2 myMeasuredSize, int mask, int totalMasked, List<int> sizesInDirection)
-        {
-            int growingCount = growingMask.CountTrue(arrLength);
-            if (growingCount <= 0 || totalMasked >= myMeasuredSize[mask]) return;
-
-            int remaining = myMeasuredSize[mask] - totalMasked;
-            int sharePer = remaining / growingCount;
-            int remainingPixels = remaining % growingCount;
-
-            for (int i = 0; i < arrLength; i++)
-            {
-                if (!growingMask[i]) continue;
-
-                sizesInDirection[i] += sharePer;
-                if (remainingPixels <= 0) continue;
-
-                sizesInDirection[i]++;
-                remainingPixels--;
+                    int size = sizes[i];
+                    if (size == largest)
+                    {
+                        sizes[i] += diff;
+                        remaining -= diff;
+                    }
+                }
             }
         }
 

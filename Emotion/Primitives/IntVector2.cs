@@ -134,12 +134,19 @@ public record struct IntVector2
         );
     }
 
-
     public static IntVector2 Max(IntVector2 a, IntVector2 b)
     {
         return new IntVector2(
             Math.Max(a.X, b.X),
             Math.Max(a.Y, b.Y)
+        );
+    }
+
+    public static IntVector2 Min(IntVector2 a, IntVector2 b)
+    {
+        return new IntVector2(
+            Math.Min(a.X, b.X),
+            Math.Min(a.Y, b.Y)
         );
     }
 

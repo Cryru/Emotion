@@ -5,7 +5,6 @@
 using Emotion.Core.Systems.Input;
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Game.Systems.UI;
-using Emotion.Game.Systems.UI2.Editor;
 using Emotion.Game.World.TileMap;
 using System.Linq;
 

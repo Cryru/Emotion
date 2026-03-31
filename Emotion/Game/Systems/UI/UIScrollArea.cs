@@ -96,27 +96,27 @@ public class UIScrollArea : UIBaseWindow
 
     protected void SyncScrollbar()
     {
-        _horizontalScroll.Current = _content.CurrentScroll.X;
-        _horizontalScroll.TotalArea = _content.MaxScroll.X;
-        _horizontalScroll.PageArea = MathF.Min(_horizontalScroll.TotalArea, _content.Width);
-        _horizontalScroll.UpdateScrollbar();
+        //_horizontalScroll.Current = _content.CurrentScroll.X;
+        //_horizontalScroll.TotalArea = _content.MaxScroll.X;
+        //_horizontalScroll.PageArea = MathF.Min(_horizontalScroll.TotalArea, _content.Width);
+        //_horizontalScroll.UpdateScrollbar();
 
-        _verticalScroll.Current = _content.CurrentScroll.Y;
-        _verticalScroll.TotalArea = _content.MaxScroll.Y;
-        _verticalScroll.PageArea = MathF.Min(_verticalScroll.TotalArea, _content.Height);
-        _verticalScroll.UpdateScrollbar();
+        //_verticalScroll.Current = _content.CurrentScroll.Y;
+        //_verticalScroll.TotalArea = _content.MaxScroll.Y;
+        //_verticalScroll.PageArea = MathF.Min(_verticalScroll.TotalArea, _content.Height);
+        //_verticalScroll.UpdateScrollbar();
 
-        bool horizontalVisible = true;
-        if (AutoHideScrollX)
-            horizontalVisible = _horizontalScroll.TotalArea > _content.Width;
-        _horizontalScroll.SetVisible(horizontalVisible);
+        //bool horizontalVisible = true;
+        //if (AutoHideScrollX)
+        //    horizontalVisible = _horizontalScroll.TotalArea > _content.Width;
+        //_horizontalScroll.SetVisible(horizontalVisible);
 
-        bool verticalVisible = true;
-        if (AutoHideScrollY)
-            verticalVisible = _verticalScroll.TotalArea > _content.Height;
-        _verticalScroll.SetVisible(verticalVisible);
+        //bool verticalVisible = true;
+        //if (AutoHideScrollY)
+        //    verticalVisible = _verticalScroll.TotalArea > _content.Height;
+        //_verticalScroll.SetVisible(verticalVisible);
 
-        _content.Layout.Margins = new UISpacing(0, 0, verticalVisible ? 20 : 0, horizontalVisible ? 20 : 0);
+        //_content.Layout.Margins = new UISpacing(0, 0, verticalVisible ? 20 : 0, horizontalVisible ? 20 : 0);
     }
 
     protected void ScrollBarCallbackVertical(float amount)
@@ -218,7 +218,7 @@ public class UIScrollArea : UIBaseWindow
 
         public bool ScrollToPos(Vector2 posToScrollTo)
         {
-            posToScrollTo = Vector2.Clamp(posToScrollTo, Vector2.Zero, MaxScroll - Size);
+            //posToScrollTo = Vector2.Clamp(posToScrollTo, Vector2.Zero, MaxScroll - Size);
             if (CurrentScroll == posToScrollTo) return false;
 
             ScrollTranslationMatrix = Matrix4x4.CreateTranslation(-posToScrollTo.X, -posToScrollTo.Y, 0);
@@ -229,28 +229,28 @@ public class UIScrollArea : UIBaseWindow
 
         protected override void RenderChildren(Renderer c)
         {
-            List<UIBaseWindow> children = Children;
+            //IReadOnlyList<UIBaseWindow> children = Children;
 
-            Rectangle clipRect = Bounds.Offset(c.ModelMatrix.Translation.ToVec2());
-            Rectangle? prevClip = c.CurrentState.ClipRect;
-            if (prevClip != null)
-                clipRect = Rectangle.Clip(prevClip.Value, clipRect);
-            c.SetClipRect(clipRect);
+            //Rectangle clipRect = Bounds.Offset(c.ModelMatrix.Translation.ToVec2());
+            //Rectangle? prevClip = c.CurrentState.ClipRect;
+            //if (prevClip != null)
+            //    clipRect = Rectangle.Clip(prevClip.Value, clipRect);
+            //c.SetClipRect(clipRect);
 
-            c.PushModelMatrix(ScrollTranslationMatrix);
-            // c.RenderOutline(Bounds, Color.Red);
-            for (var i = 0; i < children.Count; i++)
-            {
-                UIBaseWindow child = children[i];
-                //child.EnsureRenderBoundsCached(c);
+            //c.PushModelMatrix(ScrollTranslationMatrix);
+            //// c.RenderOutline(Bounds, Color.Red);
+            //for (var i = 0; i < children.Count; i++)
+            //{
+            //    UIBaseWindow child = children[i];
+            //    //child.EnsureRenderBoundsCached(c);
 
-                if (!child.Visible) continue;
+            //    if (!child.Visible) continue;
 
-                child.Render(c);
-            }
-            c.PopModelMatrix();
+            //    child.Render(c);
+            //}
+            //c.PopModelMatrix();
 
-            c.SetClipRect(prevClip);
+            //c.SetClipRect(prevClip);
         }
     }
 }

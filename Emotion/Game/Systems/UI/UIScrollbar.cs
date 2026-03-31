@@ -73,18 +73,18 @@ public class UIScrollbar : UIBaseWindow
 
         if (_dragging == Vector2.Zero) return;
 
-        float progress;
+        float progress = 0;
         if (Horizontal)
         {
-            progress = Maths.Map(mousePos.X - _dragging.X, X, X + Width, 0, TotalArea);
-            progress = MathF.Round(progress);
+            //progress = Maths.Map(mousePos.X - _dragging.X, X, X + Width, 0, TotalArea);
+            //progress = MathF.Round(progress);
             //var list = (UICallbackListNavigator?)ScrollParent;
             //list?.ScrollByAbsolutePos(progress);
         }
         else
         {
-            progress = Maths.Map(mousePos.Y - _dragging.Y, Y, Y + Height, 0, TotalArea);
-            progress = MathF.Round(progress);
+            //progress = Maths.Map(mousePos.Y - _dragging.Y, Y, Y + Height, 0, TotalArea);
+            //progress = MathF.Round(progress);
             //var list = (UICallbackListNavigator?)ScrollParent;
             //list?.ScrollByAbsolutePos(progress);
         }
@@ -106,27 +106,27 @@ public class UIScrollbar : UIBaseWindow
         if (ScrollParent != null)
         {
             // todo: what is this tomfoolery
-            float spaceTaken = TotalArea > PageArea ? PageArea : TotalArea;
+            //float spaceTaken = TotalArea > PageArea ? PageArea : TotalArea;
             //_measuredSize.Y = spaceTaken;
-            Height = spaceTaken;
+           // Height = spaceTaken;
         }
 
-        if (Horizontal)
-        {
-            float progress = Maths.Map(Current, 0, TotalArea, 0, Width);
-            progress = MathF.Round(progress);
-            float size = Maths.Map(PageArea, 0, TotalArea, 0, Width);
-            size = MathF.Round(size);
-            _selectorRect = new Rectangle(X + progress, Y, size, Height);
-        }
-        else
-        {
-            float progress = Maths.Map(Current, 0, TotalArea, 0, Height);
-            progress = MathF.Round(progress);
-            float size = Maths.Map(PageArea, 0, TotalArea, 0, Height);
-            size = MathF.Round(size);
-            _selectorRect = new Rectangle(X, Y + progress, Width, size);
-        }
+        //if (Horizontal)
+        //{
+        //    float progress = Maths.Map(Current, 0, TotalArea, 0, Width);
+        //    progress = MathF.Round(progress);
+        //    float size = Maths.Map(PageArea, 0, TotalArea, 0, Width);
+        //    size = MathF.Round(size);
+        //    _selectorRect = new Rectangle(X + progress, Y, size, Height);
+        //}
+        //else
+        //{
+        //    float progress = Maths.Map(Current, 0, TotalArea, 0, Height);
+        //    progress = MathF.Round(progress);
+        //    float size = Maths.Map(PageArea, 0, TotalArea, 0, Height);
+        //    size = MathF.Round(size);
+        //    _selectorRect = new Rectangle(X, Y + progress, Width, size);
+        //}
     }
 
     protected override void DELETEME_AfterLayout()
@@ -137,8 +137,8 @@ public class UIScrollbar : UIBaseWindow
 
     protected override bool RenderInternal(Renderer c)
     {
-        c.RenderSprite(Bounds, _calculatedColor);
-        c.RenderSprite(_selectorRect, _selectorColor);
+        //c.RenderSprite(Bounds, _calculatedColor);
+        //c.RenderSprite(_selectorRect, _selectorColor);
 
         return true;
     }

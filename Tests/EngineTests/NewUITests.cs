@@ -34,20 +34,19 @@ public class NewUITests : TestingScene
 
     protected override void TestUpdate()
     {
-        Engine.UI.Update();
+        Engine.UI.UpdateSystem();
     }
 
     protected override void TestDraw(Renderer c)
     {
         c.SetUseViewMatrix(false);
-        Engine.UI.Render(c);
+        Engine.UI.RenderSystem(c);
     }
 
     protected IEnumerator WaitUILayout()
     {
-        Engine.UI.Update();
-        yield return Engine.UI.WaitLoadingRoutine();
         yield return new TestWaiterRunLoops(1);
+        yield return Engine.UI.WaitLoadingRoutine();
     }
 
     public override void BetweenEachTest()
@@ -248,7 +247,7 @@ public class NewUITests : TestingScene
                     SizingX = UISizing.Grow(),
                     SizingY = UISizing.Grow(),
                 },
-                Children =
+                AddChildren =
                 {
                     new UIBaseWindow()
                     {
@@ -280,7 +279,7 @@ public class NewUITests : TestingScene
     [Test]
     public IEnumerator ComplicatedLayoutTest()
     {
-        UIContainer container = new()
+        UIContainer container = new(SceneUI)
         {
             Visuals =
             {
@@ -294,12 +293,11 @@ public class NewUITests : TestingScene
                 MaxSizeX = 630,
             }
         };
-        SceneUI.AddChild(container);
 
         string[] items = ["Copy", "Paste", "Delete", "Layer", "Comment", "Look up in dictionary"];
         for (int i = 0; i < items.Length; i++)
         {
-            UIBaseWindow item = new()
+            UIBaseWindow item = new(container)
             {
                 Layout =
                 {
@@ -312,7 +310,7 @@ public class NewUITests : TestingScene
                 {
                     BackgroundColor = Color.PrettyPink
                 },
-                Children =
+                AddChildren =
                 {
                     new UIText()
                     {
@@ -321,7 +319,6 @@ public class NewUITests : TestingScene
                         Layout =
                         {
                             AnchorAndParentAnchor = UIAnchor.CenterLeft,
-                            SizingX = UISizing.Grow()
                         }
                     },
                     new UIPicture()
@@ -337,9 +334,10 @@ public class NewUITests : TestingScene
                     }
                 }
             };
-            container.AddChild(item);
         }
 
+        yield return WaitUILayout();
+        yield return WaitUILayout();
         yield return WaitUILayout();
         yield return VerifyScreenshot(nameof(NewUITests), nameof(ComplicatedLayoutTest));
     }
@@ -598,7 +596,7 @@ public class NewUITests : TestingScene
     public IEnumerator FillListThreeItems()
     {
         {
-            var win = new UIBaseWindow()
+            var win = new UIBaseWindow(SceneUI)
             {
                 Name = "test",
                 Visuals =
@@ -612,7 +610,7 @@ public class NewUITests : TestingScene
             };
 
             {
-                var a = new UIBaseWindow()
+                _ = new UIBaseWindow(win)
                 {
                     Visuals =
                     {
@@ -624,11 +622,10 @@ public class NewUITests : TestingScene
                         SizingY = UISizing.Fixed(60),
                     }
                 };
-                win.AddChild(a);
             }
 
             {
-                var a = new UIBaseWindow()
+                _ = new UIBaseWindow(win)
                 {
                     Visuals =
                     {
@@ -640,11 +637,10 @@ public class NewUITests : TestingScene
                         SizingY = UISizing.Fixed(60),
                     }
                 };
-                win.AddChild(a);
             }
 
             {
-                var a = new UIBaseWindow()
+                _ = new UIBaseWindow(win)
                 {
                     Visuals =
                     {
@@ -656,10 +652,7 @@ public class NewUITests : TestingScene
                         SizingY = UISizing.Fixed(60),
                     }
                 };
-                win.AddChild(a);
             }
-
-            SceneUI.AddChild(win);
         }
 
         for (var i = 0; i < 2; i++)
@@ -849,7 +842,51 @@ public class NewUITests : TestingScene
         }
     }
 
-    //[DebugTest]
+    [Test]
+    public IEnumerator TextWrapTest()
+    {
+        var container = new UIBaseWindow(SceneUI)
+        {
+            Layout =
+            {
+                SizingX = UISizing.Fixed(600),
+                SizingY = UISizing.Fit(),
+                LayoutMethod = UILayoutMethod.HorizontalList(10)
+            },
+            Visuals =
+            {
+                BackgroundColor = Color.PrettyPurple
+            }
+        };
+
+        UIText textOne = new UIText(container)
+        {
+            Text = "One Two Three Four",
+            FontSize = 40
+        };
+
+        UIBaseWindow winInMiddle = new UIBaseWindow(container)
+        {
+            Layout =
+            {
+                SizingX = UISizing.Fixed(200)
+            },
+            Visuals =
+            {
+                BackgroundColor = Color.PrettyYellow
+            }
+        };
+
+        UIText textTwo = new UIText(container)
+        {
+            Text = "Everybody do the dinosaur",
+            FontSize = 40
+        };
+
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(TextWrapTest));
+    }
+
     //[Test]
     //public IEnumerator HorizontalListWrap()
     //{
@@ -1252,7 +1289,7 @@ public class NewUITests : TestingScene
                 {
                     BackgroundColor = Color.PrettyOrange
                 },
-                Children =
+                AddChildren =
                 {
                     new UIBaseWindow
                     {
@@ -1267,7 +1304,7 @@ public class NewUITests : TestingScene
                         {
                             BackgroundColor = Color.PrettyGreen
                         },
-                        Children =
+                        AddChildren =
                         {
                             new UIBaseWindow
                             {
@@ -1281,7 +1318,7 @@ public class NewUITests : TestingScene
                                     Padding = new UISpacing(6, 3, 6, 3),
                                     SizingX = UISizing.Fit()
                                 },
-                                Children =
+                                AddChildren =
                                 {
                                     new UIText
                                     {

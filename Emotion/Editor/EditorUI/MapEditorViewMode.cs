@@ -44,7 +44,7 @@ public class MapEditorViewMode : UIBaseWindow
 
             IgnoreParentColor = true,
 
-            Children = new List<UIBaseWindow>()
+            AddChildren =
             {
                 new MapEditorViewModeButton("Game")
                 {
@@ -75,7 +75,7 @@ public class MapEditorViewMode : UIBaseWindow
                 Padding = new UISpacing(10, 10, 5, 5),
             },
 
-            Children = new List<UIBaseWindow>()
+            AddChildren =
             {
                 new EditorLabel()
                 {

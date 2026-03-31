@@ -7,7 +7,7 @@ public record struct UISizing
         Invalid,
         Fit,
         Grow,
-        Fixed,
+        Fixed
     }
 
     public int Size;
@@ -36,6 +36,11 @@ public record struct UISizing
         {
             Mode = UISizingMode.Grow
         };
+    }
+
+    public readonly bool CanGrowAndShrink()
+    {
+        return Mode == UISizingMode.Grow;
     }
 
     public override readonly string ToString()

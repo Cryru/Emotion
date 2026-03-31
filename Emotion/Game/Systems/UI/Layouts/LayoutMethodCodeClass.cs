@@ -8,25 +8,21 @@ public partial class UIBaseWindow
 {
     public abstract class LayoutMethodCodeClass
     {
-        /// <summary>
-        /// Calls the Layout_Step1_Measure on all children.
-        /// and determine the measured size of the self based on the measured sizes of their children (child.CalculatedMetrics.Size)
-        /// The measured size is the minimum size the window could take.
-        /// </summary>
-        public abstract void Step1_Measure(UIBaseWindow self, out IntVector2 childrenSize);
+        public virtual void PreLayout(UIBaseWindow self)
+        {
 
-        /// <summary>
-        /// Calls the Layout_Step2_Grow on all children.
-        /// and increase the calculated size of children to fill the available size (if their sizing mode is grow)
-        /// </summary>
-        public abstract void Step2_Grow(UIBaseWindow self);
-
-        /// <summary>
-        /// Calls Layout_Step3_Position on all children and determines the position of each child.
-        /// </summary>
-        public abstract void Step3_Position(UIBaseWindow self);
+        }
+        public abstract int GetMainAxis(UIBaseWindow self);
+        public abstract int GetChildrenSize(UIBaseWindow self, int axis);
+        public abstract void GrowShrinkAxis(UIBaseWindow self, int axis);
+        public abstract void PositionChildren(UIBaseWindow self);
 
         #region Layout Helpers
+
+        public static UISizing GetSizingInDirection(UIBaseWindow window, int axis)
+        {
+            return axis == 0 ? window.Layout.SizingX : window.Layout.SizingY;
+        }
 
         public static bool SkipWindowLayout(UIBaseWindow window)
         {

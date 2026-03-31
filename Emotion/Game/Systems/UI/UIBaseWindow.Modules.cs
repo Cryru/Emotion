@@ -21,10 +21,37 @@ public enum UIWindowState
 
 public class UIContainer : UIBaseWindow
 {
-    public UIContainer()
+    public UIContainer(UIBaseWindow? win = null) : base(win)
     {
         Layout.SizingX = UISizing.Fit();
         Layout.SizingY = UISizing.Fit();
+    }
+}
+
+public struct ListInitializerProxy<T, TUserArg> : IEnumerable<T>
+{
+    private Action<T, TUserArg> _func;
+    private TUserArg _arg;
+
+    public void SetFunc(Action<T, TUserArg> func, TUserArg arg)
+    {
+        _func = func;
+        _arg = arg;
+    }
+
+    public void Add(T item)
+    {
+        _func(item, _arg);
+    }
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        return default!;
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }
 
@@ -106,9 +133,11 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     #endregion
 
-    public UIBaseWindow()
+    public UIBaseWindow(UIBaseWindow? parent = null)
     {
+        AddChildren.SetFunc(static (c, p) => p.AddChild(c), this);
         Layout.SetWindowOwner(this);
+        parent?.AddChild(this);
     }
 
     #region Lifecycle
@@ -229,18 +258,12 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     /// <summary>
     /// Children of this window.
     /// </summary>
-    public List<UIBaseWindow> Children
-    {
-        get => _children;
-        set
-        {
-            Assert(State != UIWindowState.Open, "You cant substitute children of 'Open' windows.");
-            if (State == UIWindowState.Open) return;
-            _children = value;
-            EnsureParentLinks();
-        }
-    }
-    private List<UIBaseWindow> _children = new List<UIBaseWindow>(0);
+    public IReadOnlyList<UIBaseWindow> Children => _children;
+    private readonly List<UIBaseWindow> _children = new List<UIBaseWindow>(0);
+    private readonly Queue<UIBaseWindow> _childrenToAdd = new Queue<UIBaseWindow>(0);
+    private bool _clearChildrenQueued = false;
+
+    public ListInitializerProxy<UIBaseWindow, UIBaseWindow> AddChildren = new();
 
     public virtual void AddChild(UIBaseWindow? child)
     {
@@ -253,7 +276,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         Assert(child.Parent == null, "Adding a child that is parented to another window?");
         if (child.Parent != null) return;
 
-        // Check for duplicate ids
+        // Debug checks
         if (Engine.Configuration.DebugMode && !string.IsNullOrEmpty(child.Name))
         {
             for (var i = 0; i < Children.Count; i++)
@@ -267,41 +290,42 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
             }
         }
 
-        //Assert(State != UIWindowState.Open || GLThread.IsGLThread(), "UI children can only be added from the main thread.");
-
-        child.EnsureParentLinks();
+        child.EnsureParentLinks(); // Ensure sanity
         child.Parent = this;
-        if (Engine.UI.InUpdate && State == UIWindowState.Open)
-            _childrenToAdd.Enqueue(child);
+
+        child.UpdateLoading(); // Start loading early regardless of anything
+
+        // I am not attached so anything goes
+        bool canAddNow = false;
+        if (State != UIWindowState.Open)
+            canAddNow = true;
+        else if (GLThread.IsGLThread() && !_clearChildrenQueued)
+            canAddNow = true;
+
+        if (canAddNow)
+        {
+            InternalAttachChild(child);
+        }
         else
-            Children.Add(child);
-
-        // Start loading early, don't wait for next update
-        child.UpdateLoading();
-
-        if (State == UIWindowState.Open)
-            child.SetStateOpened();
-
-        InvalidateChildrenOrder();
-        InvalidateLayout();
+        {
+            _childrenToAdd.Enqueue(child);
+        }
     }
-
-    private readonly Queue<UIBaseWindow> _childrenToAdd = new Queue<UIBaseWindow>(0);
 
     private void SortChildren()
     {
         // Custom insertion sort as Array.Sort is unstable
         // Isn't too problematic performance wise since adding children shouldn't happen often.
-        for (var i = 1; i < Children.Count; i++)
+        for (var i = 1; i < _children.Count; i++)
         {
-            UIBaseWindow thisC = Children[i];
+            UIBaseWindow thisC = _children[i];
             for (int j = i - 1; j >= 0;)
             {
-                UIBaseWindow otherC = Children[j];
+                UIBaseWindow otherC = _children[j];
                 if (thisC.CompareTo(otherC) < 0)
                 {
-                    Children[j + 1] = otherC;
-                    Children[j] = thisC;
+                    _children[j + 1] = otherC;
+                    _children[j] = thisC;
                     j--;
                 }
                 else
@@ -329,7 +353,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         Assert(child.Parent == this);
         Assert(State != UIWindowState.Open || GLThread.IsGLThread(), "UI children can only be removed from the main thread.");
 
-        Children.Remove(child);
+        _children.Remove(child);
         child.SetStateClosed();
 
         InvalidateLayout();
@@ -348,6 +372,43 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         }
 
         return false;
+    }
+
+    private void InternalAttachChild(UIBaseWindow win)
+    {
+        _children.Add(win);
+
+        if (State == UIWindowState.Open)
+            win.SetStateOpened();
+
+        InvalidateChildrenOrder();
+        InvalidateLayout();
+    }
+
+    protected void UpdatePass_ChildrenChanges()
+    {
+        if (_clearChildrenQueued)
+        {
+            ClearChildren();
+            _clearChildrenQueued = false;
+        }
+
+        while (_childrenToAdd.TryDequeue(out UIBaseWindow? newChild))
+        {
+            InternalAttachChild(newChild);
+        }
+
+        if (_needsChildrenSort)
+        {
+            SortChildren();
+            _needsChildrenSort = false;
+        }
+
+        for (int i = 0; i < Children.Count; i++)
+        {
+            UIBaseWindow child = Children[i];
+            child.UpdatePass_ChildrenChanges();
+        }
     }
 
     // Helpers
@@ -371,12 +432,18 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     public virtual void ClearChildren()
     {
+        if (!GLThread.IsGLThread())
+        {
+            _clearChildrenQueued = true;
+            return;
+        }
+
         foreach (UIBaseWindow child in Children)
         {
             Assert(child.Parent == this);
             child.SetStateClosed();
         }
-        Children.Clear();
+        _children.Clear();
 
         InvalidateLayout();
     }
@@ -392,7 +459,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     #region Updates
 
-    private bool _needsLoading = true;
+    protected bool _needsLoading = true;
 
     protected void InvalidateAssets()
     {
@@ -501,7 +568,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     public IEnumerator WaitLoadingRoutine()
     {
-        Coroutine? routine = null;
+        Coroutine? routine;
         do
         {
             routine = UpdateLoading();
@@ -603,16 +670,11 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         Assert(State == UIWindowState.Open);
 
         // If loading we don't want to update or draw the UI
-        if (this is not UISystem && IsLoading()) return;
-
-        if (_needsChildrenSort)
+        if (!IsLoading())
         {
-            SortChildren();
-            _needsChildrenSort = false;
+            UpdateInternal();
+            if (State == UIWindowState.Closed) return; // Closed self in update.
         }
-
-        UpdateInternal();
-        if (State == UIWindowState.Closed) return; // Closed self in update.
 
         // This is in reverse since children could close themselves in their UpdateInternal
         for (int i = Children.Count - 1; i >= 0; i--)
@@ -799,6 +861,19 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     #region Layout
 
+    protected virtual void InternalLayoutCollectSize(out IntVector2 preferredSize, out IntVector2 minSize, out IntVector2 maxSize)
+    {
+        preferredSize = IntVector2.Zero;
+        minSize = IntVector2.Zero;
+        maxSize = new IntVector2(UIWindowLayoutConfig.DEFAULT_MAX_SIZE);
+    }
+
+    protected virtual bool InternalWrapCrossAxis(out int crossAxisSize)
+    {
+        crossAxisSize = 0;
+        return false;
+    }
+
     protected virtual IntVector2 InternalGetWindowMinSize()
     {
         return IntVector2.Zero;
@@ -811,27 +886,17 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     protected void DefaultLayout()
     {
-        PreLayout_Step1_AddQueuedChildren();
-        PreLayout_Step2_PreCalculateMetrics();
-        Layout_Step1_Measure();
-        Layout_Step2_Grow();
-        Layout_Step3_Position(CalculatedMetrics.Position);
+        PreLayout_CalculateMetrics();
+
+        Layout_FitAxis(CalculatedMetrics.MainAxis);
+        Layout_GrowShrinkAxis(CalculatedMetrics.MainAxis);
+        LayoutStepWrap();
+        Layout_FitAxis(CalculatedMetrics.CrossAxis);
+        Layout_GrowShrinkAxis(CalculatedMetrics.CrossAxis);
+        Layout_Position(CalculatedMetrics.Position);
     }
 
-    private void PreLayout_Step1_AddQueuedChildren()
-    {
-        while (_childrenToAdd.TryDequeue(out UIBaseWindow? newChild))
-        {
-            Children.Add(newChild);
-        }
-
-        foreach (UIBaseWindow child in Children)
-        {
-            child.PreLayout_Step1_AddQueuedChildren();
-        }
-    }
-
-    private void PreLayout_Step2_PreCalculateMetrics()
+    private void PreLayout_CalculateMetrics()
     {
         _needsLayout = false;
 
@@ -841,7 +906,6 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
             Layout.Scale = Vector2.One;
 
         // Pre-calculate metrics.
-        IntVector2 sizeMargins = IntVector2.Zero;
         CalculatedMetrics.MarginLeftTop = Layout.Margins.LeftTop.FloorMultiply(CalculatedMetrics.Scale);
         CalculatedMetrics.MarginRightBottom = Layout.Margins.RightBottom.FloorMultiply(CalculatedMetrics.Scale);
 
@@ -852,66 +916,107 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         offsets += Layout.Offset;
         offsets = offsets.RoundMultiply(CalculatedMetrics.Scale);
         CalculatedMetrics.Offsets = offsets;
-
-        foreach (UIBaseWindow child in Children)
-        {
-            child.PreLayout_Step2_PreCalculateMetrics();
-        }
-    }
-
-    private void Layout_Step1_Measure()
-    {
-        CalculatedMetrics.MinSize = Layout.MinSize.CeilMultiply(CalculatedMetrics.Scale);
-        CalculatedMetrics.MaxSize = Layout.MaxSize.CeilMultiply(CalculatedMetrics.Scale);
         CalculatedMetrics.InsideParent = AnchorsInsideParent(Layout.ParentAnchor, Layout.Anchor);
 
         LayoutMethodCodeClass layoutCode = GetLayoutCode(Layout.LayoutMethod);
-        layoutCode.Step1_Measure(this, out IntVector2 childrenSize);
+        CalculatedMetrics.MainAxis = layoutCode.GetMainAxis(this);
+        CalculatedMetrics.CrossAxis = CalculatedMetrics.MainAxis == 1 ? 0 : 1;
 
-        // Paddings are added to the children size.
-        childrenSize += CalculatedMetrics.PaddingTotalSize;
+        // Calculate limits
+        InternalLayoutCollectSize(out IntVector2 preferredSize, out IntVector2 minSize, out IntVector2 maxSize);
+        CalculatedMetrics.MinSize = Layout.MinSize.CeilMultiply(CalculatedMetrics.Scale);
+        CalculatedMetrics.MinSize = IntVector2.Max(CalculatedMetrics.MinSize, minSize);
+        CalculatedMetrics.PreferredSize = preferredSize;
+        CalculatedMetrics.MaxSize = Layout.MaxSize.CeilMultiply(CalculatedMetrics.Scale);
+        CalculatedMetrics.MaxSize = IntVector2.Min(CalculatedMetrics.MaxSize, maxSize);
 
-        // Fixed sizing
-        IntVector2 fixedSize = IntVector2.Zero;
-        bool fixedX = Layout.SizingX.Mode == UISizing.UISizingMode.Fixed;
-        bool fixedY = Layout.SizingY.Mode == UISizing.UISizingMode.Fixed;
-        if (fixedX && fixedY && Layout.SizingX.Size == Layout.SizingY.Size) // Special case for squares to remain square
+        layoutCode.PreLayout(this);
+
+        foreach (UIBaseWindow child in Children)
         {
-            fixedSize.X = (int)MathF.Ceiling(Layout.SizingX.Size * CalculatedMetrics.Scale.X);
-            fixedSize.Y = fixedSize.X;
+            child.PreLayout_CalculateMetrics();
         }
-        else
-        {
-            if (fixedX)
-                fixedSize.X = (int)MathF.Ceiling(Layout.SizingX.Size * CalculatedMetrics.Scale.X);
-            if (fixedY)
-                fixedSize.Y = (int)MathF.Ceiling(Layout.SizingY.Size * CalculatedMetrics.Scale.Y);
-        }
-
-        // Window size is whichever is the largest between the children, internal measurements, and fixed sizing.
-        IntVector2 mySize = IntVector2.Max(IntVector2.Max(childrenSize, fixedSize), InternalGetWindowMinSize());
-
-        // Clamp to limits
-        mySize = IntVector2.Clamp(mySize, CalculatedMetrics.MinSize, CalculatedMetrics.MaxSize);
-
-        CalculatedMetrics.Size = mySize;
-        CalculatedMetrics.ChildrenSize = childrenSize;
     }
 
-    private void Layout_Step2_Grow()
+    private void Layout_FitAxis(int axis)
     {
-        // Early out
-        if (Children.Count == 0) return;
+        for (int i = 0; i < Children.Count; i++)
+        {
+            UIBaseWindow child = Children[i];
+            if (LayoutMethodCodeClass.SkipWindowLayout(child)) continue;
+
+            child.Layout_FitAxis(axis);
+        }
+
+        ref UIWindowLayoutConfig layout = ref Layout;
+
+        // We calculate children size even in fixed directions since
+        // some layouts have extra logic in there.
+        // todo?
         LayoutMethodCodeClass layoutCode = GetLayoutCode(Layout.LayoutMethod);
-        layoutCode.Step2_Grow(this);
+        int childrenSize = layoutCode.GetChildrenSize(this, axis);
+        childrenSize += CalculatedMetrics.PaddingTotalSize[axis];
+
+        int sizeInDirection = CalculatedMetrics.PreferredSize[axis];
+        UISizing sizingInDirection = layout.GetSizingInDirection(axis);
+        if (sizingInDirection.Mode == UISizing.UISizingMode.Fixed)
+        {
+            bool fixedX = Layout.SizingX.Mode == UISizing.UISizingMode.Fixed;
+            bool fixedY = Layout.SizingY.Mode == UISizing.UISizingMode.Fixed;
+            if (fixedX && fixedY && Layout.SizingX.Size == Layout.SizingY.Size) // Special case for squares to remain square
+            {
+                sizeInDirection = (int)MathF.Ceiling(sizingInDirection.Size * CalculatedMetrics.Scale.X);
+            }
+            else
+            {
+                sizeInDirection = (int)MathF.Ceiling(sizingInDirection.Size * CalculatedMetrics.Scale[axis]);
+            }
+        }
+        else if (Children.Count > 0)
+        {
+            sizeInDirection = Math.Max(sizeInDirection, childrenSize);
+        }
+
+        sizeInDirection = Math.Clamp(sizeInDirection, CalculatedMetrics.MinSize[axis], CalculatedMetrics.MaxSize[axis]);
+        CalculatedMetrics.Size[axis] = sizeInDirection;
     }
 
-    private void Layout_Step3_Position(IntVector2 pos)
+    private void Layout_GrowShrinkAxis(int axis)
+    {
+        if (Children.Count == 0) return;
+
+        LayoutMethodCodeClass layoutCode = GetLayoutCode(Layout.LayoutMethod);
+        layoutCode.GrowShrinkAxis(this, axis);
+
+        foreach (UIBaseWindow child in Children)
+        {
+            if (LayoutMethodCodeClass.SkipWindowLayout(child)) continue;
+            child.Layout_GrowShrinkAxis(axis);
+        }
+    }
+
+    private void LayoutStepWrap()
+    {
+        if (InternalWrapCrossAxis(out int crossAxisSize))
+        {
+            CalculatedMetrics.PreferredSize[CalculatedMetrics.CrossAxis] = crossAxisSize;
+        }
+
+        for (int i = 0; i < Children.Count; i++)
+        {
+            UIBaseWindow child = Children[i];
+            if (LayoutMethodCodeClass.SkipWindowLayout(child)) continue;
+
+            child.LayoutStepWrap();
+        }
+    }
+
+    private void Layout_Position(IntVector2 pos)
     {
         CalculatedMetrics.Position = pos;
 
         LayoutMethodCodeClass layoutCode = GetLayoutCode(Layout.LayoutMethod);
-        layoutCode.Step3_Position(this);
+        layoutCode.PositionChildren(this);
 
         // Custom layout is last so it can react to other window's layouts (UIAttachedWindow)
         foreach (UIBaseWindow child in Children)
@@ -934,8 +1039,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     protected void CustomLayout()
     {
-        PreLayout_Step1_AddQueuedChildren();
-        PreLayout_Step2_PreCalculateMetrics();
+        PreLayout_CalculateMetrics();
         InternalCustomLayout();
     }
 
@@ -1097,7 +1201,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
             // Get children.
             var childrenLists = new Queue<List<UIBaseWindow>>();
-            if (cur.Children != null) childrenLists.Enqueue(cur.Children);
+            if (cur.Children != null) childrenLists.Enqueue(cur._children);
             yield return cur;
 
             while (childrenLists.Count > 0)
@@ -1107,7 +1211,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
                 {
                     UIBaseWindow child = list[j];
                     // Get grandchildren if any.
-                    if (child.Children?.Count > 0) childrenLists.Enqueue(child.Children);
+                    if (child.Children?.Count > 0) childrenLists.Enqueue(child._children);
                     yield return child;
                 }
             }

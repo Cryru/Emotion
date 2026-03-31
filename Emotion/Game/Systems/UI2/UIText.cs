@@ -121,13 +121,13 @@ public class UIText : UIBaseWindow
 
     protected TextLayouter _layouter;
 
-    public UIText()
+    public UIText(UIBaseWindow? parent = null) : base(parent)
     {
         _layouter = CreateTextLayouter();
 
         _assetOwner.Set(FontAsset.GetDefaultBuiltIn(), true);
         _assetOwner.SetOnChangeCallback(ProxyInvalidateLayout, this);
-        Layout.SizingX = UISizing.Fit();
+        Layout.SizingX = UISizing.Grow();
         Layout.SizingY = UISizing.Fit();
     }
 
@@ -151,6 +151,37 @@ public class UIText : UIBaseWindow
     {
         ReRunLayout();
         return _layouter.Calculated_TotalSize;
+    }
+
+    protected override void InternalLayoutCollectSize(out IntVector2 preferredSize, out IntVector2 minSize, out IntVector2 maxSize)
+    {
+        Font? font = _assetOwner.GetCurrentObject();
+        if (font == null)
+        {
+            base.InternalLayoutCollectSize(out preferredSize, out minSize, out maxSize);
+            return;
+        }
+
+        int textSizeScaled = (int)MathF.Ceiling(FontSize * CalculatedMetrics.ScaleF);
+        _layouter.RunLayout(Text, textSizeScaled, font, null, TextHeightMode);
+
+        preferredSize = _layouter.Calculated_TotalSize;
+        minSize = new IntVector2(textSizeScaled, preferredSize.Y);
+        maxSize = new IntVector2(UIWindowLayoutConfig.DEFAULT_MAX_SIZE);
+    }
+
+    protected override bool InternalWrapCrossAxis(out int crossAxisSize)
+    {
+        crossAxisSize = 0;
+        if (!_wrapText) return false;
+        if (_layouter.Calculated_TotalSize.X == CalculatedMetrics.Size.X) return false; // No need to wrap - it all fit
+
+        Font? font = _assetOwner.GetCurrentObject();
+        int textSizeScaled = (int)MathF.Ceiling(FontSize * CalculatedMetrics.ScaleF);
+        _layouter.RunLayout(Text, textSizeScaled, font, CalculatedMetrics.Size.X, TextHeightMode);
+        crossAxisSize = _layouter.Calculated_TotalSize.Y;
+
+        return true;
     }
 
     protected void ReRunLayout()

@@ -48,11 +48,13 @@ public static class ListExtensions
         return maxNum;
     }
 
-    public static T GetSum<T>(this IList<T> list)
+    public static T GetSum<T>(this IList<T> list, int count = -1)
         where T : INumber<T>
     {
+        if (count == -1) count = list.Count;
+
         T sum = T.Zero;
-        for (int i = 0; i < list.Count; i++)
+        for (int i = 0; i < count; i++)
         {
             sum = sum + list[i];
         }

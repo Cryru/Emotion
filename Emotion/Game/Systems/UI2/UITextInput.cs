@@ -321,8 +321,8 @@ public class UITextInput : UIText
             {
                 Rectangle cursorCharRect = _layouter.GetBoundOfSelectionIndex(_selectionEnd);
 
-                var top = (cursorCharRect.TopLeft + CalculatedMetrics.Position.ToVec2()).ToVec3(Z);
-                var bottom = (cursorCharRect.BottomLeft + CalculatedMetrics.Position.ToVec2()).ToVec3(Z);
+                var top = (cursorCharRect.TopLeft + CalculatedMetrics.Position.ToVec2()).ToVec3();
+                var bottom = (cursorCharRect.BottomLeft + CalculatedMetrics.Position.ToVec2()).ToVec3();
                 r.RenderLine(top, bottom, TextColor, 2);
             }
 

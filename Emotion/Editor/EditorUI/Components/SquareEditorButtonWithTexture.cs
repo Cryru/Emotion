@@ -1,6 +1,6 @@
 ﻿#nullable enable
 
-using Emotion.Game.Systems.UI2.Editor;
+using Emotion.Game.Systems.UI2;
 
 namespace Emotion.Editor.EditorUI.Components;
 

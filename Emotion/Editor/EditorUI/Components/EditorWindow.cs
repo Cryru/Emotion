@@ -5,8 +5,6 @@
 using Emotion.Core.Systems.Input;
 using Emotion.Core.Utility.Threading;
 using Emotion.Game.Systems.UI;
-using Emotion.Game.Systems.UI2;
-using Emotion.Game.Systems.UI2.Editor;
 using OpenGL;
 using static Emotion.Core.Platform.PlatformBase;
 using static Emotion.Graphics.Renderer;
@@ -225,7 +223,7 @@ public class EditorWindow : UIBaseWindow
                 _panelItself.Layout.SizingY = UISizing.Fixed((int)size.Y);
             }
             r.RenderToAndClear(_windowFB);
-            r.RenderSprite(Position, Size, Color.CornflowerBlue);
+            r.RenderSprite(CalculatedMetrics.Position.ToVec2(), CalculatedMetrics.Size.ToVec2(), Color.CornflowerBlue);
         }
 
         base.InternalRender(r);

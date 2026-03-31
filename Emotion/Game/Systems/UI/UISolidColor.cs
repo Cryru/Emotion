@@ -7,7 +7,7 @@ public class UISolidColor : UIBaseWindow
 {
     protected override bool RenderInternal(Renderer c)
     {
-        c.RenderSprite(Position, Size, _calculatedColor);
+        //c.RenderSprite(Position, Size, _calculatedColor);
         return true;
     }
 }

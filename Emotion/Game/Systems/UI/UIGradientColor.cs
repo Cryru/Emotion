@@ -23,18 +23,18 @@ public class UIGradientColor : UIBaseWindow
 
     protected override bool RenderInternal(Renderer composer)
     {
-        Span<VertexData> memory = composer.RenderStream.GetStreamMemory(4, BatchMode.Quad);
-        VertexData.SpriteToVertexData(memory, Position, Size, WindowColor);
+        //Span<VertexData> memory = composer.RenderStream.GetStreamMemory(4, BatchMode.Quad);
+        //VertexData.SpriteToVertexData(memory, Position, Size, WindowColor);
 
-        Color baseColorBias = Color.Lerp(WindowColor, ColorTo, BaseColorMix);
-        uint cFrom = baseColorBias.ToUint();
-        memory[0].Color = cFrom;
-        memory[1].Color = cFrom;
+        //Color baseColorBias = Color.Lerp(WindowColor, ColorTo, BaseColorMix);
+        //uint cFrom = baseColorBias.ToUint();
+        //memory[0].Color = cFrom;
+        //memory[1].Color = cFrom;
 
-        Color secondColorBias = Color.Lerp(ColorTo, WindowColor, ToColorMix);
-        uint cTo = secondColorBias.ToUint();
-        memory[2].Color = cTo;
-        memory[3].Color = cTo;
+        //Color secondColorBias = Color.Lerp(ColorTo, WindowColor, ToColorMix);
+        //uint cTo = secondColorBias.ToUint();
+        //memory[2].Color = cTo;
+        //memory[3].Color = cTo;
 
         return true;
     }
