@@ -7,7 +7,8 @@ public record struct UISizing
         Invalid,
         Fit,
         Grow,
-        Fixed
+        Fixed,
+        ShrinkOnly
     }
 
     public int Size;
@@ -38,7 +39,20 @@ public record struct UISizing
         };
     }
 
-    public readonly bool CanGrowAndShrink()
+    public static UISizing ShrinkOnly()
+    {
+        return new UISizing()
+        {
+            Mode = UISizingMode.ShrinkOnly
+        };
+    }
+
+    public readonly bool CanGrowOrShrink()
+    {
+        return Mode == UISizingMode.Grow || Mode == UISizingMode.ShrinkOnly;
+    }
+
+    public readonly bool CanGrow()
     {
         return Mode == UISizingMode.Grow;
     }

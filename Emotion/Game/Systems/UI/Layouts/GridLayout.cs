@@ -132,7 +132,7 @@ public partial class UIBaseWindow
                     if (SkipWindowLayout(child)) continue;
 
                     UISizing sizing = GetSizingInDirection(child, axis);
-                    if (sizing.CanGrowAndShrink())
+                    if (sizing.CanGrowOrShrink())
                     {
                         GridHelpers.GetCoordinate2DFrom1D(childrenToLayout, columnCount, out int col, out int row);
                         int idxForAxis = axis == 0 ? col : row;
@@ -161,7 +161,7 @@ public partial class UIBaseWindow
                 if (SkipWindowLayout(child)) continue;
 
                 UISizing sizing = GetSizingInDirection(child, axis);
-                if (sizing.CanGrowAndShrink())
+                if (sizing.CanGrowOrShrink())
                 {
                     GridHelpers.GetCoordinate2DFrom1D(childIdx, columnCount, out int col, out int row);
                     int idxForAxis = axis == 0 ? col : row;

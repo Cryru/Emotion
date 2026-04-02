@@ -127,7 +127,7 @@ public class UIText : UIBaseWindow
 
         _assetOwner.Set(FontAsset.GetDefaultBuiltIn(), true);
         _assetOwner.SetOnChangeCallback(ProxyInvalidateLayout, this);
-        Layout.SizingX = UISizing.Grow();
+        Layout.SizingX = UISizing.ShrinkOnly();
         Layout.SizingY = UISizing.Fit();
     }
 

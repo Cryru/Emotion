@@ -36,7 +36,7 @@ public partial class UIBaseWindow
                 if (SkipWindowLayout(child)) continue;
 
                 UISizing sizing = GetSizingInDirection(child, axis);
-                if (sizing.CanGrowAndShrink()) continue;
+                if (!sizing.CanGrow()) continue;
 
                 child.CalculatedMetrics.Size[axis] = Math.Max(
                     child.CalculatedMetrics.Size[axis],
