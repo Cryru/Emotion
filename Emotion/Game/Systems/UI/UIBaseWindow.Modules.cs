@@ -357,6 +357,9 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         child.SetStateClosed();
 
         InvalidateLayout();
+
+        if (Engine.UI.InputFocus != null && Engine.UI.InputFocus.IsWithin(this))
+            Engine.UI.InvalidateInputFocus();
     }
 
     public bool IsWithin(UIBaseWindow? within)
