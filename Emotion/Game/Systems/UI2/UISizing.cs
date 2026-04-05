@@ -47,7 +47,7 @@ public record struct UISizing
         };
     }
 
-    public readonly bool CanGrowOrShrink()
+    public readonly bool CanShrink()
     {
         return Mode == UISizingMode.Grow || Mode == UISizingMode.ShrinkOnly;
     }

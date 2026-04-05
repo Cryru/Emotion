@@ -4,10 +4,11 @@ using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Graphics.Text;
 using Emotion.Standard.Parsers.OpenType;
+using Emotion.Standard.Reflector.Handlers.Interfaces;
 
 namespace Emotion.Game.Systems.UI2;
 
-public class UIText : UIBaseWindow
+public class UIText : UIBaseWindow, ICustomReflectorMeta_CustomCreateNew<UIText>
 {
     public AssetObjectReference<FontAsset, Font> Font
     {
@@ -129,6 +130,11 @@ public class UIText : UIBaseWindow
         _assetOwner.SetOnChangeCallback(ProxyInvalidateLayout, this);
         Layout.SizingX = UISizing.ShrinkOnly();
         Layout.SizingY = UISizing.Fit();
+    }
+
+    public static UIText CustomCreateNew()
+    {
+        return new UIText(null);
     }
 
     protected virtual TextLayouter CreateTextLayouter()

@@ -126,24 +126,28 @@ public partial class UIBaseWindow
                 bool[] growingAxis = ArrayPool<bool>.Shared.Rent(listForAxis.Count); // Renting can be deffered to first growing found
                 Array.Clear(growingAxis, 0, listForAxis.Count);
 
+                bool[] shrinkingAxis = ArrayPool<bool>.Shared.Rent(listForAxis.Count); // Renting can be deffered to first growing found
+                Array.Clear(shrinkingAxis, 0, listForAxis.Count);
+
                 int childrenToLayout = 0;
                 foreach (UIBaseWindow child in self.Children)
                 {
                     if (SkipWindowLayout(child)) continue;
 
+                    GridHelpers.GetCoordinate2DFrom1D(childrenToLayout, columnCount, out int col, out int row);
+                    int idxForAxis = axis == 0 ? col : row;
+
                     UISizing sizing = GetSizingInDirection(child, axis);
-                    if (sizing.CanGrowOrShrink())
-                    {
-                        GridHelpers.GetCoordinate2DFrom1D(childrenToLayout, columnCount, out int col, out int row);
-                        int idxForAxis = axis == 0 ? col : row;
-                        growingAxis[idxForAxis] = true;
-                    }
+                    growingAxis[idxForAxis] = sizing.CanGrow();
+                    shrinkingAxis[idxForAxis] = sizing.CanShrink();
 
                     childrenToLayout++;
                 }
 
-                ShrinkGrowAxis(growingAxis, listForAxis.Count, availableSize, listForAxis);
+                GrowAxis(growingAxis, listForAxis.Count, ref availableSize, listForAxis);
+                ShrinkAxis(shrinkingAxis, listForAxis.Count, ref availableSize, listForAxis);
                 ArrayPool<bool>.Shared.Return(growingAxis);
+                ArrayPool<bool>.Shared.Return(shrinkingAxis);
 
                 // If uniform size enabled then all rows/columns should be the same size (meaning as big as the largest)
                 bool directionIsUniform = axis == 0 ? layoutMethod.GridProperties.UniformColumnWidth : layoutMethod.GridProperties.UniformRowHeight;
@@ -161,7 +165,7 @@ public partial class UIBaseWindow
                 if (SkipWindowLayout(child)) continue;
 
                 UISizing sizing = GetSizingInDirection(child, axis);
-                if (sizing.CanGrowOrShrink())
+                if (sizing.CanShrink())
                 {
                     GridHelpers.GetCoordinate2DFrom1D(childIdx, columnCount, out int col, out int row);
                     int idxForAxis = axis == 0 ? col : row;
@@ -226,9 +230,8 @@ public partial class UIBaseWindow
             }
         }
 
-        private static void ShrinkGrowAxis(bool[] growingMask, int arrLength, int remaining, List<int> sizes)
+        private static void GrowAxis(bool[] mask, int arrLength, ref int remaining, List<int> sizes)
         {
-            // Growing
             while (remaining > float.Epsilon)
             {
                 int smallest = int.MaxValue;
@@ -236,7 +239,7 @@ public partial class UIBaseWindow
                 int growable = 0;
                 for (int i = 0; i < arrLength; i++)
                 {
-                    bool growing = growingMask[i];
+                    bool growing = mask[i];
                     if (!growing) continue;
                     growable++;
 
@@ -269,7 +272,7 @@ public partial class UIBaseWindow
                     {
                         for (int i = 0; i < arrLength; i++)
                         {
-                            if (!growingMask[i]) continue;
+                            if (!mask[i]) continue;
 
                             sizes[i]++;
                             remaining--;
@@ -281,7 +284,7 @@ public partial class UIBaseWindow
 
                 for (int i = 0; i < arrLength; i++)
                 {
-                    bool growing = growingMask[i];
+                    bool growing = mask[i];
                     if (!growing) continue;
 
                     int size = sizes[i];
@@ -292,8 +295,10 @@ public partial class UIBaseWindow
                     }
                 }
             }
+        }
 
-            // Shrinking
+        private static void ShrinkAxis(bool[] mask, int arrLength, ref int remaining, List<int> sizes)
+        {
             while (remaining < -float.Epsilon)
             {
                 int largest = 0;
@@ -301,7 +306,7 @@ public partial class UIBaseWindow
                 int shrinkable = 0;
                 for (int i = 0; i < arrLength; i++)
                 {
-                    bool growing = growingMask[i];
+                    bool growing = mask[i];
                     if (!growing) continue;
                     shrinkable++;
 
@@ -324,7 +329,7 @@ public partial class UIBaseWindow
 
                 for (int i = 0; i < arrLength; i++)
                 {
-                    bool growing = growingMask[i];
+                    bool growing = mask[i];
                     if (!growing) continue;
 
                     int size = sizes[i];

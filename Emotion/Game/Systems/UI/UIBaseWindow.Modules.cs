@@ -263,6 +263,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     private readonly Queue<UIBaseWindow> _childrenToAdd = new Queue<UIBaseWindow>(0);
     private bool _clearChildrenQueued = false;
 
+    [DontSerialize]
     public ListInitializerProxy<UIBaseWindow, UIBaseWindow> AddChildren = new();
 
     public virtual void AddChild(UIBaseWindow? child)
