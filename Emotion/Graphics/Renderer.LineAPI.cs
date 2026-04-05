@@ -206,10 +206,10 @@ public sealed partial class Renderer
         // often leads to them jumping a whole pixel though, which is also undesirable)
         if (item.RenderMode == RenderLineMode.Center)
         {
-            s1.X = MathF.Round(s1.X - 0.5f) + 0.001f;
-            s1.Y = MathF.Round(s1.Y - 0.5f) + 0.001f;
-            s2.X = MathF.Round(s2.X - 0.5f) + 0.001f;
-            s2.Y = MathF.Round(s2.Y - 0.5f) + 0.001f;
+            s1.X = MathF.Round(s1.X - 0.5f) + 0.01f;
+            s1.Y = MathF.Round(s1.Y - 0.5f) + 0.01f;
+            s2.X = MathF.Round(s2.X - 0.5f) + 0.01f;
+            s2.Y = MathF.Round(s2.Y - 0.5f) + 0.01f;
         }
         Vector3 snappedP1 = new Vector3(s1, p1.Z);
         Vector3 snappedP2 = new Vector3(s2, p2.Z);
