@@ -88,10 +88,10 @@ public class StyleGuideViewer : EditorWindow
                 {
                     Text = Enum.GetName<ButtonState>(buttonState) ?? string.Empty,
                     Layout =
-                {
-                    AnchorAndParentAnchor = UIAnchor.CenterCenter,
-                    Margins = new UISpacing(0, 0, 0, 15)
-                },
+                    {
+                        AnchorAndParentAnchor = UIAnchor.CenterCenter,
+                        Margins = new UISpacing(0, 0, 0, 15)
+                    },
                     TextColor = new Color("#c3bfcb")
                 });
             }

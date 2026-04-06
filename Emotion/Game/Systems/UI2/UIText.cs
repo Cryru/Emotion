@@ -172,7 +172,7 @@ public class UIText : UIBaseWindow, ICustomReflectorMeta_CustomCreateNew<UIText>
         _layouter.RunLayout(Text, textSizeScaled, font, null, TextHeightMode);
 
         preferredSize = _layouter.Calculated_TotalSize;
-        minSize = new IntVector2(textSizeScaled, preferredSize.Y);
+        minSize = new IntVector2(textSizeScaled / 2, preferredSize.Y);
         maxSize = new IntVector2(UIWindowLayoutConfig.DEFAULT_MAX_SIZE);
     }
 
@@ -180,7 +180,7 @@ public class UIText : UIBaseWindow, ICustomReflectorMeta_CustomCreateNew<UIText>
     {
         crossAxisSize = 0;
         if (!_wrapText) return false;
-        if (_layouter.Calculated_TotalSize.X == CalculatedMetrics.Size.X) return false; // No need to wrap - it all fit
+        if (_layouter.Calculated_TotalSize.X >= CalculatedMetrics.Size.X) return false; // No need to wrap - it all fit
 
         Font? font = _assetOwner.GetCurrentObject();
         int textSizeScaled = (int)MathF.Ceiling(FontSize * CalculatedMetrics.ScaleF);

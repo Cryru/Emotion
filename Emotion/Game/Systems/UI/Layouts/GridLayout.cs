@@ -165,7 +165,7 @@ public partial class UIBaseWindow
                 if (SkipWindowLayout(child)) continue;
 
                 UISizing sizing = GetSizingInDirection(child, axis);
-                if (sizing.CanShrink())
+                if (sizing.CanGrow())
                 {
                     GridHelpers.GetCoordinate2DFrom1D(childIdx, columnCount, out int col, out int row);
                     int idxForAxis = axis == 0 ? col : row;
