@@ -548,14 +548,15 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
             _needsLoading = false;
         }
 
-        lock (this)
-        {
-            foreach (UIBaseWindow child in Children)
+        //lock (this)
+        //{
+            for (int i = 0; i < Children.Count; i++)
             {
+                UIBaseWindow child = Children[i];
                 Coroutine? childLoadRoutine = child.UpdateLoading();
                 firstLoading ??= childLoadRoutine;
             }
-        }
+        //}
 
         return firstLoading;
     }
