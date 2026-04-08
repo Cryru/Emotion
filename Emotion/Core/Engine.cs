@@ -15,6 +15,7 @@ using Emotion.Core.Systems.JobSystem;
 using Emotion.Core.Systems.Localization;
 using Emotion.Core.Systems.Scenography;
 using Emotion.Core.Utility.Coroutines;
+using Emotion.Core.Utility.Coroutines.Performance;
 using Emotion.Core.Utility.Profiling;
 using Emotion.Core.Utility.Threading;
 using Emotion.Editor;
@@ -450,6 +451,56 @@ public static class Engine
 
     private static bool _initReady = false;
 
+    #region Engine Loop Routine Scripts
+
+    private static Coroutine _simulationRoutine = Coroutine.CompletedRoutine;
+
+    private unsafe static ICoroutineScript GetMainLoopRoutineScript()
+    {
+        static int MainBody()
+        {
+            // Resetting game time will stop all routines...
+            // This should probably be managed by the SceneManager by registering different routines for different scenes?
+            if (_simulationRoutine.Finished)
+                _simulationRoutine = Engine.CoroutineManagerGameTime.StartCoroutine(GetSimulationRoutineScript());
+
+            RunMainLoopTick();
+            return (int)DeltaTime;
+        }
+
+        static bool RepeatCondition()
+        {
+            return Engine.Status == EngineState.Running;
+        }
+
+        return new CoroutineScriptSlim(
+            SlimValueCoroutineWaiter.TimeWait(&MainBody),
+            SlimValueCoroutineWaiter.LoopOneBack(&RepeatCondition)
+        );
+    }
+
+    private unsafe static ICoroutineScript GetSimulationRoutineScript()
+    {
+        static int MainBody()
+        {
+            int ms = (int)DeltaTime;
+            SceneManager.Update(ms);
+            return ms;
+        }
+
+        static bool RepeatCondition()
+        {
+            return Engine.Status == EngineState.Running;
+        }
+
+        return new CoroutineScriptSlim(
+            SlimValueCoroutineWaiter.TimeWait(&MainBody),
+            SlimValueCoroutineWaiter.LoopOneBack(&RepeatCondition)
+        );
+    }
+
+    #endregion
+
     private static IEnumerator MainLoopRoutine(Func<IEnumerator> entryPointAsyncRoutine)
     {
         // Routine initialization
@@ -473,29 +524,7 @@ public static class Engine
         desiredStepMs = Math.Max(1, desiredStepMs);
         DeltaTime = desiredStepMs;
 
-        Coroutine gameTimeRoutine = Engine.CoroutineManagerGameTime.StartCoroutine(SimulationTickRoutine(desiredStepMs));
-
-        while (Engine.Status == EngineState.Running)
-        {
-            // Resetting game time will stop all routines...
-            // This should probably be managed by the SceneManager by registering different routines for different scenes?
-            if (gameTimeRoutine.Stopped)
-            {
-                gameTimeRoutine = Engine.CoroutineManagerGameTime.StartCoroutine(SimulationTickRoutine(desiredStepMs));
-            }
-
-            RunMainLoopTick();
-            yield return desiredStepMs;
-        }
-    }
-
-    private static IEnumerator SimulationTickRoutine(int desiredStepMs)
-    {
-        while (Engine.Status == EngineState.Running)
-        {
-            SceneManager.Update(desiredStepMs);
-            yield return desiredStepMs;
-        }
+        yield return Engine.CoroutineManager.StartCoroutine(GetMainLoopRoutineScript());
     }
 
     private static void RunMainLoopTick()
