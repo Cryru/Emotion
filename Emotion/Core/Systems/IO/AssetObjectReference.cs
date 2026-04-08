@@ -90,13 +90,8 @@ public struct AssetObjectReference<TAsset, TObject> : ICustomReflectorMeta_Extra
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(AssetObjectReference<TAsset, TObject>? a, AssetObjectReference<TAsset, TObject>? b)
     {
-        bool aIsNull = a is null;
-        bool bIsNull = b is null;
-        if (aIsNull || bIsNull)
-            return aIsNull && bIsNull;
-
-        AssertNotNull(a);
-        AssertNotNull(b);
+        if (!a.HasValue && !b.HasValue) return true;
+        if (!a.HasValue || !b.HasValue) return false;
 
         var aVal = a.Value;
         var bVal = b.Value;
