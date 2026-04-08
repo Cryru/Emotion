@@ -204,7 +204,7 @@ public partial class GameMap : IDisposable
 
     #endregion
 
-    public void Update(float dt)
+    public unsafe void Update(float dt)
     {
         // Load objects waiting to be loaded
         while (_objectsToLoad.TryDequeue(out GameObject? obj))
@@ -223,17 +223,27 @@ public partial class GameMap : IDisposable
             sim.Update(dt);
         }
 
+        static void ComponentUpdate(IUpdateableComponent component, float dt)
+        {
+            component.Update(dt);
+        }
+
         foreach (GameObject obj in ForEachObject())
         {
             obj.Update(dt);
-            obj.ForEachComponentOfType<IUpdateableComponent, float>(static (component, dt) => component.Update(dt), dt);
+            obj.ForEachComponentOfType<IUpdateableComponent, float>(&ComponentUpdate, dt);
         }
 
         _objectStorage.AssertNoActiveEnumerations();
     }
 
-    public void Render(Renderer r)
+    public unsafe void Render(Renderer r)
     {
+        static void ComponentRender(IRenderableComponent component, Renderer r)
+        {
+            component.Render(r);
+        }
+
         r.MeshEntityRenderer.StartScene(LightConfig);
 
         var culling = new CameraCullingContext(r.Camera);
@@ -250,7 +260,7 @@ public partial class GameMap : IDisposable
             {
                 if (!obj.Visible) continue;
                 if (!obj.AlwaysRender && !obj.GetBoundingRect().Intersects(rect)) continue;
-                obj.ForEachComponentOfType<IRenderableComponent, Renderer>(static (component, r) => component.Render(r), r);
+                obj.ForEachComponentOfType<IRenderableComponent, Renderer>(&ComponentRender, r);
             }
         }
         else
@@ -260,7 +270,7 @@ public partial class GameMap : IDisposable
             {
                 if (!obj.Visible) continue;
                 if (!obj.AlwaysRender && !frustum.IntersectsOrContainsCube(obj.GetBoundingCube())) continue;
-                obj.ForEachComponentOfType<IRenderableComponent, Renderer>(static (component, r) => component.Render(r), r);
+                obj.ForEachComponentOfType<IRenderableComponent, Renderer>(&ComponentRender, r);
             }
         }
 

@@ -243,7 +243,7 @@ public partial class GameObject
         return false;
     }
 
-    public void ForEachComponentOfType<TComponent, TArg>(Action<TComponent, TArg> func, TArg arg1)
+    public unsafe void ForEachComponentOfType<TComponent, TArg>(delegate*<TComponent, TArg, void> func, TArg arg1)
     {
         foreach (KeyValuePair<Type, IGameObjectComponent> component in _components)
         {
