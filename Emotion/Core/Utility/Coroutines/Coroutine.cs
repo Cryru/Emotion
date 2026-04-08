@@ -1,9 +1,5 @@
 ﻿#nullable enable
 
-#if DEBUG
-using System.Reflection;
-#endif
-
 namespace Emotion.Core.Utility.Coroutines;
 
 public enum CoroutineStatus
@@ -15,98 +11,158 @@ public enum CoroutineStatus
     Finished
 }
 
-/// <summary>
-/// An object representing a coroutine created by the CoroutineManager to keep track of your routine.
-/// To create a coroutine yourself, make a function which returns an IEnumerator and pass it to StartCoroutine.
-/// This class is also used for subroutines in which case you want to construct it or yield to an IEnumerator.
-/// </summary>
-public sealed class Coroutine : IRoutineWaiter
+public abstract class Coroutine : IRoutineWaiter
 {
     /// <summary>
     /// A value representing a completed routine.
     /// </summary>
-    public static Coroutine CompletedRoutine = new Coroutine(null!, null!);
+    public static Coroutine CompletedRoutine { get; } = new CoroutineAlreadyCompleted();
 
     public CoroutineStatus Status = CoroutineStatus.None;
-
-    public bool Finished => Status == CoroutineStatus.Stopped || Status == CoroutineStatus.Finished;
 
     public bool Stopped => Status == CoroutineStatus.Stopped;
 
     /// <summary>
     /// The waiter the routine is currently waiting on.
     /// </summary>
-    public IRoutineWaiter? CurrentWaiter { get; private set; }
+    public IRoutineWaiter? CurrentWaiter { get; internal set; }
 
     /// <summary>
     /// If non 0 then waiting for time.
     /// This is more precise than the "current waiter" yielding a timer as it ensures
     /// that the coroutines will be called exactly when this time passes and in the right order.
     /// </summary>
-    public float CurrentWaiter_Time { get; private set; }
+    public float CurrentWaiter_Time { get; internal set; }
 
     /// <summary>
     /// If not null then waiting for this routine to finish.
     /// </summary>
-    public Coroutine? CurrentWaiter_SubRoutine { get; private set; }
+    public Coroutine? CurrentWaiter_SubRoutine { get; internal set; }
 
     /// <summary>
     /// The manager the routine is running on. Subroutines do not run on a
     /// manager but are considered an extension of the parent routine.
     /// </summary>
-    public CoroutineManager Parent { get; set; }
+    public CoroutineManager Parent { get; init; }
 
-    /// <summary>
-    /// Actual C# iterator that is the routine.
-    /// </summary>
-    private IEnumerator? _routine;
+    public abstract void Run(float dt);
 
-    /// <summary>
-    /// Create a new subroutine. Can also be achieved by yielding an IEnumerator.
-    /// </summary>
-    public Coroutine(IEnumerator enumerator, CoroutineManager parent)
+    public void RequestStop()
     {
-        if (enumerator == null)
-            Status = CoroutineStatus.Finished; // CompletedRoutine
-        else
-            Status = CoroutineStatus.Running;
-
-        Parent = parent;
-        _routine = enumerator;
-
-#if DEBUG_STACKS
-        string stackTrace = Environment.StackTrace;
-        int startCoroutineFuncIdx = stackTrace.IndexOf("StartCoroutine", StringComparison.Ordinal);
-        if (startCoroutineFuncIdx == -1) startCoroutineFuncIdx = stackTrace.IndexOf("Coroutine..ctor", StringComparison.Ordinal);
-        int newLineAfterThat = startCoroutineFuncIdx != -1 ? stackTrace.IndexOf("\n", startCoroutineFuncIdx, StringComparison.Ordinal) : -1;
-        if (newLineAfterThat != -1) stackTrace = stackTrace.Substring(newLineAfterThat + 1);
-        DebugCoroutineCreationStack = stackTrace;
-#endif
+        if (Status != CoroutineStatus.Running) return;
+        Status = CoroutineStatus.RequestStop;
     }
+
+    #region IRoutineWaiter
+
+    public bool Finished => Status == CoroutineStatus.Stopped || Status == CoroutineStatus.Finished;
 
     public void Update()
     {
         // nop
     }
 
+    #endregion
+
+    public static void RunInline(IEnumerator routine)
+    {
+        while (routine.MoveNext())
+        {
+            object current = routine.Current;
+            if (current != null)
+            {
+                if (current is IEnumerator subRoutine)
+                {
+                    RunInline(subRoutine);
+                }
+                else if (current is IRoutineWaiter waiter)
+                {
+                    while (!waiter.Finished)
+                        waiter.Update();
+                }
+            }
+        }
+    }
+
+    public static Coroutine? CombineRoutines(Coroutine? a, Coroutine? b)
+    {
+        if (a == null) return b;
+        if (b == null) return a;
+        return Engine.CoroutineManager.StartCoroutine(CombineRoutineWaitRoutine(a, b));
+    }
+
+    private static IEnumerator CombineRoutineWaitRoutine(Coroutine a, Coroutine b)
+    {
+        yield return a;
+        yield return b;
+    }
+
+    public static IEnumerator WhenAll(Coroutine[] routines)
+    {
+        for (int i = 0; i < routines.Length; i++)
+        {
+            yield return routines[i];
+        }
+    }
+
+    public static IEnumerator WhenAll(List<Coroutine> routines)
+    {
+        for (int i = 0; i < routines.Count; i++)
+        {
+            yield return routines[i];
+        }
+    }
+}
+
+public sealed class CoroutineAlreadyCompleted : Coroutine
+{
+    public CoroutineAlreadyCompleted()
+    {
+        Parent = null!;
+        Status = CoroutineStatus.Finished;
+    }
+
+    public override void Run(float dt)
+    {
+    }
+}
+
+/// <summary>
+/// An object representing a coroutine created by the CoroutineManager to keep track of your routine.
+/// To create a coroutine yourself, make a function which returns an IEnumerator and pass it to StartCoroutine.
+/// This class is also used for subroutines in which case you want to construct it or yield to an IEnumerator.
+/// </summary>
+public sealed class CoroutineSpecialization<TScriptType> : Coroutine
+    where TScriptType : ICoroutineScript
+{
+    private ICoroutineScript _routineScript;
+
+    /// <summary>
+    /// Create a new subroutine. Can also be achieved by yielding an IEnumerator.
+    /// </summary>
+    public CoroutineSpecialization(TScriptType routineScript, CoroutineManager parent)
+    {
+        Status = CoroutineStatus.Running;
+        Parent = parent;
+        _routineScript = routineScript;
+    }
+
     /// <summary>
     /// Run the coroutine, this is called by the manager.
     /// </summary>
-    public void Run(float dt)
+    public override void Run(float dt)
     {
+        if (Status != CoroutineStatus.Running) return;
         if (Status == CoroutineStatus.RequestStop)
         {
             Status = CoroutineStatus.Stopped;
-            _routine = null;
             CurrentWaiter_Time = 0;
             CurrentWaiter_SubRoutine = null;
             CurrentWaiter = null;
             return;
         }
 
-        if (Status != CoroutineStatus.Running) return;
-
-        // One coroutine tick can end up advancing the coroutine multiple times.
+        // One coroutine tick can end up advancing the coroutine script multiple times.
         while (RunInternal(ref dt))
         {
         }
@@ -114,7 +170,7 @@ public sealed class Coroutine : IRoutineWaiter
 
     private bool RunInternal(ref float timePassed)
     {
-        AssertNotNull(_routine);
+        AssertNotNull(_routineScript);
 
         if (CurrentWaiter_Time != 0)
         {
@@ -125,7 +181,7 @@ public sealed class Coroutine : IRoutineWaiter
 
             // error handling just in case, cuz otherwise this will loop forever
             Assert(CurrentWaiter_Time >= 0);
-            if (CurrentWaiter_Time < 0) CurrentWaiter_Time = 0;
+            CurrentWaiter_Time = Math.Max(CurrentWaiter_Time, 0);
 
             if (CurrentWaiter_Time != 0)
                 return false;
@@ -155,124 +211,14 @@ public sealed class Coroutine : IRoutineWaiter
         Assert(CurrentWaiter_SubRoutine == null);
         Assert(CurrentWaiter == null);
 
-        // Increment the routine.
-        bool incremented = _routine.MoveNext();
-        if (!incremented)
+        CoroutineScriptRunResult runResult = _routineScript.RunStep(this);
+        if (runResult == CoroutineScriptRunResult.Finished)
         {
             // It's over!
-
-            _routine = null;
             Status = CoroutineStatus.Finished;
             return false;
         }
 
-        object? currentYield = _routine.Current;
-        switch (currentYield)
-        {
-            // Yielding a coroutine will wait for it to complete.
-            // Note that this other routine can be in another CoroutineManager.
-            case Coroutine routine:
-                CurrentWaiter_SubRoutine = routine;
-                break;
-            // Check if a delay, and add it as the routine's delay.
-            case IRoutineWaiter routineDelay:
-                CurrentWaiter = routineDelay;
-                break;
-            // Check if adding a subroutine.
-            case IEnumerator subroutine:
-                CurrentWaiter_SubRoutine = Parent.StartCoroutine(subroutine);
-                break;
-            // Time waiting.
-            case int timeWaiting when Parent.SupportsTime:
-                CurrentWaiter_Time = timeWaiting;
-                break;
-            case uint timeWaitingU when Parent.SupportsTime:
-                CurrentWaiter_Time = timeWaitingU;
-                break;
-            case float timeWaitingF when Parent.SupportsTime:
-                CurrentWaiter_Time = timeWaitingF;
-                break;
-        }
-
-        // Yielding null means wait one tick (queue back).
-        if (currentYield == null) return false;
-
-        // Run more!
-        return true;
-    }
-
-    public void RequestStop()
-    {
-        if (Status != CoroutineStatus.Running) return;
-        Status = CoroutineStatus.RequestStop;
-    }
-
-    public static void RunInline(IEnumerator routine)
-    {
-        while (routine.MoveNext())
-        {
-            object current = routine.Current;
-            if (current != null)
-            {
-                if (current is IEnumerator subRoutine)
-                {
-                    RunInline(subRoutine);
-                }
-                else if (current is IRoutineWaiter waiter)
-                {
-                    while (!waiter.Finished)
-                        waiter.Update();
-                }
-            }
-        }
-    }
-
-    public string DebugCoroutineCreationStack = string.Empty;
-#if DEBUG
-
-    private int GetCoroutineStack()
-    {
-        FieldInfo[] fields = _routine.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-        FieldInfo stateField = null;
-        for (var i = 0; i < fields.Length; i++)
-        {
-            if (fields[i].Name != "<>1__state") continue;
-            stateField = fields[i];
-            break;
-        }
-
-        if (stateField == null) return -1;
-
-        return (int)(stateField.GetValue(_routine) ?? 1);
-    }
-#endif
-
-    public static Coroutine? CombineRoutines(Coroutine? a, Coroutine? b)
-    {
-        if (a == null) return b;
-        if (b == null) return a;
-        return Engine.CoroutineManager.StartCoroutine(CombineRoutineWaitRoutine(a, b));
-    }
-
-    private static IEnumerator CombineRoutineWaitRoutine(Coroutine a, Coroutine b)
-    {
-        yield return a;
-        yield return b;
-    }
-
-    public static IEnumerator WhenAll(Coroutine[] routines)
-    {
-        for (int i = 0; i < routines.Length; i++)
-        {
-            yield return routines[i];
-        }
-    }
-
-    public static IEnumerator WhenAll(List<Coroutine> routines)
-    {
-        for (int i = 0; i < routines.Count; i++)
-        {
-            yield return routines[i];
-        }
+        return runResult == CoroutineScriptRunResult.ContinueRunning;
     }
 }

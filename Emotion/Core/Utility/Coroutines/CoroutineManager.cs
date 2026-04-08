@@ -31,6 +31,8 @@ public class CoroutineManager
     /// </summary>
     protected List<Coroutine> _runningRoutines = new(16);
     protected List<Coroutine> _routinesToAdd = new(4);
+    protected Lock _routinesToAddLock = new Lock();
+    protected Lock _runningRoutinesLock = new Lock();
 
     /// <summary>
     /// Whether to run the routines inline when StartCoroutine is called. On by default.
@@ -52,11 +54,17 @@ public class CoroutineManager
     /// </summary>
     public virtual Coroutine StartCoroutine(IEnumerator enumerator)
     {
-        var routine = new Coroutine(enumerator, this);
+        return StartCoroutine(new CoroutineScriptEnumerator(enumerator));
+    }
+
+    public virtual Coroutine StartCoroutine<TScriptType>(TScriptType script)
+        where TScriptType : ICoroutineScript
+    {
+        var routine = new CoroutineSpecialization<TScriptType>(script, this);
         if (_eagerRoutines) routine.Run(0);
         if (!routine.Finished)
         {
-            lock (_routinesToAdd)
+            lock (_routinesToAddLock)
             {
                 _routinesToAdd.Add(routine);
             }
@@ -79,17 +87,17 @@ public class CoroutineManager
     /// </summary>
     public void StopAll()
     {
-        lock (_routinesToAdd)
+        lock (_routinesToAddLock)
         {
-            foreach (var routine in _routinesToAdd)
+            foreach (Coroutine routine in _routinesToAdd)
             {
                 routine.RequestStop();
             }
         }
 
-        lock (_runningRoutines)
+        lock (_runningRoutinesLock)
         {
-            foreach (var routine in _runningRoutines)
+            foreach (Coroutine routine in _runningRoutines)
             {
                 routine.RequestStop();
             }
@@ -101,15 +109,19 @@ public class CoroutineManager
     /// </summary>
     public virtual void Update(float timePassed = 0)
     {
-        lock (_runningRoutines)
+        lock (_runningRoutinesLock)
         {
+            Update_ProcessRoutinesToBeAdded();
+
             // Run non-time waiting routines first!
-            RunTimeFrame(0, false);
+            Update_RunTimeFrame(0, false);
 
             // Run time waiting routines in time frames until time is exhausted.
             float timeAccum = 0;
             while (timeAccum < timePassed)
             {
+                Update_ProcessRoutinesToBeAdded();
+
                 // Find the smallest time step needed.
                 float smallestTimeStep = timePassed - timeAccum;
                 foreach (Coroutine routine in _runningRoutines)
@@ -118,7 +130,7 @@ public class CoroutineManager
                         smallestTimeStep = routine.CurrentWaiter_Time;
                 }
 
-                RunTimeFrame(smallestTimeStep, true);
+                Update_RunTimeFrame(smallestTimeStep, true);
                 timeAccum += smallestTimeStep;
             }
 
@@ -126,19 +138,19 @@ public class CoroutineManager
         }
     }
 
-    private void RunTimeFrame(float timeStep, bool timeOnly = false)
+    private void Update_ProcessRoutinesToBeAdded()
     {
-        // Add routines that need adding.
-        if (_routinesToAdd.Count > 0)
+        lock (_routinesToAddLock)
         {
-            lock (_routinesToAdd)
-            {
-                _runningRoutines.AddRange(_routinesToAdd);
-                _routinesToAdd.Clear();
-            }
+            if (_routinesToAdd.Count == 0) return;
+            _runningRoutines.AddRange(_routinesToAdd);
+            _routinesToAdd.Clear();
         }
+    }
 
-        // Run routines in this order.
+    private void Update_RunTimeFrame(float timeStep, bool timeOnly = false)
+    {
+        // Run routines in added order.
         // Routines which add other routines will be added next tick.
         Time += timeStep;
         foreach (Coroutine routine in _runningRoutines)
@@ -153,6 +165,6 @@ public class CoroutineManager
 
     public List<Coroutine> DbgGetRunningRoutines()
     {
-        return new List<Coroutine>();
+        return _runningRoutines;
     }
 }
