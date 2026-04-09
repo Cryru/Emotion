@@ -180,7 +180,7 @@ public class UIText : UIBaseWindow, ICustomReflectorMeta_CustomCreateNew<UIText>
     {
         crossAxisSize = 0;
         if (!_wrapText) return false;
-        if (_layouter.Calculated_TotalSize.X >= CalculatedMetrics.Size.X) return false; // No need to wrap - it all fit
+        if (CalculatedMetrics.Size.X >= _layouter.Calculated_TotalSize.X) return false; // No need to wrap - it all fit
 
         Font? font = _assetOwner.GetCurrentObject();
         int textSizeScaled = (int)MathF.Ceiling(FontSize * CalculatedMetrics.ScaleF);

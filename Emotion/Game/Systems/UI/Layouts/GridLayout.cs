@@ -144,8 +144,10 @@ public partial class UIBaseWindow
                     childrenToLayout++;
                 }
 
-                GrowAxis(growingAxis, listForAxis.Count, ref availableSize, listForAxis);
-                ShrinkAxis(shrinkingAxis, listForAxis.Count, ref availableSize, listForAxis);
+                if (availableSize > 0)
+                    GrowAxis(growingAxis, listForAxis.Count, ref availableSize, listForAxis);
+                if (availableSize < 0)
+                    ShrinkAxis(shrinkingAxis, listForAxis.Count, ref availableSize, listForAxis);
                 ArrayPool<bool>.Shared.Return(growingAxis);
                 ArrayPool<bool>.Shared.Return(shrinkingAxis);
 
@@ -165,7 +167,8 @@ public partial class UIBaseWindow
                 if (SkipWindowLayout(child)) continue;
 
                 UISizing sizing = GetSizingInDirection(child, axis);
-                if (sizing.CanGrow())
+
+                if (sizing.CanGrow() || sizing.CanShrink())
                 {
                     GridHelpers.GetCoordinate2DFrom1D(childIdx, columnCount, out int col, out int row);
                     int idxForAxis = axis == 0 ? col : row;

@@ -319,6 +319,7 @@ public class NewUITests : TestingScene
                         Layout =
                         {
                             AnchorAndParentAnchor = UIAnchor.CenterLeft,
+                            SizingX = UISizing.Grow()
                         }
                     },
                     new UIPicture()
@@ -883,6 +884,8 @@ public class NewUITests : TestingScene
             FontSize = 40
         };
 
+        yield return WaitUILayout();
+        yield return WaitUILayout();
         yield return WaitUILayout();
         yield return VerifyScreenshot(nameof(NewUITests), nameof(TextWrapTest));
     }

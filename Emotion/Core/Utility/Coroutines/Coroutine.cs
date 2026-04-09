@@ -152,7 +152,6 @@ public sealed class CoroutineSpecialization<TScriptType> : Coroutine
     /// </summary>
     public override void Run(float dt)
     {
-        if (Status != CoroutineStatus.Running) return;
         if (Status == CoroutineStatus.RequestStop)
         {
             Status = CoroutineStatus.Stopped;
@@ -161,6 +160,7 @@ public sealed class CoroutineSpecialization<TScriptType> : Coroutine
             CurrentWaiter = null;
             return;
         }
+        if (Status != CoroutineStatus.Running) return;
 
         // One coroutine tick can end up advancing the coroutine script multiple times.
         while (RunInternal(ref dt))
