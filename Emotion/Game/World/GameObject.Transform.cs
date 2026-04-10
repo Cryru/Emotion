@@ -416,7 +416,7 @@ public partial class GameObject : IOctTreeStorable
         {
             _currentPos = _interpStartPos;
             _interpPos = false;
-            Moved();
+            //Moved(); Didn't move - its the same pos
             return;
         }
 
