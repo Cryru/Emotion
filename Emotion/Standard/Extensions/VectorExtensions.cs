@@ -360,11 +360,6 @@ public static class VectorExtensions
         remap = new Vector3(ia, ib, ic);
     }
 
-    public static (float X, float Y, float Z) Decompose(this Vector3 vec)
-    {
-        return (vec.X, vec.Y, vec.Z);
-    }
-
     //extension(Vector3 vec)
     //{
 
