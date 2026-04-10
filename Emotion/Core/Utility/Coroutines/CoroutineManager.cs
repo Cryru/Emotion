@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using System.Collections.Concurrent;
+
 namespace Emotion.Core.Utility.Coroutines;
 
 /// <summary>
@@ -52,12 +54,12 @@ public class CoroutineManager
     /// <summary>
     /// Start a new coroutine.
     /// </summary>
-    public virtual Coroutine StartCoroutine(IEnumerator enumerator)
+    public Coroutine StartCoroutine(IEnumerator enumerator)
     {
         return StartCoroutine(new CoroutineScriptEnumerator(enumerator));
     }
 
-    public virtual Coroutine StartCoroutine<TScriptType>(TScriptType script)
+    public Coroutine StartCoroutine<TScriptType>(TScriptType script)
         where TScriptType : ICoroutineScript
     {
         var routine = new CoroutineSpecialization<TScriptType>(script, this);
@@ -71,6 +73,46 @@ public class CoroutineManager
         }
 
         return routine;
+    }
+
+    private Dictionary<Type, ConcurrentQueue<Coroutine>> _coroutinePool = new();
+
+    /// <summary>
+    /// Start a new coroutine with returning it.
+    /// This allows the coroutine to not be allocated but rather object pooled
+    /// </summary>
+    public void StartCoroutineUntracked<TScriptType>(TScriptType script)
+        where TScriptType : ICoroutineScript
+    {
+        Type scriptType = typeof(TScriptType);
+        if (!_coroutinePool.TryGetValue(scriptType, out ConcurrentQueue<Coroutine>? typePool))
+        {
+            typePool = new ConcurrentQueue<Coroutine>();
+            _coroutinePool.Add(scriptType, typePool);
+        }
+
+        if (typePool.TryDequeue(out Coroutine? routine))
+        {
+            var spec = (CoroutineSpecialization<TScriptType>)routine;
+            spec.Recycle(script);
+        }
+        else
+        {
+            var spec = new CoroutineSpecialization<TScriptType>(script, this);
+            spec.AssignPool(typePool);
+            routine = spec;
+        }
+
+        if (_eagerRoutines)
+            routine.Run(0);
+
+        if (!routine.Finished)
+        {
+            lock (_routinesToAddLock)
+            {
+                _routinesToAdd.Add(routine);
+            }
+        }
     }
 
     /// <summary>

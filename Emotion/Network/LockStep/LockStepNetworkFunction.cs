@@ -43,13 +43,8 @@ public class LockStepNetworkFunction<TMsg> : NetworkFunction<TMsg> where TMsg : 
 
     public void InvokeOffline(in TMsg msgData)
     {
-        Engine.CoroutineManagerGameTime.StartCoroutine(ExecuteSyncFunctionOffline(msgData, _func));
-    }
-
-    private static IEnumerator ExecuteSyncFunctionOffline(TMsg msgData, NetworkFunc<TMsg> func)
-    {
-        func(msgData);
-        yield break;
+        var coroutineScript = new NetworkFunctionCoroutineScript<TMsg>(_func, msgData);
+        Engine.CoroutineManagerGameTime.StartCoroutineUntracked(coroutineScript);
     }
 }
 

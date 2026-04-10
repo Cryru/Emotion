@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using System.Collections.Concurrent;
+
 namespace Emotion.Core.Utility.Coroutines;
 
 public enum CoroutineStatus
@@ -64,6 +66,8 @@ public abstract class Coroutine : IRoutineWaiter
 
     #endregion
 
+    #region Static API
+
     public static void RunInline(IEnumerator routine)
     {
         while (routine.MoveNext())
@@ -112,6 +116,8 @@ public abstract class Coroutine : IRoutineWaiter
             yield return routines[i];
         }
     }
+
+    #endregion
 }
 
 public sealed class CoroutineAlreadyCompleted : Coroutine
@@ -147,6 +153,19 @@ public sealed class CoroutineSpecialization<TScriptType> : Coroutine
         _routineScript = routineScript;
     }
 
+    public void Recycle(TScriptType routineScript)
+    {
+        Status = CoroutineStatus.Running;
+        _routineScript = routineScript;
+    }
+
+    private ConcurrentQueue<Coroutine> _pool;
+
+    public void AssignPool(ConcurrentQueue<Coroutine> pool)
+    {
+        _pool = pool;
+    }
+
     /// <summary>
     /// Run the coroutine, this is called by the manager.
     /// </summary>
@@ -155,9 +174,7 @@ public sealed class CoroutineSpecialization<TScriptType> : Coroutine
         if (Status == CoroutineStatus.RequestStop)
         {
             Status = CoroutineStatus.Stopped;
-            CurrentWaiter_Time = 0;
-            CurrentWaiter_SubRoutine = null;
-            CurrentWaiter = null;
+            Cleanup();
             return;
         }
         if (Status != CoroutineStatus.Running) return;
@@ -216,9 +233,19 @@ public sealed class CoroutineSpecialization<TScriptType> : Coroutine
         {
             // It's over!
             Status = CoroutineStatus.Finished;
+            Cleanup();
             return false;
         }
 
         return runResult == CoroutineScriptRunResult.ContinueRunning;
+    }
+
+    private void Cleanup()
+    {
+        CurrentWaiter_Time = 0;
+        CurrentWaiter_SubRoutine = null;
+        CurrentWaiter = null;
+
+        _pool?.Enqueue(this);
     }
 }
