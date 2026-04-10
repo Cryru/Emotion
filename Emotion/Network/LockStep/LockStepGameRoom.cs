@@ -90,7 +90,7 @@ public class LockStepGameRoom : TickingServerRoom
     private struct LockStepVerifyPair
     {
         public ServerPlayer? Player = null;
-        public LockStepVerify Hash;
+        public LockStepVerify HashPair;
 
         public LockStepVerifyPair()
         {
@@ -127,8 +127,7 @@ public class LockStepGameRoom : TickingServerRoom
 
         if (_loggers.TryGetValue(player, out LoggingProvider? logger))
         {
-            Span<char> hashSpan = hash.GetSpan();
-            logger.ONE_Info(hash.GameTime.ToString(), hashSpan);
+            logger.ONE_Info(hash.GameTime.ToString(), hash.Hash.ToString());
         }
 
         // Add player to first hash group in which they are missing.
@@ -158,7 +157,7 @@ public class LockStepGameRoom : TickingServerRoom
             if (!playerPresentInPair)
             {
                 pairs[firstFree].Player = player;
-                pairs[firstFree].Hash = hash;
+                pairs[firstFree].HashPair = hash;
                 foundFirst = true;
                 break;
             }
@@ -169,7 +168,7 @@ public class LockStepGameRoom : TickingServerRoom
         {
             LockStepVerifyGroup newGroup = new LockStepVerifyGroup(UsersInside.Count);
             newGroup.Pairs[0].Player = player;
-            newGroup.Pairs[0].Hash = hash;
+            newGroup.Pairs[0].HashPair = hash;
             _unverifiedGroups.Add(newGroup);
         }
 
@@ -182,13 +181,13 @@ public class LockStepGameRoom : TickingServerRoom
                 _unverifiedGroups.RemoveAt(i);
                 LockStepVerifyPair[] pairs = hashGroup.Pairs;
                 bool allMatch = true;
-                Span<char> firstHash = pairs[0].Hash.GetSpan();
-                Span<char> notMatch = Span<char>.Empty;
+                int firstHash = pairs[0].HashPair.Hash;
+                int notMatch = 0;
                 for (int ii = 1; ii < pairs.Length; ii++)
                 {
                     LockStepVerifyPair pair = pairs[ii];
-                    Span<char> pairHash = pair.Hash.GetSpan();
-                    if (!pairHash.SequenceEqual(firstHash))
+                    int pairHash = pair.HashPair.Hash;
+                    if (pairHash != firstHash)
                     {
                         notMatch = pairHash;
                         allMatch = false;
@@ -197,7 +196,7 @@ public class LockStepGameRoom : TickingServerRoom
                 }
                 if (!allMatch)
                 {
-                    Engine.Log.Error($"Room {Id} desynced!", nameof(LockStepGameRoom));
+                    Engine.Log.Error($"Room {Id} desynced! Expected hash {firstHash}, got {notMatch}", nameof(LockStepGameRoom));
                     _desynced = true;
                 }
             }
@@ -221,43 +220,17 @@ public class LockStepGameRoom : TickingServerRoom
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public unsafe struct LockStepVerify
 {
-    public const int MAX_LENGTH = 252;
-
     public float GameTime;
-    private int Length;
-    private fixed char String[MAX_LENGTH];
+    public int Hash;
 
-    public LockStepVerify(ReadOnlySpan<char> str)
+    public LockStepVerify(int hash)
     {
         GameTime = Engine.CoroutineManagerGameTime.Time;
-        Length = Math.Min(str.Length, MAX_LENGTH);
-
-        fixed (char* pString = String)
-        {
-            Span<char> localStr = new Span<char>(pString, Length);
-            ReadOnlySpan<char> strCapped = str.Slice(0, Length);
-            strCapped.CopyTo(localStr);
-        }
+        Hash = hash;
     }
 
     public override string ToString()
     {
-        if (Length > MAX_LENGTH || Length < 0) return string.Empty;
-
-        fixed (char* pString = String)
-        {
-            Span<char> localStr = new Span<char>(pString, Length);
-            return localStr.ToString();
-        }
-    }
-
-    public Span<char> GetSpan()
-    {
-        if (Length > MAX_LENGTH || Length < 0) return Span<char>.Empty;
-
-        fixed (char* pString = String)
-        {
-            return new Span<char>(pString, Length);
-        }
+        return Hash.ToString();
     }
 }

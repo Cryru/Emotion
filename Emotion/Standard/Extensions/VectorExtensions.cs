@@ -359,4 +359,14 @@ public static class VectorExtensions
         sorted = new Vector3(a, b, c);
         remap = new Vector3(ia, ib, ic);
     }
+
+    public static (float X, float Y, float Z) Decompose(this Vector3 vec)
+    {
+        return (vec.X, vec.Y, vec.Z);
+    }
+
+    //extension(Vector3 vec)
+    //{
+
+    //}
 }

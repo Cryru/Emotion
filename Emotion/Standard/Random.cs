@@ -1,7 +1,5 @@
 ﻿#nullable enable
 
-using Emotion.Network.LockStep;
-using Emotion.Network.New.Base;
 using Emotion.ThirdParty;
 using System.Runtime.CompilerServices;
 
@@ -171,7 +169,7 @@ public static class NetworkRand
     public static float Float(string tag)
     {
         float rolled = (float)Xoshiro256.NextDouble(ref _randomState);
-        Engine.Multiplayer.SendMessageToServer(NetworkMessageType.LockStepVerify, new LockStepVerify($"RandFloat {tag} - {rolled}"));
+        Engine.Multiplayer.LockStepVerify($"RandFloat {tag} - {rolled}");
         return rolled;
     }
 
@@ -179,7 +177,8 @@ public static class NetworkRand
     public static int Int(string tag, int min, int max)
     {
         int rolled = Xoshiro256.NextInRange(ref _randomState, min, max);
-        Engine.Multiplayer.SendMessageToServer(NetworkMessageType.LockStepVerify, new LockStepVerify($"RandInt {tag} - {rolled}"));
+        Engine.Multiplayer.LockStepVerify($"RandInt {tag} - {rolled}");
+
         return rolled;
     }
 
@@ -235,7 +234,8 @@ public static class NetworkRand
         where TList : IReadOnlyList<T?>
     {
         int total = array.Count;
-        if (total == 0) return default;
+        if (total == 0)
+            return default;
 
         int start = Int(tag, 0, total - 1);
 

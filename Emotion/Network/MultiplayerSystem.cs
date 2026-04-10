@@ -5,6 +5,7 @@ using Emotion.Network.ClientSide;
 using Emotion.Network.LockStep;
 using Emotion.Network.New.Base;
 using Emotion.Network.ServerSide;
+using System.Runtime.CompilerServices;
 
 namespace Emotion.Network;
 
@@ -97,7 +98,13 @@ public class MultiplayerSystem
 
     public void LockStepVerify(ReadOnlySpan<char> str)
     {
-        SendMessageToServer(NetworkMessageType.LockStepVerify, new LockStepVerify(str));
+        SendMessageToServer(NetworkMessageType.LockStepVerify, new LockStepVerify(str.GetStableHashCode()));
+    }
+
+    public void LockStepVerify(ref DefaultInterpolatedStringHandler handler)
+    {
+        LockStepVerify(handler.Text);
+        handler.Clear();
     }
 
     #endregion

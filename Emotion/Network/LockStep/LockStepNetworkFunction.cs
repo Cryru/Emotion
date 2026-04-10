@@ -36,7 +36,7 @@ public class LockStepNetworkFunction<TMsg> : NetworkFunction<TMsg> where TMsg : 
         if (diff > 0)
             yield return diff;
 
-        Engine.Multiplayer.SendMessageToServer(NetworkMessageType.LockStepVerify, new LockStepVerify($"{registeredFunc.FriendlyString} {msgDataHash}"));
+        Engine.Multiplayer.LockStepVerify($"{registeredFunc.FriendlyString} {msgDataHash}");
 
         registeredFunc._func(msgData);
     }
@@ -76,7 +76,7 @@ public class LockStepNetworkFunction : NetworkFunction
         if (diff > 0)
             yield return diff;
 
-        Engine.Multiplayer.SendMessageToServer(NetworkMessageType.LockStepVerify, new LockStepVerify(registeredFunc.FriendlyString));
+        Engine.Multiplayer.LockStepVerify(registeredFunc.FriendlyString);
 
         registeredFunc._func();
     }

@@ -22,7 +22,7 @@ public class LockStepVerifyObjectComponent : IGameObjectComponent, IUpdateableCo
         _checkTimer.Update(dt);
         if (_checkTimer.Finished)
         {
-            Engine.Multiplayer.LockStepVerify($"{_obj.ObjectId}, {_obj.Name}, {_obj.Position3D}");
+            Engine.Multiplayer.LockStepVerify($"{_obj.ObjectId}, {_obj.Name}, {_obj.Position3D.Decompose()}");
             _checkTimer.Reset();
         }
     }
