@@ -9,6 +9,7 @@ using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Text;
 using Emotion.Standard.Parsers.OpenType;
+using System.Runtime.CompilerServices;
 
 #endregion
 
@@ -34,6 +35,13 @@ public sealed partial class Renderer
     public void RenderString(Vector3 position, Color color, ReadOnlySpan<char> text, int fontSize)
     {
         RenderString(position, color, text, FontAsset.GetDefaultBuiltIn(), fontSize);
+    }
+
+    /// <inheritdoc cref="RenderString(Vector3, Color, ReadOnlySpan{char}, AssetObjectReference{FontAsset, Font}, int)" />
+    public void RenderString(Vector3 position, ref DefaultInterpolatedStringHandler interpHandler, int fontSize)
+    {
+        RenderString(position, Color.White, interpHandler.Text, fontSize);
+        interpHandler.Clear();
     }
 
     /// <summary>

@@ -190,7 +190,8 @@ public struct Cube
         var min = new Vector3(0);
         var max = new Vector3(0);
 
-        Vector3[] vertices = GetVertices();
+        Span<Vector3> vertices = stackalloc Vector3[8];
+        GetVertices(vertices);
         for (var i = 0; i < vertices.Length; i++)
         {
             Vector3 vertex = Vector3.Transform(vertices[i], mat);

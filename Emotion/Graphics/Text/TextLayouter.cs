@@ -50,8 +50,8 @@ public class TextLayouter
     private GlyphHeightMeasurement _lastLayoutHeightMode = GlyphHeightMeasurement.FullHeight;
 
     // Layout results
-    private List<TagDefinition> _tagDefinitions = new();
-    private List<TextBlock> _textBlocks = new();
+    private List<TagDefinition> _tagDefinitions = new(16);
+    private List<TextBlock> _textBlocks = new(16);
     private float _lastLayoutTextHeight;
     private float _lastLayoutRenderOffsetY;
     private Font? _lastLayoutFont;

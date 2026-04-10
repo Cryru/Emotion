@@ -258,7 +258,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     /// <summary>
     /// Children of this window.
     /// </summary>
-    public IReadOnlyList<UIBaseWindow> Children => _children;
+    public List<UIBaseWindow> Children => _children;
     private readonly List<UIBaseWindow> _children = new List<UIBaseWindow>(0);
     private readonly Queue<UIBaseWindow> _childrenToAdd = new Queue<UIBaseWindow>(0);
     private bool _clearChildrenQueued = false;
