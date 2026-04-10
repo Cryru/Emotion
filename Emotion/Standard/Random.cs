@@ -261,4 +261,22 @@ public static class NetworkRand
         // All items are present in the exceptions?
         return default;
     }
+
+    public unsafe static T? ArrayItemFiltered<T>(string tag, List<T> array, delegate*<T, bool> filterFunc)
+    {
+        int total = array.Count;
+        if (total == 0)
+            return default;
+
+        int start = Int(tag, 0, total - 1);
+        for (int i = 0; i < total; i++)
+        {
+            int currentIndex = (start + i) % total;
+            T? picked = array[currentIndex];
+            if (filterFunc(picked))
+                return picked;
+        }
+
+        return default;
+    }
 }
