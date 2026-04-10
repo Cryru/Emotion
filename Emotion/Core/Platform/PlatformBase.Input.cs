@@ -81,7 +81,7 @@ public abstract partial class PlatformBase
     {
         if (Engine.Configuration.DebugMode)
         {
-            Engine.Log.Trace($"Key {key} is {state}.", MessageSource.Input);
+            Engine.Log.ONE_Trace(MessageSource.Input, $"Key {key} is {state}.");
 
             bool ctrl = IsCtrlModifierHeld();
             if (key >= Key.F1 && key <= Key.F10 && state == Core.Systems.Input.KeyState.Down && ctrl)
@@ -213,10 +213,10 @@ public abstract partial class PlatformBase
     {
         var value = new Vector2();
 
-        if (axis.HasFlag(Key.AxisUpDown)) value.Y = (IsKeyHeld(Key.DownArrow) ? 1 : 0) - (IsKeyHeld(Key.UpArrow) ? 1 : 0);
-        if (axis.HasFlag(Key.AxisLeftRight)) value.X = (IsKeyHeld(Key.RightArrow) ? 1 : 0) - (IsKeyHeld(Key.LeftArrow) ? 1 : 0);
-        if (axis.HasFlag(Key.AxisWS)) value.Y = value.Y == 0 ? (IsKeyHeld(Key.S) ? 1 : 0) - (IsKeyHeld(Key.W) ? 1 : 0) : value.Y;
-        if (axis.HasFlag(Key.AxisAD)) value.X = value.X == 0 ? (IsKeyHeld(Key.D) ? 1 : 0) - (IsKeyHeld(Key.A) ? 1 : 0) : value.X;
+        if (axis.EnumHasFlag(Key.AxisUpDown)) value.Y = (IsKeyHeld(Key.DownArrow) ? 1 : 0) - (IsKeyHeld(Key.UpArrow) ? 1 : 0);
+        if (axis.EnumHasFlag(Key.AxisLeftRight)) value.X = (IsKeyHeld(Key.RightArrow) ? 1 : 0) - (IsKeyHeld(Key.LeftArrow) ? 1 : 0);
+        if (axis.EnumHasFlag(Key.AxisWS)) value.Y = value.Y == 0 ? (IsKeyHeld(Key.S) ? 1 : 0) - (IsKeyHeld(Key.W) ? 1 : 0) : value.Y;
+        if (axis.EnumHasFlag(Key.AxisAD)) value.X = value.X == 0 ? (IsKeyHeld(Key.D) ? 1 : 0) - (IsKeyHeld(Key.A) ? 1 : 0) : value.X;
 
         return value;
     }
@@ -230,10 +230,10 @@ public abstract partial class PlatformBase
     {
         var value = new Vector2();
 
-        if (axis.HasFlag(Key.AxisUpDown)) value.Y = (IsKeyDown(Key.DownArrow) ? 1 : 0) - (IsKeyDown(Key.UpArrow) ? 1 : 0);
-        if (axis.HasFlag(Key.AxisLeftRight)) value.X = (IsKeyDown(Key.RightArrow) ? 1 : 0) - (IsKeyDown(Key.LeftArrow) ? 1 : 0);
-        if (axis.HasFlag(Key.AxisWS)) value.Y = value.Y == 0 ? (IsKeyDown(Key.S) ? 1 : 0) - (IsKeyDown(Key.W) ? 1 : 0) : value.Y;
-        if (axis.HasFlag(Key.AxisAD)) value.X = value.X == 0 ? (IsKeyDown(Key.D) ? 1 : 0) - (IsKeyDown(Key.A) ? 1 : 0) : value.X;
+        if (axis.EnumHasFlag(Key.AxisUpDown)) value.Y = (IsKeyDown(Key.DownArrow) ? 1 : 0) - (IsKeyDown(Key.UpArrow) ? 1 : 0);
+        if (axis.EnumHasFlag(Key.AxisLeftRight)) value.X = (IsKeyDown(Key.RightArrow) ? 1 : 0) - (IsKeyDown(Key.LeftArrow) ? 1 : 0);
+        if (axis.EnumHasFlag(Key.AxisWS)) value.Y = value.Y == 0 ? (IsKeyDown(Key.S) ? 1 : 0) - (IsKeyDown(Key.W) ? 1 : 0) : value.Y;
+        if (axis.EnumHasFlag(Key.AxisAD)) value.X = value.X == 0 ? (IsKeyDown(Key.D) ? 1 : 0) - (IsKeyDown(Key.A) ? 1 : 0) : value.X;
 
         return value;
     }
@@ -247,10 +247,10 @@ public abstract partial class PlatformBase
     {
         var value = new Vector2();
 
-        if (axis.HasFlag(Key.AxisUpDown)) value.Y = (IsKeyUp(Key.DownArrow) ? 1 : 0) - (IsKeyUp(Key.UpArrow) ? 1 : 0);
-        if (axis.HasFlag(Key.AxisLeftRight)) value.X = (IsKeyUp(Key.RightArrow) ? 1 : 0) - (IsKeyUp(Key.LeftArrow) ? 1 : 0);
-        if (axis.HasFlag(Key.AxisWS)) value.Y = value.Y == 0 ? (IsKeyUp(Key.S) ? 1 : 0) - (IsKeyUp(Key.W) ? 1 : 0) : value.Y;
-        if (axis.HasFlag(Key.AxisAD)) value.X = value.X == 0 ? (IsKeyUp(Key.D) ? 1 : 0) - (IsKeyUp(Key.A) ? 1 : 0) : value.X;
+        if (axis.EnumHasFlag(Key.AxisUpDown)) value.Y = (IsKeyUp(Key.DownArrow) ? 1 : 0) - (IsKeyUp(Key.UpArrow) ? 1 : 0);
+        if (axis.EnumHasFlag(Key.AxisLeftRight)) value.X = (IsKeyUp(Key.RightArrow) ? 1 : 0) - (IsKeyUp(Key.LeftArrow) ? 1 : 0);
+        if (axis.EnumHasFlag(Key.AxisWS)) value.Y = value.Y == 0 ? (IsKeyUp(Key.S) ? 1 : 0) - (IsKeyUp(Key.W) ? 1 : 0) : value.Y;
+        if (axis.EnumHasFlag(Key.AxisAD)) value.X = value.X == 0 ? (IsKeyUp(Key.D) ? 1 : 0) - (IsKeyUp(Key.A) ? 1 : 0) : value.X;
 
         return value;
     }
@@ -275,16 +275,16 @@ public abstract partial class PlatformBase
     public Vector2 GetKeyAxisPartDown(Key keyToCheck, Key axis)
     {
         if (!_keyToDirectionalAxis.TryGetValue(keyToCheck, out Key directionAxis)) return Vector2.Zero;
-        if (axis != directionAxis && !axis.HasFlag(directionAxis)) return Vector2.Zero;
+        if (axis != directionAxis && !axis.EnumHasFlag(directionAxis)) return Vector2.Zero;
 
         var value = new Vector2();
-        if (directionAxis == Key.AxisUpDown || axis.HasFlag(Key.AxisUpDown))
+        if (directionAxis == Key.AxisUpDown || axis.EnumHasFlag(Key.AxisUpDown))
             value.Y = (_keys[(int) Key.DownArrow] ? 1 : 0) - (_keys[(int) Key.UpArrow] ? 1 : 0);
-        if (directionAxis == Key.AxisLeftRight || axis.HasFlag(Key.AxisLeftRight))
+        if (directionAxis == Key.AxisLeftRight || axis.EnumHasFlag(Key.AxisLeftRight))
             value.X = (_keys[(int) Key.RightArrow] ? 1 : 0) - (_keys[(int) Key.LeftArrow] ? 1 : 0);
-        if (directionAxis == Key.AxisWS || axis.HasFlag(Key.AxisWS))
+        if (directionAxis == Key.AxisWS || axis.EnumHasFlag(Key.AxisWS))
             value.Y = value.Y == 0 ? (_keys[(int) Key.S] ? 1 : 0) - (_keys[(int) Key.W] ? 1 : 0) : value.Y;
-        if (directionAxis == Key.AxisAD || axis.HasFlag(Key.AxisAD)) value.X = value.X == 0 ? (_keys[(int) Key.D] ? 1 : 0) - (_keys[(int) Key.A] ? 1 : 0) : value.X;
+        if (directionAxis == Key.AxisAD || axis.EnumHasFlag(Key.AxisAD)) value.X = value.X == 0 ? (_keys[(int) Key.D] ? 1 : 0) - (_keys[(int) Key.A] ? 1 : 0) : value.X;
 
         return value;
     }
@@ -296,16 +296,16 @@ public abstract partial class PlatformBase
     public Vector2 GetKeyAxisPart(Key keyToCheck, Key axis)
     {
         if (!_keyToDirectionalAxis.TryGetValue(keyToCheck, out Key directionAxis)) return Vector2.Zero;
-        if (axis != directionAxis && !axis.HasFlag(directionAxis)) return Vector2.Zero;
+        if (axis != directionAxis && !axis.EnumHasFlag(directionAxis)) return Vector2.Zero;
 
         var value = new Vector2();
-        if (directionAxis == Key.AxisUpDown || axis.HasFlag(Key.AxisUpDown))
+        if (directionAxis == Key.AxisUpDown || axis.EnumHasFlag(Key.AxisUpDown))
             value.Y = (keyToCheck == Key.DownArrow ? 1 : 0) - (keyToCheck == Key.UpArrow ? 1 : 0);
-        if (directionAxis == Key.AxisLeftRight || axis.HasFlag(Key.AxisLeftRight))
+        if (directionAxis == Key.AxisLeftRight || axis.EnumHasFlag(Key.AxisLeftRight))
             value.X = (keyToCheck == Key.RightArrow ? 1 : 0) - (keyToCheck == Key.LeftArrow ? 1 : 0);
-        if (directionAxis == Key.AxisWS || axis.HasFlag(Key.AxisWS))
+        if (directionAxis == Key.AxisWS || axis.EnumHasFlag(Key.AxisWS))
             value.Y = value.Y == 0 ? (keyToCheck == Key.S ? 1 : 0) - (keyToCheck == Key.W ? 1 : 0) : value.Y;
-        if (directionAxis == Key.AxisAD || axis.HasFlag(Key.AxisAD)) value.X = value.X == 0 ? (keyToCheck == Key.D ? 1 : 0) - (keyToCheck == Key.A ? 1 : 0) : value.X;
+        if (directionAxis == Key.AxisAD || axis.EnumHasFlag(Key.AxisAD)) value.X = value.X == 0 ? (keyToCheck == Key.D ? 1 : 0) - (keyToCheck == Key.A ? 1 : 0) : value.X;
 
         return value;
     }
