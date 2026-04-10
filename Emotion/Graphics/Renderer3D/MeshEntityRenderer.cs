@@ -50,7 +50,7 @@ public sealed class MeshEntityRenderer
             {
                 // todo: This is a clusterfuck
                 RenderState state = material.State; // Depends on material?
-                state.ShaderGroupDefinition = new ShaderGroupDefinition(mesh.VertexFormat, _currentScene.Definitions); // Depends on mesh + _current scene?
+                state.ShaderGroupDefinition = new ShaderGroupDefinition(mesh.VertexFormat, _currentScene.SceneDefs); // Depends on mesh + _current scene?
                 state.ViewMatrix = prevState.ViewMatrix; // Depends on current state
                 r.SetState(state);
                 currentShader = r.CurrentShader;
@@ -122,7 +122,7 @@ public sealed class MeshEntityRenderer
     {
         public static ObjectPool<MeshEntityRendererScene> Shared = new ObjectPool<MeshEntityRendererScene>(resetMethod: static (p) => p.Reset());
 
-        public List<string> Definitions = new List<string>();
+        public ShaderDefine SceneDefs;
         public LightConfig? Light { get; set; }
 
         public MeshEntityRendererScene()
@@ -133,12 +133,12 @@ public sealed class MeshEntityRenderer
         public void SetLightConfig(LightConfig light)
         {
             Light = light;
-            Definitions.Add("LIGHT_ENABLED");
+            SceneDefs = ShaderDefine.Combine(ShaderDefine.GetMaskForDefine("LIGHT_ENABLED"), SceneDefs);
         }
 
         public void Reset()
         {
-            Definitions = new List<string>();
+            SceneDefs = ShaderDefine.None;
             Light = null;
         }
     }

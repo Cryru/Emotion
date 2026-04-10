@@ -165,14 +165,8 @@ public class ShaderGroup
         if (hasBones)
             pipelineDefCode.AppendLine("#define HAS_BONES 1");
 
-        if (def.Defines != null)
-        {
-            pipelineDefCode.Append("\n// PIPELINE VARIATION\n");
-            foreach (string item in def.Defines)
-            {
-                pipelineDefCode.AppendLine($"#define {item}");
-            }
-        }
+        pipelineDefCode.Append("\n// PIPELINE VARIATION\n");
+        ShaderDefine.WriteDefinesFromMask(def.Defines, pipelineDefCode);
 
         pipelineDefCode.Append("\n// VERTEX DATA FORMAT\n");
         pipelineDefCode.Append(_vertexFormatDefine);
@@ -552,22 +546,16 @@ public class ShaderGroup
 public struct ShaderGroupDefinition : IEquatable<ShaderGroupDefinition>
 {
     public VertexDataFormat Format;
-    public IReadOnlyList<string>? Defines;
+    public ShaderDefine Defines;
     public int Hash;
 
-    public ShaderGroupDefinition(VertexDataFormat format, List<string>? defines = null)
+    public ShaderGroupDefinition(VertexDataFormat format, ShaderDefine? defines = null)
     {
         Format = format;
-        Defines = defines;
+        Defines = defines.GetValueOrDefault();
 
         int hash = Format.Hash;
-        if (Defines != null)
-        {
-            foreach (string item in Defines)
-            {
-                hash += item.GetStableHashCode();
-            }
-        }
+        hash += (int)Defines.Flags0;
         Hash = hash;
     }
 
@@ -578,8 +566,7 @@ public struct ShaderGroupDefinition : IEquatable<ShaderGroupDefinition>
 
     public override readonly string ToString()
     {
-        if (Defines == null) return Format.ToString() ?? "Unknown";
-        return $"{Format} Defs: {string.Join(", ", Defines)}";
+        return $"{Format} Defs: {Defines.Flags0:0x00}";
     }
 
     public readonly bool Equals(ShaderGroupDefinition other)
@@ -600,5 +587,58 @@ public struct ShaderGroupDefinition : IEquatable<ShaderGroupDefinition>
     public override readonly bool Equals(object? obj)
     {
         return obj is ShaderGroupDefinition objAsType && Equals(objAsType);
+    }
+}
+
+public struct ShaderDefine
+{
+    // If we ever go above 64 definitions we can add more uint here like Flags1 and so forth.
+    public uint Flags0;
+
+    public static ShaderDefine None { get; } = new ShaderDefine();
+
+    public static ShaderDefine Combine(ShaderDefine a, ShaderDefine b)
+    {
+        return new ShaderDefine() { Flags0 = a.Flags0 | b.Flags0 };
+    }
+
+    private static readonly Lock _lock = new Lock();
+    private static readonly Dictionary<string, int> _defineToIndex = new Dictionary<string, int>(StringComparer.Ordinal);
+    private static readonly List<string> _indexToDefine = new List<string>();
+
+    public static ShaderDefine GetMaskForDefine(string str)
+    {
+        if (string.IsNullOrEmpty(str))
+            return ShaderDefine.None;
+
+        lock (_lock)
+        {
+            if (!_defineToIndex.TryGetValue(str, out int idx))
+            {
+                idx = _indexToDefine.Count;
+                _defineToIndex[str] = idx;
+                _indexToDefine.Add(str);
+            }
+
+            uint flags = 1u << idx;
+            return new ShaderDefine() { Flags0 = flags };
+        }
+    }
+
+    public static unsafe void WriteDefinesFromMask(ShaderDefine mask, StringBuilder b)
+    {
+        if (mask.Flags0 == 0) return;
+
+        lock (_lock)
+        {
+            for (int i = 0; i < sizeof(ShaderDefine); i++)
+            {
+                uint bit = 1u << i;
+                if ((mask.Flags0 & bit) == 0) continue;
+
+                if (i < _indexToDefine.Count)
+                    b.AppendLine($"#define {_indexToDefine[i]}");
+            }
+        }
     }
 }
