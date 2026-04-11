@@ -6,7 +6,7 @@ namespace Emotion.Core.Utility;
 
 public static class Packing
 {
-    public class PackingSpace
+    public struct PackingSpace
     {
         public static readonly float ExtendToWidth = -1;
         public static readonly float ExtendToHeight = -2;
@@ -16,10 +16,6 @@ public static class Packing
         public PackingSpace(Rectangle area)
         {
             Area = area;
-        }
-
-        protected PackingSpace()
-        {
         }
 
         public Rectangle GetAbsoluteArea(Vector2 outsideSize)
@@ -48,7 +44,7 @@ public static class Packing
     /// resume packing from the end state of this operation.
     /// </param>
     /// <returns></returns>
-    public static Vector2 FitRectangles(Memory<Rectangle> rectMemory, bool maintainOrder = false, PackingResumableState fillResumeState = null)
+    public static Vector2 FitRectangles(Memory<Rectangle> rectMemory, bool maintainOrder = false, PackingResumableState? fillResumeState = null)
     {
         if (rectMemory.IsEmpty) return Vector2.Zero;
 
@@ -101,7 +97,7 @@ public static class Packing
                 curRect.Position = currentSpace.Position;
 
                 // Remove this space.
-                packingSpaces.RemoveAt(pp);
+                packingSpaces.RemoveAtSwapBack(pp);
 
                 // Split it into the space on the right, and the space on top.
                 float rightSide;
@@ -182,7 +178,7 @@ public static class Packing
     {
         public Vector2 CanvasPos;
         public Vector2 Size;
-        public List<PackingSpace> PackingSpaces = new List<PackingSpace>();
+        public List<PackingSpace> PackingSpaces = new List<PackingSpace>(16);
 
         public PackingResumableState(Vector2 canvasDimensions)
         {
@@ -224,7 +220,7 @@ public static class Packing
             curRect.Position = currentSpace.Position;
 
             // Remove this space.
-            packingSpaces.RemoveAt(pp);
+            packingSpaces.RemoveAtSwapBack(pp);
 
             // Split it into the space on the right, and the space on top.
             float rightSide;
