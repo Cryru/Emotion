@@ -28,6 +28,11 @@ public struct ValueTimer
         TimePassed = 0;
     }
 
+    public void End()
+    {
+        TimePassed = Duration;
+    }
+
     public float GetFactor()
     {
         if (TimePassed >= Duration) return 1.0f; // Handles delay of zero and other weird values.
