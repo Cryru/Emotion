@@ -2,10 +2,12 @@
 
 using Emotion.Core;
 using Emotion.Game.World;
+using Emotion.Game.World.Components;
 using Emotion.Graphics;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Shader;
+using Emotion.Standard;
 using Emotion.Testing;
 using System.Collections;
 using System.Numerics;
@@ -99,29 +101,103 @@ vec4 FragmentShaderMain()
 
         Camera3D cam = new Camera3D(Vector3.Zero);
         Engine.Renderer.Camera = cam;
-        yield return new TestWaiterRunLoops(41); 
+        yield return new TestWaiterRunLoops(41);
 
         yield return ScreenshotPointFromAllSides(Vector3.Zero, nameof(CubeRender));
         Map.RemoveObject(obj);
     }
 
+    [Test]
+    public IEnumerator SkeletalAnimationBlending()
+    {
+        GameObject obj = Map.NewMeshObject("WoWModels/humanmaleguard/humanmaleguard.gltf");
+        obj.Scale3D = new Vector3(15);
+
+        Camera3D cam = new Camera3D(Vector3.Zero);
+        Engine.Renderer.Camera = cam;
+        yield return new TestWaiterRunLoops(41);
+
+        MeshComponent? mesh = obj.GetComponent<MeshComponent>();
+        mesh.SetAnimation("Stand (ID 0 variation 0)", 0);
+        mesh.Update(300);
+
+        yield return ScreenshotPointFromAllSides(Vector3.Zero, nameof(SkeletalAnimationBlending), true);
+
+        // Play an animation on layer 1 - should override layer 0
+        mesh.SetAnimation("Attack1H (ID 17 variation 0)", 1, false);
+        mesh.Update(300);
+
+        yield return ScreenshotPointFromAllSides(Vector3.Zero, nameof(SkeletalAnimationBlending), true);
+
+        // Since the attack animation is not looped it should run out eventually
+        mesh.Update(100_000);
+
+        yield return ScreenshotPointFromAllSides(Vector3.Zero, nameof(SkeletalAnimationBlending), true);
+
+        // Start running with a crossfade from the stand
+        mesh.SetAnimation("Run (ID 5 variation 0)", 0, true, 250);
+        mesh.Update(100);
+
+        yield return ScreenshotPointFromAllSides(Vector3.Zero, nameof(SkeletalAnimationBlending), true);
+
+        mesh.Update(200);
+
+        yield return ScreenshotPointFromAllSides(Vector3.Zero, nameof(SkeletalAnimationBlending), true);
+
+        // Custom transform
+        mesh.RenderState.SetCustomTransformForJoint(
+            "bone_Root",
+            Matrix4x4.CreateRotationY(Maths.DegreesToRadians(50.0f)),
+            200
+        );
+
+        yield return ScreenshotPointFromAllSides(Vector3.Zero, nameof(SkeletalAnimationBlending), true);
+
+        mesh.Update(100);
+
+        yield return ScreenshotPointFromAllSides(Vector3.Zero, nameof(SkeletalAnimationBlending), true);
+
+        mesh.RenderState.SetCustomTransformForJoint(
+           "bone_Root",
+           Matrix4x4.CreateRotationY(-Maths.DegreesToRadians(50.0f)),
+           200
+        );
+        mesh.Update(10);
+
+        yield return ScreenshotPointFromAllSides(Vector3.Zero, nameof(SkeletalAnimationBlending), true);
+
+        mesh.SetAnimation("Stand (ID 0 variation 0)", 0);
+        mesh.Update(100);
+
+        yield return ScreenshotPointFromAllSides(Vector3.Zero, nameof(SkeletalAnimationBlending), true);
+
+        mesh.Update(300);
+
+        yield return ScreenshotPointFromAllSides(Vector3.Zero, nameof(SkeletalAnimationBlending), true);
+
+        Map.RemoveObject(obj);
+    }
+
     #region Helpers
 
-    public IEnumerator ScreenshotPointFromAllSides(Vector3 point, string funcName)
+    public IEnumerator ScreenshotPointFromAllSides(Vector3 point, string funcName, bool skipTopAndBottom = false)
     {
         var cam = Engine.Renderer.Camera;
 
-        cam.Position = point + new Vector3(0, 0, 100);
-        cam.LookAtPoint(Vector3.Zero);
+        if (!skipTopAndBottom)
+        {
+            cam.Position = point + new Vector3(0, 0, 100);
+            cam.LookAtPoint(Vector3.Zero);
 
-        yield return new TestWaiterRunLoops(1);
-        yield return VerifyScreenshot(nameof(Render3DTests), funcName);
+            yield return new TestWaiterRunLoops(1);
+            yield return VerifyScreenshot(nameof(Render3DTests), funcName);
 
-        cam.Position = point + new Vector3(0, 0, -100);
-        cam.LookAtPoint(Vector3.Zero);
+            cam.Position = point + new Vector3(0, 0, -100);
+            cam.LookAtPoint(Vector3.Zero);
 
-        yield return new TestWaiterRunLoops(1);
-        yield return VerifyScreenshot(nameof(Render3DTests), funcName);
+            yield return new TestWaiterRunLoops(1);
+            yield return VerifyScreenshot(nameof(Render3DTests), funcName);
+        }
 
         cam.Position = point + new Vector3(100, 0, 0);
         cam.LookAtPoint(Vector3.Zero);
