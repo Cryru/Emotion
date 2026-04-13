@@ -1,10 +1,8 @@
 ﻿#nullable enable
 
 using Emotion.Core.Utility.Coroutines;
-using Emotion.Game.Systems.UI;
 using Emotion.Game.World.Components;
 using Emotion.Game.World.Terrain;
-using Emotion.Game.World.Terrain.MeshGridStreaming;
 using Emotion.Graphics.Camera;
 
 namespace Emotion.Game.PremadeControllers.WorldOfWarcraft;
@@ -12,6 +10,7 @@ namespace Emotion.Game.PremadeControllers.WorldOfWarcraft;
 public class WoWMovementController : IGameObjectComponent, IUpdateableComponent
 {
     public float WalkingSpeed = 0.007f; // Per millisecond
+    public WoWCamera Camera = new WoWCamera(Vector3.Zero);
 
     private GameObject? _character;
     private string? _idleAnim;
@@ -19,8 +18,6 @@ public class WoWMovementController : IGameObjectComponent, IUpdateableComponent
     private string? _strafeLegBone;
     private string? _strafeTorsoBone;
     private string? _walkBackAnim;
-
-    private WoWCamera _camera = new WoWCamera(Vector3.Zero);
 
     private Vector2 _input;
     private bool _leftClickHeld;
@@ -30,8 +27,8 @@ public class WoWMovementController : IGameObjectComponent, IUpdateableComponent
     private bool _jumpHeld = false;
     private float _velocityZ;
 
-    private float _jumpVelocity = 0.0126000009f;
-    private float _gravityPerMs = -4.26666629E-05f;
+    private float _jumpVelocity = 0.0126f;
+    private float _gravityPerMs = -0.0000426f;
     private float _airTimeMaxPosiveVelMod = 0.6f;
 
     public WoWMovementController(string idleAnim, string walkAnim, string walkBackAnim, string strafeLegBone, string strafeTorsoBone)
@@ -46,7 +43,7 @@ public class WoWMovementController : IGameObjectComponent, IUpdateableComponent
     public void Attach()
     {
         Engine.Host.OnKey.AddListener(KeyHandler, KeyListenerType.Game);
-        Engine.Renderer.Camera = _camera;
+        Engine.Renderer.Camera = Camera;
     }
 
     public void Dettach()
@@ -56,7 +53,7 @@ public class WoWMovementController : IGameObjectComponent, IUpdateableComponent
 
     public void SetCharacter(GameObject obj)
     {
-        _camera.SetTarget(obj, new Vector3(0, 0, 2));
+        Camera.SetTarget(obj, new Vector3(0, 0, 2));
         _character = obj;
     }
 
@@ -172,7 +169,7 @@ public class WoWMovementController : IGameObjectComponent, IUpdateableComponent
         {
             if (animToSet != null && animToSet != meshComponent.GetCurrentAnimation())
             {
-                meshComponent.SetAnimation(animToSet);
+                meshComponent.SetAnimation(animToSet, 0, true, 250); // Crossfade - maybe should be in some kind of animation graph?
             }
 
             // The logic here is very controversial xd
@@ -189,15 +186,18 @@ public class WoWMovementController : IGameObjectComponent, IUpdateableComponent
 
             if (_strafeLegBone != null)
             {
-                meshComponent.RenderState.SetCustomTransformForJoint(_strafeLegBone,
-                    Matrix4x4.CreateRotationY(strafeAngle * walkingLeftRightTilt)
+                meshComponent.RenderState.SetCustomTransformForJoint(
+                    _strafeLegBone,
+                    Matrix4x4.CreateRotationY(strafeAngle * walkingLeftRightTilt),
+                    200
                );
             }
             if (_strafeTorsoBone != null)
             {
                 meshComponent.RenderState.SetCustomTransformForJoint(_strafeTorsoBone,
-                    Matrix4x4.CreateRotationX(leanAngle * walkingLeftRightTilt) * 
-                    Matrix4x4.CreateRotationY(-strafeAngle * walkingLeftRightTilt)
+                    Matrix4x4.CreateRotationX(leanAngle * walkingLeftRightTilt) *
+                    Matrix4x4.CreateRotationY(-strafeAngle * walkingLeftRightTilt),
+                    200
                 );
             }
         }

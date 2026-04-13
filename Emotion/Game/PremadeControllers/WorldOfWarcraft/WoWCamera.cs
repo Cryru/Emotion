@@ -7,6 +7,7 @@ namespace Emotion.Game.PremadeControllers.WorldOfWarcraft;
 public class WoWCamera : Camera3D
 {
     public float Distance = 20;
+    public float TargetAngle = 25;
 
     public GameObject? Target;
     public Vector3 TargetOffset;
@@ -27,7 +28,7 @@ public class WoWCamera : Camera3D
         if (target != null)
         {
             LookAtPoint(target.Position3D);
-            _yawRollPitch = new Vector3(180, 0, 25);
+            _yawRollPitch = new Vector3(180, 0, TargetAngle);
         }
     }
 
