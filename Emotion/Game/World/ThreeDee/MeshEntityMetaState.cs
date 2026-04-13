@@ -181,6 +181,7 @@ public class MeshEntityMetaState
         }
 
         _crossfadeSnapshot.Time = 0;
+        _crossfadeSnapshot.Factor = 0;
         _crossfadeSnapshot.LayerTimeout = time;
         _crossfadeSnapshot.Active = true;
         _boneMatricesForEntityRig.CopyTo(_crossfadeSnapshot.BoneMatrices);
@@ -257,6 +258,23 @@ public class MeshEntityMetaState
         }
 
         Span<AnimationLayer> layerSpan = CollectionsMarshal.AsSpan(_layers);
+
+        // Update the time of all active layers
+        for (int i = 0; i < layerSpan.Length; i++)
+        {
+            ref AnimationLayer layer = ref layerSpan[i];
+            if (layer.Typ == AnimationLayerType.None) continue;
+
+            layer.Time += dt;
+            if (layer.Typ == AnimationLayerType.SinglePlayAnimation)
+            {
+                SkeletalAnimation anim = layer.Anim;
+                float duration = anim.Duration;
+                layer.Time = Math.Min(layer.Time, duration);
+            }
+        }
+
+        // Apply the top-most active layer
         bool anyAnimationApplied = false;
         for (int i = layerSpan.Length - 1; i >= 0; i--)
         {
@@ -267,44 +285,29 @@ public class MeshEntityMetaState
                     continue;
                 case AnimationLayerType.LoopingAnimation:
                 case AnimationLayerType.SinglePlayAnimation:
-                    layer.Time += dt;
-
                     SkeletalAnimation anim = layer.Anim;
                     float duration = anim.Duration;
-                    float time;
+                    float time = layer.Time;
                     if (layer.Typ == AnimationLayerType.LoopingAnimation)
                     {
-                        time = duration == 0 ? 0 : layer.Time % duration;
+                        time = duration == 0 ? 0 : time % duration;
                     }
-                    else //if (layer.Typ == AnimationLayerType.SinglePlayAnimation)
-                    {
-                        time = Math.Min(layer.Time, duration);
-                        if (time == duration)
-                        {
-                            layer.Typ = AnimationLayerType.None; // This animation is done
-                            if (layer.CrossfadeAtEnd != 0)
-                                AddCrossfadeSnapshot(layer.CrossfadeAtEnd);
-                        }
-                    }
-
-                    // Only the topmost layer is applied
-                    if (anim == null || anyAnimationApplied) break;
-
                     ApplyAnimationToRigMatrices(anim, time);
                     anyAnimationApplied = true;
                     break;
             }
-
-            if (!anyAnimationApplied) break;
+            if (anyAnimationApplied) break;
         }
 
-        // No animation set the initial rig offsets.
+        // No animation - so just set the initial rig offsets.
         if (!anyAnimationApplied)
             ApplyDefaultRigMatrices();
 
+        // Apply crossfading
         if (_crossfadeSnapshot.Active)
             LerpToEntityRigBones(_crossfadeSnapshot.BoneMatrices, _crossfadeSnapshot.Factor);
 
+        // Apply custom bone transforms
         if (_customBoneTransforms != null && _customBoneTransforms.Count > 0)
         {
             SkeletonAnimRigNode[] animRig = _entity.AnimationRig;
@@ -360,6 +363,23 @@ public class MeshEntityMetaState
 
         AssignSkinMatrices();
 
+        // Cleanup single player layers
+        for (int i = layerSpan.Length - 1; i >= 0; i--)
+        {
+            ref AnimationLayer layer = ref layerSpan[i];
+            if (layer.Typ != AnimationLayerType.SinglePlayAnimation) continue;
+
+            SkeletalAnimation anim = layer.Anim;
+            float duration = anim.Duration;
+            if (layer.Time == duration)
+            {
+                layer.Typ = AnimationLayerType.None; // This animation is done
+                if (layer.CrossfadeAtEnd != 0)
+                    AddCrossfadeSnapshot(layer.CrossfadeAtEnd);
+            }
+        }
+
+        // Cleaup crossfade
         if (_crossfadeSnapshot.Active && _crossfadeSnapshot.Factor == 1f)
             _crossfadeSnapshot.Active = false;
     }
