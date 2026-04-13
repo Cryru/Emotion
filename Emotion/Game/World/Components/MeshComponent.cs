@@ -62,16 +62,21 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
 
         RenderState = new MeshEntityMetaState(_entity);
 
-        _currentAnimation = null;
-        _animationTime = 0;
-
         // Reset the animation (or set it to the one set before the entity was loaded).
         // This will also set the default bone matrices.
         // This will also calculate bounds
-        SetAnimation(_initSetAnimation);
+        SetAnimation(_initSetAnimation, 0, true, _initSetAnimationCrossfade);
         _initSetAnimation = null;
+        _initSetAnimationCrossfade = 0f;
 
-        RenderState.UpdateAnimationRigBones(_currentAnimation, 0);
+        RenderState.UpdateBoneMatrices(0);
+
+        _entity.GetBounds(null, out Sphere baseSphere, out Cube baseCube);
+        _boundingSphereBase = baseSphere;
+        _boundingCubeBase = baseCube;
+        Object.InvalidateModelMatrix();
+
+        Assert(_boundingSphereBase.Radius != 0, "Entity bounds is 0 - no vertices?");
 
         Object.InvalidateModelMatrix();
     }
@@ -80,26 +85,22 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
 
     #region Animation and Bones
 
-    private SkeletalAnimation? _currentAnimation;
-    private float _animationTime;
     private string? _initSetAnimation;
+    private float _initSetAnimationCrossfade;
 
     public string GetCurrentAnimation()
     {
-        return _currentAnimation?.Name ?? string.Empty;
+        return RenderState.GetAnimationLayerName(0);
     }
 
     public float GetCurrentAnimationDuration()
     {
-        if (_currentAnimation == null) return 0f;
-        return _currentAnimation.Duration;
+        return RenderState.GetAnimationLayerFactor(0);
     }
 
     public float GetCurrentAnimationFactor()
     {
-        float duration = GetCurrentAnimationDuration();
-        if (duration == 0) return 0f;
-        return _animationTime / duration;
+        return RenderState.GetAnimationLayerFactor(0);
     }
 
     public bool HasAnimation(string name)
@@ -115,11 +116,12 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
         return false;
     }
 
-    public virtual void SetAnimation(string? name, bool forceIfMissing = false)
+    public virtual void SetAnimation(string? name, int layerIdx = 0, bool looping = true, float crossfadeMS = 0f)
     {
         if (!_componentInitialized)
         {
             _initSetAnimation = name;
+            _initSetAnimationCrossfade = crossfadeMS;
             return;
         }
 
@@ -136,20 +138,18 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
                 if (anim.Name == name) animInstance = anim;
             }
         }
-        if (animInstance == null && name != null && !forceIfMissing)
+        if (animInstance == null && name != null)
             return;
 
-        _currentAnimation = animInstance;
-        _animationTime = 0; // Reset time
+        // Snapshot current state
+        if (crossfadeMS != 0)
+            RenderState.AddCrossfadeSnapshot(crossfadeMS);
 
-        //CacheVerticesForCollision();
-
-        _entity.GetBounds(null, out Sphere baseSphere, out Cube baseCube);
-        _boundingSphereBase = baseSphere;
-        _boundingCubeBase = baseCube;
-        Object.InvalidateModelMatrix();
-
-        Assert(_boundingSphereBase.Radius != 0, "Entity bounds is 0 - no vertices?");
+        // Start new playback state
+        if (looping)
+            RenderState.SetAnimationLayerLooping(layerIdx, animInstance);
+        else
+            RenderState.SetAnimationLayerRunOnce(layerIdx, animInstance, crossfadeMS);
     }
 
     #endregion
@@ -239,120 +239,13 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
 
     public void Update(float dt)
     {
-        // Update current animation
-        if (_currentAnimation != null && _entity != null && RenderState != null)
-        {
-            _animationTime += dt;
-
-            float duration = _currentAnimation.Duration;
-            _animationTime = _animationTime % duration;
-
-            RenderState.UpdateAnimationRigBones(_currentAnimation, _animationTime);
-        }
+        if (_entity == null || RenderState == null) return;
+        RenderState.UpdateBoneMatrices(dt);
     }
 
     public virtual void Render(Renderer r)
     {
         r.MeshEntityRenderer.AddToCurrentScene(r, RenderState);
-    }
-
-    public void DebugDrawSkeleton(Renderer c)
-    {
-        SkeletonAnimRigNode[] rig = _entity.AnimationRig;
-        if (rig.Length == 0) return;
-        if (RenderState == null) return;
-
-        c.SetDepthTest(false);
-
-        CylinderMeshGenerator coneMeshGenerator = new CylinderMeshGenerator
-        {
-            RadiusTop = 0,
-            RadiusBottom = 0.05f,
-            Sides = 4
-        };
-        List<Mesh> visualizationMeshes = new List<Mesh>();
-        MeshMaterial skeletonVisualizationMaterial = new MeshMaterial()
-        {
-            Name = "Skeleton Visualization Material",
-            DiffuseColor = Color.PrettyPink
-        };
-
-        for (int i = 0; i < rig.Length; i++)
-        {
-            SkeletonAnimRigNode rigNode = rig[i];
-            Matrix4x4 nodeMatrix = RenderState.GetMatrixForAnimationRigNode(i);
-            Vector3 bonePos = Vector3.Transform(Vector3.Zero, nodeMatrix);
-
-            Vector3 parentBonePos = Vector3.Zero;
-            int parent = rigNode.ParentIdx;
-            if (parent == -1) continue;
-
-            Matrix4x4 parentMatrix = RenderState.GetMatrixForAnimationRigNode(parent);
-            parentBonePos = Vector3.Transform(Vector3.Zero, parentMatrix);
-
-            float height = Vector3.Distance(parentBonePos, bonePos);
-            if (height == 0) continue;
-            coneMeshGenerator.Height = height * Object.ScaleZ;
-
-            // Look at params
-            Vector3 conePos = parentBonePos;
-            Vector3 lookTowards = bonePos;
-            Vector3 meshDefaultLook = Vector3.UnitZ;
-
-            // Look at
-            Vector3 dir = Vector3.Normalize(lookTowards - conePos);
-            Vector3 rotationAxis = Vector3.Cross(meshDefaultLook, dir);
-            float rotationAngle = MathF.Acos(Vector3.Dot(meshDefaultLook, dir) / meshDefaultLook.Length() / dir.Length());
-            Matrix4x4 rotationMatrix = Matrix4x4.CreateFromAxisAngle(rotationAxis, rotationAngle);
-
-            Matrix4x4 boneMeshMatrix = Object.GetModelMatrixScale().Inverted() * rotationMatrix * Matrix4x4.CreateTranslation(conePos);
-            //Mesh coneMesh = coneMeshGenerator.GenerateMesh().TransformMeshVertices(boneMeshMatrix);
-            //coneMesh.Material = skeletonVisualizationMaterial;
-            //visualizationMeshes.Add(coneMesh);
-        }
-
-        c.PushModelMatrix(Object.GetModelMatrix());
-        for (var i = 0; i < visualizationMeshes.Count; i++)
-        {
-            Mesh mesh = visualizationMeshes[i];
-            //mesh.Render(c);
-        }
-        c.PopModelMatrix();
-
-        c.SetUseViewMatrix(false);
-        for (int i = 0; i < rig.Length; i++)
-        {
-            SkeletonAnimRigNode rigNode = rig[i];
-            Matrix4x4 nodeMatrix = RenderState.GetMatrixForAnimationRigNode(i);
-            Vector3 bonePos = Vector3.Transform(Vector3.Zero, nodeMatrix);
-
-            Vector3 parentBonePos = Vector3.Zero;
-            int parent = rigNode.ParentIdx;
-            if (parent == -1) continue;
-
-            Matrix4x4 parentMatrix = RenderState.GetMatrixForAnimationRigNode(parent);
-            parentBonePos = Vector3.Transform(Vector3.Zero, parentMatrix);
-
-            // Look at params
-            Vector3 conePos = parentBonePos;
-            Vector3 lookTowards = bonePos;
-            Vector3 meshDefaultLook = Vector3.UnitZ;
-
-            // Look at
-            Vector3 dir = Vector3.Normalize(lookTowards - conePos);
-            Vector3 rotationAxis = Vector3.Cross(meshDefaultLook, dir);
-            float rotationAngle = MathF.Acos(Vector3.Dot(meshDefaultLook, dir) / meshDefaultLook.Length() / dir.Length());
-            Matrix4x4 rotationMatrix = Matrix4x4.CreateFromAxisAngle(rotationAxis, rotationAngle);
-
-            Matrix4x4 boneMeshMatrix = Object.GetModelMatrixScale().Inverted() * rotationMatrix * Matrix4x4.CreateTranslation(conePos);
-            Vector3 screenBonePos = c.Camera.WorldToScreen(Vector3.Transform(Vector3.Zero, boneMeshMatrix * Object.GetModelMatrix())).ToVec3();
-            Vector3 screenBonePosLabel = screenBonePos + new Vector3((i % 10) * 10, (i % 10) * 10, 0);
-            c.RenderString(screenBonePosLabel, rigNode.Name, 15);
-            c.RenderLine(screenBonePos, screenBonePosLabel, Color.White * 0.5f, 1f);
-        }
-
-        c.SetUseViewMatrix(true);
-        c.SetDepthTest(true);
     }
 
     #region Collision
