@@ -117,13 +117,14 @@ public class UIPicture : UIBaseWindow
         return _assetOwner.GetCurrentLoading();
     }
 
-    protected override IntVector2 InternalGetWindowMinSize()
+    protected override void InternalLayoutCollectSize(out IntVector2 preferredSize, out IntVector2 minSize, out IntVector2 maxSize)
     {
-        Assert(!IsLoading());
-
         Texture? texture = _assetOwner.GetCurrentObject();
-        if (texture == null)
-            return IntVector2.Zero;
+        if (IsLoading() || texture == null)
+        {
+            base.InternalLayoutCollectSize(out preferredSize, out minSize, out maxSize);
+            return;
+        }
 
         if (Smooth != texture.Smooth)
             texture.Smooth = Smooth;
@@ -161,7 +162,9 @@ public class UIPicture : UIBaseWindow
         if (Layout.SizingY.Mode == UISizing.UISizingMode.Fixed)
             textureSize.Y = 0;
 
-        return IntVector2.FromVec2Ceiling(textureSize);
+        preferredSize = IntVector2.FromVec2Ceiling(textureSize);
+        maxSize = new IntVector2(UIWindowLayoutConfig.DEFAULT_MAX_SIZE);
+        minSize = IntVector2.Zero;
     }
 
     protected override void InternalRender(Renderer r)
