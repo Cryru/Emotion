@@ -52,7 +52,7 @@ public class MeshEntityMetaState
     private MeshEntity _entity;
     private Matrix4x4[] _boneMatricesForEntityRig;
     private Matrix4x4[] _boneMatricesForEntityRigFinal;
-    private Matrix4x4[][] _boneMatricesPerMesh;
+    private Matrix4x4[][] _boneMatricesPerSkin;
 
     protected const int MAX_BONES = 200; // Must match number in MeshShader.vert
 
@@ -62,53 +62,21 @@ public class MeshEntityMetaState
         ModelMatrix = entity.LocalTransform;
 
         PerMeshState = new PerMeshState[entity.Meshes.Length];
-
-        _boneMatricesForEntityRig = ArrayPool<Matrix4x4>.Shared.Rent(entity.AnimationRig.Length);
-        _boneMatricesForEntityRigFinal = ArrayPool<Matrix4x4>.Shared.Rent(entity.AnimationRig.Length);
-
-        // todo: replace this with bone matrices per animation skin when we push them to a UBO
-        _boneMatricesPerMesh = new Matrix4x4[entity.Meshes.Length][];
-
-        // Build a mapping of which bones a mesh uses.
-        for (int meshIdx = 0; meshIdx < entity.Meshes.Length; meshIdx++)
+        for (int i = 0; i < entity.Meshes.Length; i++)
         {
-            Mesh mesh = entity.Meshes[meshIdx];
-            PerMeshState[meshIdx].RenderMesh = true;
+            PerMeshState[i].RenderMesh = true;
+        }
 
-            Matrix4x4[] matrices;
-            if (mesh.VertexFormat.HasBones)
-            {
-                int largestBoneIdUsed = 0;
-                foreach (VertexBoneData boneData in mesh.VertexAllocation.ForEachBoneData())
-                {
-                    Vector4 boneIds = boneData.BoneIds;
-                    for (int b = 0; b < 4; b++)
-                    {
-                        int jointRef = (int)boneIds[b];
-                        if (jointRef > largestBoneIdUsed) largestBoneIdUsed = jointRef;
-                    }
-                }
-                if (largestBoneIdUsed > MAX_BONES)
-                {
-                    Engine.Log.Error($"Entity {_entity.Name}'s mesh {mesh.Name} has too many bones ({largestBoneIdUsed} > {MAX_BONES}).", "3D");
-                }
+        int rigJoints = entity.AnimationRig.Length;
+        _boneMatricesForEntityRig = ArrayPool<Matrix4x4>.Shared.Rent(rigJoints);
+        _boneMatricesForEntityRigFinal = ArrayPool<Matrix4x4>.Shared.Rent(rigJoints);
 
-                largestBoneIdUsed++; // Include this bone
-
-                // Assimp hack
-                // Note: Models loaded by assimp have one skin per mesh and the skins are generally
-                // optimized to only include the bones used by the mesh.
-                // Should we do this for the GLTF ourselves?
-                SkeletalAnimationSkin skin = _entity.AnimationSkins[mesh.AnimationSkin];
-                if (skin.Joints.Length < largestBoneIdUsed) largestBoneIdUsed = skin.Joints.Length;
-
-                matrices = new Matrix4x4[largestBoneIdUsed];
-            }
-            else
-            {
-                matrices = [Matrix4x4.Identity];
-            }
-            _boneMatricesPerMesh[meshIdx] = matrices;
+        int skinCount = _entity.AnimationSkins.Length;
+        _boneMatricesPerSkin = new Matrix4x4[skinCount][];
+        for (int i = 0; i < skinCount; i++)
+        {
+            SkeletalAnimationSkin skin = _entity.AnimationSkins[i];
+            _boneMatricesPerSkin[i] = new Matrix4x4[skin.Joints.Length];
         }
     }
 
@@ -116,8 +84,12 @@ public class MeshEntityMetaState
 
     public Matrix4x4[] GetBoneMatricesForMesh(int meshIdx)
     {
-        if (meshIdx >= _boneMatricesPerMesh.Length) return Array.Empty<Matrix4x4>();
-        return _boneMatricesPerMesh[meshIdx];
+        Mesh[] meshes = _entity.Meshes;
+        if (meshIdx >= meshes.Length) return Array.Empty<Matrix4x4>();
+        int skinIdx = meshes[meshIdx].AnimationSkin;
+        if (skinIdx >= _boneMatricesPerSkin.Length) return Array.Empty<Matrix4x4>();
+
+        return _boneMatricesPerSkin[skinIdx];
     }
 
     public Matrix4x4 GetMatrixForAnimationRigNode(int nodeId)
@@ -129,8 +101,7 @@ public class MeshEntityMetaState
     {
         None,
         LoopingAnimation,
-        SinglePlayAnimation,
-        CrossFadeSnapshot
+        SinglePlayAnimation
     }
 
     private struct AnimationLayer
@@ -173,9 +144,9 @@ public class MeshEntityMetaState
 
     public void AddCrossfadeSnapshot(float time)
     {
+        int entityRigLength = _entity.AnimationRig.Length;
         if (!_crossfadeSnapshot.Initialized)
         {
-            int entityRigLength = _entity.AnimationRig.Length;
             _crossfadeSnapshot.BoneMatrices = ArrayPool<Matrix4x4>.Shared.Rent(entityRigLength);
             _crossfadeSnapshot.Initialized = true;
         }
@@ -184,7 +155,9 @@ public class MeshEntityMetaState
         _crossfadeSnapshot.Factor = 0;
         _crossfadeSnapshot.LayerTimeout = time;
         _crossfadeSnapshot.Active = true;
-        _boneMatricesForEntityRig.CopyTo(_crossfadeSnapshot.BoneMatrices);
+
+        SkeletonAnimRigNode[] animRig = _entity.AnimationRig;
+        Array.Copy(_boneMatricesForEntityRig, _crossfadeSnapshot.BoneMatrices, entityRigLength);
     }
 
     public void SetAnimationLayerLooping(int index, SkeletalAnimation? animation)
@@ -251,12 +224,6 @@ public class MeshEntityMetaState
 
     public void UpdateBoneMatrices(float dt)
     {
-        if (_crossfadeSnapshot.Active)
-        {
-            _crossfadeSnapshot.Time += dt;
-            _crossfadeSnapshot.Factor = Maths.Lerp(0, 1f, _crossfadeSnapshot.Time / _crossfadeSnapshot.LayerTimeout);
-        }
-
         Span<AnimationLayer> layerSpan = CollectionsMarshal.AsSpan(_layers);
 
         // Update the time of all active layers
@@ -272,6 +239,13 @@ public class MeshEntityMetaState
                 float duration = anim.Duration;
                 layer.Time = Math.Min(layer.Time, duration);
             }
+        }
+
+        // Update crossfade
+        if (_crossfadeSnapshot.Active)
+        {
+            _crossfadeSnapshot.Time += dt;
+            _crossfadeSnapshot.Factor = Maths.Lerp(0, 1f, _crossfadeSnapshot.Time / _crossfadeSnapshot.LayerTimeout);
         }
 
         // Apply the top-most active layer
@@ -469,22 +443,20 @@ public class MeshEntityMetaState
 
     private void AssignSkinMatrices()
     {
-        if (_entity.AnimationSkins.Length == 0) return;
-
-        for (int meshIdx = 0; meshIdx < _boneMatricesPerMesh.Length; meshIdx++)
+        int skinCount = _entity.AnimationSkins.Length;
+        for (int i = 0; i < skinCount; i++)
         {
-            Mesh mesh = _entity.Meshes[meshIdx];
-            int skinIdx = mesh.AnimationSkin;
-            SkeletalAnimationSkin primarySkin = _entity.AnimationSkins[skinIdx];
-            SkeletalAnimationSkinJoint[] joints = primarySkin.Joints;
+            SkeletalAnimationSkin skin = _entity.AnimationSkins[i];
+            SkeletalAnimationSkinJoint[] joints = skin.Joints;
 
-            Matrix4x4[] boneMatricesForMesh = _boneMatricesPerMesh[meshIdx];
-            for (int b = 0; b < boneMatricesForMesh.Length; b++)
+            Matrix4x4[] boneMatricesForSkin = _boneMatricesPerSkin[i];
+
+            for (int j = 0; j < joints.Length; j++)
             {
-                SkeletalAnimationSkinJoint joint = joints[b];
+                SkeletalAnimationSkinJoint joint = joints[j];
                 int rigBoneId = joint.RigNodeIdx;
                 Matrix4x4 matrix = _boneMatricesForEntityRigFinal[rigBoneId];
-                boneMatricesForMesh[b] = joint.OffsetMatrix * matrix;
+                boneMatricesForSkin[j] = joint.OffsetMatrix * matrix;
             }
         }
     }
