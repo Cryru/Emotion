@@ -91,7 +91,10 @@ public class MeshAsset : Asset, IAssetContainingObject<MeshEntity>
                 if (pipelineAsset != null && !pipelineAsset.Loaded) yield return pipelineAsset;
                 ShaderGroup? pipeline = pipelineAsset?.ShaderGroup;
                 if (pipeline != null)
+                {
                     yield return pipeline.GetShaderRoutine(new ShaderGroup.ShaderOut(), new ShaderGroupDefinition(mesh.VertexFormat));
+                    yield return pipeline.GetShaderRoutine(new ShaderGroup.ShaderOut(), new ShaderGroupDefinition(mesh.VertexFormat, ShaderDefine.GetMaskForDefine("LIGHT_ENABLED")));
+                }
             }
 
             Entity = entity;
