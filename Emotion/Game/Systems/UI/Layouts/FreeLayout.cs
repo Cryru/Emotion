@@ -35,13 +35,14 @@ public partial class UIBaseWindow
             {
                 if (SkipWindowLayout(child)) continue;
 
-                UISizing sizing = GetSizingInDirection(child, axis);
-                if (!sizing.CanGrow()) continue;
+                int childSize = child.CalculatedMetrics.Size[axis];
+                int sizeInto = availableSize - child.CalculatedMetrics.MarginTotalSize[axis];
 
-                child.CalculatedMetrics.Size[axis] = Math.Max(
-                    child.CalculatedMetrics.Size[axis],
-                    availableSize - child.CalculatedMetrics.MarginTotalSize[axis]
-                );
+                UISizing sizing = GetSizingInDirection(child, axis);
+                if (sizing.CanGrow() && childSize < sizeInto)
+                    child.CalculatedMetrics.Size[axis] = sizeInto;
+                if (sizing.CanShrink() && childSize > sizeInto)
+                    child.CalculatedMetrics.Size[axis] = sizeInto;
             }
         }
 
