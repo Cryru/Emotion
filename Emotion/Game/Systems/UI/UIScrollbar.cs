@@ -2,36 +2,43 @@
 
 namespace Emotion.Game.Systems.UI;
 
+[DontSerialize]
 public class UIScrollbar : UIBaseWindow
 {
     /// <summary>
     /// Whether the scrollbar scrolls horizontally.
     /// </summary>
-    public bool Horizontal;
+    public bool Horizontal { get; protected set; }
 
     public Color DefaultSelectorColor = new Color(125, 0, 0);
     public Color SelectorMouseInColor = new Color(200, 0, 0);
 
-    [DontSerialize]
-    public UIBaseWindow? ScrollParent = null;
-
-    [DontSerialize]
-    public Action<float>? OnScroll;
-
-    private Color _selectorColor;
+    protected Color _selectorColor;
     protected Rectangle _selectorRect;
-    private Vector2 _dragging;
+    protected Vector2 _dragging;
 
     public float TotalArea;
     public float PageArea;
     public float Current;
 
-    public Color? OutlineColor;
-    public float OutlineSize;
-
-    public UIScrollbar()
+    public UIScrollbar(bool horizontal)
     {
         HandleInput = true;
+        Horizontal = horizontal;
+
+        if (horizontal)
+        {
+            Layout.SizingY = UISizing.Fixed(15);
+            Layout.SizingX = UISizing.Grow();
+            Layout.Margins = new UISpacing(0, 0, 15, 0);
+            Layout.AnchorAndParentAnchor = UIAnchor.BottomLeft;
+        }
+        else
+        {
+            Layout.SizingX = UISizing.Fixed(15);
+            Layout.SizingY = UISizing.Grow();
+            Layout.AnchorAndParentAnchor = UIAnchor.TopRight;
+        }
     }
 
     protected override void OnOpen()
@@ -57,9 +64,8 @@ public class UIScrollbar : UIBaseWindow
             {
                 _dragging = Vector2.Zero;
             }
+            return false;
         }
-
-        if (ScrollParent != null) return ScrollParent.OnKey(key, status, mousePos);
 
         return base.OnKey(key, status, mousePos);
     }
@@ -76,20 +82,26 @@ public class UIScrollbar : UIBaseWindow
         float progress = 0;
         if (Horizontal)
         {
-            //progress = Maths.Map(mousePos.X - _dragging.X, X, X + Width, 0, TotalArea);
-            //progress = MathF.Round(progress);
-            //var list = (UICallbackListNavigator?)ScrollParent;
-            //list?.ScrollByAbsolutePos(progress);
+            Rectangle track = CalculatedMetrics.Bounds.ToRect();
+            float thumb = _selectorRect.Width;
+            float trackLength = MathF.Max(0, track.Width - thumb);
+            float pos = mousePos.X - _dragging.X - track.X;
+            float norm = trackLength <= 0 ? 0 : pos / trackLength;
+            norm = Math.Clamp(norm, 0, 1);
+            progress = norm * MathF.Max(0, TotalArea - PageArea);
+            Parent.ScrollTo(new Vector2(progress, Parent.ScrollOffset.Y));
         }
         else
         {
-            //progress = Maths.Map(mousePos.Y - _dragging.Y, Y, Y + Height, 0, TotalArea);
-            //progress = MathF.Round(progress);
-            //var list = (UICallbackListNavigator?)ScrollParent;
-            //list?.ScrollByAbsolutePos(progress);
+            Rectangle track = CalculatedMetrics.Bounds.ToRect();
+            float thumb = _selectorRect.Height;
+            float trackLength = MathF.Max(0, track.Height - thumb);
+            float pos = mousePos.Y - _dragging.Y - track.Y;
+            float norm = trackLength <= 0 ? 0 : pos / trackLength;
+            norm = Math.Clamp(norm, 0, 1);
+            progress = norm * MathF.Max(0, TotalArea - PageArea);
+            Parent.ScrollTo(new Vector2(Parent.ScrollOffset.X, progress));
         }
-
-        OnScroll?.Invoke(progress);
 
         base.OnMouseMove(mousePos);
     }
@@ -103,43 +115,38 @@ public class UIScrollbar : UIBaseWindow
 
     public void UpdateScrollbar()
     {
-        if (ScrollParent != null)
+        Rectangle track = CalculatedMetrics.Bounds.ToRect();
+        if (Horizontal)
         {
-            // todo: what is this tomfoolery
-            //float spaceTaken = TotalArea > PageArea ? PageArea : TotalArea;
-            //_measuredSize.Y = spaceTaken;
-           // Height = spaceTaken;
+            float trackW = track.Width;
+            float thumbW = TotalArea <= 0 ? trackW : (PageArea / MathF.Max(1, TotalArea)) * trackW;
+            thumbW = Math.Clamp(thumbW, 0, trackW);
+
+            float maxScroll = MathF.Max(0, TotalArea - PageArea);
+            float norm = maxScroll <= 0 ? 0 : Current / maxScroll;
+            norm = Math.Clamp(norm, 0, 1);
+
+            float x = track.X + norm * MathF.Max(0, trackW - thumbW);
+            _selectorRect = new Rectangle(x, track.Y, thumbW, track.Height);
         }
+        else
+        {
+            float trackH = track.Height;
+            float thumbH = TotalArea <= 0 ? trackH : (PageArea / MathF.Max(1, TotalArea)) * trackH;
+            thumbH = Math.Clamp(thumbH, 0, trackH);
 
-        //if (Horizontal)
-        //{
-        //    float progress = Maths.Map(Current, 0, TotalArea, 0, Width);
-        //    progress = MathF.Round(progress);
-        //    float size = Maths.Map(PageArea, 0, TotalArea, 0, Width);
-        //    size = MathF.Round(size);
-        //    _selectorRect = new Rectangle(X + progress, Y, size, Height);
-        //}
-        //else
-        //{
-        //    float progress = Maths.Map(Current, 0, TotalArea, 0, Height);
-        //    progress = MathF.Round(progress);
-        //    float size = Maths.Map(PageArea, 0, TotalArea, 0, Height);
-        //    size = MathF.Round(size);
-        //    _selectorRect = new Rectangle(X, Y + progress, Width, size);
-        //}
+            float maxScroll = MathF.Max(0, TotalArea - PageArea);
+            float norm = maxScroll <= 0 ? 0 : Current / maxScroll;
+            norm = Math.Clamp(norm, 0, 1);
+
+            float y = track.Y + norm * MathF.Max(0, trackH - thumbH);
+            _selectorRect = new Rectangle(track.X, y, track.Width, thumbH);
+        }
     }
 
-    protected override void DELETEME_AfterLayout()
+    protected override void InternalRender(Renderer r)
     {
-        base.DELETEME_AfterLayout();
-        UpdateScrollbar();
-    }
-
-    protected override bool RenderInternal(Renderer c)
-    {
-        //c.RenderSprite(Bounds, _calculatedColor);
-        //c.RenderSprite(_selectorRect, _selectorColor);
-
-        return true;
+        r.RenderSprite(_selectorRect, _selectorColor);
+        base.InternalRender(r);
     }
 }

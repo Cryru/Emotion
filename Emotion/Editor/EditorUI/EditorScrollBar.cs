@@ -4,19 +4,18 @@ namespace Emotion.Editor.EditorUI;
 
 public class EditorScrollBar : UIScrollbar
 {
-    public EditorScrollBar()
+    public EditorScrollBar() : base(false)
     {
         DefaultSelectorColor = EditorColorPalette.ButtonColor;
         SelectorMouseInColor = EditorColorPalette.ActiveButtonColor;
         
         Layout.SizingX = UISizing.Fixed(15);
-        Layout.AnchorAndParentAnchor = UIAnchor.TopRight;
         Visuals.BackgroundColor = Color.Black * 0.5f;
     }
 
     protected override void InternalRender(Renderer r)
     {
-        base.RenderInternal(r);
+        base.InternalRender(r);
 
         var grabLineColor = Color.White * 0.35f;
 
@@ -33,20 +32,19 @@ public class EditorScrollBar : UIScrollbar
 
 public class EditorScrollBarHorizontal : UIScrollbar
 {
-    public EditorScrollBarHorizontal()
+    public EditorScrollBarHorizontal() : base(true)
     {
         DefaultSelectorColor = EditorColorPalette.ButtonColor;
         SelectorMouseInColor = EditorColorPalette.ActiveButtonColor;
         Horizontal = true;
 
         Layout.SizingY = UISizing.Fixed(15);
-        Layout.AnchorAndParentAnchor = UIAnchor.BottomLeft;
         Visuals.BackgroundColor = Color.Black * 0.5f;
     }
 
     protected override void InternalRender(Renderer r)
     {
-        base.RenderInternal(r);
+        base.InternalRender(r);
 
         var grabLineColor = Color.White * 0.35f;
 

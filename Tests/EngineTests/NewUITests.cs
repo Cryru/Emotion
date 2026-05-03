@@ -208,6 +208,7 @@ public class NewUITests : TestingScene
 
         var win = new UIBaseWindow
         {
+            Name = "Gushter",
             Visuals =
             {
                 BackgroundColor = Color.PrettyOrange,
@@ -2353,4 +2354,211 @@ public class NewUITests : TestingScene
 
     //    // todo: test input (scroll wheel, scroll bar dragging etc)
     //}
+
+    #region Overflow Tests
+
+    [Test]
+    public IEnumerator OverflowHiddenClipsContent()
+    {
+        var parent = new UIBaseWindow
+        {
+            Visuals =
+            {
+                BackgroundColor = Color.CornflowerBlue
+            }
+        };
+        parent.Layout.SizingX = UISizing.Fixed(200);
+        parent.Layout.SizingY = UISizing.Fixed(100);
+        parent.Layout.OverflowX = UIOverflow.Hidden;
+
+        var child = new UIBaseWindow
+        {
+            Visuals =
+            {
+                BackgroundColor = Color.PrettyOrange
+            }
+        };
+        child.Layout.SizingX = UISizing.Fixed(400);
+        child.Layout.SizingY = UISizing.Fixed(80);
+
+        parent.AddChild(child);
+        SceneUI.AddChild(parent);
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(OverflowHiddenClipsContent));
+    }
+
+    [Test]
+    public IEnumerator OverflowScrollMaxScrollComputed()
+    {
+        var parent = new UIBaseWindow();
+        parent.Layout.SizingX = UISizing.Fixed(200);
+        parent.Layout.SizingY = UISizing.Fixed(100);
+        parent.Layout.OverflowY = UIOverflow.Scroll;
+
+        var child = new UIBaseWindow(parent);
+        child.Layout.SizingX = UISizing.Fixed(100);
+        child.Layout.SizingY = UISizing.Fixed(300);
+
+        SceneUI.AddChild(parent);
+        yield return WaitUILayout();
+
+        Assert.Equal(parent.CalculatedMetrics.MaxScroll.Y, 66f);
+        Assert.Equal(parent.CalculatedMetrics.MaxScroll.X, 0f);
+    }
+
+    [Test]
+    public IEnumerator OverflowScrollToClamps()
+    {
+        var parent = new UIBaseWindow();
+        parent.Layout.SizingX = UISizing.Fixed(200);
+        parent.Layout.SizingY = UISizing.Fixed(100);
+        parent.Visuals.BackgroundColor = Color.CornflowerBlue;
+        parent.Layout.OverflowY = UIOverflow.Scroll;
+
+        var child = new UIBaseWindow(parent);
+        child.Visuals.BackgroundColor = Color.PrettyOrange;
+        child.Layout.SizingY = UISizing.Fixed(300);
+
+        SceneUI.AddChild(parent);
+        yield return WaitUILayout();
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(OverflowScrollToClamps));
+
+        bool moved = parent.ScrollTo(new Vector2(0, 50));
+        Assert.True(moved);
+        Assert.Equal(parent.ScrollOffset.Y, 50f);
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(OverflowScrollToClamps));
+
+        parent.ScrollTo(new Vector2(0, 9999));
+        Assert.Equal(parent.ScrollOffset.Y, parent.CalculatedMetrics.MaxScroll.Y);
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(OverflowScrollToClamps));
+
+        parent.ScrollTo(new Vector2(0, -999));
+        Assert.Equal(parent.ScrollOffset.Y, 0f);
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(OverflowScrollToClamps));
+    }
+
+    [Test]
+    public IEnumerator OverflowScrollNoScrollWhenContentFits()
+    {
+        var parent = new UIBaseWindow();
+        parent.Layout.SizingX = UISizing.Fixed(200);
+        parent.Layout.SizingY = UISizing.Fixed(100);
+        parent.Layout.OverflowY = UIOverflow.Scroll;
+        parent.Visuals.BackgroundColor = Color.CornflowerBlue;
+
+        var child = new UIBaseWindow(parent);
+        child.Layout.SizingY = UISizing.Fixed(50);
+        child.Visuals.BackgroundColor = Color.PrettyOrange;
+
+        SceneUI.AddChild(parent);
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(OverflowScrollNoScrollWhenContentFits));
+
+        Assert.Equal(parent.CalculatedMetrics.MaxScroll.Y, 0f);
+        bool moved = parent.ScrollTo(new Vector2(0, 10));
+        Assert.False(moved);
+
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(OverflowScrollNoScrollWhenContentFits));
+    }
+
+    [Test]
+    public IEnumerator OverflowVisibleDoesNotClip()
+    {
+        var parent = new UIBaseWindow(SceneUI);
+        parent.Layout.SizingX = UISizing.Fixed(200);
+        parent.Layout.SizingY = UISizing.Fixed(100);
+        parent.Visuals.BackgroundColor = Color.CornflowerBlue;
+
+        var child = new UIBaseWindow(parent);
+        child.Layout.SizingY = UISizing.Fixed(300);
+        child.Visuals.BackgroundColor = Color.PrettyOrange;
+
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(OverflowVisibleDoesNotClip));
+
+        Assert.Equal(parent.CalculatedMetrics.MaxScroll.Y, 0f);
+    }
+
+    [Test]
+    public IEnumerator OverflowScrollBarNotInLayout()
+    {
+        var parent = new UIBaseWindow();
+        parent.Layout.SizingX = UISizing.Fixed(200);
+        parent.Layout.SizingY = UISizing.Fixed(100);
+        parent.Layout.OverflowY = UIOverflow.Scroll;
+        parent.Layout.Padding = new UISpacing(5, 5, 5, 5);
+        parent.Visuals.BackgroundColor = Color.CornflowerBlue;
+
+        var child = new UIBaseWindow(parent);
+        child.Layout.SizingY = UISizing.Fixed(300);
+        child.Visuals.BackgroundColor = Color.PrettyOrange;
+        SceneUI.AddChild(parent);
+
+        yield return WaitUILayout();
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(OverflowScrollBarNotInLayout));
+
+        Assert.Equal(parent.CalculatedMetrics.Size.X, 67);
+        Assert.Equal(parent.CalculatedMetrics.Size.Y, 34);
+    }
+
+    [Test]
+    public IEnumerator OverflowScrollMultipleChildren()
+    {
+        var parent = new UIBaseWindow(SceneUI);
+        parent.Layout.SizingX = UISizing.Fixed(200);
+        parent.Layout.SizingY = UISizing.Fixed(100);
+        parent.Layout.OverflowY = UIOverflow.Scroll;
+        parent.Layout.LayoutMethod = UILayoutMethod.VerticalList(0);
+        parent.Visuals.BackgroundColor = Color.CornflowerBlue;
+
+        var childA = new UIBaseWindow(parent);
+        childA.Layout.SizingY = UISizing.Fixed(80);
+        childA.Visuals.BackgroundColor = Color.PrettyOrange;
+
+        var childB = new UIBaseWindow(parent);
+        childB.Layout.SizingY = UISizing.Fixed(120);
+        childB.Visuals.BackgroundColor = Color.PrettyOrange;
+
+        yield return WaitUILayout();
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(OverflowScrollMultipleChildren));
+
+        Assert.Equal(parent.CalculatedMetrics.MaxScroll.Y, 33);
+    }
+
+    [Test]
+    public IEnumerator OverflowScrollLayoutInvalidationUpdatesMaxScroll()
+    {
+        var parent = new UIBaseWindow(SceneUI);
+        parent.Layout.SizingX = UISizing.Fixed(200);
+        parent.Layout.SizingY = UISizing.Fixed(100);
+        parent.Layout.OverflowY = UIOverflow.Scroll;
+        parent.Visuals.BackgroundColor = Color.CornflowerBlue;
+
+        var child = new UIBaseWindow(parent);
+        child.Layout.SizingY = UISizing.Fixed(50);
+        child.Visuals.BackgroundColor = Color.PrettyOrange;
+
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(OverflowScrollLayoutInvalidationUpdatesMaxScroll));
+
+        Assert.Equal(parent.CalculatedMetrics.MaxScroll.Y, 0f);
+
+        var tallChild = new UIBaseWindow(parent);
+        tallChild.Layout.SizingY = UISizing.Fixed(200);
+        tallChild.Visuals.BackgroundColor = Color.PrettyYellow;
+
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITests), nameof(OverflowScrollLayoutInvalidationUpdatesMaxScroll));
+
+        Assert.True(parent.CalculatedMetrics.MaxScroll.Y > 0f);
+    }
+
+    #endregion
 }

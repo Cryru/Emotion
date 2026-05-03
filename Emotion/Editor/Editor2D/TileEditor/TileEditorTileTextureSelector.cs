@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace Emotion.Editor.Editor2D.TileEditor;
 
-public sealed class TileEditorTileTextureSelector : EditorScrollArea
+public sealed class TileEditorTileTextureSelector : EditorPanel
 {
     public float TilesetScale
     {

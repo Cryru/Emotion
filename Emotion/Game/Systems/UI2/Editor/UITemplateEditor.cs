@@ -158,7 +158,7 @@ public class UITemplateEditor : TypeEditor
             var treeViewContainer = new UIBaseWindow();
             tabParent.AddChild(treeViewContainer);
 
-            var treeViewScrollContent = new EditorScrollArea();
+            var treeViewScrollContent = new EditorPanel();
             treeViewContainer.AddChild(treeViewScrollContent);
 
             var treeView = new EditorTreeViewWindow<UIBaseWindow>((obj, list) => list.AddRange(obj.Children));
@@ -168,10 +168,6 @@ public class UITemplateEditor : TypeEditor
             treeViewScrollContent.AddChildInside(treeView);
             treeView.OnObjectSelected = SelectSubWindow;
             _treeView = treeView;
-
-            var scrollVert = new EditorScrollBar();
-            treeViewContainer.AddChild(scrollVert);
-            scrollVert.ScrollParent = treeViewScrollContent;
         });
         leftSideTabs.SetTab("Visual");
         contentPanel.AddChild(leftSideTabs);

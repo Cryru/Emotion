@@ -227,6 +227,38 @@ public struct UIWindowLayoutConfig
 
     public bool ChildrenCanExpand = true;
 
+    /// <summary>
+    /// How to handle children that exceed the window's bounds in the X axis.
+    /// </summary>
+    public UIOverflow OverflowX
+    {
+        readonly get { return _overflowX; }
+        set
+        {
+            if (_overflowX == value) return;
+            _overflowX = value;
+            InvalidateLayout();
+        }
+    }
+
+    private UIOverflow _overflowX = UIOverflow.Visible;
+
+    /// <summary>
+    /// How to handle children that exceed the window's bounds in the Y axis.
+    /// </summary>
+    public UIOverflow OverflowY
+    {
+        readonly get { return _overflowY; }
+        set
+        {
+            if (_overflowY == value) return;
+            _overflowY = value;
+            InvalidateLayout();
+        }
+    }
+
+    private UIOverflow _overflowY = UIOverflow.Visible;
+
     public UIWindowLayoutConfig()
     {
     }
@@ -252,5 +284,10 @@ public struct UIWindowLayoutConfig
     public readonly UISizing GetSizingInDirection(int axis)
     {
         return axis == 0 ? _sizingX : _sizingY;
+    }
+
+    public bool NonVisibleOverflow()
+    {
+        return OverflowX != UIOverflow.Visible || OverflowY != UIOverflow.Visible;
     }
 }

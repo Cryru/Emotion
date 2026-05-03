@@ -48,7 +48,7 @@ public class EditorDropDown : UIDropDown
             },
         };
 
-        var scrollArea = new EditorScrollArea()
+        var scrollArea = new EditorPanel()
         {
             Visuals =
             {
@@ -60,7 +60,6 @@ public class EditorDropDown : UIDropDown
                 MaxSizeY = 500,
             },
 
-            AutoHideScrollY = true,
         };
         dropDown.AddChild(scrollArea);
 

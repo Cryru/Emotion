@@ -11,15 +11,12 @@ public partial class UIBaseWindow
             return 0;
         }
 
-        public override int GetChildrenSize(UIBaseWindow self, int axis)
+        public override int GetChildrenSize(UIBaseWindow self, List<UIBaseWindow> children, int axis)
         {
             int childrenSize = 0;
 
-            foreach (UIBaseWindow child in self.Children)
+            foreach (UIBaseWindow child in children)
             {
-                if (SkipWindowLayout(child)) continue;
-                if (!child.CalculatedMetrics.InsideParent) continue;
-
                 int childSize = child.CalculatedMetrics.Size[axis] + child.CalculatedMetrics.MarginTotalSize[axis];
                 childrenSize = Math.Max(childrenSize, childSize);
             }
@@ -27,14 +24,12 @@ public partial class UIBaseWindow
             return childrenSize;
         }
 
-        public override void GrowShrinkAxis(UIBaseWindow self, int axis)
+        public override void GrowShrinkAxis(UIBaseWindow self, List<UIBaseWindow> children, int axis)
         {
-            IntVector2 myMeasuredSize = self.CalculatedMetrics.GetContentSize();
+            IntVector2 myMeasuredSize = GetLayoutRect(self).Size;
             int availableSize = myMeasuredSize[axis];
-            foreach (UIBaseWindow child in self.Children)
+            foreach (UIBaseWindow child in children)
             {
-                if (SkipWindowLayout(child)) continue;
-
                 int childSize = child.CalculatedMetrics.Size[axis];
                 int sizeInto = availableSize - child.CalculatedMetrics.MarginTotalSize[axis];
 
@@ -46,37 +41,20 @@ public partial class UIBaseWindow
             }
         }
 
-        public override void PositionChildren(UIBaseWindow self)
+        public override void PositionChildren(UIBaseWindow self, List<UIBaseWindow> children)
         {
-            IntRectangle contentRect = self.CalculatedMetrics.GetContentRect();
+            IntRectangle contentRect = GetLayoutRect(self);
             IntRectangle boundsRect = self.CalculatedMetrics.Bounds;
 
-            foreach (UIBaseWindow child in self.Children)
+            foreach (UIBaseWindow child in children)
             {
-                if (SkipWindowLayout(child)) continue;
-                FreeLayoutPosition(child, contentRect, boundsRect);
+                SetAnchorPosition(child, contentRect, boundsRect);
             }
         }
 
-        public static void FreeLayoutPosition(UIBaseWindow child, in IntRectangle contentRect, in IntRectangle boundsRect)
+        protected virtual IntRectangle GetLayoutRect(UIBaseWindow self)
         {
-            // Shortcut for most common
-            if (child.Layout.Anchor == UIAnchor.TopLeft && child.Layout.ParentAnchor == UIAnchor.TopLeft)
-            {
-                child.Layout_Position(contentRect.Position + child.CalculatedMetrics.MarginLeftTop + child.CalculatedMetrics.Offsets);
-                return;
-            }
-
-            // This will prevent left margins affecting us when the anchor is right
-            IntRectangle contentRectForThisChild = child.CalculatedMetrics.InsideParent ? contentRect : boundsRect;
-            contentRectForThisChild.Position += child.CalculatedMetrics.MarginLeftTop;
-            contentRectForThisChild.Size -= child.CalculatedMetrics.MarginTotalSize;
-
-            IntVector2 anchorPos = GetAnchorPosition(
-                child.Layout.ParentAnchor, contentRectForThisChild,
-                child.Layout.Anchor, child.CalculatedMetrics.Size
-            );
-            child.Layout_Position(anchorPos + child.CalculatedMetrics.Offsets);
+            return self.CalculatedMetrics.GetViewportRect();
         }
     }
 }

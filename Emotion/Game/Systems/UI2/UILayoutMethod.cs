@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Game.Systems.UI.Layouts;
 using static Emotion.Game.Systems.UI.UIBaseWindow;
 
 namespace Emotion.Game.Systems.UI2;
@@ -11,9 +12,10 @@ public record struct UILayoutMethod
     static UILayoutMethod()
     {
         // todo
+        LayoutClasses.Add(UIMethodName.System_OutsideParentLayout, new OutsideParentLayout());
         LayoutClasses.Add(UIMethodName.Free, new FreeLayout());
-        LayoutClasses.Add(UIMethodName.HorizontalList, new ListLayout());
-        LayoutClasses.Add(UIMethodName.VerticalList, new ListLayout());
+        //LayoutClasses.Add(UIMethodName.HorizontalList, new ListLayout());
+        //LayoutClasses.Add(UIMethodName.VerticalList, new ListLayout());
         LayoutClasses.Add(UIMethodName.Grid, new GridLayout());
     }
 
@@ -25,6 +27,7 @@ public record struct UILayoutMethod
 
     public enum UIMethodName
     {
+        System_OutsideParentLayout,
         Free,
         HorizontalList,
         VerticalList,

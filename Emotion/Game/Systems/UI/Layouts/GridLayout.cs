@@ -9,18 +9,12 @@ public partial class UIBaseWindow
 {
     public class GridLayout : LayoutMethodCodeClass
     {
-        public override void PreLayout(UIBaseWindow self)
+        public override void PreLayout(UIBaseWindow self, List<UIBaseWindow> children)
         {
             ref UIWindowCalculatedMetrics calc = ref self.CalculatedMetrics;
             UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
 
-            int childrenToLayout = 0;
-            foreach (UIBaseWindow child in self.Children)
-            {
-                if (SkipWindowLayout(child)) continue;
-                childrenToLayout++;
-            }
-
+            int childrenToLayout = children.Count;
             bool fixedColumns = HasFixedColumns(layoutMethod);
             bool fixedRows = HasFixedRows(layoutMethod);
             int columnCount = layoutMethod.GridProperties.ColumnCount;
@@ -60,7 +54,7 @@ public partial class UIBaseWindow
             return fixedColumns ? 1 : 0;
         }
 
-        public override int GetChildrenSize(UIBaseWindow self, int axis)
+        public override int GetChildrenSize(UIBaseWindow self, List<UIBaseWindow> children, int axis)
         {
             UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
             ref UIWindowCalculatedMetrics calc = ref self.CalculatedMetrics;
@@ -72,10 +66,8 @@ public partial class UIBaseWindow
             int columnCount = calc.GridColumnCount;
 
             int childrenToLayout = 0;
-            foreach (UIBaseWindow child in self.Children)
+            foreach (UIBaseWindow child in children)
             {
-                if (SkipWindowLayout(child)) continue;
-
                 GridHelpers.GetCoordinate2DFrom1D(childrenToLayout, columnCount, out int col, out int row);
                 int idxForAxis = axis == 0 ? col : row;
 
@@ -95,13 +87,13 @@ public partial class UIBaseWindow
                 listForAxis.SetAll(max);
             }
 
-            int spacingAxis = ListLayout.GetListSpacing(self, axis);
+            int spacingAxis = GetListSpacing(self, axis);
             int total = listForAxis.GetSum();
             total += spacingAxis * (listForAxis.Count - 1);
             return total;
         }
 
-        public override void GrowShrinkAxis(UIBaseWindow self, int axis)
+        public override void GrowShrinkAxis(UIBaseWindow self, List<UIBaseWindow> children, int axis)
         {
             UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
             ref UIWindowCalculatedMetrics calc = ref self.CalculatedMetrics;
@@ -112,10 +104,10 @@ public partial class UIBaseWindow
 
             int columnCount = calc.GridColumnCount;
 
-            IntVector2 myMeasuredSize = self.CalculatedMetrics.GetContentSize();
+            IntVector2 myMeasuredSize = self.CalculatedMetrics.GetViewportSize();
             int availableSize = myMeasuredSize[axis];
 
-            int spacingAxis = ListLayout.GetListSpacing(self, axis);
+            int spacingAxis = GetListSpacing(self, axis);
             int sizeTaken = listForAxis.GetSum();
             sizeTaken += spacingAxis * (listForAxis.Count - 1);
 
@@ -130,10 +122,8 @@ public partial class UIBaseWindow
                 Array.Clear(shrinkingAxis, 0, listForAxis.Count);
 
                 int childrenToLayout = 0;
-                foreach (UIBaseWindow child in self.Children)
+                foreach (UIBaseWindow child in children)
                 {
-                    if (SkipWindowLayout(child)) continue;
-
                     GridHelpers.GetCoordinate2DFrom1D(childrenToLayout, columnCount, out int col, out int row);
                     int idxForAxis = axis == 0 ? col : row;
 
@@ -162,12 +152,9 @@ public partial class UIBaseWindow
 
             // Apply the growth to the children
             int childIdx = 0;
-            foreach (UIBaseWindow child in self.Children)
+            foreach (UIBaseWindow child in children)
             {
-                if (SkipWindowLayout(child)) continue;
-
                 UISizing sizing = GetSizingInDirection(child, axis);
-
                 if (sizing.CanGrow() || sizing.CanShrink())
                 {
                     GridHelpers.GetCoordinate2DFrom1D(childIdx, columnCount, out int col, out int row);
@@ -179,16 +166,16 @@ public partial class UIBaseWindow
             }
         }
 
-        public override void PositionChildren(UIBaseWindow self)
+        public override void PositionChildren(UIBaseWindow self, List<UIBaseWindow> children)
         {
             ref UIWindowCalculatedMetrics calc = ref self.CalculatedMetrics;
             UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
 
-            IntRectangle contentRect = calc.GetContentRect();
+            IntRectangle contentRect = calc.GetViewportRect();
             IntRectangle boundsRect = calc.Bounds;
 
-            int spacingX = ListLayout.GetListSpacing(self, 0);
-            int spacingY = ListLayout.GetListSpacing(self, 1);
+            int spacingX = GetListSpacing(self, 0);
+            int spacingY = GetListSpacing(self, 1);
 
             List<int>? columnWidths = calc.GridColumnWidths;
             List<int>? rowHeights = calc.GridRowHeights;
@@ -201,16 +188,8 @@ public partial class UIBaseWindow
             int childrenToLayout = 0;
             int currentRow = 0;
             int penY = contentRect.Position.Y;
-            foreach (UIBaseWindow child in self.Children)
+            foreach (UIBaseWindow child in children)
             {
-                if (SkipWindowLayout(child)) continue;
-                if (!child.CalculatedMetrics.InsideParent)
-                {
-                    // Parents outisde the parent list are free layout
-                    FreeLayout.FreeLayoutPosition(child, contentRect, boundsRect);
-                    continue;
-                }
-
                 GridHelpers.GetCoordinate2DFrom1D(childrenToLayout, columnCount, out int col, out int row);
 
                 // Check if pen going on a new row
@@ -225,10 +204,9 @@ public partial class UIBaseWindow
                 penX += spacingX * col;
                 penX += columnWidths.GetSum(col);
 
-                // Free layout within the cell
                 IntVector2 cellPosition = new IntVector2(penX, penY);
                 IntRectangle cellRect = new IntRectangle(cellPosition, new IntVector2(columnWidths[col], rowHeights[row]));
-                FreeLayout.FreeLayoutPosition(child, cellRect, cellRect);
+                SetAnchorPosition(child, cellRect, cellRect);
                 childrenToLayout++;
             }
         }

@@ -42,7 +42,7 @@ public class ListEditor<TItem> : ListEditor
         AssertNotNull(_addButton);
         AssertNotNull(_deleteButton);
 
-        var scrollArea = new EditorScrollArea();
+        var scrollArea = new EditorPanel();
         AddChild(scrollArea);
 
         _itemList = new UIOverlayWindowParent()

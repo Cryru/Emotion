@@ -24,7 +24,7 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
     protected Dictionary<string, TypeEditor> _memberToEditor = new();
     protected List<(ComplexTypeHandlerMemberBase, TypeEditor)> _editors = new();
 
-    private EditorScrollArea _scroll;
+    private EditorPanel _scroll;
     public UIBaseWindow EditorList;
 
     // Communication with the object property editor
@@ -32,10 +32,9 @@ public class ComplexObjectEditor<T> : ComplexObjectEditor
 
     public ComplexObjectEditor()
     {
-        _scroll = new EditorScrollArea()
+        _scroll = new EditorPanel()
         {
             Name = "EditorScrollArea",
-            AutoHideScrollY = true,
         };
         AddChild(_scroll);
 

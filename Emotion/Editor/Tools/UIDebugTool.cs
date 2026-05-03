@@ -12,7 +12,7 @@ public class UIWindowDebugInfo
     public string Path;
     public string Id;
     public string WindowType;
-    public LayoutMode LayoutMode;
+    public UILayoutMethod LayoutMode;
     public Rectangle Bounds;
     public Rectangle ScaledPadding;
 }

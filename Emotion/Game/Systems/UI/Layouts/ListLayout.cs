@@ -151,9 +151,9 @@ public partial class UIBaseWindow
             ArrayPool<bool>.Shared.Return(frozen);
         }
 
-        public override void PositionChildren(UIBaseWindow self)
+        public override void PositionChildren(UIBaseWindow self, List<UIBaseWindow> children)
         {
-            IntRectangle contentRect = self.CalculatedMetrics.GetContentRect();
+            IntRectangle contentRect = self.CalculatedMetrics.GetViewportRect();
             IntRectangle boundsRect = self.CalculatedMetrics.Bounds;
 
             UILayoutMethod layoutMethod = self.Layout.LayoutMethod;
@@ -168,7 +168,7 @@ public partial class UIBaseWindow
                 if (!child.CalculatedMetrics.InsideParent)
                 {
                     // Parents outisde the parent list are free layout
-                    FreeLayout.FreeLayoutPosition(child, contentRect, boundsRect);
+                    LayoutMethodCodeClass.SetAnchorPosition(child, contentRect, boundsRect);
                     continue;
                 }
 
@@ -194,16 +194,6 @@ public partial class UIBaseWindow
             }
         }
 
-        public static int GetListSpacing(UIBaseWindow self, int listMask)
-        {
-            return (int)Maths.RoundAwayFromZero(self.Layout.LayoutMethod.ListSpacing[listMask] * self.CalculatedMetrics.Scale[listMask]);
-        }
-
-        public static int GetListMask(in UILayoutMethod layout)
-        {
-            return layout.Mode == UIMethodName.HorizontalList ? 0 : 1;
-        }
-
         public static int GetListInverseMask(in UILayoutMethod layout)
         {
             int mask = GetListMask(layout);
@@ -215,12 +205,12 @@ public partial class UIBaseWindow
             throw new NotImplementedException();
         }
 
-        public override int GetChildrenSize(UIBaseWindow self, int axis)
+        public override int GetChildrenSize(UIBaseWindow self, List<UIBaseWindow> children, int axis)
         {
             throw new NotImplementedException();
         }
 
-        public override void GrowShrinkAxis(UIBaseWindow self, int axis)
+        public override void GrowShrinkAxis(UIBaseWindow self, List<UIBaseWindow> children, int axis)
         {
             throw new NotImplementedException();
         }

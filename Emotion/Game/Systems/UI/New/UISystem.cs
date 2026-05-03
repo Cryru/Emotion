@@ -2,6 +2,25 @@
 
 namespace Emotion.Game.Systems.UI.New;
 
+public struct MouseFocusPair
+{
+    public static MouseFocusPair None = new MouseFocusPair();
+
+    public Vector2 Offset;
+    public UIBaseWindow? Window;
+
+    public MouseFocusPair(Vector2 offset, UIBaseWindow window)
+    {
+        Offset = offset;
+        Window = window;
+    }
+
+    public bool IsNone()
+    {
+        return Window == null;
+    }
+}
+
 // todo: scenes - make current scene current even while loading, add loaded bool
 // todo: make scene wait for UI loading - they will usually just queue assets so maybe one update is all thats needed.
 //      (which will also perform layout in the loading screen)
@@ -110,7 +129,8 @@ public class UISystem : UIBaseWindow
     /// <summary>
     /// The window that will receive mouse events.
     /// </summary>
-    public UIBaseWindow? MouseFocus { get; protected set; }
+    public UIBaseWindow? MouseFocus { get => _mouseFocus.Window; }
+    private MouseFocusPair _mouseFocus = MouseFocusPair.None;
 
     private Func<Key, KeyState, bool> _mouseFocusOnKeyDelegateCache = null!;
     private Func<Key, KeyState, bool> _keyboardFocusOnKeyDelegateCache = null!;
@@ -149,36 +169,39 @@ public class UISystem : UIBaseWindow
     {
         if (Engine.Host.HostPaused)
         {
-            SetMouseFocus(null);
+            SetMouseFocus(MouseFocusPair.None);
             return;
         }
 
-        UIBaseWindow? hasPriority = HasButtonHeldMouseFocus();
-        if (hasPriority != null)
+        MouseFocusPair hasPriority = HasButtonHeldMouseFocus();
+        if (!hasPriority.IsNone())
         {
             SetMouseFocus(hasPriority);
             return;
         }
 
-        UIBaseWindow? focus = FindWindowUnderMouse(mousePos);
+        MouseFocusPair focus = FindWindowUnderMouse(mousePos);
         SetMouseFocus(focus);
     }
 
-    private void SetMouseFocus(UIBaseWindow? window)
+    private void SetMouseFocus(MouseFocusPair newFocus)
     {
+        UIBaseWindow? newWindow = newFocus.Window;
+        UIBaseWindow? currentWindow = _mouseFocus.Window;
+
         Vector2 mousePos = Engine.Input.MousePosition;
-        if (MouseFocus != window)
+        if (currentWindow != newWindow)
         {
-            if (MouseFocus != null)
+            if (currentWindow != null)
             {
-                MouseFocus.OnMouseLeft(mousePos);
+                currentWindow.OnMouseLeft(mousePos + _mouseFocus.Offset);
                 Engine.Input.OnKey.RemoveListener(_mouseFocusOnKeyDelegateCache); // This will handle "down" keys receiving "ups"
             }
-            MouseFocus = window;
-            if (MouseFocus != null)
+            _mouseFocus = newFocus;
+            if (newWindow != null)
             {
                 Engine.Input.OnKey.AddListener(_mouseFocusOnKeyDelegateCache, KeyListenerType.UI);
-                MouseFocus.OnMouseEnter(mousePos);
+                newWindow.OnMouseEnter(mousePos + _mouseFocus.Offset);
             }
 
             //RemoveCurrentRollover();
@@ -192,7 +215,7 @@ public class UISystem : UIBaseWindow
         }
         else
         {
-            MouseFocus?.OnMouseMove(mousePos);
+            MouseFocus?.OnMouseMove(mousePos + _mouseFocus.Offset);
         }
     }
 
@@ -254,6 +277,25 @@ public class UISystem : UIBaseWindow
         if (!isMouse) return true;
 
         if (MouseFocus == null) return true;
+
+        if (key == Key.MouseWheel)
+        {
+            UIBaseWindow scrollable = MouseFocus;
+            while (scrollable != null)
+            {
+                if (scrollable.Layout.OverflowY == UIOverflow.Scroll)
+                    break;
+
+                scrollable = scrollable.Parent;
+            }
+            if (scrollable != null)
+            {
+                bool up = status == KeyState.Up;
+                Vector2 delta = up ? new Vector2(0, -1) : new Vector2(0, 1);
+                bool scrolled = scrollable.ScrollTo(scrollable.ScrollOffset + delta * Engine.DeltaTime);
+                return !scrolled;
+            }
+        }
 
         // It is possible to receive input with dirty focus.
         if (status == KeyState.Down)
@@ -337,17 +379,18 @@ public class UISystem : UIBaseWindow
     // Helpers
     // ----
 
-    private UIBaseWindow? HasButtonHeldMouseFocus()
+    private MouseFocusPair HasButtonHeldMouseFocus()
     {
-        if (MouseFocus == null || !SupportsInputAlongTree(MouseFocus)) return null;
+        if (MouseFocus == null || !SupportsInputAlongTree(MouseFocus))
+            return MouseFocusPair.None;
 
         for (var i = 0; i < _mouseFocusKeysHeld.Length; i++)
         {
             if (_mouseFocusKeysHeld[i])
-                return MouseFocus;
+                return _mouseFocus;
         }
 
-        return null;
+        return MouseFocusPair.None;
     }
 
     private static bool SupportsInputAlongTree(UIBaseWindow window)

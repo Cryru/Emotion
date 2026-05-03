@@ -550,12 +550,12 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
         //lock (this)
         //{
-            for (int i = 0; i < Children.Count; i++)
-            {
-                UIBaseWindow child = Children[i];
-                Coroutine? childLoadRoutine = child.UpdateLoading();
-                firstLoading ??= childLoadRoutine;
-            }
+        for (int i = 0; i < Children.Count; i++)
+        {
+            UIBaseWindow child = Children[i];
+            Coroutine? childLoadRoutine = child.UpdateLoading();
+            firstLoading ??= childLoadRoutine;
+        }
         //}
 
         return firstLoading;
@@ -661,12 +661,44 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     protected virtual void RenderChildren(Renderer r)
     {
-        for (int i = 0; i < Children.Count; i++)
+        bool clipOverflow = Layout.NonVisibleOverflow();
+        bool hasOffset = false;
+        Rectangle? prevClip = null;
+        if (clipOverflow)
         {
-            UIBaseWindow child = Children[i];
-            if (!child.Visuals.Visible) continue;
-            if (child.IsLoading()) continue;
-            child.Render(r);
+            Rectangle clipRect = CalculatedMetrics.Bounds.ToRect().Offset(r.ModelMatrix.Translation.ToVec2()); // Scroll in scroll handling
+            prevClip = r.CurrentState.ClipRect;
+            if (prevClip != null)
+                clipRect = Rectangle.Clip(prevClip.Value, clipRect);
+            r.SetClipRect(clipRect);
+
+            hasOffset = ScrollOffset.X != 0 || ScrollOffset.Y != 0;
+            if (hasOffset)
+                r.PushModelMatrix(_scrollMatrix);
+        }
+
+        {
+            List<UIBaseWindow> children = GetChildrenListForPass(0);
+            foreach (UIBaseWindow child in children)
+            {
+                child.Render(r);
+            }
+        }
+
+        if (clipOverflow)
+        {
+            if (hasOffset)
+                r.PopModelMatrix();
+
+            r.SetClipRect(prevClip);
+        }
+
+        {
+            List<UIBaseWindow> children = GetChildrenListForPass(1);
+            foreach (UIBaseWindow child in children)
+            {
+                child.Render(r);
+            }
         }
     }
 
@@ -735,28 +767,44 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     /// Find the window under the mouse cursor in this parent.
     /// This could be either a child window or the parent itself.
     /// </summary>
-    public virtual UIBaseWindow? FindWindowUnderMouse(Vector2 pos, bool respectInputHandling = true)
+    public virtual MouseFocusPair FindWindowUnderMouse(Vector2 pos, bool respectInputHandling = true)
     {
-        if (!Visible) return null;
+        if (!Visible) return MouseFocusPair.None;
 
         if (ChildrenHandleInput || !respectInputHandling)
         {
+            Vector2 scrollOffset = ScrollOffset;
+            Vector2 posOffset = pos + ScrollOffset;
+
             for (int i = Children.Count - 1; i >= 0; i--) // Top to bottom
             {
-                UIBaseWindow win = Children[i];
-                if (win.Visible && win.CalculatedMetrics.Bounds.Contains(pos))
-                {
-                    UIBaseWindow? inChild = win.FindWindowUnderMouse(pos, respectInputHandling);
-                    if (inChild != null)
-                        return inChild;
-                }
+                UIBaseWindow child = Children[i];
+                if (!child.Visible) continue;
+
+                bool childAffectedByScroll = !LayoutMethodCodeClass.IsNotAffectedByScroll(child);
+
+                Vector2 posToCheck = posOffset;
+                if (!childAffectedByScroll)
+                    posToCheck = pos;
+
+                if (!child.CalculatedMetrics.Bounds.Contains(posToCheck))
+                    continue;
+
+                MouseFocusPair childMouse = child.FindWindowUnderMouse(posToCheck, respectInputHandling);
+                if (childMouse.IsNone()) continue;
+
+                if (childAffectedByScroll)
+                    return new MouseFocusPair(childMouse.Offset + scrollOffset, childMouse.Window!);
+                else
+                    return new MouseFocusPair(childMouse.Offset, childMouse.Window!);
             }
         }
 
-        if ((!respectInputHandling || HandleInput) && CalculatedMetrics.Bounds.Contains(pos))
-            return this;
+        bool handleInput = HandleInput || Layout.OverflowY == UIOverflow.Scroll;
+        if ((!respectInputHandling || handleInput) && CalculatedMetrics.Bounds.Contains(pos))
+            return new MouseFocusPair(Vector2.Zero, this);
 
-        return null;
+        return MouseFocusPair.None;
     }
 
     public virtual void OnMouseEnter(Vector2 mousePos)
@@ -886,13 +934,31 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     protected virtual void InternalOnLayoutComplete()
     {
+        if (Layout.NonVisibleOverflow())
+            ProcessOverflowLayout();
+    }
 
+    private List<UIBaseWindow> _cacheChildrenLayoutMain = new();
+    private List<UIBaseWindow> _cacheChildrenLayoutOutside = new();
+
+    private int GetLayoutPassCount()
+    {
+        return 2;
+    }
+
+    private List<UIBaseWindow> GetChildrenListForPass(int pass)
+    {
+        return pass == 0 ? _cacheChildrenLayoutMain : _cacheChildrenLayoutOutside;
+    }
+
+    private LayoutMethodCodeClass GetLayoutClassForPass(int pass)
+    {
+        return pass == 0 ? GetLayoutCode(Layout.LayoutMethod) : LayoutClasses[UIMethodName.System_OutsideParentLayout];
     }
 
     protected void DefaultLayout()
     {
         PreLayout_CalculateMetrics();
-
         Layout_FitAxis(CalculatedMetrics.MainAxis);
         Layout_GrowShrinkAxis(CalculatedMetrics.MainAxis);
         LayoutStepWrap();
@@ -935,31 +1001,49 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         CalculatedMetrics.MaxSize = Layout.MaxSize.CeilMultiply(CalculatedMetrics.Scale);
         CalculatedMetrics.MaxSize = IntVector2.Min(CalculatedMetrics.MaxSize, maxSize);
 
-        layoutCode.PreLayout(this);
-
         foreach (UIBaseWindow child in Children)
         {
             child.PreLayout_CalculateMetrics();
         }
-    }
 
-    private void Layout_FitAxis(int axis)
-    {
+        _cacheChildrenLayoutMain.Clear();
+        _cacheChildrenLayoutOutside.Clear();
         for (int i = 0; i < Children.Count; i++)
         {
             UIBaseWindow child = Children[i];
             if (LayoutMethodCodeClass.SkipWindowLayout(child)) continue;
 
-            child.Layout_FitAxis(axis);
+            if (LayoutMethodCodeClass.IsNotAffectedByScroll(child))
+                _cacheChildrenLayoutOutside.Add(child);
+            else
+                _cacheChildrenLayoutMain.Add(child);
         }
 
+        List<UIBaseWindow> children = GetChildrenListForPass(0);
+        layoutCode.PreLayout(this, children);
+    }
+
+    private void Layout_FitAxis(int axis)
+    {
         ref UIWindowLayoutConfig layout = ref Layout;
+
+        int passCount = GetLayoutPassCount();
+        for (int p = 0; p < passCount; p++)
+        {
+            List<UIBaseWindow> children = GetChildrenListForPass(p);
+            foreach (UIBaseWindow child in children)
+            {
+                child.Layout_FitAxis(axis);
+            }
+        }
+
+        List<UIBaseWindow> primaryPassChildren = GetChildrenListForPass(0);
 
         // We calculate children size even in fixed directions since
         // some layouts have extra logic in there.
         // todo?
-        LayoutMethodCodeClass layoutCode = GetLayoutCode(Layout.LayoutMethod);
-        int childrenSize = layoutCode.GetChildrenSize(this, axis);
+        LayoutMethodCodeClass layoutCode = GetLayoutClassForPass(0);
+        int childrenSize = layoutCode.GetChildrenSize(this, primaryPassChildren, axis);
         childrenSize += CalculatedMetrics.PaddingTotalSize[axis];
 
         int sizeInDirection = CalculatedMetrics.PreferredSize[axis];
@@ -969,34 +1053,35 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
             bool fixedX = Layout.SizingX.Mode == UISizing.UISizingMode.Fixed;
             bool fixedY = Layout.SizingY.Mode == UISizing.UISizingMode.Fixed;
             if (fixedX && fixedY && Layout.SizingX.Size == Layout.SizingY.Size) // Special case for squares to remain square
-            {
                 sizeInDirection = (int)MathF.Ceiling(sizingInDirection.Size * CalculatedMetrics.Scale.X);
-            }
             else
-            {
                 sizeInDirection = (int)MathF.Ceiling(sizingInDirection.Size * CalculatedMetrics.Scale[axis]);
-            }
         }
-        else if (Children.Count > 0)
+        else if (primaryPassChildren.Count > 0)
         {
             sizeInDirection = Math.Max(sizeInDirection, childrenSize);
         }
 
         sizeInDirection = Math.Clamp(sizeInDirection, CalculatedMetrics.MinSize[axis], CalculatedMetrics.MaxSize[axis]);
+
         CalculatedMetrics.Size[axis] = sizeInDirection;
     }
 
     private void Layout_GrowShrinkAxis(int axis)
     {
-        if (Children.Count == 0) return;
-
-        LayoutMethodCodeClass layoutCode = GetLayoutCode(Layout.LayoutMethod);
-        layoutCode.GrowShrinkAxis(this, axis);
-
-        foreach (UIBaseWindow child in Children)
+        int passCount = GetLayoutPassCount();
+        for (int p = 0; p < passCount; p++)
         {
-            if (LayoutMethodCodeClass.SkipWindowLayout(child)) continue;
-            child.Layout_GrowShrinkAxis(axis);
+            List<UIBaseWindow> children = GetChildrenListForPass(p);
+            if (children.Count == 0) continue;
+
+            LayoutMethodCodeClass layoutCode = GetLayoutClassForPass(p);
+            layoutCode.GrowShrinkAxis(this, children, axis);
+
+            foreach (UIBaseWindow child in children)
+            {
+                child.Layout_GrowShrinkAxis(axis);
+            }
         }
     }
 
@@ -1007,12 +1092,14 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
             CalculatedMetrics.PreferredSize[CalculatedMetrics.CrossAxis] = crossAxisSize;
         }
 
-        for (int i = 0; i < Children.Count; i++)
+        int passCount = GetLayoutPassCount();
+        for (int p = 0; p < passCount; p++)
         {
-            UIBaseWindow child = Children[i];
-            if (LayoutMethodCodeClass.SkipWindowLayout(child)) continue;
-
-            child.LayoutStepWrap();
+            List<UIBaseWindow> children = GetChildrenListForPass(p);
+            foreach (UIBaseWindow child in children)
+            {
+                child.LayoutStepWrap();
+            }
         }
     }
 
@@ -1020,8 +1107,13 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     {
         CalculatedMetrics.Position = pos;
 
-        LayoutMethodCodeClass layoutCode = GetLayoutCode(Layout.LayoutMethod);
-        layoutCode.PositionChildren(this);
+        int passCount = GetLayoutPassCount();
+        for (int p = 0; p < passCount; p++)
+        {
+            List<UIBaseWindow> children = GetChildrenListForPass(p);
+            LayoutMethodCodeClass layoutCode = GetLayoutClassForPass(p);
+            layoutCode.PositionChildren(this, children);
+        }
 
         // Custom layout is last so it can react to other window's layouts (UIAttachedWindow)
         foreach (UIBaseWindow child in Children)

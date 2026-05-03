@@ -28,8 +28,10 @@ public struct UIWindowCalculatedMetrics
     public int MainAxis;
     public int CrossAxis;
 
-    public readonly IntVector2 GetContentSize() => Size - PaddingTotalSize;
-    public readonly IntRectangle GetContentRect() => new(Position + PaddingLeftTop, GetContentSize());
+    public Vector2 MaxScroll;
+
+    public readonly IntVector2 GetViewportSize() => Size - PaddingTotalSize;
+    public readonly IntRectangle GetViewportRect() => new(Position + PaddingLeftTop, GetViewportSize());
 
     public readonly IntRectangle Bounds
     {
