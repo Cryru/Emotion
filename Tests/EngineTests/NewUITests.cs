@@ -2120,166 +2120,99 @@ public class NewUITests : TestingScene
     //    VerifyScreenshot(nameof(NewUITests), nameof(OverlayWindow));
     //}
 
-    //[Test]
-    //public IEnumerator RichTextCases()
-    //{
-    //    UIRichText label = new UIRichText();
-    //    label.Text = "The quick brown fox jumped over the lazy dog.";
-    //    label.WindowColor = Color.Red;
-    //    label.FontSize = 20;
-    //    UI.AddChild(label);
+    [Test]
+    public IEnumerator RichTextCases()
+    {
+        UIText label = new UIText(SceneUI);
+        label.Text = "The quick brown fox jumped over the lazy dog.";
+        label.TextColor = Color.Red;
+        label.FontSize = 20 * 3;
 
-    //    yield return WaitUILayout();
-    //    VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
+        yield return WaitUILayout();
+        yield return WaitUILayout();
+        VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
 
-    //    // Check for tag false positives
-    //    label.Text = "<text in brackets that isnt a tag>";
+        // Check for tag false positives
+        label.Text = "<text in brackets that isnt a tag>";
 
-    //    yield return WaitUILayout();
-    //    VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
+        yield return WaitUILayout();
+        VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
 
-    //    label.Text = "<word>";
+        label.Text = "<word>";
 
-    //    yield return WaitUILayout();
-    //    VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
+        yield return WaitUILayout();
+        VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
 
-    //    // Check color tag functionality
+        // Check color tag functionality
 
-    //    label.Text = "The quick brown <color #00FF00>fox</> jumped over the lazy dog.";
+        label.Text = "The quick brown <color #00FF00>fox</> jumped over the lazy dog.";
 
-    //    yield return WaitUILayout();
-    //    VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
+        yield return WaitUILayout();
+        VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
 
-    //    // Check outline tag functionality
-    //    // (Currently text outline functionality doesn't work)
+        // Check outline tag functionality
+        // (Currently text outline functionality doesn't work)
 
-    //    label.Text = "The quick brown <outline #00FF00 size=5>fox</> jumped over the lazy dog.";
+        label.Text = "The quick brown <outline #00FF00 size=5>fox</> jumped over the lazy dog.";
 
-    //    yield return WaitUILayout();
-    //    VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
+        yield return WaitUILayout();
+        VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
 
-    //    // Check center tag functionality
+        // Check center tag functionality
 
-    //    label.Text = "<center>The quick brown fox,</>\n<center> jumped over the lazy dog.</>";
+        label.Text = "<center>The quick brown fox,</>\n<center> jumped over the lazy dog.</>";
 
-    //    yield return WaitUILayout();
-    //    VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
+        yield return WaitUILayout();
+        //VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
 
-    //    label.Text = "<center>The quick brown fox,\n jumped over the lazy dog.</>";
+        label.Text = "<center>The quick brown fox,\n jumped over the lazy dog.</>";
 
-    //    yield return WaitUILayout();
-    //    VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
+        yield return WaitUILayout();
+        //VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
 
-    //    // Check right tag functionality
+        // Check right tag functionality
 
-    //    label.Text = "<right>The quick brown fox,</>\n<right> jumped over the lazy dog.</>";
+        label.Text = "<right>The quick brown fox,</>\n<right> jumped over the lazy dog.</>";
 
-    //    yield return WaitUILayout();
-    //    VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
+        yield return WaitUILayout();
+        //VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
 
-    //    label.Text = "<right>The quick brown fox,\n jumped over the lazy dog.</>";
+        label.Text = "<right>The quick brown fox,\n jumped over the lazy dog.</>";
 
-    //    yield return WaitUILayout();
-    //    VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
+        yield return WaitUILayout();
+        //VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
 
-    //    // Check some edge cases
+        // Check some edge cases
 
-    //    label.Text = "<unclosed The quick brown fox, jumped over the lazy dog.";
+        label.Text = "<unclosed The quick brown fox, jumped over the lazy dog.";
 
-    //    yield return WaitUILayout();
-    //    VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
+        yield return WaitUILayout();
+        //VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
 
-    //    label.Text = "</>The quick brown fox, jumped over the lazy dog.";
+        label.Text = "</>The quick brown fox, jumped over the lazy dog.";
 
-    //    yield return WaitUILayout();
-    //    VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
-    //}
-
-    //[Test]
-    //public IEnumerator CenterAndFillWarningCheck()
-    //{
-    //    var parent = new UISolidColor()
-    //    {
-    //        WindowColor = Color.CornflowerBlue,
-
-    //        MinSizeY = 10,
-    //        GrowY = false,
-    //    };
-    //    UI.AddChild(parent);
-
-    //    var windowOne = new UISolidColor()
-    //    {
-    //        LayoutMode = LayoutMode.HorizontalList,
-    //        AnchorAndParentAnchor = UIAnchor.CenterLeft,
-    //        ListSpacing = new Vector2(5, 0),
-    //        WindowColor = Color.PrettyOrange
-    //    };
-    //    parent.AddChild(windowOne);
-
-    //    var windowOneChild = new UISolidColor()
-    //    {
-    //        WindowColor = Color.Red,
-
-    //        MinSizeX = 10,
-    //        MinSizeY = 10,
-
-    //        GrowX = false,
-    //        GrowY = false,
-    //    };
-    //    windowOne.AddChild(windowOneChild);
-
-    //    var windowTwo = new UIBaseWindow()
-    //    {
-    //        LayoutMode = LayoutMode.HorizontalList,
-    //        AnchorAndParentAnchor = UIAnchor.CenterRight,
-    //        ListSpacing = new Vector2(5, 0),
-    //        Margins = new Rectangle(0, 10, 0, 0),
-
-    //        GrowX = false
-    //    };
-    //    parent.AddChild(windowTwo);
-
-    //    var windowTwoChild = new UISolidColor()
-    //    {
-    //        WindowColor = Color.Red,
-
-    //        MinSizeX = 200,
-    //        MinSizeY = 200,
-
-    //        GrowX = false,
-    //        GrowY = false,
-    //    };
-    //    windowTwo.AddChild(windowTwoChild);
-
-    //    List<UIBaseWindow.UIWarning> warnings = windowOne.GetWarnings();
-    //    bool found = false;
-    //    foreach (var warning in warnings)
-    //    {
-    //        if (warning.Warning == UIBaseWindow.WARN_CENTER_FILL)
-    //            found = true;
-    //    }
-
-    //    yield return WaitUILayout();
-    //    VerifyScreenshot(nameof(NewUITests), nameof(CenterAndFillWarningCheck));
-
-    //    Assert.True(found);
-    //}
+        yield return WaitUILayout();
+        //VerifyScreenshot(nameof(NewUITests), nameof(RichTextCases));
+    }
 
     //[Test]
     //public IEnumerator ScrollAreaTests()
     //{
-    //    var parent = new UISolidColor()
+    //    var parent = new UIBaseWindow(SceneUI)
     //    {
-    //        WindowColor = Color.CornflowerBlue,
-    //        AnchorAndParentAnchor = UIAnchor.CenterCenter,
-    //        MinSize = new Vector2(200, 200),
-    //        MaxSize = new Vector2(200, 200)
+    //        Layout =
+    //        {
+    //            AnchorAndParentAnchor = UIAnchor.CenterCenter,
+    //            SizingX = UISizing.Fixed(200),
+    //            SizingY = UISizing.Fixed(200)
+    //        },
+    //        Visuals =
+    //        {
+    //            BackgroundColor = Color.CornflowerBlue,
+    //        }
     //    };
-    //    UI.AddChild(parent);
 
-    //    var scrollArea = new UIScrollArea()
-    //    {
-    //    };
+    //    var scrollArea = new UIScrollArea();
     //    parent.AddChild(scrollArea);
 
     //    yield return WaitUILayout();
@@ -2287,17 +2220,20 @@ public class NewUITests : TestingScene
 
     //    var list = new UIBaseWindow()
     //    {
-    //        LayoutMode = LayoutMode.VerticalList,
-    //        ListSpacing = new Vector2(0, 5),
+    //        Layout =
+    //        {
+    //            LayoutMethod = UILayoutMethod.VerticalList(5)
+    //        },
     //        ChildrenHandleInput = false
     //    };
     //    scrollArea.AddChildInside(list);
 
     //    for (int i = 0; i < 10; i++)
     //    {
-    //        var editorButton = new EditorButton();
-    //        editorButton.GrowX = true;
-    //        editorButton.Text = $"Button {i}";
+    //        var editorButton = new EditorButton()
+    //        {
+    //            Text = $"Button {i}"
+    //        };
     //        list.AddChild(editorButton);
     //    }
 
@@ -2309,21 +2245,23 @@ public class NewUITests : TestingScene
     //    yield return WaitUILayout();
     //    VerifyScreenshot(nameof(NewUITests), nameof(ScrollAreaTests));
 
-    //    scrollArea.AutoHideScrollX = false;
-    //    scrollArea.InvalidateLayout();
+    //    //scrollArea.AutoHideScrollX = false;
+    //    //scrollArea.InvalidateLayout();
 
-    //    yield return WaitUILayout();
-    //    VerifyScreenshot(nameof(NewUITests), nameof(ScrollAreaTests));
+    //    //yield return WaitUILayout();
+    //    //VerifyScreenshot(nameof(NewUITests), nameof(ScrollAreaTests));
 
-    //    scrollArea.AutoHideScrollX = true;
-    //    scrollArea.AutoHideScrollY = true;
+    //    //scrollArea.AutoHideScrollX = true;
+    //    //scrollArea.AutoHideScrollY = true;
 
     //    list.ClearChildren();
     //    for (int i = 0; i < 3; i++)
     //    {
-    //        var editorButton = new EditorButton();
-    //        editorButton.GrowX = true;
-    //        editorButton.Text = $"Button {i} ----------";
+    //        var editorButton = new EditorButton()
+    //        {
+    //            Text = $"Button {i} ----------"
+    //        };
+    //        //editorButton.GrowX = true;
     //        list.AddChild(editorButton);
     //    }
 
@@ -2337,9 +2275,9 @@ public class NewUITests : TestingScene
 
     //    list.Close();
     //    scrollArea.ScrollTo(new Vector2(0, 0));
-    //    UITexture texture = new UITexture()
+    //    var texture = new UIPicture()
     //    {
-    //        TextureFile = "Images/logoAlpha.png",
+    //        Texture = "Images/logoAlpha.png",
     //        ImageScale = new Vector2(3f)
     //    };
     //    scrollArea.AddChildInside(texture);
