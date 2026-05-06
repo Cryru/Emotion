@@ -8,8 +8,11 @@ using Emotion.Core.Utility.Profiling;
 using Emotion.Core.Utility.Threading;
 using Emotion.Graphics.Batches;
 using Emotion.Graphics.Camera;
+using Emotion.Graphics.Data;
 using Emotion.Graphics.Memory;
+using Emotion.Graphics.Objects;
 using Emotion.Graphics.Renderer3D;
+using Emotion.Graphics.Shader;
 using Emotion.Graphics.Shading;
 using Emotion.Graphics.Text;
 using OpenGL;
@@ -143,6 +146,16 @@ public sealed partial class Renderer
     /// The model matrix stack.
     /// </summary>
     private TransformationStack _matrixStack = new TransformationStack();
+
+    /// <summary>
+    /// The UBO that holds all base shader uniforms
+    /// </summary>
+    private UniformBuffer _baseUBO = null!;
+
+    /// <summary>
+    /// The default UBO data on the CPU
+    /// </summary>
+    private BaseUniformData _baseUniformData;
 
     #endregion
 
@@ -299,14 +312,21 @@ public sealed partial class Renderer
         BlitState.AlphaBlending = false;
         BlitState.DepthTest = false;
         BlitState.ViewMatrix = false;
-        BlitState.Shader = "Shaders/Blit.xml";
+        BlitState.ShaderGroup = "Shaders/Blit.glsl";
 
         BlitStatePremult = BlitState;
-        BlitStatePremult.Shader = "Shaders/BlitPremultAlpha.xml";
+        BlitStatePremult.ShaderGroupDefinition = new Shader.ShaderGroupDefinition(
+            VertexData.Format,
+            ShaderDefine.GetMaskForDefine("PREMULT_ALPHA")
+        );
 
         // Create render objects
         RenderStream = new RenderStreamBatch(); // This is used for IM-like rendering.
         TextRenderer.Init();
+
+        // Create the default uniforms UBO - always at binding point 0 (see Common.h)
+        _baseUBO = new UniformBuffer(BaseUniformData.SIZE_IN_BYTES, BufferUsage.DynamicDraw);
+        _baseUBO.SetBindingPoint(0);
 
         // Apply display settings (this is the initial application) and attach the camera updating coroutine.
         ApplySettings();
@@ -332,7 +352,7 @@ public sealed partial class Renderer
     {
         if (msgType != DebugType.DebugTypeError) return;
 
-        var stringMessage = new string((sbyte*) message, 0, length);
+        var stringMessage = new string((sbyte*)message, 0, length);
         Engine.Log.Warning(stringMessage, $"GL_{source}", true);
     }
 
@@ -359,7 +379,7 @@ public sealed partial class Renderer
 
         Vector2 ratio = size / baseRes;
         Scale = MathF.Min(ratio.X, ratio.Y);
-        IntScale = (int) MathF.Floor(MathF.Min(size.X, size.Y) / MathF.Min(baseRes.X, baseRes.Y));
+        IntScale = (int)MathF.Floor(MathF.Min(size.X, size.Y) / MathF.Min(baseRes.X, baseRes.Y));
 
         Vector2 drawBufferSize = size;
         if (Engine.Configuration.IntScaleDrawBuffer)
@@ -387,19 +407,19 @@ public sealed partial class Renderer
         // Calculate borderbox / pillarbox.
         float targetAspectRatio = Engine.Configuration.RenderSize.X / Engine.Configuration.RenderSize.Y;
         float width = size.X;
-        float height = (int) (width / targetAspectRatio + 0.5f);
+        float height = (int)(width / targetAspectRatio + 0.5f);
 
         // If the height is bigger then the black bars will appear on the top and bottom, otherwise they will be on the left and right.
         if (height > size.Y)
         {
             height = size.Y;
-            width = (int) (height * targetAspectRatio + 0.5f);
+            width = (int)(height * targetAspectRatio + 0.5f);
         }
 
         if (Engine.Configuration.IntScaleDrawBuffer)
         {
-            var xIntScale = (float) Math.Floor(width / DrawBuffer.Size.X);
-            var yIntScale = (float) Math.Floor(height / DrawBuffer.Size.Y);
+            var xIntScale = (float)Math.Floor(width / DrawBuffer.Size.X);
+            var yIntScale = (float)Math.Floor(height / DrawBuffer.Size.Y);
             width = DrawBuffer.Size.X * xIntScale;
             height = DrawBuffer.Size.Y * yIntScale;
 
@@ -419,13 +439,13 @@ public sealed partial class Renderer
             Engine.Log.Info($"Drawbuffer size is {sizeInsideBars}", MessageSource.Renderer);
         }
 
-        var vpX = (int) (size.X / 2 - width / 2);
-        var vpY = (int) (size.Y / 2 - height / 2);
+        var vpX = (int)(size.X / 2 - width / 2);
+        var vpY = (int)(size.Y / 2 - height / 2);
 
         // Set viewport.
         ScreenBuffer.Resize(size);
         ScreenBuffer.Viewport = new Rectangle(vpX, vpY, width, height);
-       
+
         Camera?.RecreateViewMatrix();
         Camera?.RecreateProjectionMatrix();
         ApplySettings();
@@ -520,37 +540,46 @@ public sealed partial class Renderer
     #region Framebuffer, Shader, and Model Matrix Syncronization and State
 
     /// <summary>
-    /// Synchronizes uniform properties with the currently bound shader.
+    /// Synchronizes all base uniforms to the UBO.
+    /// Called on every shader switch.
     /// </summary>
-    public void SyncShader()
+    public unsafe void SyncShader()
     {
-        ShaderProgram currentShader = CurrentShader;
-        if (currentShader == null) return; // Before default shader is created
+        if (CurrentShader == null) return; // Before default shader is created
         PerfProfiler.FrameEventStart("ShaderSync");
 
-        SyncModelMatrix();
-        SyncViewMatrix();
+        SyncModelMatrix(false);
+        SyncViewMatrix(false);
 
-        currentShader.SetUniformFloat("iTime", Engine.TotalTime / 1000f);
-        currentShader.SetUniformVector3("iResolution", new Vector3(CurrentTarget.Size.X, CurrentTarget.Size.Y, 0));
+        _baseUniformData.ScreenResolution = new Vector4(CurrentTarget.Size.X, CurrentTarget.Size.Y, 0, 0);
+        _baseUniformData.Time = Engine.TotalTime / 1000f;
+
+        fixed (void* ptr = &_baseUniformData)
+            _baseUBO.Upload((IntPtr)ptr, BaseUniformData.SIZE_IN_BYTES, BufferUsage.DynamicDraw);
 
         PerfProfiler.FrameEventEnd("ShaderSync");
     }
 
     /// <summary>
-    /// Synchronizes the model matrix to the current shader.
-    /// Moved to a separate function so that it can be updated without updating all uniforms.
+    /// Synchronizes the model matrix to the UBO.
+    /// Moved to a separate function so that it can be updated without uploading all uniforms.
     /// </summary>
-    private void SyncModelMatrix()
+    private unsafe void SyncModelMatrix(bool upload = true)
     {
-        CurrentShader.SetUniformMatrix4("modelMatrix", ModelMatrix);
+        _baseUniformData.ModelMatrix = ModelMatrix;
+
+        if (upload)
+        {
+            fixed (void* ptr = &_baseUniformData.ModelMatrix)
+                _baseUBO.UploadPartial((IntPtr)ptr, (uint)sizeof(Matrix4x4), BaseUniformData.MODEL_MATRIX_OFFSET);
+        }
     }
 
     /// <summary>
-    /// Synchronizes the view matrix to the current shader.
-    /// Moved to a separate function so that it can be updated without updating all uniforms.
+    /// Synchronizes the view and projection matrices to the UBO.
+    /// Moved to a separate function so that it can be updated without uploading all uniforms.
     /// </summary>
-    private void SyncViewMatrix()
+    private unsafe void SyncViewMatrix(bool upload = true)
     {
         bool viewMatrixEnabled = Engine.Renderer.CurrentState.ViewMatrix;
 
@@ -567,7 +596,6 @@ public sealed partial class Renderer
                 projectionMatrix = CameraBase.GetDefault2DProjection();
                 break;
         }
-        CurrentShader.SetUniformMatrix4("projectionMatrix", projectionMatrix);
 
         // Check if the view matrix is off.
         Matrix4x4 viewMatrix = _camera.ViewMatrix;
@@ -580,7 +608,15 @@ public sealed partial class Renderer
                 Matrix4x4.CreateLookAtLeftHanded(Vector3.Zero, new Vector3(0, 0, -1), Up2D);
         }
 
-        CurrentShader.SetUniformMatrix4("viewMatrix", viewMatrix);
+        _baseUniformData.ProjectionMatrix = projectionMatrix;
+        _baseUniformData.ViewMatrix = viewMatrix;
+
+        if (upload)
+        {
+            // The view matrix is right after the projection matrix
+            fixed (void* ptr = &_baseUniformData.ProjectionMatrix)
+                _baseUBO.UploadPartial((IntPtr)ptr, (uint)(sizeof(Matrix4x4) + sizeof(Matrix4x4)), 0);
+        }
     }
 
     /// <summary>
@@ -638,7 +674,7 @@ public sealed partial class Renderer
 
     private static unsafe void GlDebugCallback(DebugSource source, DebugType msgType, uint id, DebugSeverity severity, int length, IntPtr message, IntPtr userParam)
     {
-        ReadOnlySpan<byte> utf8Str = new ReadOnlySpan<byte>((byte*) message, length);
+        ReadOnlySpan<byte> utf8Str = new ReadOnlySpan<byte>((byte*)message, length);
         Span<char> stringAsUtf16 = stackalloc char[length];
         Utf8.ToUtf16(utf8Str, stringAsUtf16, out int _, out int charsWritten);
         stringAsUtf16 = stringAsUtf16.Slice(0, charsWritten);

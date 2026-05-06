@@ -6,7 +6,7 @@
 
 vec4 VertexShaderMain()
 {
-    return projectionMatrix * viewMatrix * modelMatrix * vec4(V_Pos, 1.0);
+    return projectionMatrix * modelMatrix * vec4(V_Pos, 1.0);
 }
 
 #endif
@@ -17,9 +17,7 @@ uniform Texture mainTexture;
 
 vec4 FragmentShaderMain()
 {
-    vec4 color = texture(mainTexture, V_UV) * V_Color;
-    if (color.a < ALPHA_DISCARD) discard;
-    return color;
+    return texture(mainTexture, V_UV) * V_Color;
 }
 
 #endif

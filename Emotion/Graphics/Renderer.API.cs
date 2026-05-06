@@ -392,6 +392,26 @@ public sealed partial class Renderer
         CurrentState = currentState;
     }
 
+    // todo
+    public bool SetStateEx(RenderState newState, bool ensureLoaded)
+    {
+        if (!ensureLoaded)
+        {
+            AssetObjectReference<ShaderGroupAsset, ShaderGroup> shaderGroup = newState.ShaderGroup;
+            if (shaderGroup.IsValid())
+            {
+                ShaderGroupAsset? groupAsset = newState.ShaderGroup.ResolveAsset();
+                if (groupAsset != null && !groupAsset.Loaded)
+                {
+                    return false; // Waiting for pipeline to load
+                }
+            }
+        }
+
+        SetState(newState);
+        return true;
+    }
+
     /// <summary>
     /// Set a new state.
     /// </summary>

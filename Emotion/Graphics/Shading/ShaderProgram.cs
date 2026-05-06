@@ -5,6 +5,7 @@
 using System.Text;
 using Emotion.Core.Systems.Logging;
 using Emotion.Core.Utility.Threading;
+using Emotion.Graphics.Data;
 using OpenGL;
 
 #endregion
@@ -109,6 +110,11 @@ public class ShaderProgram
 
         Gl.LinkProgram(pointer);
         if (Engine.Configuration.GlDebugMode) Gl.ValidateProgram(pointer);
+
+        // Bind uniform blocks
+        uint blockIndex = Gl.GetUniformBlockIndex(pointer, "BaseUniforms");
+        if (blockIndex != Gl.INVALID_INDEX)
+            Gl.UniformBlockBinding(pointer, blockIndex, BaseUniformData.BINDING_LOCATION);
 
         // Check linking status.
         var programCompileStatusReader = new StringBuilder(1024);

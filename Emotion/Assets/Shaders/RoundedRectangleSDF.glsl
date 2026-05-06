@@ -1,11 +1,9 @@
-#version v
+// DEFINE_VERTEX_ATTRIBUTE Position V_Pos
+// DEFINE_VERTEX_ATTRIBUTE UV V_UV
+// DEFINE_VERTEX_ATTRIBUTE VertexColor V_Color
 
 uniform float RadiusPixels;
 uniform vec2 RectSize;
-
-in vec2 UV; 
-in vec4 vertColor; 
-out vec4 fragColor;
 
 float sdBox(in vec2 p, in vec2 b)
 {
@@ -15,21 +13,35 @@ float sdBox(in vec2 p, in vec2 b)
 
 float sdCircle(vec2 p, float r)
 {
-  return length(p) - r;
+    return length(p) - r;
 }
 
-float opUnion(float d1, float d2) { return min(d1,d2); }
+float opUnion(float d1, float d2)
+{
+    return min(d1,d2);
+}
 
 float map(float value, float leftMin, float leftMax, float rightMin, float rightMax)
 {
     return rightMin + (value - leftMin) * (rightMax - rightMin) / (leftMax - leftMin);
 }
 
-void main()
+#ifdef VERT_SHADER
+
+vec4 VertexShaderMain()
+{
+    return projectionMatrix * viewMatrix * modelMatrix * vec4(V_Pos, 1.0);
+}
+
+#endif
+
+#ifdef FRAG_SHADER
+
+vec4 FragmentShaderMain()
 {
     float aspect = RectSize.x / RectSize.y;
     vec2 ratio = vec2(aspect, 1.0); // The actual resolution here.
-    vec2 uv = ((2. * UV) - 1.) * ratio;
+    vec2 uv = ((2. * V_UV) - 1.) * ratio;
 
     float mn = min(ratio.x, ratio.y) / 2.0;
     float radiusInRatio = min((RadiusPixels / RectSize.x) * ratio.x, mn);
@@ -48,16 +60,19 @@ void main()
 
     // AA
     d = 1.0 + d;
-    fragColor = vertColor;
+    vec4 col = V_Color;
     const float aaPixels = 1.0;
     float aaStrength = (aaPixels / RectSize.x) * ratio.x;
     float aaThreshold = ratio.y - aaStrength;
     if (d > aaThreshold)
     {
         float d10 = map(d, 1.0 - aaStrength, 1.0, 0.0, 1.0);
-        fragColor.a *= smoothstep(1.0, 0.0, d10);
+        col.a *= smoothstep(1.0, 0.0, d10);
     }
 
     // Discard invisible
-    if (fragColor.a < 0.01)discard;
+    if (col.a < ALPHA_DISCARD) discard;
+    return col;
 }
+
+#endif

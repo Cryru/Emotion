@@ -5,10 +5,12 @@
 using System.Text;
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Systems.Logging;
+using Emotion.Core.Utility.Coroutines;
 using Emotion.Core.Utility.Threading;
 using Emotion.Graphics.Data;
 using Emotion.Graphics.Shader;
 using OpenGL;
+using static Emotion.Graphics.Shader.ShaderGroup;
 
 #endregion
 
@@ -350,10 +352,6 @@ public static class ShaderFactory
 
     public static TextAsset? DefaultProgram_Frag { get; private set; }
 
-    public static ShaderProgram Blit { get; private set; } = new ShaderProgram("im sure");
-
-    public static ShaderProgram BlitPremultAlpha { get; private set; } = new ShaderProgram("im sure");
-
     internal static IEnumerator LoadDefaultShadersRoutineAsync()
     {
         Engine.Log.Info("Compiling default shaders...", MessageSource.Renderer);
@@ -401,17 +399,18 @@ public static class ShaderFactory
         // Load the built-in shaders used by texture atlases
         Engine.Log.Info("Compiling other built-in shaders...", MessageSource.Renderer);
         {
-            var blit = Engine.AssetLoader.Get<ShaderAsset>("Shaders/Blit.xml");
-            var blitPremultAlpha = Engine.AssetLoader.Get<ShaderAsset>("Shaders/BlitPremultAlpha.xml");
-
+            var blit = Engine.AssetLoader.Get<ShaderGroupAsset>("Shaders/Blit.glsl");
             yield return blit;
-            yield return blitPremultAlpha;
 
-            Blit.CopyFrom(blit.Shader);
-            BlitPremultAlpha.CopyFrom(blitPremultAlpha.Shader);
+            ShaderGroup? shaderGroup = blit.ShaderGroup;
+            AssertNotNull(shaderGroup);
 
-            Assert(Blit.Pointer != 0);
-            Assert(BlitPremultAlpha.Pointer != 0);
+            ShaderOut _ = new ShaderOut();
+            Coroutine a = Engine.CoroutineManager.StartCoroutine(shaderGroup.GetShaderRoutine(_, Engine.Renderer.BlitState.ShaderGroupDefinition));
+            Coroutine b = Engine.CoroutineManager.StartCoroutine(shaderGroup.GetShaderRoutine(_, Engine.Renderer.BlitStatePremult.ShaderGroupDefinition));
+
+            yield return a;
+            yield return b;
         }
 
         Engine.Log.Info($"Default shaders created!", MessageSource.Renderer);

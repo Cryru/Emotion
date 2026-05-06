@@ -202,7 +202,11 @@ public class ShaderGroup
         fragmentShader.Append("\nout vec4 fragColor;\n");
         fragmentShader.Append("void main()\n");
         fragmentShader.Append("{\n");
-        fragmentShader.Append("    fragColor = FragmentShaderMain();\n");
+        fragmentShader.Append("    vec4 colOut = FragmentShaderMain();\n");
+        fragmentShader.Append("#ifdef PREMULT_ALPHA\n");
+        fragmentShader.Append("    colOut.rgb = colOut.rgb / vec3(colOut.a, colOut.a, colOut.a);\n");
+        fragmentShader.Append("#endif\n");
+        fragmentShader.Append("    fragColor = colOut;\n");
         fragmentShader.Append("}\n");
 
         return (vertexShader, fragmentShader);

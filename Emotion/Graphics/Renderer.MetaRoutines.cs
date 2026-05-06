@@ -232,20 +232,21 @@ namespace Emotion.Graphics
             RenderRoundedRectSdf(pos.ToVec3(), size, c, radius);
         }
 
-        private ShaderAsset? _roundedRectangleSdfShader;
-
-        public void RenderRoundedRectSdf(Vector3 pos, Vector2 size, Color c, float radius = 7f)
+        private RenderState _roundedRectangleState = new RenderState()
         {
-            _roundedRectangleSdfShader ??= Engine.AssetLoader.Get<ShaderAsset>("Shaders/RoundedRectangle.xml");
-            ShaderAsset roundedRectShader = _roundedRectangleSdfShader;
-            if (!roundedRectShader.Loaded) return;
+            ShaderGroup = "Shaders/RoundedRectangleSDF.glsl",
+        };
 
-            ShaderProgram prevShader = CurrentShader;
-            SetShader(roundedRectShader.Shader);
-            roundedRectShader.Shader.SetUniformVector2("RectSize", size);
-            roundedRectShader.Shader.SetUniformFloat("RadiusPixels", radius * 2);
+        public void RenderRoundedRectSdf(Vector3 pos, Vector2 size, Color c, float radius = 7f, bool waitLoad = false)
+        {
+            RenderState oldState = CurrentState;
+            _roundedRectangleState.ViewMatrix = oldState.ViewMatrix; // todo: make this into an enum with a "DontChange"
+
+            if (!SetStateEx(_roundedRectangleState, waitLoad)) return;
+            CurrentShader.SetUniformVector2("RectSize", size);
+            CurrentShader.SetUniformFloat("RadiusPixels", radius * 2);
             RenderUVRect(pos, size, c);
-            SetShader(prevShader);
+            SetState(oldState);
         }
     }
 }

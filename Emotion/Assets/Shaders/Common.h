@@ -23,12 +23,15 @@ float saturate(in float value)
     return clamp(value, 0.0, 1.0);
 }
 
-uniform mat4 projectionMatrix;
-uniform mat4 viewMatrix;
+layout(std140, binding = 0) uniform BaseUniforms {
+    mat4 projectionMatrix;
+    mat4 viewMatrix;
+    mat4 modelMatrix;
+    vec4 screenResolution;
+};
 
-// Skip this multiply with a shader variation if no model matrix or CPU mode model matrix
-uniform mat4 modelMatrix; 
- 
-uniform float time;
-uniform vec3 screenResolution;
+#define time screenResolution.w
+
 uniform vec3 cameraPosition;
+
+#define ALPHA_DISCARD 0.01
