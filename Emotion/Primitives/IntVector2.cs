@@ -126,6 +126,17 @@ public record struct IntVector2
         );
     }
 
+    public readonly IntVector2 FloorMultiplyButNotZero(Vector2 scale)
+    {
+        int x = (int)Math.Floor(X * scale.X);
+        if (x == 0 && X != 0) x = 1;
+
+        int y = (int)Math.Floor(Y * scale.Y);
+        if (y == 0 && Y != 0) y = 1;
+
+        return new IntVector2(x, y);
+    }
+
     public readonly IntVector2 RoundMultiply(Vector2 scale)
     {
         return new IntVector2(

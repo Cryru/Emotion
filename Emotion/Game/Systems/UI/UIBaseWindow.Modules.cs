@@ -589,6 +589,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     public void Render(Renderer r)
     {
+        if (!Visuals.Visible) return;
         Assert(State == UIWindowState.Open);
 
         // Rounded background and outline are a different path
@@ -977,11 +978,11 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
             Layout.Scale = Vector2.One;
 
         // Pre-calculate metrics.
-        CalculatedMetrics.MarginLeftTop = Layout.Margins.LeftTop.FloorMultiply(CalculatedMetrics.Scale);
-        CalculatedMetrics.MarginRightBottom = Layout.Margins.RightBottom.FloorMultiply(CalculatedMetrics.Scale);
+        CalculatedMetrics.MarginLeftTop = Layout.Margins.LeftTop.FloorMultiplyButNotZero(CalculatedMetrics.Scale);
+        CalculatedMetrics.MarginRightBottom = Layout.Margins.RightBottom.FloorMultiplyButNotZero(CalculatedMetrics.Scale);
 
-        CalculatedMetrics.PaddingLeftTop = Layout.Padding.LeftTop.FloorMultiply(CalculatedMetrics.Scale);
-        CalculatedMetrics.PaddingRightBottom = Layout.Padding.RightBottom.FloorMultiply(CalculatedMetrics.Scale);
+        CalculatedMetrics.PaddingLeftTop = Layout.Padding.LeftTop.FloorMultiplyButNotZero(CalculatedMetrics.Scale);
+        CalculatedMetrics.PaddingRightBottom = Layout.Padding.RightBottom.FloorMultiplyButNotZero(CalculatedMetrics.Scale);
 
         IntVector2 offsets = IntVector2.Zero;
         offsets += Layout.Offset;
