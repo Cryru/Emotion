@@ -396,12 +396,12 @@ public class UISystem : UIBaseWindow
     private static bool SupportsInputAlongTree(UIBaseWindow window)
     {
         if (window.State != UIWindowState.Open) return false;
-        if (!window.HandleInput || !window.Visible) return false;
+        if (!window.HandleInput || !window.Visuals.Visible) return false;
 
         UIBaseWindow? parent = window.Parent;
         while (parent != null)
         {
-            if (!parent.ChildrenHandleInput || !parent.Visible) return false;
+            if (!parent.ChildrenHandleInput || !parent.Visuals.Visible) return false;
             parent = parent.Parent;
         }
 
@@ -541,7 +541,7 @@ public class UISystem : UIBaseWindow
         for (int i = children.Count - 1; i >= 0; i--)
         {
             UIBaseWindow child = children[i];
-            if (child.Visible && child.CalculatedMetrics.Bounds.Contains(mousePos))
+            if (child.Visuals.Visible && child.CalculatedMetrics.Bounds.Contains(mousePos))
             {
                 Debug_GetWindowsUnderMouseInner(child, mousePos, output, depth + 1);
             }

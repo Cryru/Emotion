@@ -23,7 +23,7 @@ public class EditorButton : UICallbackButton
             if (_label != null)
             {
                 _label.Text = _text;
-                _label.Visible = _text != null;
+                _label.Visuals.Visible = _text != null;
             }
         }
     }
@@ -60,8 +60,12 @@ public class EditorButton : UICallbackButton
             IgnoreParentColor = true,
             Name = "buttonText",
             Text = _text,
-            Visible = _text != null,
-            DontTakeSpaceWhenHidden = true
+
+            Visuals =
+            {
+                Visible = _text != null,
+                DontTakeSpaceWhenHidden = true
+            }
         };
         AddChild(_label);
         RecalculateButtonColor();

@@ -239,7 +239,7 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
 
     protected virtual void UnsavedChangesChanged()
     {
-        _unsavedChangesNotification.Visible = _hasUnsavedChanges;
+        _unsavedChangesNotification.Visuals.Visible = _hasUnsavedChanges;
         UpdateHeader();
     }
 

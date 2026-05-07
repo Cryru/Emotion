@@ -22,9 +22,28 @@ public struct UIWindowVisualConfig
     public int Border = 0;
     public Color BorderColor = Color.Black;
 
-    public bool Visible = true;
-
     public GridLayoutVisualConfig GridVisual;
+
+    /// <summary>
+    /// Whether the window is visible.
+    /// If not, the RenderInternal function will early out
+    /// and children's Renders will not be called
+    /// </summary>
+    public bool Visible
+    {
+        get => _visible;
+        set
+        {
+            if (value == _visible) return;
+            _visible = value;
+
+            Engine.UI.InvalidateInputFocus();
+            if (_dontTakeSpaceWhenHidden)
+                InvalidateLayout();
+        }
+    }
+
+    private bool _visible = true;
 
     /// <summary>
     /// Whether to consider this window as part of the layout when invisible.
@@ -47,9 +66,17 @@ public struct UIWindowVisualConfig
     {
     }
 
-    private void InvalidateLayout()
-    {
+    private UIBaseWindow? _owner;
 
+    internal void SetWindowOwner(UIBaseWindow owner)
+    {
+        _owner = owner;
+    }
+
+    private readonly void InvalidateLayout()
+    {
+        if (_owner == null) return;
+        _owner.InvalidateLayout();
     }
 
     public override string ToString()

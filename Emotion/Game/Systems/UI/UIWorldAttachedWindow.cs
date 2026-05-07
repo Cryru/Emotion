@@ -26,12 +26,6 @@ namespace Emotion.Game.Systems.UI
             base.InvalidateLayout();
         }
 
-        protected override void DELETEME_AfterLayout()
-        {
-            _awaitingLayout = false;
-            base.DELETEME_AfterLayout();
-        }
-
         protected virtual Vector3 VerifyWorldPos(Vector3 pos)
         {
             return pos;

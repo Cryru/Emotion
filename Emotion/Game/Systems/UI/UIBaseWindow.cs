@@ -15,68 +15,6 @@ namespace Emotion.Game.Systems.UI;
 [DontSerializeMembers("Position", "Size")]
 public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBaseWindow>
 {
-    #region Layout
-
-    /// <summary>
-    /// Whether this window is the background of its parent.
-    /// </summary>
-    public bool BackgroundWindow
-    {
-        get => _backgroundWindow;
-        set
-        {
-            if (value == _backgroundWindow) return;
-            _backgroundWindow = value;
-            InvalidateLayout();
-        }
-    }
-
-    protected bool _backgroundWindow;
-
-    /// <summary>
-    /// Whether this window should be rendered on top of all other windows.
-    /// </summary>
-    public bool OverlayWindow
-    {
-        get => _overlayWindow;
-        set
-        {
-            if (value == _overlayWindow) return;
-            _overlayWindow = value;
-            InvalidateLayout();
-        }
-    }
-
-    protected bool _overlayWindow;
-
-    /// <summary>
-    /// Position relative to another window in the same controller.
-    /// </summary>
-    public string? RelativeTo
-    {
-        get => _relativeTo;
-        set
-        {
-            if (value == _relativeTo) return;
-            _relativeTo = value;
-            InvalidateLayout();
-        }
-    }
-
-    private string? _relativeTo;
-
-    [Obsolete("delete")]
-    protected virtual void DELETEME_AfterLayout()
-    {
-        // nop - to be overriden
-    }
-
-    public float Z { get => 0; }
-
-    public Vector2 Size { get; protected set; }
-
-    #endregion
-
     #region Color
 
     /// <summary>
@@ -105,12 +43,12 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
             Visuals.BackgroundColor = Visuals.BackgroundColor.SetAlpha(current);
 
             // If fading in we need to set visible from the get go.
-            if (setVisible != null && setVisible.Value && !Visible) Visible = true;
+            if (setVisible != null && setVisible.Value && !Visuals.Visible) Visuals.Visible = true;
 
             if (_alphaTimer.Finished)
             {
                 Assert(Visuals.BackgroundColor.A == targetAlpha);
-                if (setVisible != null) Visible = setVisible.Value;
+                if (setVisible != null) Visuals.Visible = setVisible.Value;
                 yield break;
             }
 
@@ -151,14 +89,14 @@ public partial class UIBaseWindow : IComparable<UIBaseWindow>, IEnumerable<UIBas
             return Coroutine.CompletedRoutine;
         }
 
-        if (Visible == val && WindowColor.A == targetAlpha)
+        if (Visuals.Visible == val && Visuals.BackgroundColor.A == targetAlpha)
         {
             _alphaRoutine = null;
             return Coroutine.CompletedRoutine;
         }
 
         _alphaTimer = new ValueTimer(ms);
-        _alphaRoutine = Engine.CoroutineManager.StartCoroutine(AlphaTweenRoutine(Visuals.BackgroundColor.A, targetAlpha, Visible == val ? null : val));
+        _alphaRoutine = Engine.CoroutineManager.StartCoroutine(AlphaTweenRoutine(Visuals.BackgroundColor.A, targetAlpha, Visuals.Visible == val ? null : val));
         return _alphaRoutine;
     }
 

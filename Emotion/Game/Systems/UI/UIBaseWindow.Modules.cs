@@ -76,43 +76,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     #region Main Properties
 
-    /// <summary>
-    /// Whether the window is visible.
-    /// If not, the RenderInternal function will not be called and
-    /// children will not be drawn either.
-    /// </summary>
-    public bool Visible
-    {
-        get => _visible;
-        set
-        {
-            if (value == _visible) return;
-            _visible = value;
-
-            Engine.UI.InvalidateInputFocus();
-            if (DontTakeSpaceWhenHidden)
-                InvalidateLayout();
-        }
-    }
-
-    private bool _visible = true;
-
-    /// <summary>
-    /// Whether to consider this window as part of the layout when invisible.
-    /// Matters only within lists.
-    /// </summary>
-    public bool DontTakeSpaceWhenHidden
-    {
-        get => _dontTakeSpaceWhenHidden;
-        set
-        {
-            if (value == _dontTakeSpaceWhenHidden) return;
-            _dontTakeSpaceWhenHidden = value;
-            InvalidateLayout();
-        }
-    }
-
-    private bool _dontTakeSpaceWhenHidden;
+    
 
     /// <summary>
     /// The Z axis is combined with that of the parent, whose is combined with that of their parent, and so forth.
@@ -137,6 +101,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     {
         AddChildren.SetFunc(static (c, p) => p.AddChild(c), this);
         Layout.SetWindowOwner(this);
+        Visuals.SetWindowOwner(this);
         parent?.AddChild(this);
     }
 
@@ -770,7 +735,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     /// </summary>
     public virtual MouseFocusPair FindWindowUnderMouse(Vector2 pos, bool respectInputHandling = true)
     {
-        if (!Visible) return MouseFocusPair.None;
+        if (!Visuals.Visible) return MouseFocusPair.None;
 
         if (ChildrenHandleInput || !respectInputHandling)
         {
@@ -780,7 +745,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
             for (int i = Children.Count - 1; i >= 0; i--) // Top to bottom
             {
                 UIBaseWindow child = Children[i];
-                if (!child.Visible) continue;
+                if (!child.Visuals.Visible) continue;
 
                 bool childAffectedByScroll = !LayoutMethodCodeClass.IsNotAffectedByScroll(child);
 
@@ -886,11 +851,11 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         UIBaseWindow? parent = Parent;
         while (parent != null)
         {
-            if (!parent.Visible) return false;
+            if (!parent.Visuals.Visible) return false;
             parent = parent.Parent;
         }
 
-        return Visible;
+        return Visuals.Visible;
     }
 
     public T? GetParentOfKind<T>() where T : UIBaseWindow

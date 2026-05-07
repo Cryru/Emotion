@@ -8,10 +8,10 @@ public class UIRollover : UIBaseWindow
 
     public UIRollover()
     {
-        RelativeTo = SPECIAL_WIN_ID_MOUSE_FOCUS;
+        //RelativeTo = SPECIAL_WIN_ID_MOUSE_FOCUS;
         Layout.SizingX = UISizing.Fit();
         Layout.SizingY = UISizing.Fit();
-        OverlayWindow = true;
+        //OverlayWindow = true;
 
         OrderInParent = 99;
     }

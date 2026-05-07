@@ -70,7 +70,7 @@ public class ObjectPropertyWindow : UIBaseWindow
             EditorLabel label = new();
             label.Text = $"The object attempting to be edited is non-editable,\nor no object was provided..";
             AddChild(label);
-            _pagingContainer.Visible = false;
+            _pagingContainer.Visuals.Visible = false;
             return;
         }
 
@@ -87,11 +87,11 @@ public class ObjectPropertyWindow : UIBaseWindow
             });
             AddChild(editor);
 
-            _pagingContainer.Visible = editor is ComplexObjectEditor;
+            _pagingContainer.Visuals.Visible = editor is ComplexObjectEditor;
         }
         else
         {
-            _pagingContainer.Visible = false;
+            _pagingContainer.Visuals.Visible = false;
         }
     }
 

@@ -113,7 +113,7 @@ public class SpriteEntityEditor : TwoSplitEditorWindowFileSupport<UIViewport, Ob
 
     protected void RenderViewport(UIBaseWindow win, Renderer c)
     {
-        Vector3 center = (win.Size / 4f).ToVec3();
+        Vector3 center = (win.CalculatedMetrics.Size.ToVec2() / 4f).ToVec3();
         center = center.Round();
 
         const float lineLength = 10;

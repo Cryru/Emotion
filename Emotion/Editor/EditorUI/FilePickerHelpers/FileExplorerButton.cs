@@ -82,7 +82,7 @@ public class FileExplorerButton : UICallbackButton
         string extension = Path.GetExtension(fileName);
         _extension = extension;
         _label.Text = AssetLoader.GetFileName(fileName);
-        _notch.Visible = false;
+        _notch.Visuals.Visible = false;
         GeneratePreviewUI();
     }
 
@@ -91,22 +91,22 @@ public class FileExplorerButton : UICallbackButton
         _fileName = dirName;
         _extension = dirName;
         _label.Text = "";
-        _notch.Visible = true;
+        _notch.Visuals.Visible = true;
         GeneratePreviewUI();
     }
 
     public override void OnMouseEnter(Vector2 _)
     {
         base.OnMouseEnter(_);
-        _bg.WindowColor = EditorColorPalette.ActiveButtonColor;
-        _notch.WindowColor = EditorColorPalette.ActiveButtonColor;
+        _bg.Visuals.BackgroundColor = EditorColorPalette.ActiveButtonColor;
+        _notch.Visuals.BackgroundColor = EditorColorPalette.ActiveButtonColor;
     }
 
     public override void OnMouseLeft(Vector2 _)
     {
         base.OnMouseLeft(_);
-        _bg.WindowColor = EditorColorPalette.ButtonColor;
-        _notch.WindowColor = EditorColorPalette.ButtonColor;
+        _bg.Visuals.BackgroundColor = EditorColorPalette.ButtonColor;
+        _notch.Visuals.BackgroundColor = EditorColorPalette.ButtonColor;
     }
 
     private void GeneratePreviewUI()

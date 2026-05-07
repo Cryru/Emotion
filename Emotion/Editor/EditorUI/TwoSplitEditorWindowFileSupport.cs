@@ -31,7 +31,7 @@ public abstract class TwoSplitEditorWindowFileSupport<TLeft, TRight, TEditType> 
         var contentBg = new UISolidColor()
         {
             WindowColor = new Color(0, 0, 0, 50),
-            BackgroundWindow = true
+            //BackgroundWindow = true
         };
         content.AddChild(contentBg);
 

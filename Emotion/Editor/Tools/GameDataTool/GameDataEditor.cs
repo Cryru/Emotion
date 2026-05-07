@@ -46,7 +46,7 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
         base.OnOpen();
 
         UIBaseWindow contentParent = GetContentParent();
-        _unsavedChangesNotification.DontTakeSpaceWhenHidden = false;
+        _unsavedChangesNotification.Visuals.DontTakeSpaceWhenHidden = false;
 
         // Now that the UI is setup, initialize editing functionality
 

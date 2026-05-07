@@ -99,7 +99,7 @@ public sealed class TileEditorWindow : GridEditorWindow
             {
                 BackgroundColor = EditorColorPalette.BarColor
             },
-            BackgroundWindow = true
+            //BackgroundWindow = true
         };
         sidePanel.AddChild(sidePanelBg);
 

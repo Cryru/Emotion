@@ -24,9 +24,9 @@ public class EditorScrollBar : UIScrollbar
         var lineWidth = 10 * scale;
         var lineHeight = 3 * scale;
 
-        r.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
-        r.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f) + new Vector2(0, lineHeight * 2f)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
-        r.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f) + new Vector2(0, lineHeight * 4f)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
+        r.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f)).ToVec3(), new Vector2(lineWidth, lineHeight), grabLineColor);
+        r.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f) + new Vector2(0, lineHeight * 2f)).ToVec3(), new Vector2(lineWidth, lineHeight), grabLineColor);
+        r.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f) + new Vector2(0, lineHeight * 4f)).ToVec3(), new Vector2(lineWidth, lineHeight), grabLineColor);
     }
 }
 
@@ -53,8 +53,8 @@ public class EditorScrollBarHorizontal : UIScrollbar
         var lineWidth = 3 * scale;
         var lineHeight = 10 * scale;
 
-        r.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
-        r.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f) + new Vector2(lineWidth * 2f, 0)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
-        r.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f) + new Vector2(lineWidth * 4f, 0)).ToVec3(Z), new Vector2(lineWidth, lineHeight), grabLineColor);
+        r.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f)).ToVec3(), new Vector2(lineWidth, lineHeight), grabLineColor);
+        r.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f) + new Vector2(lineWidth * 2f, 0)).ToVec3(), new Vector2(lineWidth, lineHeight), grabLineColor);
+        r.RenderSprite((center - new Vector2(lineWidth / 2f, lineHeight / 2f) + new Vector2(lineWidth * 4f, 0)).ToVec3(), new Vector2(lineWidth, lineHeight), grabLineColor);
     }
 }
