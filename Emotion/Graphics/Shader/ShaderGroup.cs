@@ -622,6 +622,7 @@ public struct ShaderDefine
                 idx = _indexToDefine.Count;
                 _defineToIndex[str] = idx;
                 _indexToDefine.Add(str);
+                Engine.Log.ONE_Info("ShaderDefine", $"Registered define {str} as {idx} ({1u << idx}:0x00)");
             }
 
             uint flags = 1u << idx;

@@ -301,7 +301,7 @@ public abstract partial class TerrainGridBase<T, ChunkT, IndexT> :
 
     protected List<ChunkT> _renderThisPass = new(32);
 
-    public void Render(GameMap map, Renderer r, CameraCullingContext culling)
+    public virtual void Render(GameMap map, Renderer r, CameraCullingContext culling)
     {
         Frustum frustum = culling.Frustum;
 
