@@ -5,7 +5,6 @@ using Emotion.Core.Utility.Coroutines;
 using Emotion.Game.Systems.Animation.ThreeDee;
 using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Data;
-using Emotion.Standard.MeshGenerators;
 
 namespace Emotion.Game.World.Components;
 
@@ -26,11 +25,6 @@ public class MeshComponent : IGameObjectComponent, IGameObjectTransformProvider,
     {
         _entityOwner.SetOnChangeCallback(static (_, component) => component.OnEntityChanged(), this);
         _entityOwner.Set(entity ?? MeshReference.Invalid, true);
-    }
-
-    protected MeshComponent()
-    {
-
     }
 
     public virtual IRoutineWaiter? Init(GameObject obj)
