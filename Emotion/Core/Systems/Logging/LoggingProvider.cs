@@ -233,9 +233,7 @@ public abstract class LoggingProvider : IDisposable
             float time = Engine.TotalTime;
 
             // Rent a buffer and write everything into it
-            int estimatedSize = literalLength + (formattedCount * 32) + source.Length + threadName.Length + 64;
-            char[] buffer = ArrayPool<char>.Shared.Rent(estimatedSize);
-
+            char[] buffer = ArrayPool<char>.Shared.Rent(1024);
             _charsWritten = _logger.WriteLogFormatted(buffer, type, source, threadName, threadId, time);
             _buffer = buffer;
         }
