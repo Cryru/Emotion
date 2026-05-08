@@ -6,7 +6,7 @@ using Emotion.Core.Systems.Scenography;
 using Emotion.Core.Utility.Profiling;
 using Emotion.Editor.EditorUI;
 using Emotion.Editor.EditorUI.Components;
-using Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
+using Emotion.Editor.RuntimeCodeGen;
 using Emotion.Editor.Tools.GameDataTool;
 using Emotion.Editor.Workflow;
 using Emotion.Graphics.Camera;
@@ -36,6 +36,9 @@ public static partial class EngineEditor
     public static void Initialize()
     {
         if (!Engine.Configuration.DebugMode) return;
+
+        EditorCodeGen.Init();
+
         Engine.Host.OnKey.AddListener(EditorButtonHandler, KeyListenerType.Editor);
         EditorUI = new UIBaseWindow()
         {

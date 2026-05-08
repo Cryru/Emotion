@@ -17,6 +17,12 @@
         <Optimize>True</Optimize>
     </PropertyGroup>
     
+    <Target Name="CopySourceFiles" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+      <RemoveDir Directories="$(OutDir)CompiledSource\" />
+      <RemoveDir Directories="$(OutDir)ModifiedSource\" />
+      <Copy SourceFiles="@(Compile)" DestinationFolder="$(OutDir)CompiledSource\%(RecursiveDir)" />
+    </Target>
+    
     <!-- Conditional SDK -->
     <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" Condition="'$(Platform)'!='Web'" />
     <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" Condition="'$(Platform)'!='Web'" />

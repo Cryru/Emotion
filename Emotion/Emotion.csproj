@@ -2,20 +2,14 @@
     <PropertyGroup>
         <OutputType>Library</OutputType>
         <TargetFramework>net10.0</TargetFramework>
-        <ApplicationIcon />
-        <StartupObject />
-        <FileUpgradeFlags>
-        </FileUpgradeFlags>
-        <UpgradeBackupLocation>
-        </UpgradeBackupLocation>
-        <OldToolsVersion>2.0</OldToolsVersion>
-        <NuspecFile>./Emotion.nuspec</NuspecFile>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <NoWarn>1701;1702;1591;1734;IDE0001;IDE0002;IDE0049</NoWarn>
         <Configurations>Debug;Release;Autobuild</Configurations>
         <Platforms>Win64;Win64NoDepend;Win32;Linux64;MacOS64;Android;Web;Other</Platforms>
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        <Nullable>enable</Nullable>
+        <PublishAot>true</PublishAot>
         
          <!--You should use Emotion's deserialization anyway, but just in case you use the built in one. -->
         <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
@@ -300,7 +294,8 @@
     <ItemGroup>
         <PackageReference Include="Silk.NET.Assimp" Version="2.23.0" Condition="$(DefineConstants.Contains('MORE_MESH_TYPES'))" Aliases="SilkNet" />
         <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" Condition="$(DefineConstants.Contains('MORE_IMAGE_TYPES'))" />
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.3.0" Condition="$(DefineConstants.Contains('CSHARP_SCRIPTING'))" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.3.0" Condition="$(DefineConstants.Contains('DEBUG'))" />
+        <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" Condition="$(DefineConstants.Contains('DEBUG'))" />
         <PackageReference Include="System.Text.Json" Version="10.0.5" />
     </ItemGroup>
 </Project>
