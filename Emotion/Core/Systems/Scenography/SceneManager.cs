@@ -77,23 +77,19 @@ public class SceneManager
 
     private IEnumerator InternalLoadSceneRoutineAsync(Scene scene)
     {
-        Engine.Log.Info($"Loading scene [{scene}].", MessageSource.SceneManager);
+        // Load the new scene
+        Engine.Log.ONE_Info(nameof(SceneManager), $"Loading scene [{scene}].");
+        yield return scene.LoadSceneRoutineAsync();
+        Engine.Log.ONE_Info(nameof(SceneManager), $"Loaded scene [{scene}].");
 
-        // Change the current scene
-        // We want to do this in a coroutine so that the scene swap
-        // happens in between updates (on the main thread) and to avoid async troubles.
+        // Swap the new scene as the current - we do this on the
+        // main thread to avoid async troubles.
         Scene oldCurrent = Current;
         yield return Engine.CoroutineManager.StartCoroutine(SceneSwapSynchronized(scene));
 
-        // Start loading the new scene
-        yield return scene.LoadSceneRoutineAsync();
-        yield return scene.Attach();
-
-        Engine.Log.Info($"Loaded scene [{scene}].", MessageSource.SceneManager);
-
         // Start job of cleaning up old scene
-        // We do this after the loading of the new one to allow reference counts to transfer ownership.
-        Engine.Jobs.Add(oldCurrent.UnloadSceneRoutineAsync());
+        // Reference counts should have transferred ownership to the new scene (for any shared resources)
+        Engine.Jobs.AddNoFeedback(oldCurrent.UnloadSceneRoutineAsync());
     }
 
     // Ensure the scene swap happens safely while the scene isn't executing.
@@ -105,6 +101,8 @@ public class SceneManager
 
         Current.Detach();
         Current = scene;
+        scene.Attach();
+        Engine.Log.ONE_Trace(nameof(SceneManager), $"Scene swapped.");
     }
 
     private IEnumerator InternalLoadLoadingScreenRoutineAsync(Scene scene)

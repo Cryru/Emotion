@@ -20,10 +20,9 @@ public abstract class Scene
 {
     public SceneStatus Status { get; protected set; } = SceneStatus.None;
 
-    public virtual IEnumerator Attach()
+    public virtual void Attach()
     {
         Status = SceneStatus.Active;
-        yield break;
     }
 
     public virtual void Detach()
@@ -80,13 +79,10 @@ public abstract class SceneWithMap : Scene
         _factoryAssetOwner.SetOnChangeCallback(SceneWithMapFactoryAssetChanged, this);
     }
 
-    public override IEnumerator Attach()
+    public override void Attach()
     {
-        yield return GLThread.ExecuteOnGLThreadAsync(static (ui) => Engine.UI.AddChild(ui), SceneUI);
-        yield return SceneUI.WaitLoadingRoutine();
-        yield return Engine.AssetLoader.WaitForAllAssetsToLoadRoutine();
-
-        yield return base.Attach();
+        Engine.UI.AddChild(SceneUI);
+        base.Attach();
     }
 
     public override void Detach()
@@ -101,6 +97,8 @@ public abstract class SceneWithMap : Scene
 
         yield return InternalLoadSceneRoutineAsync();
         yield return EnsureMapInitializedRoutine(Map);
+        yield return SceneUI.WaitLoadingRoutine();
+        yield return Engine.AssetLoader.WaitForAllAssetsToLoadRoutine();
         yield return base.LoadSceneRoutineAsync();
     }
 
