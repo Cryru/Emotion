@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
 using System.IO;
 
@@ -37,13 +38,13 @@ public static class EditorCodeGen
 
     private static IEnumerator InitRoutineAsync()
     {
-        string? projectRoot = FindProjectRoot(AppContext.BaseDirectory);
-        if (projectRoot == null)
+        string projectFolderAssetLoader = AssetLoader.DevModeProjectFolder;
+        if (string.IsNullOrEmpty(projectFolderAssetLoader))
         {
             Engine.Log.ONE_Error(nameof(EditorCodeGen), $"Couldn't find project root directory, started at {AppContext.BaseDirectory}");
             yield break;
         }
-        ProjectRoot = projectRoot;
+        ProjectRoot = Path.GetFullPath(projectFolderAssetLoader);
 
         EditorReload.Init();
     }
@@ -80,17 +81,5 @@ public static class EditorCodeGen
         string? d = Path.GetDirectoryName(path);
         if (d != null) Directory.CreateDirectory(d);
         File.WriteAllText(path, content);
-    }
-
-    private static string? FindProjectRoot(string startPath)
-    {
-        DirectoryInfo? dir = new DirectoryInfo(startPath);
-        while (dir != null)
-        {
-            if (dir.GetFiles("*.csproj").Length > 0)
-                return dir.FullName;
-            dir = dir.Parent;
-        }
-        return null;
     }
 }
