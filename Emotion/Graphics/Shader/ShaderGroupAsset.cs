@@ -22,7 +22,7 @@ public class ShaderGroupAsset : TextAsset, IAssetContainingObject<ShaderGroup>
     {
         base.CreateInternal(data);
 
-        ShaderGroup?.Dispose(); // Hot reloading
+        ShaderGroup?.Dispose(); // Hot reloading, should only happen in debug mode
         ShaderGroup = new ShaderGroup(Name, base.Content);
         yield return ShaderGroup.Init();
     }

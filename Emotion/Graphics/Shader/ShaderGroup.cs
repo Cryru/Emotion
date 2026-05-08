@@ -54,7 +54,7 @@ public class ShaderGroup
         if (es)
         {
             TextAsset includeFile = Engine.AssetLoader.Get<TextAsset>("Shaders/GLESSupport.c");
-            yield return includeFile;
+            Assert(includeFile.Loaded);
 
             include.AppendLine("// Shaders/GLESSupport.c");
             include.AppendLine();
@@ -66,7 +66,7 @@ public class ShaderGroup
         // Always include common
         {
             TextAsset includeFile = Engine.AssetLoader.Get<TextAsset>("Shaders/Common.h");
-            yield return includeFile;
+            Assert(includeFile.Loaded);
 
             include.AppendLine("// Shaders/Common.h");
             include.AppendLine();

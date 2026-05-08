@@ -356,28 +356,8 @@ public static class ShaderFactory
     {
         Engine.Log.Info("Compiling default shaders...", MessageSource.Renderer);
 
-        // Load the default pipeline with the default vertex format before starting (as it is used by the renderer as a default)
-        {
-            ShaderGroupAsset defShader = Engine.AssetLoader.Get<ShaderGroupAsset>("Shaders/Default.glsl");
-            yield return defShader;
-
-            ShaderGroup? defPipeline = defShader.ShaderGroup;
-            ShaderGroup.ShaderOut shaderOut = new ShaderGroup.ShaderOut();
-            yield return defPipeline?.GetShaderRoutine(shaderOut, new ShaderGroupDefinition(VertexData.Format));
-
-            ShaderProgram? defaultVariant = shaderOut.OutShaderProgram;
-            if (defaultVariant == null)
-            {
-                Engine.CriticalError(new Exception("Couldn't initialize default shader."));
-                yield break;
-            }
-            DefaultProgram.CopyFrom(defaultVariant);
-            if (DefaultProgram.Pointer == 0)
-            {
-                Engine.CriticalError(new Exception("Couldn't copy into DefaultProgram."));
-                yield break;
-            }
-        }
+        TextAsset glesSupportHeader = Engine.AssetLoader.Get<TextAsset>("Shaders/GLESSupport.c");
+        TextAsset commonHeader = Engine.AssetLoader.Get<TextAsset>("Shaders/Common.h");
 
         // Legacy - delete
         {
@@ -396,10 +376,35 @@ public static class ShaderFactory
             }
         }
 
-        // Load the built-in shaders used by texture atlases
-        Engine.Log.Info("Compiling other built-in shaders...", MessageSource.Renderer);
+        yield return glesSupportHeader;
+        yield return commonHeader;
+
+        // Load the default pipeline with the default vertex format before starting (as it is used by the renderer as a default)
+        ShaderGroupAsset defShader = Engine.AssetLoader.Get<ShaderGroupAsset>("Shaders/Default.glsl");
+
+        // Also queue up the blit shader as its used by atlases
+        ShaderGroupAsset blit = Engine.AssetLoader.Get<ShaderGroupAsset>("Shaders/Blit.glsl");
+
+        yield return defShader;
+
+        ShaderGroup? defPipeline = defShader.ShaderGroup;
+        ShaderGroup.ShaderOut shaderOut = new ShaderGroup.ShaderOut();
+        yield return defPipeline?.GetShaderRoutine(shaderOut, new ShaderGroupDefinition(VertexData.Format));
+
+        ShaderProgram? defaultVariant = shaderOut.OutShaderProgram;
+        if (defaultVariant == null)
         {
-            var blit = Engine.AssetLoader.Get<ShaderGroupAsset>("Shaders/Blit.glsl");
+            Engine.CriticalError(new Exception("Couldn't initialize default shader."));
+            yield break;
+        }
+        DefaultProgram.CopyFrom(defaultVariant);
+        if (DefaultProgram.Pointer == 0)
+        {
+            Engine.CriticalError(new Exception("Couldn't copy into DefaultProgram."));
+            yield break;
+        }
+
+        {
             yield return blit;
 
             ShaderGroup? shaderGroup = blit.ShaderGroup;
