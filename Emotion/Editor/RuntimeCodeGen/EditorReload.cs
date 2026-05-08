@@ -14,7 +14,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
-#endif
+
 
 namespace Emotion.Editor.RuntimeCodeGen;
 
@@ -33,7 +33,6 @@ public static class EditorReload
 {
     public static ReloadType Type { get; private set; }
 
-    [Conditional("DEBUG")]
     internal static void Init()
     {
         CheckReloadType();
@@ -67,8 +66,6 @@ public static class EditorReload
             return false;
         }
     }
-
-#if DEBUG
 
     private static void CheckReloadType()
     {
@@ -364,5 +361,6 @@ public static class EditorReload
     }
 
     #endregion
-#endif
 }
+
+#endif

@@ -1,21 +1,31 @@
 ﻿#nullable enable
 
+#if DEBUG
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
 using System.IO;
+#endif
 
 namespace Emotion.Editor.RuntimeCodeGen;
 
 public static class EditorCodeGen
 {
-    public static bool CanRuntimeCodeGen { get => ProjectRoot != null && EditorReload.Type != ReloadType.None; }
+    public static bool CanRuntimeCodeGen
+    {
+#if DEBUG
+        get => ProjectRoot != null && EditorReload.Type != ReloadType.None;
+#else
+        get => false;
+#endif
+    }
+
+#if DEBUG
 
     public static string ModifiedSourceFolder { get => $".{Path.DirectorySeparatorChar}ModifiedSource"; }
     public static string OriginalSourceFolder { get => $".{Path.DirectorySeparatorChar}CompiledSource"; }
 
     public static string? ProjectRoot { get; private set; }
 
-    [Conditional("DEBUG")]
     internal static void Init()
     {
         if (!Directory.Exists(ModifiedSourceFolder))
@@ -49,7 +59,6 @@ public static class EditorCodeGen
         EditorReload.Init();
     }
 
-    [Conditional("DEBUG")]
     public static void SubmitCodeGen(string filePath, string fileContent)
     {
         try
@@ -82,4 +91,10 @@ public static class EditorCodeGen
         if (d != null) Directory.CreateDirectory(d);
         File.WriteAllText(path, content);
     }
+#else
+    internal static void Init()
+    {
+
+    }
+#endif
 }
