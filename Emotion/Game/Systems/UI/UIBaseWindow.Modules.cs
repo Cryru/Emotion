@@ -1069,7 +1069,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         }
     }
 
-    private void Layout_Position(IntVector2 pos)
+    protected virtual void Layout_Position(IntVector2 pos)
     {
         CalculatedMetrics.Position = pos;
 
@@ -1081,12 +1081,6 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
             layoutCode.PositionChildren(this, children);
         }
 
-        // Custom layout is last so it can react to other window's layouts (UIAttachedWindow)
-        foreach (UIBaseWindow child in Children)
-        {
-            if (child._useCustomLayout)
-                child.InternalCustomLayout();
-        }
 
         InternalOnLayoutComplete();
         foreach (UIBaseWindow child in Children)
@@ -1094,24 +1088,6 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
             child.InternalOnLayoutComplete();
         }
     }
-
-    #region Custom
-
-    // todo: implement via ILayoutMethodCode
-    protected bool _useCustomLayout;
-
-    protected void CustomLayout()
-    {
-        PreLayout_CalculateMetrics();
-        InternalCustomLayout();
-    }
-
-    protected virtual void InternalCustomLayout()
-    {
-
-    }
-
-    #endregion
 
     #region Anchor
 

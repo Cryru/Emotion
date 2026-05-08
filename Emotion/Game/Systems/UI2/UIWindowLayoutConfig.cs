@@ -225,8 +225,6 @@ public struct UIWindowLayoutConfig
         }
     }
 
-    public bool ChildrenCanExpand = true;
-
     /// <summary>
     /// How to handle children that exceed the window's bounds in the X axis.
     /// </summary>

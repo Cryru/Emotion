@@ -38,13 +38,12 @@ public partial class UIBaseWindow
         {
             if (!window.Visuals.Visible && window.Visuals.DontTakeSpaceWhenHidden) return true;
             if (window.IsLoading()) return true;
-            if (window._useCustomLayout) return true;
             return false;
         }
 
         public static bool IsNotAffectedByScroll(UIBaseWindow window)
         {
-            return window is UIScrollbar || !window.CalculatedMetrics.InsideParent;
+            return window is UIScrollbar || !window.CalculatedMetrics.InsideParent || window is UIAttachedWindow;
         }
 
         public static ListLayoutItemsAlign GetItemsAlignAcrossFromList(UIMethodName listType, UIAnchor anchor)

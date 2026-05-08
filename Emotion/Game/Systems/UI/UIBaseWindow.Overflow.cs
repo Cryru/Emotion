@@ -95,9 +95,9 @@ public partial class UIBaseWindow
             Layout.OverflowY == UIOverflow.Scroll ? Math.Max(0, contentEnd.Y - viewportSize.Y) : 0
         );
 
-        if (_scrollbarV != null)
+        if (_scrollbarV != null && maxScroll.X != 0)
             maxScroll.X += _scrollbarV.CalculatedMetrics.Size.X;
-        if (_scrollbarH != null)
+        if (_scrollbarH != null && maxScroll.Y != 0)
             maxScroll.Y += _scrollbarH.CalculatedMetrics.Size.Y;
 
         CalculatedMetrics.MaxScroll = maxScroll;

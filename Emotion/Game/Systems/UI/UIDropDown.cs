@@ -9,17 +9,16 @@ public class UIAttachedWindow : UIBaseWindow
 
     public UIAttachedWindow()
     {
-        _useCustomLayout = true;
         Layout.SizingX = UISizing.Fit();
         Layout.SizingY = UISizing.Fit();
     }
 
-    protected override void InternalCustomLayout()
+    protected override void Layout_Position(IntVector2 pos)
     {
         if (AttachedTo != null)
-            CalculatedMetrics.Position = GetAnchorPosition(Layout.ParentAnchor, AttachedTo.CalculatedMetrics.Bounds, Layout.Anchor, CalculatedMetrics.Size);
+            pos = GetAnchorPosition(Layout.ParentAnchor, AttachedTo.CalculatedMetrics.Bounds, Layout.Anchor, CalculatedMetrics.Size);
 
-        DefaultLayout();
+        base.Layout_Position(pos);
     }
 }
 

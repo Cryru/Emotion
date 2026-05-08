@@ -85,10 +85,7 @@ public class UISystem : UIBaseWindow
         if (!_needsLayout)
             return;
 
-        if (_useCustomLayout)
-            CustomLayout();
-        else
-            DefaultLayout();
+        DefaultLayout();
     }
 
     #region Scaling

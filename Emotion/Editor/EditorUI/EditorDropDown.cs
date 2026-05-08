@@ -27,15 +27,15 @@ public class EditorDropDown : UIDropDown
         base.AddChild(child);
     }
 
-    protected override void InternalCustomLayout()
-    {
-        if (ClampToSpawningWindowWidth && AttachedTo != null)
-            Layout.SizingX = UISizing.Fixed(AttachedTo.CalculatedMetrics.Size.X);
-        else
-            Layout.SizingX = UISizing.Fit();
+    //protected override void InternalCustomLayout()
+    //{
+    //    if (ClampToSpawningWindowWidth && AttachedTo != null)
+    //        Layout.SizingX = UISizing.Fixed(AttachedTo.CalculatedMetrics.Size.X);
+    //    else
+    //        Layout.SizingX = UISizing.Fit();
 
-        base.InternalCustomLayout();
-    }
+    //    base.InternalCustomLayout();
+    //}
 
     public static EditorDropDown OpenListDropdown(UIBaseWindow spawningWindow)
     {
@@ -56,22 +56,19 @@ public class EditorDropDown : UIDropDown
             },
             Layout =
             {
-                ChildrenCanExpand = true,
                 MaxSizeY = 500,
             },
 
         };
         dropDown.AddChild(scrollArea);
 
-        var list = new UIBaseWindow()
+        var list = new UIBaseWindow(scrollArea)
         {
             Layout =
             {
                 LayoutMethod = UILayoutMethod.VerticalList(3)
             }
         };
-        scrollArea.AddChildInside(list);
-
         dropDown._contentParent = list;
         Engine.UI.OpenDropdown(spawningWindow, dropDown);
 
