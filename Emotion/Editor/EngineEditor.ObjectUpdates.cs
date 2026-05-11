@@ -103,6 +103,8 @@ public partial class EngineEditor
 
     public static void RegisterForObjectChanges(object obj, Action<ObjectChangeEvent> onChanged, object? listener = null)
     {
+        if (obj == null) return;
+
         ObjectChangeMonitor listenInstance = new ObjectChangeMonitor()
         {
             ListeningObject = listener,

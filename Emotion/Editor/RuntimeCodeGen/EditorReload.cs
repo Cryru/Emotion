@@ -1,7 +1,6 @@
 ﻿#nullable enable
 
 #if DEBUG
-using Emotion;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,7 +13,6 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
-
 
 namespace Emotion.Editor.RuntimeCodeGen;
 
