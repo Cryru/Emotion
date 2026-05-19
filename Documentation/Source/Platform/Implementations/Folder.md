@@ -1,1 +1,0 @@
-These are the platforms provided by the engine. You can find them in the [Emotion.Platform/Implementation]([CodeRoot]Platform/Implementation) folder.
