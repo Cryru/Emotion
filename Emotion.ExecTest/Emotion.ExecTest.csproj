@@ -29,6 +29,9 @@
     
     <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk.BlazorWebAssembly" Condition="'$(Platform)'=='Web'" />
     <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.BlazorWebAssembly" Condition="'$(Platform)'=='Web'" />
+    <ItemGroup>
+      <AdditionalFiles Include="Assets\Data\**\*.egd" />
+    </ItemGroup>
     
     <!-- Reflector Support -->
     <ItemGroup>

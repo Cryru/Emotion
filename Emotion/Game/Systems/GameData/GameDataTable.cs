@@ -10,47 +10,16 @@ public static partial class GameDatabase
     // Database internal class for handling storage of game data objects of a particular type.
     private sealed class GameDataTable
     {
-        public IGenericReflectorTypeHandler Handler;
         public Type Type { get; init; }
         public int ObjectCount { get => _objects.Count; }
 
         private List<GameDataObject> _objects = new();
         private Dictionary<string, int> _idMap = new(StringComparer.OrdinalIgnoreCase);
 
-        public GameDataTable(IGenericReflectorTypeHandler reflectorHandler, Type type)
+        public GameDataTable(Type type)
         {
-            Handler = reflectorHandler;
             Type = type;
         }
-
-        #region Loading
-
-        private List<GameDataObjectAsset>? _loadingObjects;
-
-        public void Loading_RegisterAsset(GameDataObjectAsset asset)
-        {
-            _loadingObjects ??= new List<GameDataObjectAsset>();
-            _loadingObjects.Add(asset);
-        }
-
-        public IEnumerator Loading_Process()
-        {
-            if (_loadingObjects == null) yield break;
-            foreach (GameDataObjectAsset ass in _loadingObjects)
-            {
-                yield return ass;
-                GameDataObject? content = ass.Content;
-                if (content != null)
-                    _objects.Add(content);
-            }
-
-            _objects.Sort();
-            RecreateIdMap();
-
-            _loadingObjects = null;
-        }
-
-        #endregion
 
         #region Editor Functionality
 

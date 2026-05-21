@@ -1,0 +1,5 @@
+﻿GameData.MonsterDefs.Monster
+TestData
+Hp = 15;
+Index = 0;
+Id = "TestData";

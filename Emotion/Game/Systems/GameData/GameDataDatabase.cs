@@ -16,9 +16,6 @@ public static partial class GameDatabase
 
     private static Dictionary<Type, GameDataTable> _database = new();
 
-    private const string ASSETS_DATA_FOLDER = "DataXML";
-    private const string CLASS_DATA_FOLDER = "DataClasses";
-
     internal static IEnumerator InitializeRoutine()
     {
         Assert(!Initialized);
@@ -28,68 +25,32 @@ public static partial class GameDatabase
         foreach (IGenericReflectorTypeHandler handler in dataTypes)
         {
             Type type = handler.Type;
-            GameDataTable table = new GameDataTable(handler, type);
+            GameDataTable table = new GameDataTable(type);
             _database.Add(type, table);
 
-            string typeName = type.Name;
-            foreach (string file in Engine.AssetLoader.ForEachAssetInFolder($"{ASSETS_DATA_FOLDER}/{typeName}"))
+            IGenericReflectorTypeHandler[] dataDefs = ReflectorEngine.GetDescendantsOf(type, false);
+            foreach (IGenericReflectorTypeHandler dataTypeHandler in dataDefs)
             {
-                if (file.Contains(".backup")) continue;
-                GameDataObjectAsset obj = Engine.AssetLoader.Get<GameDataObjectAsset>(file, noCache: true);
-                table.Loading_RegisterAsset(obj);
+                Type dataType = dataTypeHandler.Type;
+                string dataId = dataType.Name;
+
+                GameDataObject? obj = table.GetObjectById(dataId);
+                Assert(obj == null);
+
+                object? newObj = dataTypeHandler.CreateNew();
+                if (newObj is GameDataObject newDataObj)
+                {
+                    table.AddObject(newDataObj);
+                }
             }
         }
 
-        foreach ((Type typ, GameDataTable db) in _database)
-        {
-            yield return db.Loading_Process();
-        }
-
-        // Associate with classes
+        // Finalize loading
         foreach (IGenericReflectorTypeHandler handler in dataTypes)
         {
             Type type = handler.Type;
             _database.TryGetValue(type, out GameDataTable? typeTable);
             AssertNotNull(typeTable);
-
-            IGenericReflectorTypeHandler[] dataClasses = ReflectorEngine.GetDescendantsOf(type, true);
-
-            foreach (IGenericReflectorTypeHandler dataTypeHandler in dataClasses)
-            {
-                Type dataType = dataTypeHandler.Type;
-                string dataId = dataType.Name;
-
-                GameDataObject? obj = typeTable.GetObjectById(dataId);
-                if (obj != null)
-                {
-                    // Check if the existing object is of the defined class
-                    Type objType = obj.GetType();
-                    if (objType != dataType)
-                    {
-                        Engine.Log.ONE_Trace(MessageSource.GameData, $"Game data {dataId} is of type {objType.Name} rather than its class - {dataType.Name}. Upgrading.");
-                        object? objOfType = dataTypeHandler.CreateNew();
-                        if (objOfType is GameDataObject objOfTypeAsData)
-                        {
-                            ReflectorEngine.CopyProperties(obj, objOfTypeAsData);
-                            Assert(obj.Id == objOfTypeAsData.Id);
-                            typeTable.ReplaceObject(objOfTypeAsData);
-                        }
-                    }
-                }
-                else if (dataTypeHandler.CanCreateNew()) // Class only defined - create data entry if class can be initialized
-                {
-                    object? newObj = dataTypeHandler.CreateNew();
-                    if (newObj is GameDataObject newDataObj)
-                    {
-                        newDataObj.Id = dataId;
-                        newDataObj.Index = typeTable.ObjectCount;
-                        typeTable.AddObject(newDataObj);
-
-                        Engine.Log.ONE_Trace(MessageSource.GameData, $"Found game data {dataId} only as a class. Adding to list.");
-                    }
-                }
-            }
-
             Engine.Log.ONE_Info(MessageSource.GameData, $"Loaded {typeTable.ObjectCount} {type.Name}Defs");
         }
 

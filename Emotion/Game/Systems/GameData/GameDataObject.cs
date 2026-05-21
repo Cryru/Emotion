@@ -3,6 +3,7 @@
 #region Using
 
 using Emotion.Editor;
+using Emotion.GameDataLib;
 using Emotion.Standard.Reflector;
 
 #endregion

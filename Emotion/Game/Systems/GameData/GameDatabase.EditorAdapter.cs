@@ -55,21 +55,21 @@ public static partial class GameDatabase
             _database.TryGetValue(type, out GameDataTable? typeTable);
             AssertNotNull(typeTable);
 
-            string assetFolder = $"{ASSETS_DATA_FOLDER}/{type.Name}";
-            string? codeFolder = GetCodeFolder(type);
-            foreach (GameDataObject obj in objs)
-            {
-                GameDataObjectAsset ass = GameDataObjectAsset.CreateFromContent(obj);
-                ass.SaveAs($"{assetFolder}/{obj.Id}.xml", false);
+            //string assetFolder = $"{ASSETS_DATA_FOLDER}/{type.Name}";
+            //string? codeFolder = GetCodeFolder(type);
+            //foreach (GameDataObject obj in objs)
+            //{
+            //    GameDataObjectAsset ass = GameDataObjectAsset.CreateFromContent(obj);
+            //    ass.SaveAs($"{assetFolder}/{obj.Id}.xml", false);
 
-                EnsureObjClassFile(codeFolder, type, obj);
+            //    EnsureObjClassFile(codeFolder, type, obj);
 
-                string xml = XMLSerialization.To(obj);
-                GameDataObject? backToObject = XMLSerialization.From<GameDataObject>(xml);
-                AssertNotNull(backToObject);
-                if (backToObject != null && typeTable != null)
-                    typeTable.ReplaceObject(backToObject);
-            }
+            //    string xml = XMLSerialization.To(obj);
+            //    GameDataObject? backToObject = XMLSerialization.From<GameDataObject>(xml);
+            //    AssertNotNull(backToObject);
+            //    if (backToObject != null && typeTable != null)
+            //        typeTable.ReplaceObject(backToObject);
+            //}
         }
 
         private static void EnsureObjClassFile(string? codeFolder, Type dataType, GameDataObject obj)
@@ -120,11 +120,11 @@ public static partial class GameDatabase
         {
             if (AssetLoader.CanWriteAssets)
             {
-                string projectFolder = AssetLoader.DevModeAssetFolder;
-                if (!string.IsNullOrEmpty(projectFolder))
-                    return Path.Join(projectFolder, ASSETS_DATA_FOLDER, typ.Name);
-                else
-                    return null;
+                //string projectFolder = AssetLoader.DevModeAssetFolder;
+                //if (!string.IsNullOrEmpty(projectFolder))
+                //    return Path.Join(projectFolder, ASSETS_DATA_FOLDER, typ.Name);
+                //else
+                //    return null;
             }
             return null;
         }
@@ -133,11 +133,11 @@ public static partial class GameDatabase
         {
             if (AssetLoader.CanWriteAssets)
             {
-                string projectFolder = AssetLoader.DevModeProjectFolder;
-                if (!string.IsNullOrEmpty(projectFolder))
-                    return Path.Join(projectFolder, CLASS_DATA_FOLDER, typ.Name);
-                else
-                    return null;
+                //string projectFolder = AssetLoader.DevModeProjectFolder;
+                //if (!string.IsNullOrEmpty(projectFolder))
+                //    return Path.Join(projectFolder, CLASS_DATA_FOLDER, typ.Name);
+                //else
+                //    return null;
             }
 
             Assert(false, "Trying to get generated class path on a non-developer platform");
