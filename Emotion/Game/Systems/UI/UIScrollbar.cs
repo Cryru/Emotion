@@ -146,7 +146,12 @@ public class UIScrollbar : UIBaseWindow
 
     protected override void InternalRender(Renderer r)
     {
-        r.RenderSprite(_selectorRect, _selectorColor);
+        RenderScrollbarSelector(r);
         base.InternalRender(r);
+    }
+
+    protected virtual void RenderScrollbarSelector(Renderer r)
+    {
+        r.RenderSprite(_selectorRect, _selectorColor);
     }
 }

@@ -13,6 +13,7 @@ public static class OnePalette
     public static Color PRIMARY_4 = new Color("#6449B4");
     public static Color PRIMARY_5 = new Color("#493487");
     public static Color PRIMARY_6 = new Color("#2B1F4E");
+    public static Color PRIMARY_7 = new Color("#7F63D0");
 
     public static Color WARNING_1 = new Color("#FFDC9A");
     public static Color WARNING_2 = new Color("#FFAF38");
