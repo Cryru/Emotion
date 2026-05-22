@@ -28,6 +28,7 @@ public struct UIWindowCalculatedMetrics
     public int MainAxis;
     public int CrossAxis;
 
+    public IntVector2 DisableShrinking = IntVector2.Zero;
     public Vector2 MaxScroll;
 
     public readonly IntVector2 GetViewportSize() => Size - PaddingTotalSize;

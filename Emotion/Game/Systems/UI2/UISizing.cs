@@ -47,16 +47,6 @@ public record struct UISizing
         };
     }
 
-    public readonly bool CanShrink()
-    {
-        return Mode == UISizingMode.Grow || Mode == UISizingMode.ShrinkOnly;
-    }
-
-    public readonly bool CanGrow()
-    {
-        return Mode == UISizingMode.Grow;
-    }
-
     public override readonly string ToString()
     {
         if (Mode == UISizingMode.Fixed)

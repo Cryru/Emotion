@@ -803,7 +803,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     #endregion
 
-    #region Helpers
+    #region Public API
 
     /// <summary>
     /// Get a window with the specified id which is either a child of this window,
@@ -966,6 +966,12 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         CalculatedMetrics.PreferredSize = preferredSize;
         CalculatedMetrics.MaxSize = Layout.MaxSize.CeilMultiply(CalculatedMetrics.Scale);
         CalculatedMetrics.MaxSize = IntVector2.Min(CalculatedMetrics.MaxSize, maxSize);
+
+        if (Parent != null) // We actually need to handle this case due to the UISystem passing through here.
+        {
+            CalculatedMetrics.DisableShrinking[0] = (Parent.CalculatedMetrics.DisableShrinking[0] != 0 || Parent.Layout.OverflowX != UIOverflow.Visible) ? 1 : 0;
+            CalculatedMetrics.DisableShrinking[1] = (Parent.CalculatedMetrics.DisableShrinking[1] != 0 || Parent.Layout.OverflowY != UIOverflow.Visible) ? 1 : 0;
+        }
 
         foreach (UIBaseWindow child in Children)
         {

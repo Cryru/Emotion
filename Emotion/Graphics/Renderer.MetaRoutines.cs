@@ -241,6 +241,7 @@ namespace Emotion.Graphics
         {
             RenderState oldState = CurrentState;
             _roundedRectangleState.ViewMatrix = oldState.ViewMatrix; // todo: make this into an enum with a "DontChange"
+            _roundedRectangleState.ClipRect = oldState.ClipRect;
 
             if (!SetStateEx(_roundedRectangleState, waitLoad)) return;
             CurrentShader.SetUniformVector2("RectSize", size);

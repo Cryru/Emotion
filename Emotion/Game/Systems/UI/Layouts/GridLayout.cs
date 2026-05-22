@@ -127,9 +127,8 @@ public partial class UIBaseWindow
                     GridHelpers.GetCoordinate2DFrom1D(childrenToLayout, columnCount, out int col, out int row);
                     int idxForAxis = axis == 0 ? col : row;
 
-                    UISizing sizing = GetSizingInDirection(child, axis);
-                    growingAxis[idxForAxis] = sizing.CanGrow();
-                    shrinkingAxis[idxForAxis] = sizing.CanShrink();
+                    growingAxis[idxForAxis] = CanGrowInDirection(child, axis);
+                    shrinkingAxis[idxForAxis] = CanShrinkInDirection(child, axis);
 
                     childrenToLayout++;
                 }
@@ -155,7 +154,7 @@ public partial class UIBaseWindow
             foreach (UIBaseWindow child in children)
             {
                 UISizing sizing = GetSizingInDirection(child, axis);
-                if (sizing.CanGrow() || sizing.CanShrink())
+                if (CanGrowInDirection(child, axis) || CanShrinkInDirection(child, axis))
                 {
                     GridHelpers.GetCoordinate2DFrom1D(childIdx, columnCount, out int col, out int row);
                     int idxForAxis = axis == 0 ? col : row;
