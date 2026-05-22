@@ -9,7 +9,9 @@ using Emotion.Core.Systems.IO;
 using Emotion.Core.Systems.Logging;
 using Emotion.Graphics;
 using Emotion.Graphics.Assets;
+using Emotion.Graphics.Data;
 using Emotion.Graphics.Objects;
+using Emotion.Graphics.Shader;
 using Emotion.Primitives;
 using Emotion.Standard;
 using Emotion.Standard.Extensions;
@@ -277,33 +279,44 @@ public class BasicRenderTests : ProxyRenderTestingScene
     [Test]
     public IEnumerator TestDepthFromOtherFrameBuffer()
     {
+        // todo: fix this shiiiit
+        var shader = Engine.AssetLoader.Get<ShaderGroupAsset>("Shaders/DepthTest.glsl");
+        yield return shader;
+        var shaderOut = new ShaderGroup.ShaderOut();
+        yield return shader.GetObject().GetShaderRoutine(shaderOut, new ShaderGroupDefinition(VertexData.Format));
+
         ToRender = (composer) =>
         {
-             FrameBuffer testBuffer = new FrameBuffer(Engine.Renderer.DrawBuffer.Size).WithColor().WithDepth(true);
+            FrameBuffer testBuffer = new FrameBuffer(Engine.Renderer.DrawBuffer.Size).WithColor().WithDepth(true);
 
-             composer.Camera.Position += composer.Camera.WorldToScreen(Vector3.Zero).ToVec3();
+            composer.Camera.Position += composer.Camera.WorldToScreen(Vector3.Zero).ToVec3();
 
-             composer.RenderTo(testBuffer);
-             composer.ClearFrameBuffer();
-             composer.RenderSprite(new Vector3(0, 0, 10), new Vector2(100, 100), Color.Green);
-             composer.RenderTo(null);
+            composer.RenderTo(testBuffer);
+            composer.ClearFrameBuffer();
+            composer.RenderSprite(new Vector3(0, 0, 10), new Vector2(100, 100), Color.Green);
+            composer.RenderTo(null);
 
-             composer.SetUseViewMatrix(false);
-             var shader = composer.SetShader("Shaders/DepthTest.xml");
-             shader.SetUniformInt("depthTexture", 1);
-             Texture.EnsureBound(testBuffer.DepthTexture.Pointer, 1);
-             composer.RenderSprite(new Vector3(0, 0, 0), testBuffer.Texture.Size, Color.White, testBuffer.Texture);
-             composer.SetShader();
-             composer.SetUseViewMatrix(true);
+            composer.SetUseViewMatrix(false);
 
-             composer.RenderSprite(new Vector3(20, 20, 15), new Vector2(100, 100), Color.Blue);
-             composer.RenderSprite(new Vector3(10, 10, 0), new Vector2(100, 100), Color.Red);
+            RenderState s = composer.CurrentState.Clone();
+            s.ShaderGroup = "Shaders/DepthTest.glsl";
+            composer.SetStateEx(s, true);
 
-             composer.FlushRenderStream();
-             testBuffer.Dispose();
+            var shader = composer.CurrentShader;
+            shader.SetUniformInt("depthTexture", 1);
+            Texture.EnsureBound(testBuffer.DepthTexture.Pointer, 1);
+            composer.RenderSprite(new Vector3(0, 0, 0), testBuffer.Texture.Size, Color.White, testBuffer.Texture);
+            composer.SetShader();
+            composer.SetUseViewMatrix(true);
 
-             composer.Camera.Position = Vector3.Zero;
-         };
+            composer.RenderSprite(new Vector3(20, 20, 15), new Vector2(100, 100), Color.Blue);
+            composer.RenderSprite(new Vector3(10, 10, 0), new Vector2(100, 100), Color.Red);
+
+            composer.FlushRenderStream();
+            testBuffer.Dispose();
+
+            composer.Camera.Position = Vector3.Zero;
+        };
 
         yield return new TestWaiterRunLoops(1);
         yield return VerifyScreenshot(nameof(BasicRenderTests), nameof(TestDepthFromOtherFrameBuffer));

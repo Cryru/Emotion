@@ -44,14 +44,11 @@
 
     <ItemGroup>
         <None Remove="Assets\Embedded\EmbedText.txt" />
-        <None Remove="Assets\Shaders\DepthTest.frag" />
-        <None Remove="Assets\Shaders\DepthTest.xml" />
     </ItemGroup>
 
     <ItemGroup>
         <EmbeddedResource Include="Assets\Embedded\EmbedText.txt" />
-        <EmbeddedResource Include="Assets\Shaders\DepthTest.frag" />
-        <EmbeddedResource Include="Assets\Shaders\DepthTest.xml" />
+        <EmbeddedResource Include="Assets\Shaders\DepthTest.glsl" />
     </ItemGroup>
 
     <ItemGroup>
@@ -98,9 +95,6 @@
         <None Update="Assets\ReferenceRenders\StandardImageTests\DecodeBmp256().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\ReferenceRenders\ShaderTests\ShaderBrokenLoad().png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
         <None Update="Assets\ReferenceRenders\BasicRenderTests\RenderDepthTest().png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
@@ -133,21 +127,6 @@
         </None>
         
         <None Update="Assets\ReferenceRenders\BasicRenderTests\RenderRichText().png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\ShaderTests\ShaderFallback().png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\ShaderTests\ShaderTest().png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\ShaderTests\ShaderTest()_1.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\ShaderTests\ShaderTest()_2.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Assets\ReferenceRenders\ShaderTests\ShaderTest()_3.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Assets\ReferenceRenders\BasicRenderTests\TestDepthFromOtherFrameBuffer().png">
