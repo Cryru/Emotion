@@ -42,6 +42,8 @@ public struct UIWindowCalculatedMetrics
 
     public float ScaleF { get => MathF.Max(Scale.X, Scale.Y); }
 
+    public Vector2 ScaleInv { get => new Vector2(1f) / Scale; }
+
     public bool InsideParent;
 
     public IntVector2 ChildrenSize;
