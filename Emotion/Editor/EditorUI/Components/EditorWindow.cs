@@ -2,12 +2,10 @@
 
 #region Using
 
-using Emotion.Core.Systems.Input;
 using Emotion.Core.Utility.Threading;
-using Emotion.Game.Systems.UI;
+using Emotion.Game.Systems.UI.New;
 using OpenGL;
 using static Emotion.Core.Platform.PlatformBase;
-using static Emotion.Graphics.Renderer;
 
 #endregion
 
@@ -84,7 +82,9 @@ public class EditorWindow : UIBaseWindow
                 LayoutMethod = UILayoutMethod.VerticalList(0),
                 AnchorAndParentAnchor = UIAnchor.CenterCenter,
                 SizingX = UISizing.Fit(),
-                SizingY = UISizing.Fit()
+                SizingY = UISizing.Fit(),
+
+                MaxSize = new IntVector2(1800, 970),
             },
 
             Visuals =
@@ -110,7 +110,9 @@ public class EditorWindow : UIBaseWindow
             Name = "Content",
             Layout =
             {
-                Margins = new UISpacing(5, 5, 5, 5)
+                Margins = new UISpacing(5, 5, 5, 5),
+                OverflowX = UIOverflow.Scroll,
+                OverflowY = UIOverflow.Scroll,
             },
         };
         panelInner.AddChild(panelContent);
@@ -131,7 +133,7 @@ public class EditorWindow : UIBaseWindow
     {
         if (!_centered)
         {
-            _panelItself.Layout.Offset = _panelItself.CalculatedMetrics.Position.FloorMultiply(1f / GetScale());
+            _panelItself.Layout.Offset = _panelItself.CalculatedMetrics.Position.RoundMultiply(_panelItself.CalculatedMetrics.ScaleInv);
             _panelItself.Layout.AnchorAndParentAnchor = UIAnchor.TopLeft;
 
             _centered = true;
@@ -210,7 +212,7 @@ public class EditorWindow : UIBaseWindow
 
     protected override void InternalRender(Renderer r)
     {
-        // If rendering to another window, make its context current.
+        // If rendering to another window, we render to the FB which we will later flush to its context
         if (_hostWindow != null && _hostWindow.IsOpen)
         {
             AssertNotNull(_windowFB);
@@ -218,9 +220,9 @@ public class EditorWindow : UIBaseWindow
             {
                 _windowFB.Resize(_hostWindow.Size, true);
 
-                Vector2 size = _hostWindow.Size / GetScale();
-                _panelItself.Layout.SizingX = UISizing.Fixed((int)size.X);
-                _panelItself.Layout.SizingY = UISizing.Fixed((int)size.Y);
+                IntVector2 size = IntVector2.FromVec2Ceiling(_hostWindow.Size * CalculatedMetrics.ScaleInv);
+                _panelItself.Layout.SizingX = UISizing.Fixed(size.X);
+                _panelItself.Layout.SizingY = UISizing.Fixed(size.Y);
             }
             r.RenderToAndClear(_windowFB);
             r.RenderSprite(CalculatedMetrics.Position.ToVec2(), CalculatedMetrics.Size.ToVec2(), Color.CornflowerBlue);
@@ -252,7 +254,6 @@ public class EditorWindow : UIBaseWindow
                 Close();
                 return false;
             }
-            //OrderInParent = _hostWindow.IsFocused ? 50 : 0;
         }
 
         UpdateResize();
@@ -326,11 +327,10 @@ public class EditorWindow : UIBaseWindow
             Vector2 curMouse = Engine.Host.MousePosition;
             curMouse = Vector2.Clamp(curMouse, Vector2.Zero, CalculatedMetrics.Size.ToVec2());
             Rectangle r = Rectangle.FromMinMaxPoints(_panelItself.CalculatedMetrics.Position.ToVec2(), curMouse);
-            r.Size /= GetScale(); // Unscale
 
-            // The sizing should prevent it from being smaller than the children
-            _panelItself.Layout.SizingX = UISizing.Fixed((int)r.Size.X);
-            _panelItself.Layout.SizingY = UISizing.Fixed((int)r.Size.Y);
+            IntVector2 newSize = IntVector2.FromVec2Floor(r.Size * _panelItself.CalculatedMetrics.ScaleInv); // Unscale
+            _panelItself.Layout.SizingX = UISizing.Fixed(newSize.X);
+            _panelItself.Layout.SizingY = UISizing.Fixed(newSize.Y);
         }
     }
 
@@ -341,8 +341,7 @@ public class EditorWindow : UIBaseWindow
     public bool AllowDragMove = true;
     public bool AllowSubWindow = true;
 
-    private bool _topBarMouseDown;
-    private Vector2 _topBarMouseDownPos;
+    private Vector2? _topBarMouseDown;
     private UIBaseWindow? _topBar;
 
     private void AttachTopBar(UIBaseWindow parent)
@@ -363,14 +362,13 @@ public class EditorWindow : UIBaseWindow
                 SizingY = UISizing.Fit(),
                 LayoutMethod = UILayoutMethod.HorizontalList(0)
             },
-            OnClickedProxy = (_) =>
+            OnClickedProxy = (self) =>
             {
-                _topBarMouseDown = true;
-                _topBarMouseDownPos = Engine.Host.MousePosition;
+                _topBarMouseDown = self.CalculatedMetrics.Position.ToVec2() - Engine.Host.MousePosition;
             },
             OnClickedUpProxy = (_) =>
             {
-                _topBarMouseDown = false;
+                _topBarMouseDown = null;
             },
             OnMouseEnterProxy = (_) =>
             {
@@ -448,30 +446,30 @@ public class EditorWindow : UIBaseWindow
 
     private void UpdateDragMove()
     {
-        if (_topBarMouseDown && AllowDragMove)
+        if (_topBarMouseDown != null && AllowDragMove)
         {
-            // Note: there is a little offset due to scaling and floating point imprecision :/
-            float scale = _panelItself.GetScale();
-            Vector2 mousePosNow = Engine.Host.MousePosition;
-            IntVector2 posDiff = IntVector2.FromVec2Floor((mousePosNow - _topBarMouseDownPos) / scale);
-            _topBarMouseDownPos = mousePosNow;
+            Vector2 pressOffset = _topBarMouseDown.Value;
+            Vector2 mouseOffset = Engine.Host.MousePosition + pressOffset;
 
-            // We need to manually calculate the bounds as the layout might not have updated yet (dragging is fast!)
-            IntRectangle panelBounds = new(
-                _panelItself.Layout.Offset + posDiff,
-                _panelItself.CalculatedMetrics.Size
+            // Estimate new bounds to snap to screen
+            Rectangle panelBounds = new(
+                mouseOffset,
+                _panelItself.CalculatedMetrics.Size.ToVec2()
             );
 
-            IntRectangle snapArea = IntRectangle.FromRectFloor(Engine.UI.CalculatedMetrics.Bounds.ToRect() / scale);
+            IntRectangle snapArea = IntRectangle.FromRectFloor(Engine.UI.CalculatedMetrics.Bounds.ToRect());
             UIBaseWindow? mapEditorTopBar = Engine.UI.GetWindowById("EditorTopBar");
             if (mapEditorTopBar != null)
             {
-                int topBarPos = (int)MathF.Floor(mapEditorTopBar.CalculatedMetrics.Bounds.Bottom / scale);
+                int topBarPos = (int)MathF.Floor(mapEditorTopBar.CalculatedMetrics.Bounds.Bottom);
                 snapArea.Y = topBarPos;
                 snapArea.Height -= topBarPos;
             }
 
-            _panelItself.Layout.Offset = IntVector2.FromVec2Floor(snapArea.ToRect().SnapRectangleInside(panelBounds.ToRect()));
+            Vector2 newPosScreenSpace = snapArea.ToRect().SnapRectangleInside(panelBounds);
+            Vector2 invScale = _panelItself.CalculatedMetrics.ScaleInv;
+            IntVector2 newPosUISpace = IntVector2.FromVec2Floor(newPosScreenSpace * invScale);
+            _panelItself.Layout.Offset = newPosUISpace;
         }
     }
 
@@ -482,20 +480,12 @@ public class EditorWindow : UIBaseWindow
     private PlatformSubWindow? _hostWindow;
     private FrameBuffer? _windowFB;
 
-    protected override IntVector2 InternalGetWindowMinSize()
-    {
-        if (_hostWindow != null)
-            return IntVector2.FromVec2Ceiling(_hostWindow.Size);
-        return base.InternalGetWindowMinSize();
-    }
-
-    public override UIBaseWindow? FindMouseInput(Vector2 pos)
+    public override MouseFocusPair FindWindowUnderMouse(Vector2 pos, bool respectInputHandling = true)
     {
         // If using my own host window,
         // receive mouse input only when the host window is focused!
-        if (_hostWindow != null && !_hostWindow.IsFocused) return null;
-
-        return base.FindMouseInput(pos);
+        if (_hostWindow != null && !_hostWindow.IsFocused) return MouseFocusPair.None;
+        return base.FindWindowUnderMouse(pos, respectInputHandling);
     }
 
     protected void CreateSubWindow()
@@ -518,6 +508,11 @@ public class EditorWindow : UIBaseWindow
 
             _panelItself.Layout.Offset = IntVector2.Zero;
             _panelItself.Layout.AnchorAndParentAnchor = UIAnchor.TopLeft;
+
+            IntVector2 size = IntVector2.FromVec2Ceiling(_hostWindow.Size * CalculatedMetrics.ScaleInv);
+            _panelItself.Layout.SizingX = UISizing.Fixed(size.X);
+            _panelItself.Layout.SizingY = UISizing.Fixed(size.Y);
+
             _centered = true;
         });
     }
@@ -528,7 +523,7 @@ public class EditorWindow : UIBaseWindow
         AssertNotNull(_windowFB);
 
         // debug - draw where it actually is on the main window
-        // c.RenderSprite(Vector3.Zero, _windowFB.Size, _windowFB.ColorAttachment);
+        //c.RenderSprite(Vector3.Zero, _windowFB.Size, Color.White * 0.5f, _windowFB.ColorAttachment);
 
         c.FlushRenderStream();
         _hostWindow.MakeCurrent();
