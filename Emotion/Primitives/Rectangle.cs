@@ -204,6 +204,15 @@ public struct Rectangle : IEquatable<Rectangle>, IShape
         return a;
     }
 
+    public static Rectangle operator *(Rectangle a, Vector2 sca)
+    {
+        a.X /= sca.X;
+        a.Y /= sca.Y;
+        a.Width /= sca.X;
+        a.Height /= sca.Y;
+        return a;
+    }
+
     /// <summary>
     /// Multiply both the size and location of the rectangle by the given float.
     /// </summary>
