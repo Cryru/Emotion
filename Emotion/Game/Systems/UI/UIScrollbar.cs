@@ -120,11 +120,11 @@ public class UIScrollbar : UIBaseWindow
         {
             float trackW = track.Width;
             float thumbW = TotalArea <= 0 ? trackW : (PageArea / MathF.Max(1, TotalArea)) * trackW;
-            thumbW = Math.Clamp(thumbW, 0, trackW);
+            thumbW = Maths.Clamp(thumbW, 0, trackW);
 
             float maxScroll = MathF.Max(0, TotalArea - PageArea);
             float norm = maxScroll <= 0 ? 0 : Current / maxScroll;
-            norm = Math.Clamp(norm, 0, 1);
+            norm = Maths.Clamp(norm, 0, 1);
 
             float x = track.X + norm * MathF.Max(0, trackW - thumbW);
             _selectorRect = new Rectangle(x, track.Y, thumbW, track.Height);
@@ -133,11 +133,11 @@ public class UIScrollbar : UIBaseWindow
         {
             float trackH = track.Height;
             float thumbH = TotalArea <= 0 ? trackH : (PageArea / MathF.Max(1, TotalArea)) * trackH;
-            thumbH = Math.Clamp(thumbH, 0, trackH);
+            thumbH = Maths.Clamp(thumbH, 0, trackH);
 
             float maxScroll = MathF.Max(0, TotalArea - PageArea);
             float norm = maxScroll <= 0 ? 0 : Current / maxScroll;
-            norm = Math.Clamp(norm, 0, 1);
+            norm = Maths.Clamp(norm, 0, 1);
 
             float y = track.Y + norm * MathF.Max(0, trackH - thumbH);
             _selectorRect = new Rectangle(track.X, y, track.Width, thumbH);
