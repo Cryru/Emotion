@@ -399,9 +399,9 @@ public sealed partial class Renderer
     }
 
     // todo
-    public bool SetStateEx(RenderState newState, bool ensureLoaded)
+    public bool SetStateEx(RenderState newState, bool setIfNotLoaded)
     {
-        if (!ensureLoaded)
+        if (!setIfNotLoaded)
         {
             AssetObjectReference<ShaderGroupAsset, ShaderGroup> shaderGroup = newState.ShaderGroup;
             if (shaderGroup.IsValid())
