@@ -86,10 +86,9 @@ public class EditorWindow : UIBaseWindow
 
                 MaxSize = new IntVector2(1800, 970),
             },
-
             Visuals =
             {
-                BackgroundColor = EditorColorPalette.BarColor * 0.8f,
+                BackgroundColor = EditorColorPalette.BarColor * 0.9f,
                 BorderColor = EditorColorPalette.ActiveButtonColor * 0.9f,
                 Border = 2
             }
@@ -113,7 +112,7 @@ public class EditorWindow : UIBaseWindow
                 Margins = new UISpacing(5, 5, 5, 5),
                 OverflowX = UIOverflow.Scroll,
                 OverflowY = UIOverflow.Scroll
-            },
+            }
         };
         panelInner.AddChild(panelContent);
 

@@ -43,7 +43,7 @@ vec4 FragmentShaderMain()
     vec2 ratio = vec2(aspect, 1.0); // The actual resolution here.
     vec2 uv = ((2. * V_UV) - 1.) * ratio;
 
-    float mn = min(ratio.x, ratio.y) / 2.0;
+    float mn = min(ratio.x, ratio.y);
     float radiusInRatio = min((RadiusPixels / RectSize.x) * ratio.x, mn);
     vec2 deflatedRect = ratio - vec2(radiusInRatio); // The rectangle without the radius.
     vec2 left = deflatedRect;

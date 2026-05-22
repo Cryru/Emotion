@@ -85,6 +85,7 @@ public class OneButton : UIBaseButton
         else if (_type == ButtonType.Important)
         {
             _defaultColor = OnePalette.PRIMARY_4;
+            _hoverColor = OnePalette.PRIMARY_7;
         }
         else if (_type == ButtonType.Warning)
         {

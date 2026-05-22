@@ -1,6 +1,6 @@
 #nullable enable
 
-using Emotion.Editor.EditorUI;
+using Emotion.Editor.EditorUI.Components;
 
 namespace Emotion.Game.Systems.UI;
 
@@ -15,12 +15,12 @@ public partial class UIBaseWindow
 
     protected virtual UIScrollbar? CreateScrollbarVertical()
     {
-        return new EditorScrollBar();
+        return new OneScrollbar(false);
     }
 
     protected virtual UIScrollbar? CreateScrollbarHorizontal()
     {
-        return new EditorScrollBarHorizontal();
+        return new OneScrollbar(true);
     }
 
     private void EnsureScrollbars()
