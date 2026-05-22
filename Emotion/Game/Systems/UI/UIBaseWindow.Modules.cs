@@ -634,7 +634,8 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         Rectangle? prevClip = null;
         if (clipOverflow)
         {
-            Rectangle clipRect = CalculatedMetrics.Bounds.ToRect().Offset(r.ModelMatrix.Translation.ToVec2()); // Scroll in scroll handling
+            Rectangle clipRect = CalculatedMetrics.GetViewportRect().ToRect()
+                .Offset(r.ModelMatrix.Translation.ToVec2()); // Scroll in scroll handling
             prevClip = r.CurrentState.ClipRect;
             if (prevClip != null)
                 clipRect = Rectangle.Clip(prevClip.Value, clipRect);
