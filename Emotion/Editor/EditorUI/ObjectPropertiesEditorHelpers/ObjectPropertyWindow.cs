@@ -1,15 +1,14 @@
-﻿using Emotion.Core.Utility.Threading;
+﻿#nullable enable
+
+using Emotion.Core.Utility.Threading;
 using Emotion.Editor.EditorUI.Components;
-using Emotion.Game.Systems.UI;
 using Emotion.Standard.Reflector;
 using Emotion.Standard.Reflector.Handlers.Base;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 
-#nullable enable
-
 namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;
 
-public class ObjectPropertyWindow : UIBaseWindow
+public partial class ObjectPropertyWindow : UIBaseWindow
 {
     public object? ObjectBeingEdited { get; protected set; }
 
@@ -59,7 +58,6 @@ public class ObjectPropertyWindow : UIBaseWindow
         // the object changes have nowhere to be propagated to.
 
         ClearChildren();
-
         SpawnPagingUI();
 
         // Editor for set object.

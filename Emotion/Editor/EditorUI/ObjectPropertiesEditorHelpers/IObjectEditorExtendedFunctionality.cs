@@ -2,5 +2,5 @@
 
 public interface IObjectEditorExtendedFunctionality<T>
 {
-    public void OnAfterEditorsSpawn(ComplexObjectEditor<T> editor);
+    public void OnAfterEditorsSpawn(ObjectPropertyWindow.ComplexObjectEditor<T> editor);
 }

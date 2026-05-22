@@ -74,7 +74,7 @@ public class SpriteAnimationFrame : IObjectEditorExtendedFunctionality<SpriteAni
 
     #region Editor Functionality
 
-    public void OnAfterEditorsSpawn(ComplexObjectEditor<SpriteAnimationFrame> editor)
+    public void OnAfterEditorsSpawn(ObjectPropertyWindow.ComplexObjectEditor<SpriteAnimationFrame> editor)
     {
         ObjectPropertyWindow? objectEditor = editor.GetParentOfKind<ObjectPropertyWindow>();
         if (objectEditor == null) return;

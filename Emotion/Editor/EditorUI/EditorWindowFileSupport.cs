@@ -56,6 +56,7 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
                 Layout =
                 {
                     Padding = new UISpacing(5, 5, 5, 5),
+                    SizingY = UISizing.Fit()
                 },
                 OrderInParent = -10
             };
@@ -65,9 +66,8 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
             EditorLabel changesLabel = new EditorLabel
             {
                 Text = $"You have unsaved changes!",
-                WindowColor = Color.White,
                 FontSize = 20,
-                IgnoreParentColor = true
+                IgnoreParentColor = true,
             };
             changesBox.AddChild(changesLabel);
         }

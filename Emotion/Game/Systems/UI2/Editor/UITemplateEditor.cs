@@ -123,7 +123,7 @@ public class UITemplateEditor : TypeEditor
     private UIBaseWindow? _selectedWindow;
 
     private O_UITemplate? _objectEditing = null;
-    private ComplexObjectEditor<O_UITemplate> _objEditor;
+    private ObjectPropertyWindow.ComplexObjectEditor<O_UITemplate> _objEditor;
     private ObjectPropertyWindow _windowEditor;
     private UIBaseWindow _viewPort;
     private EditorTreeViewWindow<UIBaseWindow>? _treeView;
@@ -165,7 +165,7 @@ public class UITemplateEditor : TypeEditor
             if (_objectEditing != null)
                 treeView.SetObject(_objectEditing.Window);
             treeView.SelectObject(_selectedWindow, false);
-            treeViewScrollContent.AddChildInside(treeView);
+            treeViewScrollContent.AddChild(treeView);
             treeView.OnObjectSelected = SelectSubWindow;
             _treeView = treeView;
         });
@@ -186,7 +186,7 @@ public class UITemplateEditor : TypeEditor
         };
         contentPanel.AddChild(right);
 
-        var meEditor = new ComplexObjectEditor<O_UITemplate>();
+        var meEditor = new ObjectPropertyWindow.ComplexObjectEditor<O_UITemplate>();
         meEditor.Layout.SizingY = UISizing.Fixed(150);
         right.AddChild(meEditor);
         _objEditor = meEditor;

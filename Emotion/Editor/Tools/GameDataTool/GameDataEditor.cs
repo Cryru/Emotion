@@ -70,7 +70,13 @@ public class GameDataEditor : TwoSplitEditorWindowFileSupport<GameDataListEditor
         {
             AllowObjectEditting = false,
             IgnoreParentColor = true,
-            OnItemSelected = SetEditItem
+            OnItemSelected = SetEditItem,
+
+            Layout =
+            {
+                OverflowX = UIOverflow.Scroll,
+                OverflowY = UIOverflow.Scroll,
+            }
         };
         _listEditor = list;
         return list;

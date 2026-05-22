@@ -1,14 +1,14 @@
 ﻿#nullable enable
 
-
 namespace Emotion.Editor.EditorUI.Components;
 
-public class NewUIScrollArea : UIBaseWindow
+public class EditorPanel : UIBaseWindow
 {
-    public NewUIScrollArea()
+    public EditorPanel()
     {
-        Layout.SizingX = UISizing.Grow();
-        Layout.SizingY = UISizing.Grow();
+        Layout.Padding = new UISpacing(5, 5, 5, 5);
+        Visuals.Border = 3;
+        Visuals.BorderColor = EditorColorPalette.ButtonColor;
         Layout.OverflowX = UIOverflow.Scroll;
         Layout.OverflowY = UIOverflow.Scroll;
     }
@@ -18,21 +18,5 @@ public class NewUIScrollArea : UIBaseWindow
         pos += ScrollOffset;
         pos += CalculatedMetrics.Position.ToVec2();
         return pos;
-    }
-
-    // Backward-compat
-    public void AddChildInside(UIBaseWindow win)
-    {
-        AddChild(win);
-    }
-}
-
-public class EditorPanel : NewUIScrollArea
-{
-    public EditorPanel()
-    {
-        Layout.Padding = new UISpacing(5, 5, 5, 5);
-        Visuals.Border = 3;
-        Visuals.BorderColor = EditorColorPalette.ButtonColor;
     }
 }
