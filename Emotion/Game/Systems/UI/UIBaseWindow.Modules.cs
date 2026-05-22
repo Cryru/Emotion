@@ -76,7 +76,7 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     #region Main Properties
 
-    
+
 
     /// <summary>
     /// The Z axis is combined with that of the parent, whose is combined with that of their parent, and so forth.
@@ -166,12 +166,6 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     {
         return CalculatedMetrics.ScaleF;
     }
-
-    public virtual UIBaseWindow? FindMouseInput(Vector2 pos)
-    {
-        return null;
-    }
-
 
     protected virtual bool RenderInternal(Renderer c)
     {
@@ -320,6 +314,8 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         Assert(State != UIWindowState.Open || GLThread.IsGLThread(), "UI children can only be removed from the main thread.");
 
         _children.Remove(child);
+        _cacheChildrenLayoutMain.Remove(child);
+        _cacheChildrenLayoutOutside.Remove(child);
         child.SetStateClosed();
 
         InvalidateLayout();
@@ -428,13 +424,6 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     #region Updates
 
-    protected bool _needsLoading = true;
-
-    protected void InvalidateAssets()
-    {
-        _needsLoading = true;
-    }
-
     protected bool _needsLayout = true;
 
     public virtual void InvalidateLayout()
@@ -486,18 +475,24 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     #region Loading
 
     private Coroutine _loadingRoutine = Coroutine.CompletedRoutine;
+    private bool _childLoading = false;
+    protected bool _needsLoading = true;
+
+    protected void InvalidateAssets()
+    {
+        _needsLoading = true;
+    }
 
     public bool IsLoading()
     {
-        return _needsLoading || !_loadingRoutine.Finished;
+        return _needsLoading || !_loadingRoutine.Finished || _childLoading;
     }
 
     protected Coroutine? UpdateLoading()
     {
-        if (!_loadingRoutine.Finished)
-            return _loadingRoutine;
-
         Coroutine? firstLoading = null;
+        if (!_loadingRoutine.Finished)
+            firstLoading = _loadingRoutine;
 
         // Update loading only if not currently loading
         if (_needsLoading && _loadingRoutine.Finished)
@@ -515,13 +510,20 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
         //lock (this)
         //{
+        bool anyChildLoading = false;
         for (int i = 0; i < Children.Count; i++)
         {
             UIBaseWindow child = Children[i];
             Coroutine? childLoadRoutine = child.UpdateLoading();
             firstLoading ??= childLoadRoutine;
+            anyChildLoading = anyChildLoading || childLoadRoutine != null;
         }
         //}
+        //
+        if (Layout.LayoutMethod.Mode == UIMethodName.Free && Layout.SizingX.Mode == UISizing.UISizingMode.Fixed && Layout.SizingY.Mode == UISizing.UISizingMode.Fixed)
+            _childLoading = false;
+        else
+            _childLoading = anyChildLoading;
 
         return firstLoading;
     }
@@ -673,11 +675,10 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
         Assert(State == UIWindowState.Open);
 
         // If loading we don't want to update or draw the UI
-        if (!IsLoading())
-        {
-            UpdateInternal();
-            if (State == UIWindowState.Closed) return; // Closed self in update.
-        }
+        if (IsLoading()) return;
+
+        UpdateInternal();
+        if (State == UIWindowState.Closed) return; // Closed self in update.
 
         // This is in reverse since children could close themselves in their UpdateInternal
         for (int i = Children.Count - 1; i >= 0; i--)
