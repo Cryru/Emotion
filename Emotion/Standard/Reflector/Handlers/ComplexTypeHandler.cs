@@ -76,7 +76,7 @@ public class ComplexTypeHandler<T> : ReflectorTypeHandlerBase<T>, IGenericReflec
         if (ReflectorEngine.IsTypeDescendedFrom<T, O_UITemplate>())
             return new UITemplateEditor();
 
-        return new ComplexObjectEditor<T>();
+        return new ObjectPropertyWindow.ComplexObjectEditor<T>();
     }
 
     public override void PostInit()

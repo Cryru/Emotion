@@ -53,7 +53,7 @@ public class ListEditor<TItem> : ListEditor
             },
             NoClip = true
         };
-        scrollArea.AddChildInside(_itemList);
+        scrollArea.AddChild(_itemList);
     }
 
     protected override void OnOpen()

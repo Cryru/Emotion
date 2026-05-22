@@ -112,7 +112,7 @@ public class EditorWindow : UIBaseWindow
             {
                 Margins = new UISpacing(5, 5, 5, 5),
                 OverflowX = UIOverflow.Scroll,
-                OverflowY = UIOverflow.Scroll,
+                OverflowY = UIOverflow.Scroll
             },
         };
         panelInner.AddChild(panelContent);
@@ -286,15 +286,15 @@ public class EditorWindow : UIBaseWindow
     {
         // todo: move to panel property
 
-        var dragAreaColor = new Color(180, 180, 180);
+        var dragAreaColor = new Color(180, 180, 180, 125);
         var dragAreaActive = new Color(240, 240, 240);
 
         UIPicture dragArea = new()
         {
             Layout =
             {
-                SizingX = UISizing.Fixed(25),
-                SizingY = UISizing.Fixed(25),
+                SizingX = UISizing.Fixed(20),
+                SizingY = UISizing.Fixed(20),
             },
             Texture = "Editor/PanelDragArea.png",
             Smooth = true,
