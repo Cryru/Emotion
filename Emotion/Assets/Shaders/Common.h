@@ -23,7 +23,13 @@ float saturate(in float value)
     return clamp(value, 0.0, 1.0);
 }
 
-layout(std140, binding = 0) uniform BaseUniforms {
+#ifdef RENDERER_UBOBindingSupport
+#define UBO_BLOCK(loc) layout(std140, binding = loc) uniform
+#else
+#define UBO_BLOCK(loc) layout(std140) uniform
+#endif
+
+UBO_BLOCK(0) BaseUniforms {
     mat4 projectionMatrix;
     mat4 viewMatrix;
     mat4 modelMatrix;

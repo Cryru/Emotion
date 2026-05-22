@@ -94,6 +94,11 @@ public sealed partial class Renderer
     /// </summary>
     public int TextureBindLimit { get; private set; } = -1;
 
+    /// <summary>
+    /// Whether UBOs support bindings
+    /// </summary>
+    public bool UBOBindingSupport { get; private set; }
+
     #endregion
 
     #region Objects
@@ -244,6 +249,7 @@ public sealed partial class Renderer
         // Set flags.
         CompatibilityMode = Gl.SoftwareRenderer || Engine.Configuration.RendererCompatMode;
         Dsa = !CompatibilityMode && Gl.CurrentVersion.Major >= 4 && Gl.CurrentVersion.Minor >= 5;
+        UBOBindingSupport = !CompatibilityMode && Gl.CurrentVersion.Major >= 4 && Gl.CurrentVersion.Minor >= 2;
         TextureBindLimit = Gl.SoftwareRenderer || Gl.CurrentVersion.Profile == KhronosVersion.PROFILE_WEBGL ? 16 : Gl.CurrentLimits.MaxTextureImageUnits;
 
         Engine.Log.Info($" Flags: " +
