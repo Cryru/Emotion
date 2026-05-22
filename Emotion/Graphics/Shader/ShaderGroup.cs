@@ -173,8 +173,9 @@ public class ShaderGroup
 
         StringBuilder vertexShader = new StringBuilder();
         vertexShader.Append(VersionString);
-        WriteCompatMode(vertexShader);
-        vertexShader.Append("\n#define VERT_SHADER 1\n");
+        if (Engine.Renderer.UBOBindingSupport)
+            vertexShader.Append("\n#define RENDERER_UBOBindingSupport 1\n");
+        vertexShader.Append("#define VERT_SHADER 1\n");
 
         vertexShader.Append(_includes);
         vertexShader.Append(pipelineDefCode);
@@ -191,8 +192,9 @@ public class ShaderGroup
 
         StringBuilder fragmentShader = new StringBuilder();
         fragmentShader.Append(VersionString);
-        WriteCompatMode(fragmentShader);
-        fragmentShader.Append("\n#define FRAG_SHADER 1\n");
+        if (Engine.Renderer.UBOBindingSupport)
+            fragmentShader.Append("\n#define RENDERER_UBOBindingSupport 1\n");
+        fragmentShader.Append("#define FRAG_SHADER 1\n");
 
         fragmentShader.Append(_includes);
         fragmentShader.Append(pipelineDefCode);
@@ -212,17 +214,6 @@ public class ShaderGroup
         fragmentShader.Append("}\n");
 
         return (vertexShader, fragmentShader);
-    }
-
-    private void WriteCompatMode(StringBuilder c)
-    {
-        // todo: old compile strategy scheme in ShaderFactory
-        if (Engine.Renderer.CompatibilityMode)
-        {
-            c.Append($"#ifdef GL_ARB_shading_language_420pack\n");
-            c.Append($"#extension GL_ARB_shading_language_420pack : require\n");
-            c.Append($"#endif\n");
-        }
     }
 
     public IEnumerator GetCompiledShaderForPipelineDefRoutine(ShaderOut compiledOut, ShaderGroupDefinition def)

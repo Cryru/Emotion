@@ -112,9 +112,12 @@ public class ShaderProgram
         if (Engine.Configuration.GlDebugMode) Gl.ValidateProgram(pointer);
 
         // Bind uniform blocks
-        uint blockIndex = Gl.GetUniformBlockIndex(pointer, "BaseUniforms");
-        if (blockIndex != Gl.INVALID_INDEX)
-            Gl.UniformBlockBinding(pointer, blockIndex, BaseUniformData.BINDING_LOCATION);
+        if (!Engine.Renderer.UBOBindingSupport)
+        {
+            uint blockIndex = Gl.GetUniformBlockIndex(pointer, "BaseUniforms");
+            if (blockIndex != Gl.INVALID_INDEX)
+                Gl.UniformBlockBinding(pointer, blockIndex, BaseUniformData.BINDING_LOCATION);
+        }
 
         // Check linking status.
         var programCompileStatusReader = new StringBuilder(1024);
