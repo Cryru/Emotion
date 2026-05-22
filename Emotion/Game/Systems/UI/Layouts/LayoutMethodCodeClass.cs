@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using static Emotion.Game.Systems.UI2.UILayoutMethod;
+using static Emotion.Game.Systems.UI2.UISizing;
 
 namespace Emotion.Game.Systems.UI;
 
@@ -32,6 +33,21 @@ public partial class UIBaseWindow
         public static UISizing GetSizingInDirection(UIBaseWindow window, int axis)
         {
             return axis == 0 ? window.Layout.SizingX : window.Layout.SizingY;
+        }
+
+        public static bool CanShrinkInDirection(UIBaseWindow window, int axis)
+        {
+            if (window.CalculatedMetrics.DisableShrinking[axis] != 0)
+                return false;
+
+            UISizing sizing = GetSizingInDirection(window, axis);
+            return sizing.Mode == UISizingMode.Grow || sizing.Mode == UISizingMode.ShrinkOnly;
+        }
+
+        public static bool CanGrowInDirection(UIBaseWindow window, int axis)
+        {
+            UISizing sizing = GetSizingInDirection(window, axis);
+            return sizing.Mode == UISizingMode.Grow;
         }
 
         public static bool SkipWindowLayout(UIBaseWindow window)

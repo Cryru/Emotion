@@ -33,10 +33,9 @@ public partial class UIBaseWindow
                 int childSize = child.CalculatedMetrics.Size[axis];
                 int sizeInto = availableSize - child.CalculatedMetrics.MarginTotalSize[axis];
 
-                UISizing sizing = GetSizingInDirection(child, axis);
-                if (sizing.CanGrow() && childSize < sizeInto)
+                if (CanGrowInDirection(child, axis) && childSize < sizeInto)
                     child.CalculatedMetrics.Size[axis] = sizeInto;
-                if (sizing.CanShrink() && childSize > sizeInto)
+                if (CanShrinkInDirection(child, axis) && childSize > sizeInto)
                     child.CalculatedMetrics.Size[axis] = sizeInto;
             }
         }
