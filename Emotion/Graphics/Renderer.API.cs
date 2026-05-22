@@ -351,12 +351,18 @@ public sealed partial class Renderer
         }
         else
         {
-            Gl.Enable(EnableCap.ScissorTest);
             Rectangle c = clip.Value;
-            Gl.Scissor((int)c.X,
+            c.Width = Math.Max(c.Width, 0);
+            c.Height = Math.Max(c.Height, 0);
+            clip = c;
+
+            Gl.Enable(EnableCap.ScissorTest);
+            Gl.Scissor(
+                (int)c.X,
                 (int)(Engine.Renderer.CurrentTarget.Viewport.Height - c.Height - c.Y),
                 (int)c.Width,
-                (int)c.Height);
+                (int)c.Height
+            );
         }
 
         RenderState currentState = CurrentState;
