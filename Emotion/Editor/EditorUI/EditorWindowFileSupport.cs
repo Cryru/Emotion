@@ -55,7 +55,7 @@ public partial class EditorWindowFileSupport<T> : EditorWindow
                 },
                 Layout =
                 {
-                    Padding = new UISpacing(5, 5, 5, 5)
+                    Padding = new UISpacing(5, 5, 5, 5),
                 },
                 OrderInParent = -10
             };

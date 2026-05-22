@@ -51,6 +51,14 @@ public class UISystem : UIBaseWindow
         UpdatePass_ChildrenChanges();
 
         InUpdate = true;
+
+        if (_debugInspectMode)
+            InspectModeUpdate();
+
+        UpdateInput();
+        UpdateLoading();
+        UpdateLayout();
+
         Update();
         InUpdate = false;
     }
@@ -60,18 +68,6 @@ public class UISystem : UIBaseWindow
         InUpdate = true;
         Render(r);
         InUpdate = false;
-    }
-
-    protected override bool UpdateInternal()
-    {
-        if (_debugInspectMode)
-            InspectModeUpdate();
-
-        UpdateInput();
-        UpdateLoading();
-        UpdateLayout();
-
-        return base.UpdateInternal();
     }
 
     protected override void InternalAfterRenderChildren(Renderer r)
