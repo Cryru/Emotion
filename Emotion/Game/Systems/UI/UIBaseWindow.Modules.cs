@@ -768,21 +768,33 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
             }
         }
 
-        bool handleInput = HandleInput || Layout.OverflowY == UIOverflow.Scroll;
+        bool handleInput = HandlesMouseInput(this);
         if ((!respectInputHandling || handleInput) && CalculatedMetrics.Bounds.Contains(pos))
             return new MouseFocusPair(Vector2.Zero, this);
 
         return MouseFocusPair.None;
     }
 
+    protected static bool HandlesMouseInput(UIBaseWindow win)
+    {
+        return win.HandleInput || win.Layout.OverflowY == UIOverflow.Scroll;
+    }
+
     public virtual void OnMouseEnter(Vector2 mousePos)
     {
         MouseInside = true;
+        MouseInsideChanged(true, mousePos);
     }
 
     public virtual void OnMouseLeft(Vector2 mousePos)
     {
         MouseInside = false;
+        MouseInsideChanged(false, mousePos);
+    }
+
+    protected virtual void MouseInsideChanged(bool inside, Vector2 mousePos)
+    {
+
     }
 
     public virtual void OnMouseMove(Vector2 mousePos)
