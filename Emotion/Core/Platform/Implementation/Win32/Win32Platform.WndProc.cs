@@ -46,18 +46,18 @@ public partial class Win32Platform
             case WM.GETMINMAXINFO:
                 Rect windowR = GetFullWindowRect(0, 0);
                 // ReSharper disable once NotAccessedVariable
-                var mmi = (MinMaxInfo*) lParam;
+                var mmi = (MinMaxInfo*)lParam;
 
                 int offX = windowR.Right - windowR.Left;
                 int offY = windowR.Bottom - windowR.Top;
-                mmi->MinTrackSize.X = (int) _config.RenderSize.X + offX;
-                mmi->MinTrackSize.Y = (int) _config.RenderSize.Y + offY;
+                mmi->MinTrackSize.X = (int)_config.RenderSize.X + offX;
+                mmi->MinTrackSize.Y = (int)_config.RenderSize.Y + offY;
 
                 return IntPtr.Zero;
             case WM.SIZE:
 
-                int width = NativeHelpers.LoWord((uint) lParam);
-                int height = NativeHelpers.HiWord((uint) lParam);
+                int width = NativeHelpers.LoWord((uint)lParam);
+                int height = NativeHelpers.HiWord((uint)lParam);
                 Resized(new Vector2(width, height));
 
                 return IntPtr.Zero;
@@ -70,10 +70,10 @@ public partial class Win32Platform
 
             case WM.SYSCOMMAND:
 
-                switch ((int) wParam & 0xfff0)
+                switch ((int)wParam & 0xfff0)
                 {
-                    case (int) SysCommand.SC_SCREENSAVE:
-                    case (int) SysCommand.SC_MONITORPOWER:
+                    case (int)SysCommand.SC_SCREENSAVE:
+                    case (int)SysCommand.SC_MONITORPOWER:
                         if (DisplayMode == DisplayMode.Fullscreen)
                             // We are running in full screen mode, so disallow
                             // screen saver and screen blanking
@@ -82,7 +82,7 @@ public partial class Win32Platform
                         break;
 
                     // User trying to access application menu using ALT?
-                    case (int) SysCommand.SC_KEYMENU:
+                    case (int)SysCommand.SC_KEYMENU:
                         return IntPtr.Zero;
                 }
 
@@ -97,21 +97,21 @@ public partial class Win32Platform
             case WM.SYSCHAR:
             case WM.UNICHAR:
 
-                if (msg == WM.UNICHAR && (int) wParam == 0xFFFF)
+                if (msg == WM.UNICHAR && (int)wParam == 0xFFFF)
                     // WM_UNICHAR is not sent by Windows, but is sent by some
                     // third-party input method engine
                     // Returning TRUE here announces support for this message
                     return 1;
 
-                UpdateTextInput((char) wParam);
+                UpdateTextInput((char)wParam);
                 break;
 
             case WM.KEYDOWN:
             case WM.SYSKEYDOWN:
             case WM.KEYUP:
             case WM.SYSKEYUP:
-                var virtualKey = (VirtualKey) wParam;
-                var lParamLong = (ulong) lParam;
+                var virtualKey = (VirtualKey)wParam;
+                var lParamLong = (ulong)lParam;
 
                 bool up = ((lParamLong >> 31) & 1) != 0;
                 Key key = TranslateKey(virtualKey, lParamLong);
@@ -132,7 +132,7 @@ public partial class Win32Platform
             case WM.MBUTTONUP:
             case WM.XBUTTONUP:
 
-                ushort keySpecifier = NativeHelpers.HiWord((ulong) wParam);
+                ushort keySpecifier = NativeHelpers.HiWord((ulong)wParam);
                 var mouseKey = Key.Unknown;
                 var buttonDown = false;
                 mouseKey = msg switch
@@ -156,7 +156,7 @@ public partial class Win32Platform
                     buttonDown = true;
 
                 var nonePressed = true;
-                for (int i = (int) Key.MouseKeyStart + 1; i < (int) Key.MouseKeyEnd; i++)
+                for (int i = (int)Key.MouseKeyStart + 1; i < (int)Key.MouseKeyEnd; i++)
                 {
                     if (!_keys[i]) continue;
                     nonePressed = false;
@@ -168,7 +168,7 @@ public partial class Win32Platform
                 UpdateKeyStatus(mouseKey, buttonDown);
 
                 nonePressed = true;
-                for (int i = (int) Key.MouseKeyStart + 1; i < (int) Key.MouseKeyEnd; i++)
+                for (int i = (int)Key.MouseKeyStart + 1; i < (int)Key.MouseKeyEnd; i++)
                 {
                     if (!_keys[i]) continue;
                     nonePressed = false;
@@ -181,7 +181,7 @@ public partial class Win32Platform
 
             case WM.MOUSEWHEEL:
 
-                var scrollAmount = (short) NativeHelpers.HiWord((ulong) wParam);
+                var scrollAmount = (short)NativeHelpers.HiWord((ulong)wParam);
                 UpdateScroll(scrollAmount / 120f);
 
                 return IntPtr.Zero;
@@ -200,8 +200,32 @@ public partial class Win32Platform
                 int y = NativeHelpers.HiWordS((uint)lParam);
                 Engine.Input.ReportMouseMove(new Vector2(x, y));
                 return IntPtr.Zero;
+            case WM.SETCURSOR:
+            {
+                ApplyCursor();
+                return IntPtr.Zero;
+            }
         }
 
         return User32.DefWindowProc(hWnd, msg, wParam, lParam);
+    }
+
+    public override void SetCursor(MouseCursor cur)
+    {
+        base.SetCursor(cur);
+        ApplyCursor();
+    }
+
+    private void ApplyCursor()
+    {
+        SystemCursor winCursor = SystemCursor.IDC_ARROW;
+        switch (_currentCursor)
+        {
+            case MouseCursor.ResizeLR:
+                winCursor = SystemCursor.IDC_SIZEWE;
+                break;
+        }
+
+        User32.SetCursor(User32.LoadCursor(IntPtr.Zero, (nint)winCursor));
     }
 }
