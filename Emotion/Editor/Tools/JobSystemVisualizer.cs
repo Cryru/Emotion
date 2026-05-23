@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using Emotion.Editor.EditorUI.Base;
 using Emotion.Editor.EditorUI.Components;
 
 namespace Emotion.Editor.Tools;

@@ -1,6 +1,9 @@
 ﻿#nullable enable
 
-namespace Emotion.Editor.EditorUI.Components;
+using Emotion;
+using Emotion.Editor.EditorUI.Base;
+
+namespace Emotion.Editor.EditorUI.Components.One;
 
 public class StyleGuideViewer : EditorWindow
 {

@@ -1,7 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Core.Systems.IO;
-using Emotion.Editor.EditorUI.Components;
+using Emotion.Editor.EditorUI.Base;
 using Emotion.Editor.Tools.InterfaceTool;
 using Emotion.Game.World.Terrain;
 using Emotion.Game.World.Terrain.GridStreaming;

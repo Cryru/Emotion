@@ -5,7 +5,7 @@
 using Emotion.Core.Systems.Scenography;
 using Emotion.Core.Utility.Profiling;
 using Emotion.Editor.EditorUI;
-using Emotion.Editor.EditorUI.Components;
+using Emotion.Editor.EditorUI.Components.One;
 using Emotion.Editor.RuntimeCodeGen;
 using Emotion.Editor.Tools.GameDataTool;
 using Emotion.Editor.Workflow;

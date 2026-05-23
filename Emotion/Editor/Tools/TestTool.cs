@@ -1,4 +1,4 @@
-﻿using Emotion.Editor.EditorUI.Components;
+﻿using Emotion.Editor.EditorUI.Base;
 
 namespace Emotion.Editor.Tools;
 

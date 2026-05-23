@@ -2,14 +2,16 @@
 
 #region Using
 
+using Emotion;
 using Emotion.Core.Utility.Threading;
+using Emotion.Editor.EditorUI.Components;
 using Emotion.Game.Systems.UI.New;
 using OpenGL;
 using static Emotion.Core.Platform.PlatformBase;
 
 #endregion
 
-namespace Emotion.Editor.EditorUI.Components;
+namespace Emotion.Editor.EditorUI.Base;
 
 public enum PanelMode
 {

@@ -4,6 +4,7 @@ using Emotion.Core.Platform;
 using Emotion.Core.Platform.Implementation.CommonDesktop;
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
+using Emotion.Editor.EditorUI.Base;
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Editor.EditorUI.FilePickerHelpers;
 using Emotion.Game.Systems.UI;

@@ -1,6 +1,6 @@
 ﻿#nullable enable
 
-using Emotion.Editor.EditorUI.Components;
+using Emotion.Editor.EditorUI.Base;
 using Emotion.Standard.Reflector;
 
 namespace Emotion.Editor.EditorUI.ObjectPropertiesEditorHelpers;

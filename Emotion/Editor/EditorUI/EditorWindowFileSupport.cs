@@ -1,4 +1,5 @@
 ﻿using Emotion.Core.Systems.IO;
+using Emotion.Editor.EditorUI.Base;
 using Emotion.Editor.EditorUI.Components;
 using Emotion.Game.Systems.UI2;
 using Emotion.Standard.Parsers.XML;
