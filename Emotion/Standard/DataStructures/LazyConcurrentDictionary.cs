@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 namespace Emotion.Standard.DataStructures;
 
 public class LazyConcurrentDictionary<TKey, TValue> : ConcurrentDictionary<TKey, Lazy<TValue>>
+    where TKey : notnull
 {
     public Lazy<TValue> GetOrAdd(TKey key, Func<TKey, TValue> valueFactory)
     {

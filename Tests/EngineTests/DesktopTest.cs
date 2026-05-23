@@ -6,7 +6,6 @@ using System.Numerics;
 using Emotion.Core;
 using Emotion.Core.Platform;
 using Emotion.Core.Platform.Implementation.CommonDesktop;
-using Emotion.Core.Platform;
 using Emotion.Testing;
 
 #endregion

@@ -58,8 +58,8 @@ public class AStarContext : IDisposable
     {
         pathMemory.Clear();
 
-        AStarNode startNode = CreateNodeFromIfValid(start);
-        AStarNode endNode = CreateNodeFromIfValid(end);
+        AStarNode? startNode = CreateNodeFromIfValid(start);
+        AStarNode? endNode = CreateNodeFromIfValid(end);
         if (startNode == null || endNode == null) return; // Invalid path
 
         _openSet.Clear();
@@ -186,7 +186,7 @@ public class AStarContext : IDisposable
     #region Helpers
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected AStarNode CreateNodeFromIfValid(Vector2 loc)
+    protected AStarNode? CreateNodeFromIfValid(Vector2 loc)
     {
         var x = (int) loc.X;
         var y = (int) loc.Y;
@@ -194,8 +194,11 @@ public class AStarContext : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected AStarNode CreateNodeFromIfValid(int x, int y)
+    protected AStarNode? CreateNodeFromIfValid(int x, int y)
     {
+        var loc = new Vector2(x, y);
+        if (!_pathingGrid.IsValidPosition(loc)) return null;
+
         int hashCode = Maths.GetCantorPair(x, y);
         if (_cache.TryGetValue(hashCode, out AStarNode node)) return node;
         var newNode = new AStarNode(x, y);
@@ -211,73 +214,41 @@ public class AStarContext : IDisposable
         int x = current.X;
         int y = current.Y;
 
-        Vector2 gridSize = _pathingGrid.GetSize();
-        bool hasLeft = x > 0 && x <= gridSize.X - 1;
-        bool hasRight = x >= 0 && x < gridSize.X - 1;
-        bool hasTop = y > 0 && y <= gridSize.Y - 1;
-        bool hasBottom = y >= 0 && y < gridSize.Y - 1;
-
-        // Check for left.
-        if (hasLeft)
-        {
-            AStarNode left = CreateNodeFromIfValid(x - 1, y);
-            if (left != null) _neighbors.Add(left);
-        }
-
-        // Check for right.
-        if (hasRight)
-        {
-            AStarNode right = CreateNodeFromIfValid(x + 1, y);
-            if (right != null) _neighbors.Add(right);
-        }
-
-        // Check for top.
-        if (hasTop)
-        {
-            AStarNode top = CreateNodeFromIfValid(x, y - 1);
-            if (top != null) _neighbors.Add(top);
-        }
-
-        // Check for bottom.
-        if (hasBottom)
-        {
-            AStarNode bottom = CreateNodeFromIfValid(x, y + 1);
-            if (bottom != null) _neighbors.Add(bottom);
-        }
+        bool hasLeft = TryAddNeighbor(memory, x - 1, y);
+        bool hasRight = TryAddNeighbor(memory, x + 1, y);
+        bool hasTop = TryAddNeighbor(memory, x, y - 1);
+        bool hasBottom = TryAddNeighbor(memory, x, y + 1);
 
         if (diagonal && hasTop)
         {
             // Check top left diagonal.
             if (hasLeft)
-            {
-                AStarNode topLeft = CreateNodeFromIfValid(x - 1, y - 1);
-                if (topLeft != null) _neighbors.Add(topLeft);
-            }
+                TryAddNeighbor(memory, x - 1, y - 1);
 
             // Check top right diagonal.
             if (hasRight)
-            {
-                AStarNode topRight = CreateNodeFromIfValid(x + 1, y - 1);
-                if (topRight != null) _neighbors.Add(topRight);
-            }
+                TryAddNeighbor(memory, x + 1, y - 1);
         }
 
         if (diagonal && hasBottom)
         {
             // Check bottom left diagonal.
             if (hasLeft)
-            {
-                AStarNode bottomLeft = CreateNodeFromIfValid(x - 1, y + 1);
-                if (bottomLeft != null) _neighbors.Add(bottomLeft);
-            }
+                TryAddNeighbor(memory, x - 1, y + 1);
 
             // Check bottom right diagonal.
             if (hasRight)
-            {
-                AStarNode bottomRight = CreateNodeFromIfValid(x + 1, y + 1);
-                if (bottomRight != null) _neighbors.Add(bottomRight);
-            }
+                TryAddNeighbor(memory, x + 1, y + 1);
         }
+    }
+
+    private bool TryAddNeighbor(List<AStarNode> memory, int x, int y)
+    {
+        AStarNode? node = CreateNodeFromIfValid(x, y);
+        if (node == null) return false;
+
+        memory.Add(node);
+        return true;
     }
 
     #endregion

@@ -108,10 +108,10 @@ public class ShaderAsset : TextAsset, IAssetContainingObject<ShaderProgram>
         int offset = 0;
         while (true)
         {
-            int idx = source.IndexOf(includeToken);
+            int idx = source.IndexOf(includeToken, offset, StringComparison.Ordinal);
             if (idx < 0) yield break; // No more
 
-            offset = offset + idx + includeTokenLen;
+            offset = idx + includeTokenLen;
 
             // Skip whitespaces
             while (offset < source.Length && char.IsWhiteSpace(source[offset]))
@@ -164,12 +164,12 @@ public class ShaderAsset : TextAsset, IAssetContainingObject<ShaderProgram>
         /// <summary>
         /// The path to the fragment shader relative to the shader description asset.
         /// </summary>
-        public string Frag { get; set; }
+        public string Frag { get; set; } = string.Empty;
 
         /// <summary>
         /// The path to the fragment shader relative to the shader description asset.
         /// </summary>
-        public string Vert { get; set; }
+        public string Vert { get; set; } = string.Empty;
 
         /// <summary>
         /// The path to another shader description to fallback to if the creation of this shader fails.
@@ -177,7 +177,7 @@ public class ShaderAsset : TextAsset, IAssetContainingObject<ShaderProgram>
         public string Fallback { get; set; } = "ShadersLegacy/DefaultShader.xml";
     }
 
-    public ShaderDescription? Content { get; set; }
+    public new ShaderDescription? Content { get; set; }
 
     /// <summary>
     /// Whether using the fallback shader.

@@ -156,6 +156,8 @@ public partial class AssetLoader
     {
         static bool PathStartsWithMount(ReadOnlySpan<char> path, ReadOnlySpan<char> mount)
         {
+            if (path.Length < mount.Length) return false;
+
             for (int i = 0; i < mount.Length; i++)
             {
                 char p = path[i];

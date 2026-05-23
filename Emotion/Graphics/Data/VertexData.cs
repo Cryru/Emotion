@@ -54,7 +54,7 @@ public struct VertexData : IVertexDataFormatStruct
     /// <param name="flipY">Whether to flip the texture vertically.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SpriteToVertexData(Span<VertexData> vertices, Vector3 position, Vector2 size, Color color,
-        Texture texture = null, Rectangle? textureArea = null, bool flipX = false, bool flipY = false
+        Texture? texture = null, Rectangle? textureArea = null, bool flipX = false, bool flipY = false
     )
     {
         vertices[3].Vertex = position;

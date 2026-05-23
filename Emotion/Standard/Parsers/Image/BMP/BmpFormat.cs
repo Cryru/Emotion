@@ -37,11 +37,11 @@ public static class BmpFormat
     /// <returns>A 24bit BMP image as bytes.</returns>
     public static byte[] Encode(byte[] pixelData, int width, int height)
     {
-        int rowWidth = width;
         int amount = width * 3 % 4;
-        if (amount != 0) rowWidth += 4 - amount;
+        if (amount != 0) amount = 4 - amount;
 
-        int fileSize = BmpFileHeader.DEFAULT_OFFSET + height * rowWidth * 3;
+        int rowSizeBytes = width * 3 + amount;
+        int fileSize = BmpFileHeader.DEFAULT_OFFSET + height * rowSizeBytes;
         var output = new byte[fileSize];
 
         using (var writer = new BinaryWriter(new MemoryStream(output)))
@@ -72,8 +72,6 @@ public static class BmpFormat
             writer.Write(fileHeader.YPelsPerMeter);
             writer.Write(fileHeader.ClrUsed);
             writer.Write(fileHeader.ClrImportant);
-
-            if (amount != 0) amount = 4 - amount;
 
             for (int y = height - 1; y >= 0; y--)
             {
@@ -281,7 +279,7 @@ public static class BmpFormat
     private static void ReadRgb32(ReadOnlySpan<byte> inputData, byte[] outputData, int width, int height)
     {
         int alignment = width * 4 % 4;
-        if (alignment == 0) alignment = 4 - alignment;
+        if (alignment != 0) alignment = 4 - alignment;
 
         for (var y = 0; y < height; y++)
         {

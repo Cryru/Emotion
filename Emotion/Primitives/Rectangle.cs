@@ -353,7 +353,7 @@ public struct Rectangle : IEquatable<Rectangle>, IShape
 
     /// <inheritdoc />
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is Rectangle rectangle && this == rectangle;
     }

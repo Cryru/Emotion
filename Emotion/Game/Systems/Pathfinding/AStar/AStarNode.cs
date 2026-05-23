@@ -46,7 +46,7 @@ public class AStarNode : IEquatable<AStarNode>, IComparable<AStarNode>
     /// <summary>
     /// The node the path to this node came from.
     /// </summary>
-    public AStarNode CameFrom;
+    public AStarNode? CameFrom;
 
     /// <summary>
     /// Create a new node.
@@ -64,7 +64,7 @@ public class AStarNode : IEquatable<AStarNode>, IComparable<AStarNode>
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public bool Equals(AStarNode other)
+    public bool Equals(AStarNode? other)
     {
         return other != null && X == other.X && Y == other.Y;
     }
@@ -78,8 +78,9 @@ public class AStarNode : IEquatable<AStarNode>, IComparable<AStarNode>
         return Maths.GetCantorPair(X, Y);
     }
 
-    public int CompareTo(AStarNode other)
+    public int CompareTo(AStarNode? other)
     {
+        if (other == null) return 1;
         return Math.Sign(other.F - F);
     }
 }
