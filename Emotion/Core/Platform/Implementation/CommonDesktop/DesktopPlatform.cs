@@ -281,4 +281,21 @@ public abstract class DesktopPlatform : PlatformBase
     {
         // nop
     }
+
+    #region Cursor
+
+    public enum MouseCursor
+    {
+        Default,
+        ResizeLR
+    }
+
+    protected MouseCursor _currentCursor = MouseCursor.Default;
+
+    public virtual void SetCursor(MouseCursor cur)
+    {
+        _currentCursor = cur;
+    }
+
+    #endregion
 }
