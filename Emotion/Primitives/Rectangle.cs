@@ -206,10 +206,10 @@ public struct Rectangle : IEquatable<Rectangle>, IShape
 
     public static Rectangle operator *(Rectangle a, Vector2 sca)
     {
-        a.X /= sca.X;
-        a.Y /= sca.Y;
-        a.Width /= sca.X;
-        a.Height /= sca.Y;
+        a.X *= sca.X;
+        a.Y *= sca.Y;
+        a.Width *= sca.X;
+        a.Height *= sca.Y;
         return a;
     }
 
