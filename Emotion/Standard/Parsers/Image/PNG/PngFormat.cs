@@ -30,7 +30,8 @@ public static class PngFormat
     public static bool IsPng(ReadOnlyMemory<byte> data)
     {
         ReadOnlySpan<byte> span = data.Span;
-        if (data.Length < _pngHeader.Length) return true;
+        if (data.Length < _pngHeader.Length) return false;
+
         for (var i = 0; i < _pngHeader.Length; i++)
         {
             if (_pngHeader[i] != span[i]) return false;
