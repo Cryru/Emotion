@@ -7,12 +7,6 @@ using Emotion.Standard.Parsers.Image.ImgBin;
 using Emotion.Standard.Parsers.Image.PNG;
 using OpenGL;
 
-#if MORE_IMAGE_TYPES
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-
-#endif
-
 namespace Emotion.Graphics.Assets;
 
 public abstract class TextureAssetBase<TTexture> : Asset, IAssetContainingObject<TTexture>
@@ -87,18 +81,6 @@ public abstract class TextureAssetBase<TTexture> : Asset, IAssetContainingObject
             format = header.Format;
             rentedMemory = true;
         }
-#if MORE_IMAGE_TYPES
-        else
-        {
-            ReadOnlySpan<byte> span = data.Span;
-            Image<Bgra32> image = Image.Load<Bgra32>(span);
-            pixels = new byte[image.Width * image.Height * 4];
-            image.CopyPixelDataTo(pixels);
-            size = new Vector2(image.Width, image.Height);
-            format = PixelFormat.Bgra;
-            image.Dispose();
-        }
-#endif
 
         return pixels != null || size.X != 0 && size.Y != 0 && format != PixelFormat.Unknown;
     }
