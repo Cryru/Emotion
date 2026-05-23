@@ -389,7 +389,8 @@ public class UISystem : UIBaseWindow
     private static bool SupportsInputAlongTree(UIBaseWindow window)
     {
         if (window.State != UIWindowState.Open) return false;
-        if (!window.HandleInput || !window.Visuals.Visible) return false;
+        if (!window.Visuals.Visible) return false;
+        if (!HandlesMouseInput(window)) return false;
 
         UIBaseWindow? parent = window.Parent;
         while (parent != null)
