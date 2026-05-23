@@ -33,4 +33,5 @@ public static class OnePalette
     public static Color ERROR_DISABLED_1 = new Color("#663A51");
 
     public static Color PANELS_1 = new Color("#FFFFFF");
+    public static Color DETAILS_1 = new Color("#C9E0F8");
 }
