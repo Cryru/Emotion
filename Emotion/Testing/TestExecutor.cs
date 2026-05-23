@@ -36,8 +36,6 @@ using Emotion.Core.Systems.IO;
 
 // Subprocess functionality
 #if CSHARP_SCRIPTING
-using Emotion.Core.Platform;
-
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 

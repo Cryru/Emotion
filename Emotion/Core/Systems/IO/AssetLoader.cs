@@ -354,22 +354,6 @@ public partial class AssetLoader
     }
 
     /// <summary>
-    /// Remove the relative part of a relative path and return it relative to a directory.
-    /// [Folder/OtherFile.ext] + [../../../File.ext] = Folder/File.ext
-    /// [Folder/] + [../../../File.ext] = Folder/File.ext
-    /// [Folder/OtherFile.ext] + [File.ext] = Folder/File.ext
-    /// [] + [../File.ext] = File.ext
-    /// </summary>
-    public static string TrimRelativePath(string relativeTo, string path)
-    {
-        int lastBack = path.LastIndexOf("../", StringComparison.Ordinal);
-        if (lastBack != -1) path = path[..lastBack];
-
-        string directory = GetDirectoryName(relativeTo);
-        return JoinPath(directory, path);
-    }
-
-    /// <summary>
     /// Get a non-relative path from a path relative to a specific directory.
     /// [Folder] + [../File.ext] = File.ext
     /// [Folder] + [File.ext] = Folder/File.ext

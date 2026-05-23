@@ -326,7 +326,7 @@ public struct LineSegment : IEquatable<LineSegment>
         return !(a == b);
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (obj is LineSegment l) return l == this;
         return false;

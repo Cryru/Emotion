@@ -83,12 +83,12 @@ public class FrameBuffer : IDisposable
     /// <summary>
     /// PBO to be used for async sampling.
     /// </summary>
-    private PixelBuffer _pbo;
+    private PixelBuffer? _pbo;
 
     /// <summary>
     /// The current request if any. Only one can be active.
     /// </summary>
-    private FrameBufferSampleRequest _sampleRequest;
+    private FrameBufferSampleRequest? _sampleRequest;
 
     #endregion
 
@@ -234,14 +234,14 @@ public class FrameBuffer : IDisposable
     /// <param name="rect">The rectangle to sample data from in. Top left origin.</param>
     /// <param name="data">The array to fill. You need to allocate one which is long enough to receive the data.</param>
     /// <param name="format">The pixel format to return the pixels in.</param>
-    public unsafe bool Sample(Rectangle rect, byte[] data, PixelFormat format)
+    public unsafe bool Sample(Rectangle rect, byte[]? data, PixelFormat format)
     {
         rect = rect.ClampTo(Viewport);
         rect = new Rectangle(rect.X, Size.Y - (rect.Y + rect.Height), rect.Width, rect.Height);
 
         FrameBuffer previouslyBound = Engine.Renderer.CurrentTarget;
         Bind();
-        if (data != null)
+        if (data != null && data.Length > 0)
             fixed (byte* pixelBuffer = &data[0])
             {
                 Gl.ReadPixels((int) rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height, format, ColorAttachment?.PixelType ?? PixelType.UnsignedByte,
@@ -275,7 +275,7 @@ public class FrameBuffer : IDisposable
     /// <param name="format">The pixel format to return the pixels in.</param>
     /// <param name="data">Optional data pointer to fill with the data.</param>
     /// <returns>null if invalid request, or a IRoutineWaiter framebuffer sample request otherwise</returns>
-    public FrameBufferSampleRequest SampleAsync(Rectangle rect, PixelFormat format, byte[] data = null)
+    public FrameBufferSampleRequest? SampleAsync(Rectangle rect, PixelFormat format, byte[]? data = null)
     {
         if (_sampleRequest != null) return _sampleRequest;
         var sampleRequest = new FrameBufferSampleRequest();
@@ -295,6 +295,9 @@ public class FrameBuffer : IDisposable
             _pbo.Upload(IntPtr.Zero, byteSize, BufferUsage.StreamCopy);
 
         // Create a request. This is basically a normal sample with a bound PBO
+        AssertNotNull(_pbo);
+        if (_pbo == null) return null;
+
         PixelBuffer.EnsureBound(_pbo.Pointer);
         if (!Sample(rect, null, format))
         {
@@ -326,6 +329,9 @@ public class FrameBuffer : IDisposable
     private void FramebufferSampleRequest_DownloadData(int byteSize, byte[] data)
     {
         // Read the data from the PBO.
+        AssertNotNull(_pbo);
+        if (_pbo == null) return;
+
         PixelBuffer.EnsureBound(_pbo.Pointer);
         Span<byte> mapper = _pbo.CreateMapper<byte>(0, byteSize);
         mapper.CopyTo(new Span<byte>(data));
@@ -416,7 +422,7 @@ public class FrameBufferSampleRequest : IRoutineWaiter
     /// <summary>
     /// Sampled data. If null the sampling isn't done.
     /// </summary>
-    public byte[] Data { get; set; }
+    public byte[]? Data { get; set; }
 
     /// <inheritdoc />
     public void Update()

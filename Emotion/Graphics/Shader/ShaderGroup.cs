@@ -292,7 +292,7 @@ public class ShaderGroup
         int offset = 0;
         while (offset < source.Length)
         {
-            int idx = source.IndexOf(includeToken, offset);
+            int idx = source.IndexOf(includeToken, offset, StringComparison.Ordinal);
             if (idx < 0) yield break; // No more
 
             idx += tokenLength;

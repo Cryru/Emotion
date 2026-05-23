@@ -165,7 +165,7 @@ public record struct UILayoutMethod
             if (GridProperties.ColumnCount == 1 && GridProperties.RowCount == 0)
                 return $"VerticalList {ListSpacing}";
 
-            if (GridProperties.RowCount == 0 && GridProperties.ColumnCount == 1)
+            if (GridProperties.RowCount == 1 && GridProperties.ColumnCount == 0)
                 return $"HorizontalList {ListSpacing}";
 
             return $"{Mode} Cols={GridProperties.ColumnCount} Rows={GridProperties.RowCount}";

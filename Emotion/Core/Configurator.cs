@@ -15,7 +15,7 @@ public sealed class Configurator
     /// Set the logging provider. If none set the default one will be created at setup.
     /// The default logger logs to the console if in debug mode, and to a file.
     /// </summary>
-    public LoggingProvider Logger { get; set; }
+    public LoggingProvider? Logger { get; set; }
 
     /// <summary>
     /// Whether the Engine is in debug mode. Off by default.
@@ -107,7 +107,7 @@ public sealed class Configurator
     /// If no factory is set the default one will be used. Other loop settings might not apply if not using the default loop.
     /// Platforms are free to override your loop settings.
     /// </summary>
-    public Action<Action, Action> LoopFactory { get; set; }
+    public Action<Action, Action>? LoopFactory { get; set; }
 
     #endregion
 
@@ -117,7 +117,7 @@ public sealed class Configurator
     /// Set the engine's platform. Usually it is auto detected - but on platforms not part
     /// of the base-Emotion package this might be necessary.
     /// </summary>
-    public PlatformBase PlatformOverride { get; set; }
+    public PlatformBase? PlatformOverride { get; set; }
 
     /// <summary>
     /// Some kind of title or label displayed on the host.
@@ -152,7 +152,7 @@ public sealed class Configurator
     /// <summary>
     /// Extra arguments.
     /// </summary>
-    public string[] ExtraArgs { get; set; }
+    public string[]? ExtraArgs { get; set; }
 
     #endregion
 
