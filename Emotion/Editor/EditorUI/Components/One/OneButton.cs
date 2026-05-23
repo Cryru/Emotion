@@ -1,28 +1,44 @@
 ﻿#nullable enable
 
-using Emotion.Game.Systems.UI2;
+using Emotion;
 
-namespace Emotion.Editor.EditorUI.Components;
+namespace Emotion.Editor.EditorUI.Components.One;
 
-public class OneIconButton : UIBaseButton
+public enum ButtonType
 {
-    public TextureReference Texture
+    Default,
+    Outlined,
+    Important,
+    Destructive,
+    Warning
+}
+
+public enum ButtonState
+{
+    Default,
+    Hover,
+    Disabled
+}
+
+public class OneButton : UIBaseButton
+{
+    public string Text
     {
-        get => _pic.Texture;
-        set => _pic.Texture = value;
+        get => _label.Text;
+        set => _label.Text = value;
     }
 
-    protected UIPicture _pic;
+    protected UIText _label;
     protected ButtonState _state = ButtonState.Default;
     protected ButtonType _type = ButtonType.Default;
 
     private Color _defaultColor;
     private Color _hoverColor;
     private Color _disabledColor;
-    private Color _iconColor;
-    private Color _iconColorDisabled;
+    private Color _textColor;
+    private Color _textColorDisabled;
 
-    public OneIconButton(TextureReference texture, Action<UIBaseButton>? onClicked = null, ButtonType buttonType = ButtonType.Default)
+    public OneButton(string labelText, Action<UIBaseButton>? onClicked = null, ButtonType buttonType = ButtonType.Default)
     {
         Visuals = new UIWindowVisualConfig()
         {
@@ -30,31 +46,31 @@ public class OneIconButton : UIBaseButton
         };
         Layout = new UIWindowLayoutConfig()
         {
-            SizingX = UISizing.Fixed(28),
+            Padding = new UISpacing(16, 0, 16, 0),
+            SizingX = UISizing.Fit(),
             SizingY = UISizing.Fixed(28),
         };
 
-        var pic = new UIPicture()
+        var label = new UIText()
         {
-            Texture = texture,
-            Smooth = true,
+            FontSize = OnePalette.FONT_SIZE,
+            Font = OnePalette.FONT,
+            Text = labelText,
             Layout =
             {
-                AnchorAndParentAnchor = UIAnchor.CenterCenter,
-                SizingX = UISizing.Fixed(20), // todo: This shouldn't be needed - the parent is fixed so it shouldn't be expanded
-                SizingY = UISizing.Fixed(20),
+                AnchorAndParentAnchor = UIAnchor.CenterCenter
             }
         };
-        AddChild(pic);
-        _pic = pic;
+        AddChild(label);
+        _label = label;
 
         // Setup style
         _type = buttonType;
         _defaultColor = OnePalette.PRIMARY_6;
         _hoverColor = OnePalette.PRIMARY_5;
         _disabledColor = OnePalette.PRIMARY_DISABLED_3;
-        _iconColor = OnePalette.PRIMARY_2;
-        _iconColorDisabled = OnePalette.PRIMARY_DISABLED_1;
+        _textColor = OnePalette.PRIMARY_2;
+        _textColorDisabled = OnePalette.PRIMARY_DISABLED_1;
 
         if (_type == ButtonType.Outlined)
         {
@@ -71,14 +87,14 @@ public class OneIconButton : UIBaseButton
         else if (_type == ButtonType.Important)
         {
             _defaultColor = OnePalette.PRIMARY_4;
+            _hoverColor = OnePalette.PRIMARY_7;
         }
         else if (_type == ButtonType.Warning)
         {
             _defaultColor = OnePalette.WARNING_3;
             _hoverColor = OnePalette.WARNING_2;
             _disabledColor = OnePalette.WARNING_DISABLED_1;
-
-            _iconColor = OnePalette.PRIMARY_5;
+            _textColor = OnePalette.PRIMARY_5;
         }
 
         // Initialize
@@ -97,12 +113,12 @@ public class OneIconButton : UIBaseButton
             ButtonState.Disabled => _disabledColor,
             _ => _defaultColor
         };
-        _pic.ImageColor = _state switch
+        _label.TextColor = _state switch
         {
-            ButtonState.Default => _iconColor,
-            ButtonState.Hover => _iconColor,
-            ButtonState.Disabled => _iconColorDisabled,
-            _ => _iconColor
+            ButtonState.Default => _textColor,
+            ButtonState.Hover => _textColor,
+            ButtonState.Disabled => _textColorDisabled,
+            _ => _textColor
         };
     }
 
