@@ -4,10 +4,12 @@ using Emotion.Game.Systems.UI;
 using Emotion.Game.Systems.UI2;
 using Emotion.Primitives;
 using Emotion.Testing;
+using System;
 using System.Collections;
 
 namespace Tests.EngineTests;
 
+[DebugTest]
 public class NewUITestsGrids : NewUITests
 {
     [Test]
@@ -610,5 +612,54 @@ public class NewUITestsGrids : NewUITests
 
         yield return WaitUILayout();
         yield return VerifyScreenshot(nameof(NewUITestsGrids), nameof(GridSingleColumn));
+    }
+
+    [Test]
+    public IEnumerator GridWithHorizontalSeparators()
+    {
+        var gridContainer = new UIBaseWindow
+        {
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalList(0),
+                SizingX = UISizing.Fixed(312),
+                SizingY = UISizing.Fixed(80)
+            }
+        };
+
+        static UIBaseWindow CreateSeparatorPanel()
+        {
+            return new UIBaseWindow
+            {
+                Layout =
+                {
+                    SizingX = UISizing.Grow(),
+                    SizingY = UISizing.Grow()
+                },
+                Visuals =
+                {
+                    BackgroundColor = Color.White
+                }
+            };
+        }
+
+        gridContainer.AddChild(CreateSeparatorPanel());
+        gridContainer.AddChild(new HorizontalPanelSeparator());
+        gridContainer.AddChild(CreateSeparatorPanel());
+        gridContainer.AddChild(new HorizontalPanelSeparator());
+        gridContainer.AddChild(CreateSeparatorPanel());
+        gridContainer.AddChild(new HorizontalPanelSeparator());
+        gridContainer.AddChild(CreateSeparatorPanel());
+
+        SceneUI.AddChild(gridContainer);
+
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITestsGrids), nameof(GridWithHorizontalSeparators));
+
+        HorizontalPanelSeparator firstSeparator = (HorizontalPanelSeparator)gridContainer.Children[1];
+        firstSeparator.SeparationPercent = 0.5f;
+
+        yield return WaitUILayout();
+        yield return VerifyScreenshot(nameof(NewUITestsGrids), nameof(GridWithHorizontalSeparators));
     }
 }
