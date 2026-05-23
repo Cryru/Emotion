@@ -103,16 +103,32 @@ public partial class UIBaseWindow
             if (listForAxis == null) return;
 
             int columnCount = calc.GridColumnCount;
-
             IntVector2 myMeasuredSize = self.CalculatedMetrics.GetViewportSize();
             int availableSize = myMeasuredSize[axis];
-
             int spacingAxis = GetListSpacing(self, axis);
-            int sizeTaken = listForAxis.GetSum();
-            sizeTaken += spacingAxis * (listForAxis.Count - 1);
+            int sizeTaken = spacingAxis * (listForAxis.Count - 1);
 
+            // Check if the sizes of axis are defined by separators (currently columns (axis 0) only)
+            List<HorizontalPanelSeparator>? separators = axis == 0 ? HasAnyHorizontalPanelSeparators(self, children, listForAxis) : null;
+            if (separators != null)
+            {
+                // Subtract separators from the available size
+                for (int i = 0; i < separators.Count; i++)
+                {
+                    HorizontalPanelSeparator separator = separators[i];
+                    int separatorColumn = separator.CalculatedMetrics_SeparatorColumn;
+                    sizeTaken += listForAxis[separatorColumn];
+                }
+                availableSize -= sizeTaken;
+
+                GrowShrinkAxisSeparatorDefined(self, ref calc, separators, children, listForAxis, availableSize);
+                return;
+            }
+
+            sizeTaken += listForAxis.GetSum();
             availableSize -= sizeTaken;
 
+            // If available size isn't exactly 0 we can grow or shrink
             if (availableSize != 0)
             {
                 bool[] growingAxis = ArrayPool<bool>.Shared.Rent(listForAxis.Count); // Renting can be deffered to first growing found
@@ -159,6 +175,41 @@ public partial class UIBaseWindow
                     GridHelpers.GetCoordinate2DFrom1D(childIdx, columnCount, out int col, out int row);
                     int idxForAxis = axis == 0 ? col : row;
                     child.CalculatedMetrics.Size[axis] = listForAxis[idxForAxis] - child.CalculatedMetrics.MarginTotalSize[axis];
+                }
+
+                childIdx++;
+            }
+        }
+
+        private static void SetColumnSegmentWidth(List<int> columnWidths, int startInclusive, int endExclusive, int targetWidth)
+        {
+            int columnCount = endExclusive - startInclusive;
+            if (columnCount <= 0) return;
+
+            targetWidth = Math.Max(0, targetWidth);
+            int widthPerColumn = targetWidth / columnCount;
+            int remainder = targetWidth % columnCount;
+            for (int i = startInclusive; i < endExclusive; i++)
+            {
+                columnWidths[i] = widthPerColumn;
+                if (remainder > 0)
+                {
+                    columnWidths[i]++;
+                    remainder--;
+                }
+            }
+        }
+
+        private static void ApplyAxisSizeToChildren(List<UIBaseWindow> children, int columnCount, int axis, List<int> axisSizes)
+        {
+            int childIdx = 0;
+            foreach (UIBaseWindow child in children)
+            {
+                if (CanGrowInDirection(child, axis) || CanShrinkInDirection(child, axis))
+                {
+                    GridHelpers.GetCoordinate2DFrom1D(childIdx, columnCount, out int col, out int row);
+                    int idxForAxis = axis == 0 ? col : row;
+                    child.CalculatedMetrics.Size[axis] = axisSizes[idxForAxis] - child.CalculatedMetrics.MarginTotalSize[axis];
                 }
 
                 childIdx++;
@@ -331,5 +382,79 @@ public partial class UIBaseWindow
         {
             return layoutMethod.GridProperties.RowCount > 0;
         }
+
+        #region Panel Separators
+
+        private static List<HorizontalPanelSeparator>? HasAnyHorizontalPanelSeparators(UIBaseWindow self, List<UIBaseWindow> children, List<int> columnWidths)
+        {
+            ref UIWindowCalculatedMetrics calc = ref self.CalculatedMetrics;
+            if (calc.GridRowCount != 1) return null;
+            if (calc.GridColumnCount != children.Count) return null;
+
+            int panelToLeft = 0;
+            List<HorizontalPanelSeparator>? separators = null;
+            for (int i = 0; i < children.Count; i++)
+            {
+                if (children[i] is not HorizontalPanelSeparator separator) continue;
+
+                int separatorColumn = i;
+
+                // Starts with a separator or two separators once after another
+                if (panelToLeft == separatorColumn) return null;
+
+                // Ended in a separator
+                if (i == children.Count - 1) return null;
+
+                separators ??= new List<HorizontalPanelSeparator>();
+                separator.CalculatedMetrics_SeparatorColumn = separatorColumn;
+                separators.Add(separator);
+
+                panelToLeft = separatorColumn + 1;
+            }
+            return separators;
+        }
+
+        private static void GrowShrinkAxisSeparatorDefined(
+            UIBaseWindow self,
+            ref UIWindowCalculatedMetrics calc,
+            List<HorizontalPanelSeparator> separators,
+            List<UIBaseWindow> children,
+            List<int> columnWidths,
+            int availableSize
+        )
+        {
+            int panelCount = separators.Count + 1;
+            float minPanelPercent = Math.Min(HorizontalPanelSeparator.MinSeparationPercent, 1f / panelCount);
+            float previousPercent = 0f;
+            int previousPixel = 0;
+
+            int segmentStart = 0;
+            for (int i = 0; i < separators.Count; i++)
+            {
+                HorizontalPanelSeparator separator = separators[i];
+                int separatorColumn = separator.CalculatedMetrics_SeparatorColumn;
+
+                float separationPercent = separator.SeparationPercent;
+                if (separationPercent <= HorizontalPanelSeparator.AutoSeparationPercent)
+                    separationPercent = (i + 1) / (float)(separators.Count + 1);
+
+                float minPercent = previousPercent + minPanelPercent;
+                float maxPercent = 1f - ((separators.Count - i) * minPanelPercent);
+                maxPercent = Math.Max(minPercent, maxPercent);
+                separationPercent = Math.Clamp(separationPercent, minPercent, maxPercent);
+
+                int boundaryPixel = (int)MathF.Round(separationPercent * availableSize);
+                SetColumnSegmentWidth(columnWidths, segmentStart, separatorColumn, boundaryPixel - previousPixel);
+
+                previousPercent = separationPercent;
+                previousPixel = boundaryPixel;
+                segmentStart = separatorColumn + 1;
+            }
+
+            SetColumnSegmentWidth(columnWidths, segmentStart, children.Count, availableSize - previousPixel);
+            ApplyAxisSizeToChildren(children, calc.GridColumnCount, 0, columnWidths);
+        }
+
+        #endregion
     }
 }
