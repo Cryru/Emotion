@@ -4,6 +4,7 @@
 
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Core.Utility.Threading;
+using Emotion.Editor.EditorUI.Base;
 using Emotion.Game.Systems.UI.New;
 using System.Diagnostics.CodeAnalysis;
 using static Emotion.Game.Systems.UI2.UILayoutMethod;
@@ -951,10 +952,21 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
     {
         _needsLayout = false;
 
-        if (Layout.ScaleWithResolution)
-            CalculatedMetrics.Scale = Layout.Scale * (Parent?.CalculatedMetrics.Scale ?? Vector2.One);
-        else
-            Layout.Scale = Vector2.One;
+        switch (Layout.ScaleType)
+        {
+            case ScaleType.DefaultScale when Parent != null:
+                CalculatedMetrics.Scale = Layout.Scale * Parent.CalculatedMetrics.Scale;
+                break;
+            case ScaleType.DefaultScale when Parent == null:
+                CalculatedMetrics.Scale = Layout.Scale;
+                break;
+            case ScaleType.UniformScale:
+                CalculatedMetrics.Scale = Layout.Scale * new Vector2(Parent.CalculatedMetrics.ScaleF);
+                break;
+            case ScaleType.DontScale:
+                CalculatedMetrics.Scale = Vector2.One;
+                break;
+        }
 
         // Pre-calculate metrics.
         CalculatedMetrics.MarginLeftTop = Layout.Margins.LeftTop.FloorMultiplyButNotZero(CalculatedMetrics.Scale);
@@ -1100,7 +1112,6 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
             LayoutMethodCodeClass layoutCode = GetLayoutClassForPass(p);
             layoutCode.PositionChildren(this, children);
         }
-
 
         InternalOnLayoutComplete();
         foreach (UIBaseWindow child in Children)

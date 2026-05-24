@@ -1,7 +1,5 @@
 ﻿#nullable enable
 
-using Emotion;
-
 namespace Emotion.Editor.EditorUI.Components.One;
 
 public class OneScrollbar : UIScrollbar
