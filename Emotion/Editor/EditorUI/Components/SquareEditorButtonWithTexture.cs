@@ -24,6 +24,7 @@ public class SquareEditorButtonWithTexture : SquareEditorButton
                 // todo: it would be nice if we can let the parent be grow and have this be a square in the grow layout step
                 SizingX = UISizing.Fixed(size),
                 SizingY = UISizing.Fixed(size),
+                ScaleType = ScaleType.UniformScale,
                 AnchorAndParentAnchor = UIAnchor.CenterCenter,
             },
             IgnoreParentColor = true,

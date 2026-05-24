@@ -2,6 +2,13 @@
 
 namespace Emotion.Game.Systems.UI2;
 
+public enum ScaleType
+{
+    DefaultScale,
+    UniformScale,
+    DontScale
+}
+
 public struct UIWindowLayoutConfig
 {
     public const int DEFAULT_MAX_SIZE = 99999;
@@ -21,21 +28,17 @@ public struct UIWindowLayoutConfig
     }
     private Vector2 _scale = Vector2.One;
 
-    /// <summary>
-    /// Whether this window scales with the resolution of the UISystem (meaning the Host's screen)
-    /// </summary>
-    public bool ScaleWithResolution
+    public ScaleType ScaleType
     {
-        readonly get => _scaleWithResolution;
+        readonly get => _scaleType;
         set
         {
-            if (value == _scaleWithResolution) return;
-            _scaleWithResolution = value;
+            if (value == _scaleType) return;
+            _scaleType = value;
             InvalidateLayout();
         }
     }
-
-    private bool _scaleWithResolution = true;
+    private ScaleType _scaleType = ScaleType.DefaultScale;
 
     /// <summary>
     /// Final offset to the position of the window, applied at the final layout step.

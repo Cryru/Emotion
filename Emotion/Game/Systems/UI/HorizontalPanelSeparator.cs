@@ -38,6 +38,7 @@ public class HorizontalPanelSeparator : UIBaseWindow
         HandleInput = true;
         Layout.SizingX = UISizing.Fixed(6);
         Layout.SizingY = UISizing.Grow();
+        Layout.ScaleType = ScaleType.UniformScale;
         Visuals.BackgroundColor = Color.Black;
     }
 
