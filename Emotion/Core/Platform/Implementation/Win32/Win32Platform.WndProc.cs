@@ -202,8 +202,9 @@ public partial class Win32Platform
                 return IntPtr.Zero;
             case WM.SETCURSOR:
             {
-                ApplyCursor();
-                return IntPtr.Zero;
+                if (ApplyCursor())
+                    return IntPtr.Zero;
+                break;
             }
         }
 
@@ -216,16 +217,19 @@ public partial class Win32Platform
         ApplyCursor();
     }
 
-    private void ApplyCursor()
+    private bool ApplyCursor()
     {
+        bool set = false;
         SystemCursor winCursor = SystemCursor.IDC_ARROW;
         switch (_currentCursor)
         {
             case MouseCursor.ResizeLR:
                 winCursor = SystemCursor.IDC_SIZEWE;
+                set = true;
                 break;
         }
 
         User32.SetCursor(User32.LoadCursor(IntPtr.Zero, (nint)winCursor));
+        return set;
     }
 }
