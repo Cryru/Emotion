@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using static Emotion.Core.Platform.PlatformBase;
+
 namespace Emotion.Game.Systems.UI.New;
 
 public struct MouseFocusPair
@@ -173,8 +175,27 @@ public class UISystem : UIBaseWindow
             return;
         }
 
-        MouseFocusPair focus = FindWindowUnderMouse(mousePos);
-        SetMouseFocus(focus);
+        // Find mouse focus in opened subwindows
+        bool windowsUnderMouseRan = false;
+        if (_subWindows.Count > 0)
+        {
+            _subWindows.RemoveAll(static (s) => !s.window.IsOpen);
+            for (int i = 0; i < _subWindows.Count; i++)
+            {
+                (PlatformSubWindow window, UIBaseWindow uiWin) = _subWindows[i];
+                if (window.IsFocused)
+                {
+                    MouseFocusPair focus = uiWin.FindWindowUnderMouse(mousePos);
+                    SetMouseFocus(focus);
+                    windowsUnderMouseRan = true;
+                }
+            }
+        }
+        if (!windowsUnderMouseRan)
+        {
+            MouseFocusPair focus = FindWindowUnderMouse(mousePos);
+            SetMouseFocus(focus);
+        }
     }
 
     private void SetMouseFocus(MouseFocusPair newFocus)
@@ -430,6 +451,13 @@ public class UISystem : UIBaseWindow
             p.InputFocusChanged(focus);
             p = p.Parent;
         }
+    }
+
+    private List<(PlatformSubWindow window, UIBaseWindow uiWin)> _subWindows = new();
+
+    public void RegisterSubWindow((PlatformSubWindow window, UIBaseWindow uiWin) win)
+    {
+        _subWindows.Add(win);
     }
 
     #endregion

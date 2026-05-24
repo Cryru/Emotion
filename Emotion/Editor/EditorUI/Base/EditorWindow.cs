@@ -86,6 +86,7 @@ public class EditorWindow : UIBaseWindow
                 SizingX = UISizing.Fit(),
                 SizingY = UISizing.Fit(),
 
+                MinSize = new IntVector2(200, 100),
                 MaxSize = new IntVector2(1800, 970),
             },
             Visuals =
@@ -498,12 +499,19 @@ public class EditorWindow : UIBaseWindow
         _dragButton?.Close();
         _dragButton = null;
 
+        Layout.ScaleType = ScaleType.DontScale;
+        Layout.SizingX = UISizing.Fit();
+        Layout.SizingY = UISizing.Fit();
+
+        _panelItself.Layout.MaxSize = new IntVector2(UIWindowLayoutConfig.DEFAULT_MAX_SIZE);
+        _panelItself.Visuals.Border = 0;
+
         _contentParent.Layout.Margins = new UISpacing();
         _panelMode = PanelMode.SubWindow;
 
         GLThread.ExecuteOnGLThreadAsync(() =>
         {
-            Vector2 contentSize = _panelItself.CalculatedMetrics.Size.ToVec2();
+            Vector2 contentSize = (_panelItself.CalculatedMetrics.Size.ToVec2() * _panelItself.CalculatedMetrics.ScaleInv);
             _windowFB = new FrameBuffer(contentSize).WithColor();
             _hostWindow = Engine.Host.CreateSubWindow(Header, contentSize);
 
@@ -515,6 +523,7 @@ public class EditorWindow : UIBaseWindow
             _panelItself.Layout.SizingY = UISizing.Fixed(size.Y);
 
             _centered = true;
+            Engine.UI.RegisterSubWindow((_hostWindow, this));
         });
     }
 
