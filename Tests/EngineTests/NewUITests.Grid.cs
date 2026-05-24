@@ -9,7 +9,6 @@ using System.Collections;
 
 namespace Tests.EngineTests;
 
-[DebugTest]
 public class NewUITestsGrids : NewUITests
 {
     [Test]
