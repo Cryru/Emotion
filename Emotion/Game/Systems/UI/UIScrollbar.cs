@@ -12,6 +12,7 @@ public class UIScrollbar : UIBaseWindow
 
     public Color DefaultSelectorColor = new Color(125, 0, 0);
     public Color SelectorMouseInColor = new Color(200, 0, 0);
+    public int MinSelectorSize = 20;
 
     protected Color _selectorColor;
     protected Rectangle _selectorRect;
@@ -26,11 +27,11 @@ public class UIScrollbar : UIBaseWindow
         HandleInput = true;
         Horizontal = horizontal;
 
+        Layout.ScaleType = ScaleType.UniformScale;
         if (horizontal)
         {
             Layout.SizingY = UISizing.Fixed(15);
             Layout.SizingX = UISizing.Grow();
-            Layout.Margins = new UISpacing(0, 0, 15, 0);
             Layout.AnchorAndParentAnchor = UIAnchor.BottomLeft;
         }
         else
@@ -120,7 +121,7 @@ public class UIScrollbar : UIBaseWindow
         {
             float trackW = track.Width;
             float thumbW = TotalArea <= 0 ? trackW : (PageArea / MathF.Max(1, TotalArea)) * trackW;
-            thumbW = Maths.Clamp(thumbW, 0, trackW);
+            thumbW = Maths.Clamp(thumbW, MinSelectorSize * CalculatedMetrics.ScaleF, trackW);
 
             float maxScroll = MathF.Max(0, TotalArea - PageArea);
             float norm = maxScroll <= 0 ? 0 : Current / maxScroll;
@@ -133,7 +134,7 @@ public class UIScrollbar : UIBaseWindow
         {
             float trackH = track.Height;
             float thumbH = TotalArea <= 0 ? trackH : (PageArea / MathF.Max(1, TotalArea)) * trackH;
-            thumbH = Maths.Clamp(thumbH, 0, trackH);
+            thumbH = Maths.Clamp(thumbH, MinSelectorSize * CalculatedMetrics.ScaleF, trackH);
 
             float maxScroll = MathF.Max(0, TotalArea - PageArea);
             float norm = maxScroll <= 0 ? 0 : Current / maxScroll;

@@ -52,15 +52,9 @@ public partial class UIBaseWindow
 
     private void SyncScrollbars()
     {
-        if (_scrollbarV != null)
-        {
-            IntVector2 viewport = CalculatedMetrics.GetViewportSize();
-            _scrollbarV.Current = ScrollOffset.Y;
-            _scrollbarV.TotalArea = CalculatedMetrics.MaxScroll.Y + viewport.Y;
-            _scrollbarV.PageArea = viewport.Y;
-            _scrollbarV.UpdateScrollbar();
-            _scrollbarV.SetVisible(CalculatedMetrics.MaxScroll.Y > 0);
-        }
+        bool showHScroll = CalculatedMetrics.MaxScroll.X > 0;
+        bool showVScroll = CalculatedMetrics.MaxScroll.Y > 0;
+
         if (_scrollbarH != null)
         {
             IntVector2 viewport = CalculatedMetrics.GetViewportSize();
@@ -68,7 +62,27 @@ public partial class UIBaseWindow
             _scrollbarH.TotalArea = CalculatedMetrics.MaxScroll.X + viewport.X;
             _scrollbarH.PageArea = viewport.X;
             _scrollbarH.UpdateScrollbar();
-            _scrollbarH.SetVisible(CalculatedMetrics.MaxScroll.X > 0);
+            _scrollbarH.SetVisible(showHScroll);
+
+            if (showVScroll && _scrollbarV != null)
+                _scrollbarH.Layout.Margins = new UISpacing(0, 0, _scrollbarV.CalculatedMetrics.Size.X, 0);
+            else
+                _scrollbarH.Layout.Margins = new UISpacing(0, 0, 0, 0);
+        }
+
+        if (_scrollbarV != null)
+        {
+            IntVector2 viewport = CalculatedMetrics.GetViewportSize();
+            _scrollbarV.Current = ScrollOffset.Y;
+            _scrollbarV.TotalArea = CalculatedMetrics.MaxScroll.Y + viewport.Y;
+            _scrollbarV.PageArea = viewport.Y;
+            _scrollbarV.UpdateScrollbar();
+            _scrollbarV.SetVisible(showVScroll);
+
+            if (showHScroll && _scrollbarH != null)
+                _scrollbarV.Layout.Margins = new UISpacing(0, 0, 0, _scrollbarH.CalculatedMetrics.Size.Y);
+            else
+                _scrollbarV.Layout.Margins = new UISpacing(0, 0, 0, 0);
         }
     }
 
