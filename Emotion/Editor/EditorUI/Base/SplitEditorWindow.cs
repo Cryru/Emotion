@@ -30,6 +30,7 @@ public class SplitEditorWindow : EditorWindow
 
     public UIBaseWindow GetSplitContentParent(int splitIdx)
     {
+        if (splitIdx >= _split.Length) return _split[0];
         return _split[splitIdx];
     }
 }

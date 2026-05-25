@@ -120,21 +120,39 @@ public class StyleGuideViewer : EditorWindow
             }
         }
 
-
-
-        //var textInputSection = new UIContainer()
-        //{
-
-        //    SetChildren =
-        //    [
-        //        new UIText()
-        //        {
-        //            Text = "Text Input"
-        //        }
-        //    ]
-        //};
-        //grid.AddChild(textInputSection);
-
-        //textInputSection.AddChild(new OneTextInput());
+        var textInputSection = new UIContainer()
+        {
+            Visuals =
+            {
+                BackgroundColor = new Color("#160F28"),
+            },
+            Layout =
+            {
+                LayoutMethod = UILayoutMethod.HorizontalList(20),
+                SizingX = UISizing.Grow(),
+                Padding = new UISpacing(20, 20, 20, 20),
+            },
+            SetChildren =
+            [
+                new UIText()
+                {
+                    Text = "Text Input",
+                    TextColor = new Color("#929194"),
+                    Layout =
+                    {
+                        AnchorAndParentAnchor = UIAnchor.CenterLeft,
+                        Margins = new UISpacing(0, 0, 15, 0)
+                    }
+                },
+                new OneTextInput()
+                {
+                    Layout =
+                    {
+                        AnchorAndParentAnchor = UIAnchor.CenterLeft,
+                    }
+                }
+            ]
+        };
+        gridContainer.AddChild(textInputSection);
     }
 }
