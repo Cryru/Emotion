@@ -503,8 +503,11 @@ public class EditorWindow : UIBaseWindow
         Layout.SizingX = UISizing.Fit();
         Layout.SizingY = UISizing.Fit();
 
+        _panelItself.Layout.Offset = IntVector2.Zero;
+        _panelItself.Layout.AnchorAndParentAnchor = UIAnchor.TopLeft;
         _panelItself.Layout.MaxSize = new IntVector2(UIWindowLayoutConfig.DEFAULT_MAX_SIZE);
         _panelItself.Visuals.Border = 0;
+        _centered = true;
 
         _contentParent.Layout.Margins = new UISpacing();
         _panelMode = PanelMode.SubWindow;
@@ -515,14 +518,10 @@ public class EditorWindow : UIBaseWindow
             _windowFB = new FrameBuffer(contentSize).WithColor();
             _hostWindow = Engine.Host.CreateSubWindow(Header, contentSize);
 
-            _panelItself.Layout.Offset = IntVector2.Zero;
-            _panelItself.Layout.AnchorAndParentAnchor = UIAnchor.TopLeft;
-
             IntVector2 size = IntVector2.FromVec2Ceiling(_hostWindow.Size * CalculatedMetrics.ScaleInv);
             _panelItself.Layout.SizingX = UISizing.Fixed(size.X);
             _panelItself.Layout.SizingY = UISizing.Fixed(size.Y);
 
-            _centered = true;
             Engine.UI.RegisterSubWindow((_hostWindow, this));
         });
     }
