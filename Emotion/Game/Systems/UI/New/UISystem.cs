@@ -294,14 +294,16 @@ public class UISystem : UIBaseWindow
 
         if (key == Key.MouseWheel)
         {
+            // Find hte first scrollable up the chain.
             UIBaseWindow scrollable = MouseFocus;
             while (scrollable != null)
             {
-                if (scrollable.Layout.OverflowY == UIOverflow.Scroll)
+                if (HandlesMouseInputBecauseOfScroll(scrollable))
                     break;
 
                 scrollable = scrollable.Parent;
             }
+
             if (scrollable != null)
             {
                 bool up = status == KeyState.Up;

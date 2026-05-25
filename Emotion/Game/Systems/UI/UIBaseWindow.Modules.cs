@@ -4,7 +4,6 @@
 
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Core.Utility.Threading;
-using Emotion.Editor.EditorUI.Base;
 using Emotion.Game.Systems.UI.New;
 using System.Diagnostics.CodeAnalysis;
 using static Emotion.Game.Systems.UI2.UILayoutMethod;
@@ -40,17 +39,17 @@ public struct ListInitializerProxy<T, TUserArg> : IEnumerable<T>
         _arg = arg;
     }
 
-    public void Add(T item)
+    public readonly void Add(T item)
     {
         _func(item, _arg);
     }
 
-    public IEnumerator<T> GetEnumerator()
+    public readonly IEnumerator<T> GetEnumerator()
     {
         return default!;
     }
 
-    IEnumerator IEnumerable.GetEnumerator()
+    readonly IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
     }
@@ -778,7 +777,12 @@ public partial class UIBaseWindow : IEnumerable<UIBaseWindow>
 
     protected static bool HandlesMouseInput(UIBaseWindow win)
     {
-        return win.HandleInput || win.Layout.OverflowY == UIOverflow.Scroll;
+        return win.HandleInput || HandlesMouseInputBecauseOfScroll(win);
+    }
+
+    protected static bool HandlesMouseInputBecauseOfScroll(UIBaseWindow win)
+    {
+        return win.Layout.OverflowY == UIOverflow.Scroll && win._scrollbarV != null && win._scrollbarV.Visuals.Visible;
     }
 
     public virtual void OnMouseEnter(Vector2 mousePos)
