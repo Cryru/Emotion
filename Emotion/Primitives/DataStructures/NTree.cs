@@ -7,23 +7,23 @@ namespace Emotion.Primitives.DataStructures;
 /// <summary>
 /// A tree data structure.
 /// </summary>
-/// <typeparam name="T">The data type representing the branch names.</typeparam>
-/// <typeparam name="T2">The data type representing the leaf values.</typeparam>
-public class NTree<T, T2> : IEnumerable<T2>
+/// <typeparam name="TBranchName">The data type representing the branch names.</typeparam>
+/// <typeparam name="TLeafType">The data type representing the leaf values.</typeparam>
+public class NTree<TBranchName, TLeafType> : IEnumerable<TLeafType>
 {
-    public T? Name { get; init; }
+    public TBranchName? Name { get; init; }
 
-    public NTree<T, T2>? Parent { get; init; } = null;
+    public NTree<TBranchName, TLeafType>? Parent { get; init; } = null;
 
-    public List<T2> Leaves { get; } = new List<T2>();
+    public List<TLeafType> Leaves { get; } = new List<TLeafType>();
 
-    public List<NTree<T, T2>> Branches { get; } = new List<NTree<T, T2>>();
+    public List<NTree<TBranchName, TLeafType>> Branches { get; } = new List<NTree<TBranchName, TLeafType>>();
 
     public NTree()
     {
     }
 
-    protected NTree(T name, NTree<T, T2>? parent)
+    protected NTree(TBranchName name, NTree<TBranchName, TLeafType>? parent)
     {
         Name = name;
         Parent = parent;
@@ -32,10 +32,10 @@ public class NTree<T, T2> : IEnumerable<T2>
     /// <summary>
     /// Add a new leaf to the tree, adding all missing branches along the way.
     /// </summary>
-    public void Add(Span<T> path, T2 value)
+    public void Add(Span<TBranchName> path, TLeafType value)
     {
-        NTree<T, T2> target = this;
-        foreach (T branchName in path)
+        NTree<TBranchName, TLeafType> target = this;
+        foreach (TBranchName branchName in path)
         {
             target = target.AddGetBranch(branchName);
         }
@@ -46,9 +46,9 @@ public class NTree<T, T2> : IEnumerable<T2>
     /// <summary>
     /// Get an existing branch
     /// </summary>
-    public NTree<T, T2>? GetBranch(T branch)
+    public NTree<TBranchName, TLeafType>? GetBranch(TBranchName branch)
     {
-        foreach (NTree<T, T2> subBranch in Branches)
+        foreach (NTree<TBranchName, TLeafType> subBranch in Branches)
         {
             if (Helpers.AreObjectsEqual(subBranch.Name, branch))
                 return subBranch;
@@ -57,17 +57,17 @@ public class NTree<T, T2> : IEnumerable<T2>
         return null;
     }
 
-    public NTree<T, T2>? GetBranchFromPath(T[] path)
+    public NTree<TBranchName, TLeafType>? GetBranchFromPath(TBranchName[] path)
     {
-        NTree<T, T2> current = this;
+        NTree<TBranchName, TLeafType> current = this;
         for (var i = 0; i < path.Length; i++)
         {
-            T pathItem = path[i];
+            TBranchName pathItem = path[i];
 
             var found = false;
             for (var j = 0; j < current.Branches.Count; j++)
             {
-                NTree<T, T2> branch = current.Branches[j];
+                NTree<TBranchName, TLeafType> branch = current.Branches[j];
                 if (Helpers.AreObjectsEqual(branch.Name, pathItem))
                 {
                     current = branch;
@@ -85,61 +85,61 @@ public class NTree<T, T2> : IEnumerable<T2>
     /// <summary>
     /// Add a branch or get it.
     /// </summary>
-    public NTree<T, T2> AddGetBranch(T branch)
+    public NTree<TBranchName, TLeafType> AddGetBranch(TBranchName branch)
     {
-        NTree<T, T2>? existingBranch = GetBranch(branch);
+        NTree<TBranchName, TLeafType>? existingBranch = GetBranch(branch);
         if (existingBranch != null)
             return existingBranch;
 
-        var newBranch = new NTree<T, T2>(branch, this);
+        var newBranch = new NTree<TBranchName, TLeafType>(branch, this);
         Branches.Add(newBranch);
         return newBranch;
     }
 
-    public void AddLeaf(T2 leaf)
+    public void AddLeaf(TLeafType leaf)
     {
         Leaves.Add(leaf);
     }
 
-    public IEnumerable<T2> ForEachLeaf()
+    public IEnumerable<TLeafType> ForEachLeaf()
     {
-        Stack<NTree<T, T2>> stack = new();
+        Stack<NTree<TBranchName, TLeafType>> stack = new();
         stack.Push(this);
 
-        while (stack.TryPop(out NTree<T, T2>? nextBranch))
+        while (stack.TryPop(out NTree<TBranchName, TLeafType>? nextBranch))
         {
-            foreach (T2 leaf in nextBranch.Leaves)
+            foreach (TLeafType leaf in nextBranch.Leaves)
             {
                 yield return leaf;
             }
 
-            foreach (NTree<T, T2> subBranch in nextBranch.Branches)
+            foreach (NTree<TBranchName, TLeafType> subBranch in nextBranch.Branches)
             {
                 stack.Push(subBranch);
             }
         }
     }
 
-    public IEnumerable<(T2, NTree<T, T2>)> ForEachLeafWithBranch()
+    public IEnumerable<(TLeafType, NTree<TBranchName, TLeafType>)> ForEachLeafWithBranch()
     {
-        Stack<NTree<T, T2>> stack = new();
+        Stack<NTree<TBranchName, TLeafType>> stack = new();
         stack.Push(this);
 
-        while (stack.TryPop(out NTree<T, T2>? nextBranch))
+        while (stack.TryPop(out NTree<TBranchName, TLeafType>? nextBranch))
         {
-            foreach (T2 leaf in nextBranch.Leaves)
+            foreach (TLeafType leaf in nextBranch.Leaves)
             {
                 yield return (leaf, nextBranch);
             }
 
-            foreach (NTree<T, T2> subBranch in nextBranch.Branches)
+            foreach (NTree<TBranchName, TLeafType> subBranch in nextBranch.Branches)
             {
                 stack.Push(subBranch);
             }
         }
     }
 
-    public IEnumerator<T2> GetEnumerator()
+    public IEnumerator<TLeafType> GetEnumerator()
     {
         return ForEachLeaf().GetEnumerator();
     }
