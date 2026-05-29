@@ -22,6 +22,7 @@ public class UITextInput : UIText
     public bool SubmitOnFocusLoss;
 
     [DontSerialize] public Action<string>? OnSubmit;
+    [DontSerialize] public Action<UITextInput>? OnTextChanged;
 
     private bool _cursorOn;
     private Every _blinkingTimer;
@@ -31,13 +32,15 @@ public class UITextInput : UIText
     private bool _selectionHeld;
 
     private Key? _arrowHeld;
-    private Every _arrowHeldTimer;
+    private ValueTimer _arrowHeldTimer;
+    private ValueTimer _arrowRepeatTimer;
 
     public UITextInput()
     {
         HandleInput = true;
         _blinkingTimer = new Every(650, () => { _cursorOn = !_cursorOn; });
-        _arrowHeldTimer = new Every(50, ArrowHeldProc);
+        _arrowHeldTimer = new ValueTimer(400);
+        _arrowRepeatTimer = new ValueTimer(40);
         WrapText = false;
 
         Layout.SizingX = UISizing.Grow();
@@ -80,7 +83,8 @@ public class UITextInput : UIText
             {
                 _arrowHeld = null;
             }
-            _arrowHeldTimer.Restart();
+            _arrowHeldTimer.Reset();
+            ArrowPressedProc();
             return false;
         }
 
@@ -298,6 +302,10 @@ public class UITextInput : UIText
     {
         _blinkingTimer.Update(Engine.DeltaTime);
         _arrowHeldTimer.Update(Engine.DeltaTime);
+        _arrowRepeatTimer.Update(Engine.DeltaTime);
+        if (_arrowHeldTimer.Finished && _arrowRepeatTimer.Finished)
+            ArrowPressedProc();
+
         return base.UpdateInternal();
     }
 
@@ -354,15 +362,12 @@ public class UITextInput : UIText
     protected void UpdateText()
     {
         ReRunLayout();
-        OnTextChanged();
+        OnTextChanged?.Invoke(this);
     }
 
-    protected virtual void OnTextChanged()
+    private void ArrowPressedProc()
     {
-    }
-
-    private void ArrowHeldProc()
-    {
+        _arrowRepeatTimer.Reset();
         if (_arrowHeld == Key.LeftArrow)
         {
             if (_selectionEnd != _selectionStart)
