@@ -1,9 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Editor;
-using Emotion.Game.World;
 using Emotion.Game.World.Terrain;
-using Emotion.Game.World.ThreeDee;
 using Emotion.Graphics.Camera;
 
 namespace Emotion.Game.PremadeControllers.Minecraft;
