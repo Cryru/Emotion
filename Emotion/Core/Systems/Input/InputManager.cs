@@ -188,7 +188,7 @@ public class InputManager
             return;
         }
 
-        Vector2 center = host.Position + Engine.Renderer.ScreenBuffer.Viewport.Center;
+        Vector2 center = (host.Position + Engine.Renderer.ScreenBuffer.Viewport.Center).Floor();
         host.SetMousePos(center);
         host.SetHideCursor(true);
     }
