@@ -359,7 +359,7 @@ public abstract partial class TerrainGridBase<T, ChunkT, IndexT>
     protected override void OnChunkChanged(Vector2 chunkCoord, ChunkT newChunk)
     {
         base.OnChunkChanged(chunkCoord, newChunk);
-        RequestChunkMeshUpdate(chunkCoord, newChunk, false);
+        RequestChunkMeshUpdate(chunkCoord, newChunk, true);
     }
 
     public void RequestChunkMeshUpdate(Vector2 chunkCoord, ChunkT chunk, bool highPriority = false)
