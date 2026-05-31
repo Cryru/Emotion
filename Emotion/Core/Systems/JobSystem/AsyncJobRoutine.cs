@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using Emotion.Core.Utility.Coroutines;
+using System.Runtime.CompilerServices;
 
 namespace Emotion.Core.Systems.JobSystem;
 
@@ -9,15 +10,24 @@ public class AsyncJobRoutine : IRoutineWaiter
     // State
     public bool FromPool { get; private set; }
 
-    public bool Finished { get; private set; }
+    public bool Finished
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => Volatile.Read(ref _finished) != 0;
+    }
 
     // Data
     public string? JobTag { get; private set; }
+
+    internal AsyncJobRoutine? QueueNext;
+
+    internal bool PriorityJob;
 
     private IEnumerator _routine;
     private IRoutineWaiter? _currentWaiter;
     private bool _isSubRoutine;
     private ISimpleAsyncJob? _functor;
+    private int _finished;
 
     public AsyncJobRoutine(IEnumerator routine, bool subRoutine = false, string? tag = null)
     {
@@ -67,9 +77,11 @@ public class AsyncJobRoutine : IRoutineWaiter
         _routine = null!;
         _currentWaiter = null;
         JobTag = null;
-        Finished = false;
+        Volatile.Write(ref _finished, 0);
         _isSubRoutine = false;
         _functor = null;
+        QueueNext = null;
+        PriorityJob = false;
     }
 
     public void Update()
@@ -84,7 +96,7 @@ public class AsyncJobRoutine : IRoutineWaiter
         if (_functor != null)
         {
             _functor.Run();
-            Finished = true;
+            Volatile.Write(ref _finished, 1);
             return;
         }
 
@@ -127,6 +139,6 @@ public class AsyncJobRoutine : IRoutineWaiter
         }
 
         if (done)
-            Finished = true;
+            Volatile.Write(ref _finished, 1);
     }
 }
