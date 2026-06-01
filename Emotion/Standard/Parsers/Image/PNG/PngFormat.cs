@@ -3,11 +3,10 @@
 #region Using
 
 using System.IO;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Emotion.Core.Systems.Logging;
 using Emotion.Core.Utility.Profiling;
-using Emotion.Core.Utility.Threading;
 using Emotion.Standard.Memory;
 using Emotion.Standard.Zlib;
 using OpenGL;
@@ -19,7 +18,7 @@ namespace Emotion.Standard.Parsers.Image.PNG;
 public static class PngFormat
 {
     // P N G CR LF EOF LF
-    private static byte[] _pngHeader = {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
+    private static byte[] _pngHeader = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
     private const int MAX_BLOCK_SIZE = 0xFFFF;
 
     /// <summary>
@@ -55,14 +54,14 @@ public static class PngFormat
 
         // Write header chunk.
         var chunkData = new byte[13];
-        var width = (int) size.X;
-        var height = (int) size.Y;
+        var width = (int)size.X;
+        var height = (int)size.Y;
         WriteInteger(chunkData, 0, width);
         WriteInteger(chunkData, 4, height);
         var header = new PngFileHeader
         {
             Size = size,
-            ColorType = (byte) (format == PixelFormat.Red ? 0 : 6), // Greyscale, otherwise RGBA
+            ColorType = (byte)(format == PixelFormat.Red ? 0 : 6), // Greyscale, otherwise RGBA
             BitDepth = 8,
             FilterMethod = 0,
             CompressionMethod = 0,
@@ -136,20 +135,20 @@ public static class PngFormat
 
     #region Writing Utility
 
-    private static void WriteChunk(Stream stream, string type, byte[] data)
+    private static void WriteChunk(Stream stream, string type, byte[]? data)
     {
         WriteChunk(stream, type, data, 0, data?.Length ?? 0);
     }
 
-    private static void WriteChunk(Stream stream, string type, byte[] data, int offset, int length)
+    private static void WriteChunk(Stream stream, string type, byte[]? data, int offset, int length)
     {
         WriteInteger(stream, length);
 
         var typeArray = new byte[4];
-        typeArray[0] = (byte) type[0];
-        typeArray[1] = (byte) type[1];
-        typeArray[2] = (byte) type[2];
-        typeArray[3] = (byte) type[3];
+        typeArray[0] = (byte)type[0];
+        typeArray[1] = (byte)type[1];
+        typeArray[2] = (byte)type[2];
+        typeArray[3] = (byte)type[3];
 
         stream.Write(typeArray, 0, 4);
 
@@ -160,7 +159,7 @@ public static class PngFormat
 
         if (data != null) crc32.Update(data, offset, length);
 
-        WriteInteger(stream, (uint) crc32.Value);
+        WriteInteger(stream, (uint)crc32.Value);
     }
 
     private static void WriteInteger(byte[] data, int offset, int value)
@@ -201,66 +200,63 @@ public static class PngFormat
         if (!IsPng(pngData))
         {
             Engine.Log.Warning("Tried to decode a non-png image!", MessageSource.ImagePng);
-            return null;
+            return Array.Empty<byte>();
         }
-
-        using var stream = new ByteReader(pngData);
-        stream.Seek(8, SeekOrigin.Current); // Increment by header bytes.
 
         // Read chunks while there are valid chunks.
         var dataStream = new ReadOnlyLinkedMemoryStream();
-        PngChunk currentChunk;
         var endChunkReached = false;
+
+        NonAllocByteReader chunkReader = new NonAllocByteReader(pngData);
+        chunkReader.SkipBytes(8); // header size
+
         ReadOnlyMemory<byte> palette = null, paletteAlpha = null;
-        int width = 0, height = 0;
-        while ((currentChunk = new PngChunk(stream)).Valid)
+        while (true)
         {
+            PngChunk currentChunk = new PngChunk(ref chunkReader);
+            if (!currentChunk.Valid) break;
+
             if (endChunkReached)
             {
                 Engine.Log.Warning("Image did not end with an end chunk...", MessageSource.ImagePng);
                 continue;
             }
 
-            switch (currentChunk.Type)
-            {
-                case PngChunkTypes.HEADER:
-                {
-                    ByteReader chunkReader = currentChunk.ChunkReader;
+            var chunkData = pngData.Slice(currentChunk.ChunkOffset, currentChunk.ChunkLength);
 
-                    width = chunkReader.ReadInt32BE();
-                    height = chunkReader.ReadInt32BE();
-                    fileHeader.Size = new Vector2(width, height);
-                    fileHeader.BitDepth = chunkReader.ReadByte();
-                    fileHeader.ColorType = chunkReader.ReadByte();
-                    fileHeader.CompressionMethod = chunkReader.ReadByte();
-                    fileHeader.FilterMethod = chunkReader.ReadByte();
-                    fileHeader.InterlaceMethod = chunkReader.ReadByte();
-                    break;
-                }
-                case PngChunkTypes.DATA:
-                    dataStream.AddMemory(currentChunk.ChunkReader.Data);
-                    break;
-                case PngChunkTypes.PALETTE:
-                    palette = currentChunk.ChunkReader.Data;
-                    break;
-                case PngChunkTypes.PALETTE_ALPHA:
-                    paletteAlpha = currentChunk.ChunkReader.Data;
-                    break;
-                case PngChunkTypes.END:
-                    endChunkReached = true;
-                    break;
+            if (currentChunk.Type.Is(PngChunkTypes.HEADER))
+            {
+                var thisChunkReader = new NonAllocByteReader(chunkData);
+                int width = thisChunkReader.ReadInt32BE();
+                int height = thisChunkReader.ReadInt32BE();
+                fileHeader.Size = new Vector2(width, height);
+                fileHeader.BitDepth = thisChunkReader.ReadByte();
+                fileHeader.ColorType = thisChunkReader.ReadByte();
+                fileHeader.CompressionMethod = thisChunkReader.ReadByte();
+                fileHeader.FilterMethod = thisChunkReader.ReadByte();
+                fileHeader.InterlaceMethod = thisChunkReader.ReadByte();
+            }
+            else if (currentChunk.Type.Is(PngChunkTypes.DATA))
+            {
+                dataStream.AddMemory(chunkData);
+            }
+            else if (currentChunk.Type.Is(PngChunkTypes.PALETTE))
+            {
+                palette = chunkData;
+            }
+            else if (currentChunk.Type.Is(PngChunkTypes.PALETTE_ALPHA))
+            {
+                paletteAlpha = chunkData;
+            }
+            else if (currentChunk.Type.Is(PngChunkTypes.END))
+            {
+                endChunkReached = true;
             }
         }
 
-        // Decompress data.
-        PerfProfiler.ProfilerEventStart("PNG Decompression", "Loading");
-        byte[] data = ZlibStreamUtility.Decompress(dataStream);
-        PerfProfiler.ProfilerEventEnd("PNG Decompression", "Loading");
-        if (data == null) return null;
-
-        var channelsPerColor = 0;
+        int channelsPerColor = 0;
         int bytesPerPixelOutput = 4;
-        ColorReader reader;
+        ColorReader? reader;
         fileHeader.PixelFormat = PixelFormat.Bgra; // Default.
         switch (fileHeader.ColorType)
         {
@@ -301,7 +297,7 @@ public static class PngFormat
         if (reader == null)
         {
             Engine.Log.Warning($"Unsupported color type - {fileHeader.ColorType}", MessageSource.ImagePng);
-            return new byte[width * height * bytesPerPixelOutput];
+            return Array.Empty<byte>();
         }
 
         // Calculate the bytes per pixel.
@@ -309,22 +305,26 @@ public static class PngFormat
         if (fileHeader.BitDepth == 0 || fileHeader.BitDepth == 3)
         {
             Engine.Log.Warning("Invalid bit depth.", MessageSource.ImagePng);
-            return null;
+            return Array.Empty<byte>();
         }
 
         if (fileHeader.BitDepth != 8) Engine.Log.Warning("Loading PNGs with a bit depth other than 8 is slow. Convert your images!", MessageSource.ImagePng);
         if (fileHeader.BitDepth >= 8) bytesPerPixel = channelsPerColor * fileHeader.BitDepth / 8;
 
         // Check interlacing.
+        dataStream.Seek(0, SeekOrigin.Begin);
         if (fileHeader.InterlaceMethod == 1)
         {
             Engine.Log.Warning("Loading interlaced PNGs is slow. Convert your images!", MessageSource.ImagePng);
+            int decompressedSize = GetInterlacedDataLength(fileHeader, channelsPerColor);
+            byte[] data = ZlibStreamUtility.Decompress(dataStream, decompressedSize);
+            if (data == null) return Array.Empty<byte>();
             return ParseInterlaced(data, fileHeader, bytesPerPixel, channelsPerColor, reader);
         }
 
         int scanlineLength = GetScanlineLength(fileHeader, channelsPerColor) + 1;
-        int scanLineCount = data.Length / scanlineLength;
-        return Parse(scanlineLength, scanLineCount, data, bytesPerPixel, fileHeader, reader, bytesPerPixelOutput);
+        int scanLineCount = (int)fileHeader.Size.Y;
+        return Parse(scanlineLength, scanLineCount, dataStream, bytesPerPixel, fileHeader, reader, bytesPerPixelOutput);
     }
 
     #region Readers
@@ -389,7 +389,7 @@ public static class PngFormat
                 pixels[offset + 0] = palette[index * 3 + 2];
                 pixels[offset + 1] = palette[index * 3 + 1];
                 pixels[offset + 2] = palette[index * 3 + 0];
-                pixels[offset + 3] = paletteAlpha.Length > index ? paletteAlpha[index] : (byte) 255;
+                pixels[offset + 3] = paletteAlpha.Length > index ? paletteAlpha[index] : (byte)255;
             }
 
             return;
@@ -411,94 +411,54 @@ public static class PngFormat
     #endregion
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static byte[] Parse(int scanlineLength, int scanlineCount, byte[] pureData, int bytesPerPixel, PngFileHeader header, ColorReader reader, int bytesPerPixelOutput)
+    private static byte[] Parse(
+        int scanlineLength,
+        int scanlineCount,
+        Stream compressedData,
+        int bytesPerPixel,
+        PngFileHeader header,
+        ColorReader reader,
+        int bytesPerPixelOutput
+    )
     {
-        var width = (int) header.Size.X;
-        var height = (int) header.Size.Y;
+        var width = (int)header.Size.X;
+        var height = (int)header.Size.Y;
         var pixels = new byte[width * height * bytesPerPixelOutput];
         int length = scanlineLength - 1;
-        var data = new Span<byte>(pureData);
 
-        // Analyze if the scanlines can be read in parallel.
-        byte filterMode = data[0];
+        using var deflateStream = ZlibStreamUtility.CreateDecompressionStream(compressedData);
+        if (deflateStream == null)
+            return Array.Empty<byte>();
+
+        byte[] scanlineA = ArrayPool<byte>.Shared.Rent(length);
+        byte[] scanlineB = ArrayPool<byte>.Shared.Rent(length);
+
+        Span<byte> currentScanline = scanlineA;
+        Span<byte> previousScanline = scanlineB;
+        previousScanline.Clear();
+
+        PerfProfiler.ProfilerEventStart("PNG Parse Streaming", "Loading");
         for (var i = 0; i < scanlineCount; i++)
         {
-            byte f = data[scanlineLength * i];
-            if (f == filterMode) continue;
-            filterMode = byte.MaxValue;
-            break;
+            int filter = deflateStream.ReadByte();
+            if (filter == -1) break;
+
+            int read = deflateStream.ReadAtLeast(currentScanline, length, false);
+            if (read != length) break;
+
+            Span<byte> previous = previousScanline;
+            ApplyFilter(currentScanline, previous, filter, bytesPerPixel);
+
+            reader(width, ConvertBitArray(currentScanline, header), pixels, i);
+
+            Span<byte> swap = previousScanline;
+            previousScanline = currentScanline;
+            currentScanline = swap;
         }
+        PerfProfiler.ProfilerEventEnd("PNG Parse Streaming", "Loading");
 
-        // Multiple filters or a dependency filter are in affect.
-        if (filterMode == byte.MaxValue || filterMode != 0 && filterMode != 1)
-        {
-            if (scanlineCount >= 1500)
-                Engine.Log.Trace("Loaded a big PNG with scanlines which require filtering. If you re-export it without filters, it will load faster.", MessageSource.ImagePng);
-
-            PerfProfiler.ProfilerEventStart("PNG Parse Sequential", "Loading");
-            var readOffset = 0;
-            var previousScanline = Span<byte>.Empty;
-            for (var i = 0; i < scanlineCount; i++)
-            {
-                // Early out for invalid data.
-                if (data.Length - readOffset < scanlineLength) break;
-
-                Span<byte> scanline = data.Slice(readOffset + 1, length);
-                int filter = data[readOffset];
-                ApplyFilter(scanline, previousScanline, filter, bytesPerPixel);
-
-                reader(width, ConvertBitArray(scanline, header), pixels, i);
-                previousScanline = scanline;
-                readOffset += scanlineLength;
-            }
-
-            PerfProfiler.ProfilerEventEnd("PNG Parse Sequential", "Loading");
-            return pixels;
-        }
-
-        // Single line filter
-        if (filterMode == 1)
-        {
-            PerfProfiler.ProfilerEventStart("PNG Parse Threaded", "Loading");
-            ParallelWork.FastLoops(scanlineCount, (start, end) =>
-            {
-                int readOffset = start * scanlineLength;
-                for (int i = start; i < end; i++)
-                {
-                    // Early out for invalid data.
-                    if (pureData.Length - readOffset < scanlineLength) break;
-                    Span<byte> scanline = new Span<byte>(pureData).Slice(readOffset + 1, length);
-                    for (int j = bytesPerPixel; j < scanline.Length; j++)
-                    {
-                        scanline[j] = (byte) (scanline[j] + scanline[j - bytesPerPixel]);
-                    }
-
-                    reader(width, ConvertBitArray(scanline, header), pixels, i);
-                    readOffset += scanlineLength;
-                }
-            }).Wait();
-            PerfProfiler.ProfilerEventEnd("PNG Parse Threaded", "Loading");
-        }
-
-        // No filter!
-        // ReSharper disable once InvertIf
-        if (filterMode == 0)
-        {
-            PerfProfiler.ProfilerEventStart("PNG Parse Threaded", "Loading");
-            ParallelWork.FastLoops(scanlineCount, (start, end) =>
-            {
-                int readOffset = start * scanlineLength;
-                for (int i = start; i < end; i++)
-                {
-                    // Early out for invalid data.
-                    if (pureData.Length - readOffset < scanlineLength) break;
-                    Span<byte> row = ConvertBitArray(new Span<byte>(pureData).Slice(readOffset + 1, length), header);
-                    reader(width, row, pixels, i);
-                    readOffset += scanlineLength;
-                }
-            }).Wait();
-            PerfProfiler.ProfilerEventEnd("PNG Parse Threaded", "Loading");
-        }
+        ArrayPool<byte>.Shared.Return(scanlineA);
+        ArrayPool<byte>.Shared.Return(scanlineB);
 
         return pixels;
     }
@@ -513,8 +473,8 @@ public static class PngFormat
         PerfProfiler.ProfilerEventStart("PNG Parse Interlaced", "Loading");
 
         // Combine interlaced pixels into one image here.
-        var width = (int) fileHeader.Size.X;
-        var height = (int) fileHeader.Size.Y;
+        var width = (int)fileHeader.Size.X;
+        var height = (int)fileHeader.Size.Y;
         var combination = new byte[width * height * channelsPerColor];
         var pixels = new byte[width * height * 4];
 
@@ -532,7 +492,7 @@ public static class PngFormat
             int pixelsInLine = Adam7.ComputeBlockWidth(width, i);
 
             // Read scanlines in this pass.
-            var previousScanline = Span<byte>.Empty;
+            Span<byte> previousScanline = new byte[data.Length];
             for (int row = Adam7.FirstRow[i]; row < height; row += Adam7.RowIncrement[i])
             {
                 // Early out if invalid pass.
@@ -594,7 +554,7 @@ public static class PngFormat
         for (var i = 0; i < byteArray.Length; i++)
         {
             // Simulate a 8bit display by clipping everything above 255.
-            byteArray[i] = (byte) conv[i];
+            byteArray[i] = (byte)conv[i];
         }
 
         return byteArray;
@@ -603,7 +563,7 @@ public static class PngFormat
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int GetScanlineLength(PngFileHeader fileHeader, int channelsPerColor)
     {
-        int scanlineLength = (int) fileHeader.Size.X * fileHeader.BitDepth * channelsPerColor;
+        int scanlineLength = (int)fileHeader.Size.X * fileHeader.BitDepth * channelsPerColor;
         int amount = scanlineLength % 8;
         if (amount != 0) scanlineLength += 8 - amount;
         scanlineLength /= 8;
@@ -621,11 +581,31 @@ public static class PngFormat
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int GetInterlacedDataLength(PngFileHeader fileHeader, int channelsPerColor)
+    {
+        var width = (int)fileHeader.Size.X;
+        var height = (int)fileHeader.Size.Y;
+        var length = 0;
+        for (var pass = 0; pass < 7; pass++)
+        {
+            int columns = Adam7.ComputeColumns(width, pass);
+            if (columns == 0) continue;
+
+            int rows = Adam7.ComputeBlockHeight(height, pass);
+            int scanlineLength = GetScanlineLengthInterlaced(columns, fileHeader, channelsPerColor) + 1;
+            length += scanlineLength * rows;
+        }
+
+        return length;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void ApplyFilter(Span<byte> current, Span<byte> previous, int filter, int bytesPerPixel)
     {
         byte previousPixel = 0;
         byte upperLeft = 0;
         byte pixelAbove = 0;
+
         // Process each pixel in the scanline.
         for (var column = 0; column < current.Length; column++)
         {
@@ -633,10 +613,10 @@ public static class PngFormat
             if (column >= bytesPerPixel)
             {
                 previousPixel = current[column - bytesPerPixel];
-                if (previous.Length > 0) upperLeft = previous[column - bytesPerPixel];
+                upperLeft = previous[column - bytesPerPixel];
             }
 
-            if (previous.Length > 0) pixelAbove = previous[column];
+            pixelAbove = previous[column];
 
             byte pixel = current[column];
             // ReSharper disable InvalidXmlDocComment
@@ -644,20 +624,20 @@ public static class PngFormat
             {
                 // The Sub filter transmits the difference between each byte and the value of the corresponding
                 // byte of the prior pixel.
-                1 => (byte) (pixel + previousPixel),
+                1 => (byte)(pixel + previousPixel),
 
                 // The Up filter is just like the Sub filter except that the pixel immediately above the current
                 // pixel, rather than just to its left, is used as the predictor.
-                2 => (byte) (pixel + pixelAbove),
+                2 => (byte)(pixel + pixelAbove),
 
                 // The Average filter uses the average of the two neighboring pixels (left and above) to
                 // predict the value of a pixel.
-                3 => (byte) (pixel + (byte) ((previousPixel + pixelAbove) / 2)),
+                3 => (byte)(pixel + (byte)((previousPixel + pixelAbove) / 2)),
 
                 // The Paeth filter computes a simple linear function of the three neighboring pixels (left, above, upper left),
                 // then chooses as predictor the neighboring pixel closest to the computed value.
                 // This technique is named after Alan W. Paeth
-                4 => (byte) (pixel + PaethPredicator(previousPixel, pixelAbove, upperLeft)),
+                4 => (byte)(pixel + PaethPredicator(previousPixel, pixelAbove, upperLeft)),
 
                 // No filter, or unknown.
                 _ => pixel

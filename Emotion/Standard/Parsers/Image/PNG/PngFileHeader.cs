@@ -4,7 +4,7 @@ using OpenGL;
 
 namespace Emotion.Standard.Parsers.Image.PNG;
 
-public class PngFileHeader
+public struct PngFileHeader
 {
     /// <summary>
     /// The bitmap width in pixels (signed integer).

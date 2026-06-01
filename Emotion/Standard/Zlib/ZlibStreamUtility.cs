@@ -64,7 +64,7 @@ internal sealed class ZlibStreamUtility
         return str.ToArray();
     }
 
-    public static byte[] Decompress(Stream stream)
+    public static DeflateStream? CreateDecompressionStream(Stream stream)
     {
         // Read the zlib header : http://tools.ietf.org/html/rfc1950
         // CMF(Compression Method and flags)
@@ -92,11 +92,40 @@ internal sealed class ZlibStreamUtility
             stream.Position += 4;
 
         // Decompress using the .Net deflate stream
+        return new DeflateStream(stream, CompressionMode.Decompress);
+    }
+
+    public static byte[] Decompress(Stream stream)
+    {
         using var str = new MemoryStream();
-        using var deflateStream = new DeflateStream(stream, CompressionMode.Decompress);
+        using var deflateStream = CreateDecompressionStream(stream);
+        if (deflateStream == null) return Array.Empty<byte>();
         deflateStream.CopyTo(str);
         deflateStream.Flush();
 
         return str.ToArray();
+    }
+
+    public static byte[] Decompress(Stream stream, int decompressedByteCount)
+    {
+        using var deflateStream = CreateDecompressionStream(stream);
+        if (deflateStream == null) return Array.Empty<byte>();
+
+        var data = new byte[decompressedByteCount];
+        if (!ReadFull(deflateStream, data)) return Array.Empty<byte>();
+        return data;
+    }
+
+    private static bool ReadFull(Stream stream, Span<byte> buffer)
+    {
+        var totalRead = 0;
+        while (totalRead < buffer.Length)
+        {
+            int read = stream.Read(buffer.Slice(totalRead));
+            if (read == 0) return false;
+            totalRead += read;
+        }
+
+        return true;
     }
 }
