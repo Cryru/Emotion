@@ -43,6 +43,29 @@ public sealed class WorkStealingDeque
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void PushTop(AsyncJobRoutine job)
+    {
+        while (true)
+        {
+            long top = Volatile.Read(ref _top.Value);
+            long bottom = Volatile.Read(ref _bottom.Value);
+            AsyncJobRoutine?[] buffer = Volatile.Read(ref _buffer);
+
+            if (bottom - top >= buffer.Length - 1)
+                buffer = Grow(buffer, top, bottom);
+
+            long newTop = top - 1;
+            int index = (int)(newTop & (buffer.Length - 1));
+            buffer[index] = job;
+
+            if (Interlocked.CompareExchange(ref _top.Value, newTop, top) == top)
+                return;
+
+            buffer[index] = null;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryPopBottom([NotNullWhen(true)] out AsyncJobRoutine? job)
     {
         long bottom = _bottom.Value - 1;
