@@ -14,24 +14,7 @@ using Emotion.Core.Platform.Implementation.CommonDesktop;
 using Emotion.Core.Platform;
 using Emotion.Editor;
 using Emotion.Core.Systems.IO;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+using System.Diagnostics.CodeAnalysis;
 
 
 // Subprocess functionality
@@ -54,8 +37,9 @@ public class TestExecutionReport
     public int Completed;
     public int Total;
 }
+public readonly record struct TestDiscoveryPair(List<MethodInfo> TestsFromClasses, Dictionary<Type, List<MethodInfo>> TestsFromScenes);
 
-public static class TestExecutor
+public static partial class TestExecutor
 {
     /// <summary>
     /// Whether we allow tests to halt with an infinite game loop waiter.
@@ -113,27 +97,57 @@ public static class TestExecutor
         Engine.Quit();
     }
 
-    private static IEnumerator RunTestsRoutineAsync()
+    #region Test Discovery
+
+    private static bool HasTestAttribute(Type t)
+    {
+        return t.GetCustomAttribute<TestAttribute>(true) != null;
+    }
+
+    private static bool HasTestAttribute(MethodInfo t)
+    {
+        return t.GetCustomAttribute<TestAttribute>(true) != null;
+    }
+
+    private static IEnumerable<MethodInfo> GetFunctionsWithDebugThis(Type parentType, IEnumerable<MethodInfo> methodsInTestClass)
+    {
+        IEnumerable<MethodInfo> debugThisMethods = methodsInTestClass.Where(x => x.GetCustomAttributes<DebugTestAttribute>(true) != null);
+        if (debugThisMethods.Any())
+            return debugThisMethods;
+
+        bool classIsDebugThis = parentType.GetCustomAttribute<DebugTestAttribute>() != null;
+        if (classIsDebugThis)
+            return methodsInTestClass;
+
+        return Array.Empty<MethodInfo>();
+    }
+
+    [RequiresUnreferencedCode("Calls System.Reflection.Assembly.GetTypes()")]
+    private static TestDiscoveryPair DiscoverTests(Type? testsFilter)
     {
         // Find all test functions in test classes.
         var testFunctions = new List<MethodInfo>();
         var testFunctionsDebugOnly = new List<MethodInfo>();
         foreach (Assembly ass in Engine.AssociatedAssemblies)
         {
-            IEnumerable<Type> classTypes = ass.GetTypes().Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0);
+            Type[]? types = ass?.GetTypes();
+            if (types == null) continue;
+
+            IEnumerable<Type> classTypes = types.Where(HasTestAttribute);
             foreach (Type classType in classTypes)
             {
+                if (testsFilter != null && classType != testsFilter) continue;
+
                 if (classType.IsSubclassOf(typeof(TestingScene)))
                 {
                     Engine.Log.Warning($"Scene {classType.Name} doesn't need a test attribute since it inherits TestScene", MessageSource.Test);
                     continue;
                 }
 
-                if (_testsFilter != null && classType != _testsFilter) continue;
-
                 // Get all test functions in this class.
-                IEnumerable<MethodInfo> methodsInTestClass = classType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                    .Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0);
+                IEnumerable<MethodInfo> methodsInTestClass = classType
+                    .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                    .Where(HasTestAttribute);
 
                 testFunctionsDebugOnly.AddRange(GetFunctionsWithDebugThis(classType, methodsInTestClass));
                 testFunctions.AddRange(methodsInTestClass);
@@ -149,14 +163,15 @@ public static class TestExecutor
             IEnumerable<Type> sceneTypes = ass.GetTypes().Where(x => x.IsSubclassOf(typeof(TestingScene)));
             foreach (Type sceneType in sceneTypes)
             {
-                if (_testsFilter != null && sceneType != _testsFilter) continue;
+                if (testsFilter != null && sceneType != testsFilter) continue;
 
                 List<MethodInfo> methodsInThisClass = new();
                 List<MethodInfo> methodsInThisClassDebugThis = new();
 
                 // Get all test functions
-                IEnumerable<MethodInfo> methodsInTestScene = sceneType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                    .Where(x => x.GetCustomAttributes(typeof(TestAttribute), true).Length > 0);
+                IEnumerable<MethodInfo> methodsInTestScene = sceneType
+                    .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                    .Where(HasTestAttribute);
 
                 methodsInThisClassDebugThis.AddRange(GetFunctionsWithDebugThis(sceneType, methodsInTestScene));
                 if (methodsInThisClassDebugThis.Count > 0)
@@ -177,11 +192,21 @@ public static class TestExecutor
         }
 #endif
 
+        return new TestDiscoveryPair(testFunctions, testScenesWithMethods);
+    }
+
+    #endregion
+
+    [RequiresUnreferencedCode("Calls Emotion.Testing.TestExecutor.DiscoverTests(Type)")]
+    private static IEnumerator RunTestsRoutineAsync()
+    {
+        TestDiscoveryPair discoveredTests = DiscoverTests(_testsFilter);
+
         var reportClasses = new TestExecutionReport();
-        yield return RunTestClasses(testFunctions, reportClasses);
+        yield return RunTestClasses(discoveredTests.TestsFromClasses, reportClasses);
 
         var reportScenes = new TestExecutionReport();
-        yield return RunTestScenesRoutineAsync(testScenesWithMethods, reportScenes);
+        yield return RunTestScenesRoutineAsync(discoveredTests.TestsFromScenes, reportScenes);
 
         // The format of this message must match the old system's regex!
         var completed = reportClasses.Completed + reportScenes.Completed;
@@ -405,16 +430,7 @@ public static class TestExecutor
         _currentSceneCurrentRoutineFailed = true;
     }
 
-    private static IEnumerable<MethodInfo> GetFunctionsWithDebugThis(Type parentType, IEnumerable<MethodInfo> methodsInTestClass)
-    {
-        IEnumerable<MethodInfo> debugThisMethods = methodsInTestClass.Where(x => x.GetCustomAttributes(typeof(DebugTestAttribute), true).Length > 0);
-        if (debugThisMethods.Any()) return debugThisMethods;
 
-        bool classIsDebugThis = parentType.GetCustomAttribute<DebugTestAttribute>() != null;
-        if (classIsDebugThis) return methodsInTestClass;
-
-        return Array.Empty<MethodInfo>();
-    }
 
     #region SubProcess
 
@@ -453,7 +469,7 @@ public static class TestExecutor
         if (compilation.Length == 0)
         {
             ScriptState<object> result = script.RunAsync().Result;
-            string returnVal = (string) result.ReturnValue;
+            string returnVal = (string)result.ReturnValue;
             if (Helpers.AreObjectsEqual(returnVal, SUBPROCESS_SUCCESS_MSG))
             {
                 resultData.Append(SUBPROCESS_SUCCESS_MSG);
