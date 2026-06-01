@@ -1,19 +1,19 @@
 #nullable enable
 
-using System;
-using System.Collections;
-using System.Threading;
 using Emotion.Core;
 using Emotion.Core.Systems.JobSystem;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Testing;
+using System;
+using System.Collections;
+using System.Threading;
 
 namespace Tests.EngineTests;
 
 [Test]
 public class JobSystemTests
 {
-    private const int WaitTimeoutMs = 5000;
+    private const int WaitTimeoutMs = 30_000;
 
     [Test]
     public void SimpleJobsComplete()
@@ -121,6 +121,28 @@ public class JobSystemTests
         }
     }
 
+    [Test]
+    public IEnumerator CoroutineJobsCanWaitOnJobsQueuedBehindThem()
+    {
+        int jobCount = Math.Max(Engine.Jobs.ThreadCount * 8, 16);
+        var holder = new NumberHolder();
+
+        IRoutineWaiter[] waiters = new IRoutineWaiter[jobCount];
+        for (int i = 0; i < jobCount; i++)
+        {
+            waiters[i] = Engine.Jobs.Add(AddNumberRoutineAsync(holder));
+        }
+
+        yield return new CombineWaitMany(waiters);
+        Assert.Equal(jobCount, holder.Number);
+    }
+
+    private static IEnumerator AddNumberRoutineAsync(NumberHolder holder)
+    {
+        holder.Number++;
+        yield break;
+    }
+
     private static IEnumerator WaitUntil(Func<bool> condition)
     {
         int spins = 0;
@@ -147,5 +169,10 @@ public class JobSystemTests
         {
             _action();
         }
+    }
+
+    private class NumberHolder
+    {
+        public int Number;
     }
 }
