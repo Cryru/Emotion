@@ -83,11 +83,13 @@ public class MeshAsset : Asset, IAssetContainingObject<MeshEntity>
 
             // Ensure pipelines for this entity's meshes are loaded
             // Temp
+            HashSet<(ShaderGroupAsset?, int)> warmedShaderFormats = new();
             foreach (Mesh mesh in entity.Meshes)
             {
                 MeshMaterial material = mesh.Material;
                 AssetObjectReference<ShaderGroupAsset, ShaderGroup> materialPipeline = material.State.ShaderGroup;
                 ShaderGroupAsset? pipelineAsset = materialPipeline.ResolveAsset();
+                if (!warmedShaderFormats.Add((pipelineAsset, mesh.VertexFormat.Hash))) continue;
                 if (pipelineAsset != null && !pipelineAsset.Loaded) yield return pipelineAsset;
                 ShaderGroup? pipeline = pipelineAsset?.ShaderGroup;
                 if (pipeline != null)
