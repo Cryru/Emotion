@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using System.Buffers.Binary;
 using System.Runtime.InteropServices;
 
 namespace Emotion.Standard.DataStructures;
@@ -8,6 +9,7 @@ public struct NonAllocByteReader
 {
     public ReadOnlyMemory<byte> Data;
     public int Position;
+    public readonly int BytesLeft => Data.Length - Position;
 
     public NonAllocByteReader(ReadOnlyMemory<byte> memory)
     {
@@ -16,20 +18,33 @@ public struct NonAllocByteReader
 
     public void SkipBytes(int bytes)
     {
-        for (int i = 0; i < bytes; i++)
-        {
-            ReadGeneric<byte>();
-        }
+        Position += bytes;
     }
 
     public byte ReadByte()
     {
-        return ReadGeneric<byte>();
+        ReadOnlySpan<byte> s = Data.Span.Slice(Position);
+        Position++;
+        return s[0];
+    }
+
+    public ReadOnlySpan<byte> ReadBytes(int count)
+    {
+        ReadOnlySpan<byte> s = Data.Span.Slice(Position, count);
+        Position += count;
+        return s;
     }
 
     public int ReadInt32()
     {
         return ReadGeneric<int>();
+    }
+
+    public int ReadInt32BE()
+    {
+        ReadOnlySpan<byte> p = ReadBytes(4);
+        var n = BitConverter.ToInt32(p);
+        return BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(n) : n;
     }
 
     public float ReadSingle()
@@ -39,8 +54,8 @@ public struct NonAllocByteReader
 
     public unsafe T ReadGeneric<T>() where T : unmanaged
     {
-        var size = sizeof(T);
-        var output = MemoryMarshal.Read<T>(Data.Slice(Position, size).Span);
+        int size = sizeof(T);
+        T output = MemoryMarshal.Read<T>(Data.Slice(Position, size).Span);
         Position += size;
         return output;
     }
