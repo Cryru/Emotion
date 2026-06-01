@@ -16,10 +16,9 @@ public class JobSystemTests
     private const int WaitTimeoutMs = 30_000;
 
     [Test]
-    public void SimpleJobsComplete()
+    public IEnumerator SimpleJobsComplete()
     {
         int jobCount = Math.Max(Engine.Jobs.ThreadCount * 8, 32);
-        using CountdownEvent done = new(jobCount);
 
         int completed = 0;
         for (int i = 0; i < jobCount; i++)
@@ -27,11 +26,10 @@ public class JobSystemTests
             Engine.Jobs.Add(new ActionJob(() =>
             {
                 Interlocked.Increment(ref completed);
-                done.Signal();
             }));
         }
 
-        Assert.True(done.Wait(WaitTimeoutMs));
+        yield return 100;
         Assert.Equal(jobCount, Volatile.Read(ref completed));
     }
 
@@ -42,22 +40,25 @@ public class JobSystemTests
         string tag = $"{nameof(JobSystemTests)}.{nameof(JobTagCounterDrainsAfterJobsFinish)}.{Guid.NewGuid():N}";
 
         using ManualResetEventSlim gate = new(false);
-        using CountdownEvent done = new(jobCount);
 
+        int completed = 0;
         for (int i = 0; i < jobCount; i++)
         {
             Engine.Jobs.Add(new ActionJob(() =>
             {
                 gate.Wait();
-                done.Signal();
+                Interlocked.Increment(ref completed);
             }), false, tag);
         }
 
         Assert.False(Engine.Jobs.NotManyJobsWithTag(tag));
+        yield return 100;
+        Assert.Equal(completed, 0);
 
         gate.Set();
-        Assert.True(done.Wait(WaitTimeoutMs));
-        yield return WaitUntil(() => Engine.Jobs.NotManyJobsWithTag(tag));
+        yield return 100;
+        Assert.Equal(jobCount, Volatile.Read(ref completed));
+        Assert.True(Engine.Jobs.NotManyJobsWithTag(tag));
     }
 
     [Test]
@@ -112,13 +113,46 @@ public class JobSystemTests
         Assert.Equal(steps, Volatile.Read(ref observedSteps));
     }
 
-    private static IEnumerator MultiStepRoutine(int steps, Action onStep)
+    [Test]
+    public IEnumerator YieldedCoroutineContinuationStaysOnWorker()
     {
-        for (int i = 0; i < steps; i++)
+        using ManualResetEventSlim gate = new(false);
+        ManualResetWaiter gateWaiter = new(gate);
+        int firstThread = 0;
+        int threadChanges = 0;
+
+        IRoutineWaiter waiter = Engine.Jobs.Add(WorkerAffinityRoutine(gateWaiter, () =>
         {
-            onStep();
-            yield return null;
+            int threadId = Thread.CurrentThread.ManagedThreadId;
+            int observedFirstThread = Volatile.Read(ref firstThread);
+            if (observedFirstThread == 0)
+            {
+                Interlocked.CompareExchange(ref firstThread, threadId, 0);
+                return;
+            }
+
+            if (threadId != observedFirstThread)
+                Interlocked.Increment(ref threadChanges);
+        }));
+
+        yield return WaitUntil(() => Volatile.Read(ref firstThread) != 0);
+
+        int jobCount = Math.Max(Engine.Jobs.ThreadCount * 16, 32);
+        using CountdownEvent done = new(jobCount);
+        for (int i = 0; i < jobCount; i++)
+        {
+            Engine.Jobs.Add(new ActionJob(() =>
+            {
+                Thread.Yield();
+                done.Signal();
+            }));
         }
+
+        Assert.True(done.Wait(WaitTimeoutMs));
+        gate.Set();
+
+        yield return WaitUntil(() => waiter.Finished);
+        Assert.Equal(0, Volatile.Read(ref threadChanges));
     }
 
     [Test]
@@ -135,6 +169,29 @@ public class JobSystemTests
 
         yield return new CombineWaitMany(waiters);
         Assert.Equal(jobCount, holder.Number);
+    }
+
+    #region Helpers
+
+    private static IEnumerator WorkerAffinityRoutine(IRoutineWaiter gate, Action observeThread)
+    {
+        observeThread();
+        yield return gate;
+
+        for (int i = 0; i < 8; i++)
+        {
+            observeThread();
+            yield return null;
+        }
+    }
+
+    private static IEnumerator MultiStepRoutine(int steps, Action onStep)
+    {
+        for (int i = 0; i < steps; i++)
+        {
+            onStep();
+            yield return null;
+        }
     }
 
     private static IEnumerator AddNumberRoutineAsync(NumberHolder holder)
@@ -175,4 +232,22 @@ public class JobSystemTests
     {
         public int Number;
     }
+
+    private sealed class ManualResetWaiter : IRoutineWaiter
+    {
+        private readonly ManualResetEventSlim _gate;
+
+        public bool Finished => _gate.IsSet;
+
+        public ManualResetWaiter(ManualResetEventSlim gate)
+        {
+            _gate = gate;
+        }
+
+        public void Update()
+        {
+        }
+    }
+
+    #endregion
 }
