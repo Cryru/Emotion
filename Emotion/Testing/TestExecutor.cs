@@ -95,7 +95,7 @@ public static partial class TestExecutor
 
     private static IEnumerable<MethodInfo> GetFunctionsWithDebugThis(Type parentType, IEnumerable<MethodInfo> methodsInTestClass)
     {
-        IEnumerable<MethodInfo> debugThisMethods = methodsInTestClass.Where(x => x.GetCustomAttributes<DebugTestAttribute>(true) != null);
+        IEnumerable<MethodInfo> debugThisMethods = methodsInTestClass.Where(x => x.GetCustomAttribute<DebugTestAttribute>(true) != null);
         if (debugThisMethods.Any())
             return debugThisMethods;
 
