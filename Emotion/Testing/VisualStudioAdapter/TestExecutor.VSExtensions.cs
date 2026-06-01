@@ -12,15 +12,6 @@ public static partial class TestExecutor
 {
     public static async Task TestApplicationMain(string[] args, Configurator? config = null)
     {
-        // Check if sub process.
-#if AUTOBUILD
-        if (CommandLineParser.FindArgument(args, "SubTestLinkId=", out string? linkId))
-        {
-            SubProcessEvaluation(linkId);
-            return;
-        }
-#endif
-
         config = Init(args, config);
 
         ITestApplicationBuilder builder = await TestApplication.CreateBuilderAsync(args);

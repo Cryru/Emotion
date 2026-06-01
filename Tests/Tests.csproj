@@ -5,7 +5,7 @@
         <TargetFramework>net10.0</TargetFramework>
         <Configurations>Debug;Release</Configurations>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-        <Platforms>Default;DefaultSubProcess</Platforms>
+        <Platforms>Default</Platforms>
         <IsTestingPlatformApplication>true</IsTestingPlatformApplication>
         <GenerateTestingPlatformEntryPoint>false</GenerateTestingPlatformEntryPoint>
         <GenerateSelfRegisteredExtensions>false</GenerateSelfRegisteredExtensions>
@@ -21,7 +21,7 @@
         <Optimize>True</Optimize>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Platform)'=='Default' Or '$(Platform)'=='DefaultSubProcess'">
+    <PropertyGroup Condition="'$(Platform)'=='Default'">
         <PlatformTarget>x64</PlatformTarget>
         <DefineConstants>$(DefineConstants);THROW_EXCEPTIONS;AUTOBUILD</DefineConstants>
     </PropertyGroup>
