@@ -6,6 +6,9 @@
         <Configurations>Debug;Release</Configurations>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
         <Platforms>Default;DefaultSubProcess</Platforms>
+        <IsTestingPlatformApplication>true</IsTestingPlatformApplication>
+        <GenerateTestingPlatformEntryPoint>false</GenerateTestingPlatformEntryPoint>
+        <GenerateSelfRegisteredExtensions>false</GenerateSelfRegisteredExtensions>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -384,5 +387,7 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
-
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Testing.Platform" Version="2.2.3" PrivateAssets="all" />
+    </ItemGroup>
 </Project>

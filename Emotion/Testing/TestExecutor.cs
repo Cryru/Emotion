@@ -7,15 +7,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Emotion.Core;
-using Emotion.Core.Systems.Logging;
 using Emotion.Core.Utility.Coroutines;
-using Emotion.Core.Platform.Implementation.CommonDesktop;
-using Emotion.Core.Platform;
-using Emotion.Editor;
 using Emotion.Core.Systems.IO;
 using System.Diagnostics.CodeAnalysis;
-
+using System.Collections.Concurrent;
 
 // Subprocess functionality
 #if CSHARP_SCRIPTING
@@ -37,8 +32,9 @@ public class TestExecutionReport
     public int Completed;
     public int Total;
 }
-public readonly record struct TestDiscoveryPair(List<MethodInfo> TestsFromClasses, Dictionary<Type, List<MethodInfo>> TestsFromScenes);
+public readonly record struct TestDiscoveryPair(List<EmotionTestDescription> TestsFromClasses, List<EmotionTestDescription> TestsFromScenes);
 
+[RequiresUnreferencedCode("Testing library")]
 public static partial class TestExecutor
 {
     /// <summary>
@@ -62,21 +58,19 @@ public static partial class TestExecutor
     /// </summary>
     public static float PixelDerivationTolerance = 2;
 
-    private static Type? _testsFilter;
+    #region API
 
-    public static void ExecuteTests(string[] args, Configurator? config = null, Type? filterTestsOnlyFromClass = null)
+    private static bool _currentSceneCurrentRoutineFailed = false;
+
+    public static void SetCurrentTestSceneTestAsFailed()
     {
-        // Check if sub process.
-#if AUTOBUILD
-        if (CommandLineParser.FindArgument(args, "SubTestLinkId=", out string linkId))
-        {
-            SubProcessEvaluation(linkId);
-            return;
-        }
-#endif
+        _currentSceneCurrentRoutineFailed = true;
+    }
 
-        // todo: read args and start running split processes, different configs etc.
+    #endregion
 
+    private static Configurator Init(string[] args, Configurator? config)
+    {
         string resultFolder = CommandLineParser.FindArgument(args, "folder=", out string? folderPassed) ? folderPassed : $"{DateTime.Now:MM-dd-yyyy(HH.mm.ss)}";
         TestRunFolder = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "TestResults", resultFolder);
 
@@ -84,17 +78,7 @@ public static partial class TestExecutor
         config.DebugMode = true;
         config.NoErrorPopup = true;
         config.Logger = new TestLogger(Path.Join(TestRunFolder, "Logs"));
-
-        _testsFilter = filterTestsOnlyFromClass;
-
-        Engine.Start(config, TestSystemInitRoutineAsync);
-    }
-
-    private static IEnumerator TestSystemInitRoutineAsync()
-    {
-        IRoutineWaiter testRoutine = Engine.Jobs.Add(RunTestsRoutineAsync());
-        yield return testRoutine;
-        Engine.Quit();
+        return config;
     }
 
     #region Test Discovery
@@ -122,8 +106,7 @@ public static partial class TestExecutor
         return Array.Empty<MethodInfo>();
     }
 
-    [RequiresUnreferencedCode("Calls System.Reflection.Assembly.GetTypes()")]
-    private static TestDiscoveryPair DiscoverTests(Type? testsFilter)
+    private static TestDiscoveryPair DiscoverTests()
     {
         // Find all test functions in test classes.
         var testFunctions = new List<MethodInfo>();
@@ -136,8 +119,6 @@ public static partial class TestExecutor
             IEnumerable<Type> classTypes = types.Where(HasTestAttribute);
             foreach (Type classType in classTypes)
             {
-                if (testsFilter != null && classType != testsFilter) continue;
-
                 if (classType.IsSubclassOf(typeof(TestingScene)))
                 {
                     Engine.Log.Warning($"Scene {classType.Name} doesn't need a test attribute since it inherits TestScene", MessageSource.Test);
@@ -155,16 +136,13 @@ public static partial class TestExecutor
         }
 
         // Find all test scenes.
-        var testScenes = new List<Type>();
-        var testScenesWithMethods = new Dictionary<Type, List<MethodInfo>>();
-        var testScenesWithMethodsDebugThis = new Dictionary<Type, List<MethodInfo>>();
+        var testFunctionsInScenes = new List<MethodInfo>();
+        var testFunctionsInScenesDebugOnly = new List<MethodInfo>();
         foreach (Assembly ass in Engine.AssociatedAssemblies)
         {
             IEnumerable<Type> sceneTypes = ass.GetTypes().Where(x => x.IsSubclassOf(typeof(TestingScene)));
             foreach (Type sceneType in sceneTypes)
             {
-                if (testsFilter != null && sceneType != testsFilter) continue;
-
                 List<MethodInfo> methodsInThisClass = new();
                 List<MethodInfo> methodsInThisClassDebugThis = new();
 
@@ -173,34 +151,46 @@ public static partial class TestExecutor
                     .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                     .Where(HasTestAttribute);
 
-                methodsInThisClassDebugThis.AddRange(GetFunctionsWithDebugThis(sceneType, methodsInTestScene));
-                if (methodsInThisClassDebugThis.Count > 0)
-                    testScenesWithMethodsDebugThis.Add(sceneType, methodsInThisClassDebugThis);
-
-                methodsInThisClass.AddRange(methodsInTestScene);
-                if (methodsInThisClass.Count > 0)
-                    testScenesWithMethods.Add(sceneType, methodsInThisClass);
+                testFunctionsInScenesDebugOnly.AddRange(GetFunctionsWithDebugThis(sceneType, methodsInTestScene));
+                testFunctionsInScenes.AddRange(methodsInTestScene);
             }
         }
 
 #if !AUTOBUILD
         // Debugging tests!
-        if (testFunctionsDebugOnly.Count > 0 || testScenesWithMethodsDebugThis.Count > 0)
+        if (testFunctionsDebugOnly.Count > 0 || testFunctionsInScenesDebugOnly.Count > 0)
         {
             testFunctions = testFunctionsDebugOnly;
-            testScenesWithMethods = testScenesWithMethodsDebugThis;
+            testFunctionsInScenes = testFunctionsInScenesDebugOnly;
         }
 #endif
 
-        return new TestDiscoveryPair(testFunctions, testScenesWithMethods);
+        var classDescTests = new List<EmotionTestDescription>();
+        foreach (MethodInfo testMethod in testFunctions)
+        {
+            var desc = new EmotionTestDescription(testMethod, EmotionTestKind.Class);
+            classDescTests.Add(desc);
+        }
+
+        var sceneDescTests = new List<EmotionTestDescription>();
+        foreach (MethodInfo testMethod in testFunctionsInScenes)
+        {
+            var desc = new EmotionTestDescription(testMethod, EmotionTestKind.Scene);
+            sceneDescTests.Add(desc);
+        }
+
+        return new TestDiscoveryPair(classDescTests, sceneDescTests);
     }
 
     #endregion
 
-    [RequiresUnreferencedCode("Calls Emotion.Testing.TestExecutor.DiscoverTests(Type)")]
-    private static IEnumerator RunTestsRoutineAsync()
+    #region Execution
+
+    public static ConcurrentBag<EmotionTestResult> LastTestResults = new ConcurrentBag<EmotionTestResult>();
+
+    private static IEnumerator RunDiscoveredTestsRoutineAsync(TestDiscoveryPair discoveredTests)
     {
-        TestDiscoveryPair discoveredTests = DiscoverTests(_testsFilter);
+        LastTestResults.Clear();
 
         var reportClasses = new TestExecutionReport();
         yield return RunTestClasses(discoveredTests.TestsFromClasses, reportClasses);
@@ -226,18 +216,20 @@ public static partial class TestExecutor
 #endif
     }
 
-    private static IEnumerator RunTestClasses(List<MethodInfo> testFunctions, TestExecutionReport report)
+    private static EmotionTestDescription? FindTestDescriptionFromMethod(MethodInfo method, List<EmotionTestDescription> testFunctions)
     {
-        Stopwatch timer = new Stopwatch();
+        return testFunctions.FirstOrDefault(x => x.Method == method);
+    }
 
-        int completed = 0;
-        int total = 0;
-
+    private static Dictionary<Type, List<MethodInfo>> TestListToClassGrouping(List<EmotionTestDescription> testFunctions)
+    {
         Dictionary<Type, List<MethodInfo>> testsByClass = new();
         List<MethodInfo>? currentClassList = null;
         Type? currentClass = null;
-        foreach (MethodInfo func in testFunctions)
+        foreach (EmotionTestDescription testDesc in testFunctions)
         {
+            MethodInfo func = testDesc.Method;
+
             // Create an instance of the test class.
             if (currentClass != func.DeclaringType)
             {
@@ -248,8 +240,17 @@ public static partial class TestExecutor
 
             currentClassList?.Add(func);
         }
-
         if (currentClassList != null && currentClass != null) testsByClass.Add(currentClass, currentClassList);
+        return testsByClass;
+    }
+
+    private static IEnumerator RunTestClasses(List<EmotionTestDescription> testFunctions, TestExecutionReport report)
+    {
+        Dictionary<Type, List<MethodInfo>> testsByClass = TestListToClassGrouping(testFunctions);
+        Stopwatch timer = new Stopwatch();
+
+        int completed = 0;
+        int total = 0;
 
         foreach (KeyValuePair<Type, List<MethodInfo>> testClass in testsByClass)
         {
@@ -266,7 +267,7 @@ public static partial class TestExecutor
             bool hasCoroutines = false;
             for (int i = 0; i < functions.Count; i++)
             {
-                var func = functions[i];
+                MethodInfo func = functions[i];
                 hasCoroutines = func.ReturnType.IsAssignableTo(typeof(IEnumerator));
                 if (hasCoroutines) break;
             }
@@ -279,20 +280,25 @@ public static partial class TestExecutor
                 for (var i = 0; i < functions.Count; i++)
                 {
                     MethodInfo func = functions[i];
-
 #if true
                     tasks[i] = Task.Run(() =>
                     {
+                        EmotionTestDescription desc = FindTestDescriptionFromMethod(func, testFunctions)!;
+                        EmotionTestResult result = new EmotionTestResult(desc);
+                        LastTestResults.Add(result);
+
                         try
                         {
                             Engine.Log.Info($"  Running test {func.Name}...", MessageSource.Test);
                             func.Invoke(currentClassInstance, Array.Empty<object>());
                             Interlocked.Add(ref completed, 1);
                             Interlocked.Add(ref completedThisClass, 1);
+
+                            result.SetSuccess();
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
-                            // ignored, it's printed by the internal engine error handling
+                            result.SetFailed(ex.Message, ex);
                         }
                     });
 #else
@@ -312,6 +318,11 @@ public static partial class TestExecutor
                     _currentSceneCurrentRoutineFailed = false;
 
                     MethodInfo func = testClass.Value[i];
+
+                    EmotionTestDescription desc = FindTestDescriptionFromMethod(func, testFunctions)!;
+                    EmotionTestResult result = new EmotionTestResult(desc);
+                    LastTestResults.Add(result);
+
                     Coroutine coroutine = Coroutine.CompletedRoutine; // In case function is a routine
 
                     // Run test function in try-catch.
@@ -323,10 +334,10 @@ public static partial class TestExecutor
                     {
                         returnVal = func.Invoke(currentClassInstance, Array.Empty<object>());
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        // ignored, it's printed by the internal engine error handling
                         _currentSceneCurrentRoutineFailed = true;
+                        result.SetFailed(ex.Message, ex);
                     }
 
                     // Function is actually a routine function
@@ -337,11 +348,18 @@ public static partial class TestExecutor
                     }
                     yield return coroutine;
 
-                    if (coroutine.Stopped) _currentSceneCurrentRoutineFailed = true;
+                    if (coroutine.Stopped)
+                    {
+                        if (!_currentSceneCurrentRoutineFailed)
+                            result.SetFailed("Unknown coroutine test error");
+                        _currentSceneCurrentRoutineFailed = true;
+                    }
+
                     if (!_currentSceneCurrentRoutineFailed)
                     {
                         completed++;
                         completedThisClass++;
+                        result.SetSuccess();
                     }
 
                     Engine.Log.Info($"    Elapsed: {timer.ElapsedMilliseconds}ms", MessageSource.Test);
@@ -359,8 +377,10 @@ public static partial class TestExecutor
         report.Total = total;
     }
 
-    private static IEnumerator RunTestScenesRoutineAsync(Dictionary<Type, List<MethodInfo>> testScenes, TestExecutionReport report)
+    private static IEnumerator RunTestScenesRoutineAsync(List<EmotionTestDescription> testFunctions, TestExecutionReport report)
     {
+        Dictionary<Type, List<MethodInfo>> testScenes = TestListToClassGrouping(testFunctions);
+
         int completed = 0;
         int total = 0;
 
@@ -385,6 +405,10 @@ public static partial class TestExecutor
 
             foreach (MethodInfo testFunction in functions)
             {
+                EmotionTestDescription desc = FindTestDescriptionFromMethod(testFunction, testFunctions)!;
+                EmotionTestResult result = new EmotionTestResult(desc);
+                LastTestResults.Add(result);
+
                 string functionName = testFunction.Name;
                 Engine.Log.Info($"  Running test {functionName}...", MessageSource.Test);
 
@@ -404,11 +428,20 @@ public static partial class TestExecutor
 
                 yield return coroutine;
 
-                if (coroutine.Stopped) _currentSceneCurrentRoutineFailed = true;
+                if (coroutine.Stopped)
+                {
+                    _currentSceneCurrentRoutineFailed = true;
+                }
+
                 if (!_currentSceneCurrentRoutineFailed)
                 {
                     completedThisScene++;
                     completed++;
+                    result.SetSuccess();
+                }
+                else
+                {
+                    result.SetFailed("Unknown coroutine test error");
                 }
             }
 
@@ -423,14 +456,7 @@ public static partial class TestExecutor
         report.Total = total;
     }
 
-    private static bool _currentSceneCurrentRoutineFailed = false;
-
-    public static void SetCurrentTestSceneTestAsFailed()
-    {
-        _currentSceneCurrentRoutineFailed = true;
-    }
-
-
+    #endregion
 
     #region SubProcess
 
@@ -512,7 +538,7 @@ public static partial class TestExecutor
 
         string solutionFolder = Path.Join(projectFolder, "..");
 
-        int randomNumber = Helpers.GenerateRandomNumber(1000, 9999);
+        int randomNumber = LocalRand.Int(1000, 9999);
         using var pipe = new NamedPipeServerStream($"SubLink{randomNumber}", PipeDirection.InOut, 1);
 
         Engine.Log.Info($"    Running test script in sub process", MessageSource.Test);
