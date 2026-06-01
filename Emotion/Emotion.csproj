@@ -292,6 +292,7 @@
         </None>
     </ItemGroup>
     <ItemGroup>
+        <PackageReference Include="Microsoft.Testing.Platform" Version="2.2.3" PrivateAssets="all" />
         <PackageReference Include="Silk.NET.Assimp" Version="2.23.0" Condition="$(DefineConstants.Contains('MORE_MESH_TYPES'))" Aliases="SilkNet" />
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.3.0" Condition="$(DefineConstants.Contains('DEBUG')) OR $(DefineConstants.Contains('CSHARP_SCRIPTING'))" />
     </ItemGroup>

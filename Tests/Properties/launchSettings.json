@@ -1,8 +1,7 @@
 {
   "profiles": {
     "Tests": {
-      "commandName": "Project",
-      "commandLineArgs": "-angle"
+      "commandName": "Project"
     }
   }
 }
