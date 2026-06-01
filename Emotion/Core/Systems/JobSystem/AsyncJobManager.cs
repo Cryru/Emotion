@@ -30,7 +30,6 @@ public class AsyncJobManager
 
         int threadCount = Environment.ProcessorCount - 1;
         threadCount = Math.Max(threadCount, 2);
-        threadCount = threadCount + 1; // Add priority thread.
 
         _threads = new JobThreadContext[threadCount];
         for (int i = 0; i < threadCount; i++)
@@ -115,8 +114,7 @@ public class AsyncJobManager
 
         if (!job.Finished)
         {
-            WorkStealingDeque queue = threadContext.GetJobQueue(job.PriorityJob);
-            queue.PushTop(job);
+            threadContext.AddYieldedJob(job);
             return;
         }
 

@@ -18,6 +18,7 @@ public sealed class JobThreadContext
     private MpscJobQueue _priorityInbox { get; } = new();
     private WorkStealingDeque _priorityJobs { get; } = new();
     private WorkStealingDeque _jobs { get; } = new();
+    private Queue<AsyncJobRoutine> _yieldedJobs = new(6);
 
     public JobThreadContext(AsyncJobManager manager, int workerId, bool priorityOnly, Thread thread)
     {
@@ -47,6 +48,12 @@ public sealed class JobThreadContext
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void AddYieldedJob(AsyncJobRoutine job)
+    {
+        _yieldedJobs.Enqueue(job);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public WorkStealingDeque GetJobQueue(bool priority)
     {
         return priority ? _priorityJobs : _jobs;
@@ -71,12 +78,20 @@ public sealed class JobThreadContext
             return true;
 
         if (PriorityOnly)
+        {
+            if (_yieldedJobs.TryDequeue(out job))
+                return true;
+
             return false;
+        }
 
         if (_jobs.TryPopBottom(out job))
             return true;
 
         if (AsyncJobManager.TrySteal(manager, this, false, out job))
+            return true;
+
+        if (_yieldedJobs.TryDequeue(out job))
             return true;
 
         return false;
