@@ -8,7 +8,7 @@ namespace Emotion.Graphics.Data;
 public struct BaseUniformData
 {
     // Must match Common.h
-    public const int SIZE_IN_BYTES = 196;
+    public const int SIZE_IN_BYTES = 208;
     public const int BINDING_LOCATION = 0;
     public const int MODEL_MATRIX_OFFSET = 128;
 
