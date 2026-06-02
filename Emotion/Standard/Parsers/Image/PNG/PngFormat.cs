@@ -430,11 +430,10 @@ public static class PngFormat
         if (deflateStream == null)
             return Array.Empty<byte>();
 
-        byte[] scanlineA = ArrayPool<byte>.Shared.Rent(length);
-        byte[] scanlineB = ArrayPool<byte>.Shared.Rent(length);
+        byte[] scanlineData = ArrayPool<byte>.Shared.Rent(length * 2);
 
-        Span<byte> currentScanline = scanlineA;
-        Span<byte> previousScanline = scanlineB;
+        Span<byte> currentScanline = scanlineData.AsSpan().Slice(0, length);
+        Span<byte> previousScanline = scanlineData.AsSpan().Slice(length, length);
         previousScanline.Clear();
 
         PerfProfiler.ProfilerEventStart("PNG Parse Streaming", "Loading");
@@ -457,11 +456,133 @@ public static class PngFormat
         }
         PerfProfiler.ProfilerEventEnd("PNG Parse Streaming", "Loading");
 
-        ArrayPool<byte>.Shared.Return(scanlineA);
-        ArrayPool<byte>.Shared.Return(scanlineB);
+        ArrayPool<byte>.Shared.Return(scanlineData);
 
         return pixels;
     }
+
+    #region Reading Helpers
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static Span<byte> ConvertBitArray(Span<byte> bytes, PngFileHeader header)
+    {
+        int bits = header.BitDepth;
+
+        if (bits == 8) return bytes;
+        if (bits < 8) return ImageUtil.ToArrayByBitsLength(bytes, bits, header.ColorType != 3);
+        if (bits > 16) return bytes;
+
+        Span<ushort> conv = MemoryMarshal.Cast<byte, ushort>(bytes);
+        Span<byte> byteArray = new byte[conv.Length];
+        for (var i = 0; i < byteArray.Length; i++)
+        {
+            // Simulate a 8bit display by clipping everything above 255.
+            byteArray[i] = (byte)conv[i];
+        }
+
+        return byteArray;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int GetScanlineLength(PngFileHeader fileHeader, int channelsPerColor)
+    {
+        int scanlineLength = (int)fileHeader.Size.X * fileHeader.BitDepth * channelsPerColor;
+        int amount = scanlineLength % 8;
+        if (amount != 0) scanlineLength += 8 - amount;
+        scanlineLength /= 8;
+        return scanlineLength;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void ApplyFilter(Span<byte> current, Span<byte> previous, int filter, int bytesPerPixel)
+    {
+        switch (filter)
+        {
+            // The Sub filter transmits the difference between each byte and the value of the corresponding
+            // byte of the prior pixel.
+            case 1:
+            {
+                for (var column = 0; column < current.Length; column++)
+                {
+                    byte pixel = current[column];
+                    byte previousPixel = column >= bytesPerPixel ? current[column - bytesPerPixel] : (byte)0;
+                    current[column] = (byte)(pixel + previousPixel);
+                }
+
+                break;
+            }
+            // The Up filter is just like the Sub filter except that the pixel immediately above the current
+            // pixel, rather than just to its left, is used as the predictor.
+            case 2:
+            {
+                for (var column = 0; column < current.Length; column++)
+                {
+                    byte pixel = current[column];
+                    byte pixelAbove = previous[column];
+                    current[column] = (byte)(pixel + pixelAbove);
+                }
+
+                break;
+            }
+            // The Average filter uses the average of the two neighboring pixels (left and above) to
+            // predict the value of a pixel.
+            case 3:
+            {
+                for (var column = 0; column < current.Length; column++)
+                {
+                    byte pixel = current[column];
+                    byte pixelAbove = previous[column];
+                    byte previousPixel = column >= bytesPerPixel ? current[column - bytesPerPixel] : (byte)0;
+                    current[column] = (byte)(pixel + (byte)((previousPixel + pixelAbove) / 2));
+                }
+
+                break;
+            }
+            // The Paeth filter computes a simple linear function of the three neighboring pixels (left, above, upper left),
+            // then chooses as predictor the neighboring pixel closest to the computed value.
+            // This technique is named after Alan W. Paeth
+            case 4:
+            {
+                for (var column = 0; column < current.Length; column++)
+                {
+                    byte pixel = current[column];
+                    byte pixelAbove = previous[column];
+                    byte previousPixel = column >= bytesPerPixel ? current[column - bytesPerPixel] : (byte)0;
+                    byte upperLeft = column >= bytesPerPixel ? previous[column - bytesPerPixel] : (byte)0;
+                    current[column] = (byte)(pixel + PaethPredicator(previousPixel, pixelAbove, upperLeft));
+                }
+
+                break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Used for the Paeth filter.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static byte PaethPredicator(byte a, byte b, byte c)
+    {
+        byte predicator;
+
+        int p = a + b - c;
+        int pa = Math.Abs(p - a);
+        int pb = Math.Abs(p - b);
+        int pc = Math.Abs(p - c);
+
+        if (pa <= pb && pa <= pc)
+            predicator = a;
+        else if (pb <= pc)
+            predicator = b;
+        else
+            predicator = c;
+
+        return predicator;
+    }
+
+    #endregion
+
+    #region Interlaced (Cringe)
 
     /// <summary>
     /// Adam7 interlaced images.
@@ -492,7 +613,7 @@ public static class PngFormat
             int pixelsInLine = Adam7.ComputeBlockWidth(width, i);
 
             // Read scanlines in this pass.
-            Span<byte> previousScanline = new byte[data.Length];
+            Span<byte> previousScanline = new byte[scanlineLength];
             for (int row = Adam7.FirstRow[i]; row < height; row += Adam7.RowIncrement[i])
             {
                 // Early out if invalid pass.
@@ -538,38 +659,6 @@ public static class PngFormat
         return pixels;
     }
 
-    #region Reading Helpers
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Span<byte> ConvertBitArray(Span<byte> bytes, PngFileHeader header)
-    {
-        int bits = header.BitDepth;
-
-        if (bits == 8) return bytes;
-        if (bits < 8) return ImageUtil.ToArrayByBitsLength(bytes, bits, header.ColorType != 3);
-        if (bits > 16) return bytes;
-
-        Span<ushort> conv = MemoryMarshal.Cast<byte, ushort>(bytes);
-        Span<byte> byteArray = new byte[conv.Length];
-        for (var i = 0; i < byteArray.Length; i++)
-        {
-            // Simulate a 8bit display by clipping everything above 255.
-            byteArray[i] = (byte)conv[i];
-        }
-
-        return byteArray;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int GetScanlineLength(PngFileHeader fileHeader, int channelsPerColor)
-    {
-        int scanlineLength = (int)fileHeader.Size.X * fileHeader.BitDepth * channelsPerColor;
-        int amount = scanlineLength % 8;
-        if (amount != 0) scanlineLength += 8 - amount;
-        scanlineLength /= 8;
-        return scanlineLength;
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int GetScanlineLengthInterlaced(int columns, PngFileHeader fileHeader, int channelsPerColor)
     {
@@ -597,76 +686,6 @@ public static class PngFormat
         }
 
         return length;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void ApplyFilter(Span<byte> current, Span<byte> previous, int filter, int bytesPerPixel)
-    {
-        byte previousPixel = 0;
-        byte upperLeft = 0;
-        byte pixelAbove = 0;
-
-        // Process each pixel in the scanline.
-        for (var column = 0; column < current.Length; column++)
-        {
-            // Get surrounding pixels for the filter.
-            if (column >= bytesPerPixel)
-            {
-                previousPixel = current[column - bytesPerPixel];
-                upperLeft = previous[column - bytesPerPixel];
-            }
-
-            pixelAbove = previous[column];
-
-            byte pixel = current[column];
-            // ReSharper disable InvalidXmlDocComment
-            current[column] = filter switch
-            {
-                // The Sub filter transmits the difference between each byte and the value of the corresponding
-                // byte of the prior pixel.
-                1 => (byte)(pixel + previousPixel),
-
-                // The Up filter is just like the Sub filter except that the pixel immediately above the current
-                // pixel, rather than just to its left, is used as the predictor.
-                2 => (byte)(pixel + pixelAbove),
-
-                // The Average filter uses the average of the two neighboring pixels (left and above) to
-                // predict the value of a pixel.
-                3 => (byte)(pixel + (byte)((previousPixel + pixelAbove) / 2)),
-
-                // The Paeth filter computes a simple linear function of the three neighboring pixels (left, above, upper left),
-                // then chooses as predictor the neighboring pixel closest to the computed value.
-                // This technique is named after Alan W. Paeth
-                4 => (byte)(pixel + PaethPredicator(previousPixel, pixelAbove, upperLeft)),
-
-                // No filter, or unknown.
-                _ => pixel
-            };
-            // ReSharper enable InvalidXmlDocComment
-        }
-    }
-
-    /// <summary>
-    /// Used for the Paeth filter.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static byte PaethPredicator(byte a, byte b, byte c)
-    {
-        byte predicator;
-
-        int p = a + b - c;
-        int pa = Math.Abs(p - a);
-        int pb = Math.Abs(p - b);
-        int pc = Math.Abs(p - c);
-
-        if (pa <= pb && pa <= pc)
-            predicator = a;
-        else if (pb <= pc)
-            predicator = b;
-        else
-            predicator = c;
-
-        return predicator;
     }
 
     #endregion
