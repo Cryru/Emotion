@@ -4,8 +4,17 @@
 // Platform Code
 // --------------------------------
 
-function GameLoop(timeStamp) {
-    Emotion.webHost.invokeMethod("RunLoop", gMousePos[0], gMousePos[1]);
+async function GameLoop(timeStamp) {
+    if (!Emotion || Emotion.loopStopped) return;
+
+    try {
+        await Emotion.webHost.invokeMethodAsync("RunLoop", gMousePos[0], gMousePos[1]);
+    } catch (error) {
+        Emotion.loopStopped = true;
+        console.error("Emotion frame failed.", error);
+        return;
+    }
+
     window.requestAnimationFrame(GameLoop);
 }
 
@@ -237,6 +246,16 @@ function GetMousePos() {
 const SIZEOF_FLOAT = 4;
 const SIZEOF_INT = 4;
 
+function readVec4(value) {
+    if (Array.isArray(value)) return value;
+    return [value.x ?? value.X ?? 0, value.y ?? value.Y ?? 0, value.z ?? value.Z ?? 0, value.w ?? value.W ?? 0];
+}
+
+function readIVec4(value) {
+    if (Array.isArray(value)) return value;
+    return [value.x ?? value.X ?? 0, value.y ?? value.Y ?? 0, value.z ?? value.Z ?? 0, value.w ?? value.W ?? 0];
+}
+
 function glGetError() {
     return Emotion.gl.getError();
 }
@@ -246,9 +265,7 @@ function glGet(id) {
     if (value === undefined) {
         value = 0;
     }
-    if (typeof(value) === "string") {
-        return BINDING.js_to_mono_obj(value);
-    }
+    if (typeof(value) === "string") return value;
     // ElementBuffer and ArrayBuffer Binding respectively. These return WebGL buffers rather than the index :(
     if (id === 0x8895 || id === 0x8894)
     {
@@ -271,12 +288,11 @@ function glGet(id) {
     if (typeof(value) === "number") {
         value = [value];
     }
-    value = new Int32Array(value);
-    return BINDING.js_typed_array_to_array(value);
+    return Array.from(value);
 }
 
 function GetGLExtensions() {
-    return BINDING.js_to_mono_obj(Emotion.gl.getSupportedExtensions().join(" "));
+    return Emotion.gl.getSupportedExtensions().join(" ");
 }
 
 gBuffers = [];
@@ -289,12 +305,17 @@ function glGenBuffers(count) {
         gBuffers.push(newBuffer);
         buffers[i] = gBuffers.length;
     }
-    return BINDING.js_typed_array_to_array(buffers);
+    return Array.from(buffers);
 }
 
 function glBindBuffer(target, bufferId) {
     const buffer = bufferId < 0 ? null : gBuffers[bufferId - 1];
     Emotion.gl.bindBuffer(target, buffer);
+}
+
+function glBindBufferBase(target, index, bufferId) {
+    const buffer = bufferId < 0 ? null : gBuffers[bufferId - 1];
+    Emotion.gl.bindBufferBase(target, index, buffer);
 }
 
 function glBufferData(argsPtr) {
@@ -323,25 +344,29 @@ function glBufferSubData(argsPtr) {
     Emotion.gl.bufferSubData(target, offset, memory, 0, length);
 }
 
+function glBufferDataManaged(target, size, data, usage) {
+    if (data && data.length) {
+        Emotion.gl.bufferData(target, new Uint8Array(data), usage);
+    } else {
+        Emotion.gl.bufferData(target, size, usage);
+    }
+}
+
+function glBufferSubDataManaged(target, offset, data) {
+    Emotion.gl.bufferSubData(target, offset, new Uint8Array(data));
+}
+
 function glClear(mask) {
     Emotion.gl.clear(mask);
 }
 
 function glClearColor(vec4Col) {
-    // struct Vector4
-    const r = Blazor.platform.readFloatField(vec4Col, 0);
-    const g = Blazor.platform.readFloatField(vec4Col, SIZEOF_FLOAT);
-    const b = Blazor.platform.readFloatField(vec4Col, SIZEOF_FLOAT * 2);
-    const a = Blazor.platform.readFloatField(vec4Col, SIZEOF_FLOAT * 3);
+    const [r, g, b, a] = readVec4(vec4Col);
     Emotion.gl.clearColor(r, g, b, a);
 }
 
 function glColorMask(vec4Col) {
-    // struct Vector4
-    const r = Blazor.platform.readFloatField(vec4Col, 0);
-    const g = Blazor.platform.readFloatField(vec4Col, SIZEOF_FLOAT);
-    const b = Blazor.platform.readFloatField(vec4Col, SIZEOF_FLOAT * 2);
-    const a = Blazor.platform.readFloatField(vec4Col, SIZEOF_FLOAT * 3);
+    const [r, g, b, a] = readVec4(vec4Col);
     Emotion.gl.colorMask(r === 1, g === 1, b === 1, a === 1);
 }
 
@@ -370,20 +395,12 @@ function glStencilOp(fail, zfail, pass) {
 }
 
 function glBlendFuncSeparate(valuePtr) {
-    // struct IntegerVector4
-    const srcRgb = Blazor.platform.readInt32Field(valuePtr, 0);
-    const dstRgb = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT);
-    const srcAlpha = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 2);
-    const dstAlpha = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 3);
+    const [srcRgb, dstRgb, srcAlpha, dstAlpha] = readIVec4(valuePtr);
     Emotion.gl.blendFuncSeparate(srcRgb, dstRgb, srcAlpha, dstAlpha);
 }
 
 function glViewport(valuePtr) {
-    // struct IntegerVector4
-    const x = Blazor.platform.readInt32Field(valuePtr, 0);
-    const y = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT);
-    const w = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 2);
-    const h = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 3);
+    const [x, y, w, h] = readIVec4(valuePtr);
     Emotion.gl.viewport(x, y, w, h);
 }
 
@@ -404,13 +421,12 @@ function glDeleteShader(shaderId) {
 
 function glShaderSource(shaderId, source) {
     const shader = gShaders[shaderId - 1];
-    const shaderSourceJs = BINDING.conv_string(source);
-    Emotion.gl.shaderSource(shader, shaderSourceJs);
+    Emotion.gl.shaderSource(shader, source);
 }
 
 function glCompileShader(shaderId) {
     const shader = gShaders[shaderId - 1];
-    Emotion.gl.compileShader(shader, shader);
+    Emotion.gl.compileShader(shader);
 }
 
 function glGetShaderParam(shaderId, param) {
@@ -422,14 +438,12 @@ function glGetShaderParam(shaderId, param) {
     else if (typeof(value) === "boolean")
         value = [value ? 1 : 0];
 
-    value = new Int32Array(value);
-    return BINDING.js_typed_array_to_array(value);
+    return Array.from(value);
 }
 
 function glGetShaderInfo(shaderId) {
     const shader = gShaders[shaderId - 1];
-    const value = Emotion.gl.getShaderInfoLog(shader);
-    return BINDING.js_to_mono_obj(value);
+    return Emotion.gl.getShaderInfoLog(shader);
 }
 
 gPrograms = [];
@@ -454,7 +468,7 @@ function glAttachShader(programId, shaderId) {
 
 function glBindAttribLocation(programId, index, name) {
     const program = gPrograms[programId - 1];
-    const nameJs = BINDING.conv_string(name);
+    const nameJs = name;
     Emotion.gl.bindAttribLocation(program, index, nameJs);
 }
 
@@ -465,8 +479,7 @@ function glLinkProgram(programId) {
 
 function glGetProgramInfo(programId) {
     const program = gPrograms[programId - 1];
-    const value = Emotion.gl.getProgramInfoLog(program);
-    return BINDING.js_to_mono_obj(value);
+    return Emotion.gl.getProgramInfoLog(program);
 }
 
 function glGetProgramParam(programId, param) {
@@ -478,8 +491,7 @@ function glGetProgramParam(programId, param) {
     else if (typeof(value) === "boolean")
         value = [value ? 1 : 0];
 
-    value = new Int32Array(value);
-    return BINDING.js_typed_array_to_array(value);
+    return Array.from(value);
 }
 
 gShaderUniformLocations = [];
@@ -489,9 +501,7 @@ gShaderUniformLocationToString = []; // For debugging purposes
 function glGetUniformLoc(programId, name) {
     const programIdx = programId - 1;
     const program = gPrograms[programIdx];
-    const nameJs = BINDING.conv_string(name);
-
-    const location = Emotion.gl.getUniformLocation(program, nameJs);
+    const location = Emotion.gl.getUniformLocation(program, name);
     if (location === null) return -1;
 
     // Before adding it to the lookup table, make sure it isn't there already.
@@ -503,7 +513,7 @@ function glGetUniformLoc(programId, name) {
     }
 
     gShaderUniformLocations.push(location);
-    gShaderUniformLocationToString.push(`[${programIdx}] ${nameJs}`);
+    gShaderUniformLocationToString.push(`[${programIdx}] ${name}`);
     return gShaderUniformLocations.length;
 }
 
@@ -588,6 +598,16 @@ function glUniformMatrix(locationId, valuePtr) {
     Emotion.gl.uniformMatrix4fv(location, transpose, data);
 }
 
+function glGetUniformBlockIndex(programId, name) {
+    const program = gPrograms[programId - 1];
+    return Emotion.gl.getUniformBlockIndex(program, name);
+}
+
+function glUniformBlockBinding(programId, blockIndex, blockBinding) {
+    const program = gPrograms[programId - 1];
+    Emotion.gl.uniformBlockBinding(program, blockIndex, blockBinding);
+}
+
 gFramebuffers = [];
 gFramebuffers[-1] = null;
 
@@ -598,7 +618,7 @@ function glGenFramebuffers(count) {
         gFramebuffers.push(newBuffer);
         buffers[i] = gFramebuffers.length;
     }
-    return BINDING.js_typed_array_to_array(buffers);
+    return Array.from(buffers);
 }
 
 function glBindFramebuffer(target, bufferId) {
@@ -606,18 +626,24 @@ function glBindFramebuffer(target, bufferId) {
     Emotion.gl.bindFramebuffer(target, frameBuffer);
 }
 
-function glFramebufferTexture2D(valuePtr, textureId) {
-    // struct IntegerVector4
-    const target = Blazor.platform.readInt32Field(valuePtr, 0);
-    const attachment = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT);
-    const textarget = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 2);
-    const level = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 3);
-    const texture = textureId < 0 ? null : gTextures[textureId - 1];
-    Emotion.gl.framebufferTexture2D(target, attachment, textarget, texture, level);
+function glFramebufferTexture2D(valuePtr, textureId, textargetArg, textureArg, levelArg) {
+    let target, attachment, textarget, texture, level;
+    if (arguments.length === 5) {
+        target = valuePtr;
+        attachment = textureId;
+        textarget = textargetArg;
+        texture = textureArg;
+        level = levelArg;
+    } else {
+        [target, attachment, textarget, level] = readIVec4(valuePtr);
+        texture = textureId;
+    }
+    const textureObject = texture < 0 ? null : gTextures[texture - 1];
+    Emotion.gl.framebufferTexture2D(target, attachment, textarget, textureObject, level);
 }
 
 function glDrawBuffers(dataPtr, length) {
-    const data = new Uint32Array(wasmMemory.buffer, dataPtr, length);
+    const data = Array.isArray(dataPtr) ? dataPtr : [];
     Emotion.gl.drawBuffers(data);
 }
 
@@ -635,7 +661,7 @@ function glGenVertexArrays(count) {
         gVertexArrays.push(newBuffer);
         buffers[i] = gVertexArrays.length;
     }
-    return BINDING.js_typed_array_to_array(buffers);
+    return Array.from(buffers);
 }
 
 function glBindVertexArray(bufferId) {
@@ -648,22 +674,26 @@ function glEnableVertexAttribArray(attribId) {
 }
 
 function glVertexAttribPointer(valuePtr) {
-    // struct VertexAttribData
-    const index = Blazor.platform.readInt32Field(valuePtr, 0);
-    const size = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT);
-    const type = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 2);
-    const normalized = getValue(valuePtr + SIZEOF_INT * 3, "i1") === 1;
-    const stride = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 4 + 1);
-    const offset = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 5 + 1);
+    let index, size, type, normalized, stride, offset;
+    if (arguments.length === 6) {
+        [index, size, type, normalized, stride, offset] = arguments;
+    } else {
+        index = valuePtr.index ?? valuePtr.Index ?? 0;
+        size = valuePtr.size ?? valuePtr.Size ?? 0;
+        type = valuePtr.type ?? valuePtr.Type ?? 0;
+        normalized = valuePtr.normalized ?? valuePtr.Normalized ?? false;
+        stride = valuePtr.stride ?? valuePtr.Stride ?? 0;
+        offset = valuePtr.offset ?? valuePtr.Offset ?? 0;
+    }
     Emotion.gl.vertexAttribPointer(index, size, type, normalized, stride, offset);
 }
 
-function glDrawElements(valuePtr) {
+function glDrawElements(value) {
     // struct IntegerVector4
-    const mode = Blazor.platform.readInt32Field(valuePtr, 0);
-    const count = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT);
-    const type = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 2);
-    const offset = Blazor.platform.readInt32Field(valuePtr, SIZEOF_INT * 3);
+    const mode = value.x;
+    const count = value.y;
+    const type = value.z;
+    const offset = value.w;
     Emotion.gl.drawElements(mode, count, type, offset);
 }
 
@@ -681,7 +711,7 @@ function glGenTextures(count) {
         gTextures.push(newBuffer);
         textures[i] = gTextures.length;
     }
-    return BINDING.js_typed_array_to_array(textures);
+    return Array.from(textures);
 }
 
 function glDeleteTexture(textureId) {
@@ -728,7 +758,13 @@ function glUploadTexture2D(valuePtr) {
     Emotion.gl.texImage2D(target, level, internalFormat, width, height, border, format, type, data);
 }
 
+function glTexSubImage2D(valuePtr) {
+    // TexturePartialUploadArgs
+    // todo
+}
+
 function glTextureParameteri(target, param, value) {
+    if (param >= 0x8E42 && param <= 0x8E45) return;
     Emotion.gl.texParameteri(target, param, value);
 }
 
@@ -742,7 +778,7 @@ function glGenRenderbuffers(count) {
         gRenderbuffers.push(newBuffer);
         buffers[i] = gRenderbuffers.length;
     }
-    return BINDING.js_typed_array_to_array(buffers);
+    return Array.from(buffers);
 }
 
 function glBindRenderbuffer(target, bufferId) {
@@ -772,9 +808,6 @@ function glFramebufferRenderbuffer(valuePtr, renderbufferId) {
 // --------------------------------
 
 function downloadTextFile(filename, text) {
-    filename = BINDING.conv_string(filename);
-    text = BINDING.conv_string(text);
-
     const element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
     element.setAttribute('download', filename);

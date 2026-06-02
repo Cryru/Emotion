@@ -3,7 +3,6 @@
 #region Using
 
 using System.Globalization;
-using System.Linq;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.InteropServices;
@@ -24,6 +23,14 @@ using Emotion.Graphics.Shading;
 using Emotion.Network;
 using Emotion.Standard.Reflector;
 using OpenGL;
+
+#if WEB
+using Emotion.Core.Platform.Implementation.Web;
+#endif
+
+#if DESKTOP
+using System.Linq;
+#endif
 
 #endregion
 
@@ -260,7 +267,20 @@ public static class Engine
     /// Start the engine with the specified config, calling the passing in coroutine as soon as
     /// the engine is setup async on another thread.
     /// </summary>
-    public static void Start(Configurator config, Func<IEnumerator> entryPointAsyncRoutine)
+    public static Task Start(Configurator config, Func<IEnumerator> entryPointAsyncRoutine)
+    {
+#if WEB
+        return WebBootstrap.RunAsync(
+            Environment.GetCommandLineArgs(),
+            new EmotionWebService(config, () => InternalStart(config, entryPointAsyncRoutine))
+        );
+#else
+        InternalStart(config, entryPointAsyncRoutine);
+        return Task.CompletedTask;
+#endif
+    }
+
+    private static void InternalStart(Configurator config, Func<IEnumerator> entryPointAsyncRoutine)
     {
         Setup(config);
         Run(entryPointAsyncRoutine);
@@ -385,9 +405,6 @@ public static class Engine
                 break;
             }
 
-            // Update modules that are outside the simulation tick.
-            AssetLoader.Update();
-
             tick();
             // After tick, as it might close the host.
             if (!Host.IsOpen) break;
@@ -404,6 +421,7 @@ public static class Engine
 
     private static void DetectVSync()
     {
+#if DESKTOP
         // Check if a host is available.
         if (Host == null || !Host.IsOpen) return;
 
@@ -436,12 +454,16 @@ public static class Engine
 
         // Restore settings.
         Renderer.ApplySettings();
+#endif
     }
 
     private static long _lastTickAt;
 
     private static void MainLoopTick()
     {
+        // Update modules that are outside the simulation tick.
+        AssetLoader.Update();
+
         long curTime = _realTimeTracker.ElapsedMilliseconds;
         long deltaTime = curTime - _lastTickAt;
         _lastTickAt = curTime;

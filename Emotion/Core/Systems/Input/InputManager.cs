@@ -1,6 +1,8 @@
 ﻿#nullable enable
 
+#if DESKTOP
 using Emotion.Core.Platform.Implementation.CommonDesktop;
+#endif
 
 namespace Emotion.Core.Systems.Input;
 
@@ -177,6 +179,7 @@ public class InputManager
 
     private void UpdateFirstPersonMode()
     {
+#if DESKTOP
         // todo: implement for other platforms
         DesktopPlatform? host = Engine.Host as DesktopPlatform;
         if (host == null) return;
@@ -191,6 +194,7 @@ public class InputManager
         Vector2 center = (host.Position + Engine.Renderer.ScreenBuffer.Viewport.Center).Floor();
         host.SetMousePos(center);
         host.SetHideCursor(true);
+#endif
     }
 
     #endregion

@@ -1,45 +1,24 @@
 ﻿#nullable enable
 
-#region Using
-
-using System.Net.Http;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-
-#endregion
+using System.Threading.Tasks;
 
 namespace Emotion.Core.Platform.Implementation.Web.Razor;
 
 [DontSerialize]
-public partial class RenderCanvas 
+public partial class RenderCanvas
 {
-    // This service will be provided a config and it needs to setup the engine.
     [Inject]
-    protected EmotionWebService _setupService { get; set; }
-
-    // https://github.com/mono/mono/blob/b6ef72c244bd33623d231ff05bc3d120ad36b4e9/sdks/wasm/src/binding_support.js
-    // https://www.meziantou.net/generating-and-downloading-a-file-in-a-blazor-webassembly-application.htm
-    //[Inject]
-    //public IJSUnmarshalledRuntime JsRuntime { get; set; }
+    protected EmotionWebService SetupService { get; set; } = null!;
 
     [Inject]
-    public IJSInProcessRuntime JsRuntimeMarshalled { get; set; }
+    public IJSInProcessRuntime JsRuntime { get; set; } = null!;
 
-    [Inject]
-    public HttpClient HttpClient { get; set; }
-
-    //protected override async Task OnAfterRenderAsync(bool firstRender)
-    //{
-    //    if (!firstRender) return;
-
-    //    // Initiate Javascript
-    //    var platformHost = new WebHost(this);
-    //    var webConfig = new Configurator
-    //    {
-    //        LoopFactory = platformHost.InitLoop,
-    //        PlatformOverride = platformHost,
-    //        Logger = new WebLogger()
-    //    };
-    //    await _setupService.SetupEngine(webConfig);
-    //}
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || SetupService == null) return;
+        WebPlatform.ActiveHost = new WebPlatform(this);
+        SetupService.InitCode();
+    }
 }

@@ -9,7 +9,11 @@ namespace Emotion.Core.Systems.JobSystem;
 
 public class AsyncJobManager
 {
+#if WEB
+    private const bool SINGLE_THREAD_DEBUG_MODE = true;
+#else
     private const bool SINGLE_THREAD_DEBUG_MODE = false;
+#endif
 
     public int ThreadCount { get => _threads?.Length ?? 1; }
 

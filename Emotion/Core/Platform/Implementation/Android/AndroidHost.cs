@@ -8,7 +8,7 @@ using Android.Graphics;
 using Android.Opengl;
 using Android.Util;
 using Android.Views;
-using Emotion.Core.Platform.Implementation.CommonDesktop;
+using Emotion.Core.Utility.Threading;
 using Activity = Android.App.Activity;
 
 #endregion
@@ -17,37 +17,14 @@ namespace Emotion.Core.Platform.Implementation.Android;
 
 public class AndroidHost : PlatformBase
 {
-    #region Android API
-
-    public void SurfaceChanged()
-    {
-        // todo: gotta recreate everything yikes
-        Resized(Size);
-    }
-
-    public void SurfaceCreated()
-    {
-        // Run main on the GL thread.
-        EmotionActivity.MainActivity.Main();
-        FocusChanged(true);
-    }
-
-    public void DrawFrame()
-    {
-        // This is the main loop.
-        _onTick?.Invoke();
-        _onFrame?.Invoke();
-    }
-
-    #endregion
-
     private Action _onTick;
     private Action _onFrame;
-    private Activity _activity;
+    private EmotionActivity _activity;
+    private bool _mainStarted;
 
     public AndroidGraphicsContext AndroidContext;
 
-    public AndroidHost(Activity activity)
+    public AndroidHost(EmotionActivity activity)
     {
         _activity = activity;
 
@@ -68,6 +45,53 @@ public class AndroidHost : PlatformBase
 
         Audio = new AndroidAudio(this);
     }
+
+    #region Android API
+
+    public void SurfaceChanged()
+    {
+        // todo: gotta recreate everything yikes
+        Resized(Size);
+    }
+
+    public void SurfaceCreated()
+    {
+        if (_mainStarted)
+        {
+            _activity.RestartApplication("Android recreated the GL surface/context.");
+            return;
+        }
+
+        _mainStarted = true;
+
+        // Run main on the GL thread.
+        EmotionActivity.MainActivity?.Main();
+        FocusChanged(true);
+    }
+
+    public void DrawFrame()
+    {
+        if (_activity.IsRestartScheduled()) return;
+
+        if (GLThread.IsBound && !GLThread.IsGLThread())
+        {
+            _activity.RestartApplication("Android changed the GL renderer thread.");
+            return;
+        }
+
+        try
+        {
+            // This is the main loop.
+            _onTick?.Invoke();
+            _onFrame?.Invoke();
+        }
+        catch (Exception ex) when (ex.Message.Contains("GL thread has changed", StringComparison.Ordinal))
+        {
+            _activity.RestartApplication("Android changed the GL renderer thread.");
+        }
+    }
+
+    #endregion
 
     #region Platform API
 

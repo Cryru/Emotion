@@ -12,7 +12,7 @@ namespace GameData.MonsterDefs;
 //    }
 //}
 
-public partial class TestData
+public partial class TestData : Monster
 {
     public string Hum = "mda";
 

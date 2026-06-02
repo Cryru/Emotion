@@ -1,7 +1,6 @@
 ﻿#nullable enable
 
 using Emotion.Core.Platform;
-using Emotion.Core.Platform.Implementation.CommonDesktop;
 using Emotion.Core.Systems.IO;
 using Emotion.Core.Utility.Coroutines;
 using Emotion.Editor.EditorUI.Base;
@@ -10,6 +9,10 @@ using Emotion.Editor.EditorUI.FilePickerHelpers;
 using Emotion.Game.Systems.UI;
 using Emotion.Primitives.DataStructures;
 using Emotion.Standard.Reflector;
+
+#if DESKTOP
+using Emotion.Core.Platform.Implementation.CommonDesktop;
+#endif
 
 namespace Emotion.Editor.EditorUI;
 
@@ -191,8 +194,10 @@ public class FilePicker<T> : EditorWindow where T : Asset, new()
     public static void SelectFile(UIBaseWindow window, Action<T?> onLoaded)
     {
         PlatformBase platform = Engine.Host;
+#if DESKTOP
         if (platform is DesktopPlatform winPl)
             winPl.DeveloperMode_SelectFileNative(FileLoadProxy(onLoaded));
+#endif
     }
 
     // We need these proxies to ensure that the asset is loaded before calling the callback

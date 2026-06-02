@@ -211,11 +211,9 @@ public static class PngFormat
         chunkReader.SkipBytes(8); // header size
 
         ReadOnlyMemory<byte> palette = null, paletteAlpha = null;
-        while (true)
+        while (chunkReader.BytesLeft > 12)
         {
-            PngChunk currentChunk = new PngChunk(ref chunkReader);
-            if (!currentChunk.Valid) break;
-
+            var currentChunk = new PngChunk(ref chunkReader);
             if (endChunkReached)
             {
                 Engine.Log.Warning("Image did not end with an end chunk...", MessageSource.ImagePng);

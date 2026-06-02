@@ -2,7 +2,6 @@
 
 #region Using
 
-using Emotion.Core.Platform.Implementation.Win32.Native.Kernel32;
 using System.Buffers;
 using System.IO;
 using System.Linq;
@@ -10,6 +9,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+
+#if WINDOWS
+using Emotion.Core.Platform.Implementation.Win32.Native.Kernel32;
+#endif
 
 #endregion
 
@@ -187,6 +190,7 @@ public class NetIOAsyncLogger : LoggingProvider
 
     private static void TryEnableVirtualTerminalProcessing()
     {
+#if WINDOWS
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
 
         IntPtr handle = Kernel32.GetStdHandle(StdHandle.STD_OUTPUT_HANDLE);
@@ -196,6 +200,7 @@ public class NetIOAsyncLogger : LoggingProvider
         const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
         if ((mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) != 0) return; // Already set
         Kernel32.SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+#endif
     }
 
     #endregion

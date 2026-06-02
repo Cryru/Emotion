@@ -8,11 +8,14 @@ using Emotion.Editor.Tools.ChunkStreamVisualizer;
 using Emotion.Editor.Tools.GameDataTool;
 using Emotion.Editor.Tools.InterfaceTool;
 using Emotion.Editor.Tools.SpriteEntityTool;
-using Emotion.Core.Platform.Implementation.Win32;
 using Emotion.Standard.Reflector;
 using Emotion.Editor.Workflow;
 using Emotion.Standard.Reflector.Handlers.Interfaces;
 using Emotion.Editor.EditorUI.Components.One;
+
+#if WINDOWS
+using Emotion.Core.Platform.Implementation.Win32;
+#endif
 
 namespace Emotion.Editor.EditorUI;
 
@@ -128,12 +131,14 @@ public class EditorTopBar : UIBaseWindow
             buttonContainer.AddChild(toolButton);
         }
 
+#if WINDOWS
         {
             EditorButton toolButton = new EditorButton("Open Folder");
             toolButton.OnClickedProxy = (_) => Process.Start("explorer.exe", ".");
             toolButton.Enabled = Engine.Host is Win32Platform;
             buttonContainer.AddChild(toolButton);
         }
+#endif
 
         {
             EditorButton toolButton = new EditorButton("EditorUI Style Guide");

@@ -6,12 +6,15 @@ using Emotion.Core.Systems.Scenography;
 using Emotion.Core.Utility.Profiling;
 using Emotion.Editor.EditorUI;
 using Emotion.Editor.EditorUI.Components.One;
-using Emotion.Editor.RuntimeCodeGen;
 using Emotion.Editor.Tools.GameDataTool;
 using Emotion.Editor.Workflow;
 using Emotion.Graphics.Camera;
 using Emotion.Graphics.Text;
 using System.Text;
+
+#if DESKTOP
+using Emotion.Editor.RuntimeCodeGen;
+#endif
 
 #endregion
 
@@ -37,7 +40,9 @@ public static partial class EngineEditor
     {
         if (!Engine.Configuration.DebugMode) return;
 
+#if DESKTOP
         EditorCodeGen.Init();
+#endif
 
         Engine.Host.OnKey.AddListener(EditorButtonHandler, KeyListenerType.Editor);
         EditorUI = new UIBaseWindow()

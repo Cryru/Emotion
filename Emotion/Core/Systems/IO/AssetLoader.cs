@@ -499,6 +499,7 @@ public partial class AssetLoader
     {
         if (Engine.Configuration.DebugMode)
         {
+#if DESKTOP
             Engine.Log.Trace("Attempting to add developer mode desktop asset sources.", MessageSource.Debug);
 
             string? projectFolder = null;
@@ -517,6 +518,7 @@ public partial class AssetLoader
                 DevModeProjectFolder = projectFolder;
                 DevModeAssetFolder = Path.Join(projectFolder, "Assets");
             }
+#endif
         }
     }
 
@@ -570,5 +572,5 @@ public partial class AssetLoader
         return string.Empty;
     }
 
-    #endregion
+#endregion
 }

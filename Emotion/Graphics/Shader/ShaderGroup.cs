@@ -482,7 +482,7 @@ public class ShaderGroup
             }
 
             _vertexFormatDefine.AppendLine($"in {attr.DataType} pass_{attr.AttributeName};");
-            _vertexFormatDefine.AppendLine($"{attr.DataType} {attr.AttributeName} = pass_{attr.AttributeName};");
+            _vertexFormatDefine.AppendLine($"#define {attr.AttributeName} pass_{attr.AttributeName}");
 
             if (endIf)
                 _vertexFormatDefine.AppendLine($"#endif");
@@ -499,7 +499,7 @@ public class ShaderGroup
                 _vertShaderPassParameters.AppendLine($"#ifdef HAS_{attr.AttributeType}");
                 endIf = true;
             }
-            _vertShaderPassParameters.AppendLine($"    pass_{attr.AttributeName} = {attr.AttributeName};");
+            _vertShaderPassParameters.AppendLine($"pass_{attr.AttributeName} = {attr.AttributeName};");
             if (endIf)
                 _vertShaderPassParameters.AppendLine("#endif");
         }

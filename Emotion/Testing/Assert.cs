@@ -3,7 +3,10 @@
 #region Using
 
 using System.Diagnostics.CodeAnalysis;
+
+#if WINDOWS
 using Emotion.Core.Platform.Implementation.Win32;
+#endif
 
 #endregion
 
@@ -107,8 +110,10 @@ public static class Assert
         Engine.Input.SuppressMouseFirstPersonMode(true, "Assert");
 
         var assertResponse = AssertMessageBoxResponse.Break;
+#if WINDOWS
         if (Engine.Host is Win32Platform winPlatform)
             assertResponse = winPlatform.OpenAssertMessageBox(assertText);
+#endif
 
         switch (assertResponse)
         {
@@ -124,7 +129,7 @@ public static class Assert
 
         Engine.Input.SuppressMouseFirstPersonMode(false, "Assert");
 #else
-		Engine.Log.Warning(msg, "ASSERT_FAILED");
+        Engine.Log.Warning(msg, "ASSERT_FAILED");
 #endif
     }
 

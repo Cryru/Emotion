@@ -2,8 +2,6 @@
 
 using Emotion.Core;
 using Emotion.ExecTest.ExamplesOne;
-using Emotion.Standard;
-using Emotion.Testing;
 using System.Collections;
 using System.Threading.Tasks;
 
@@ -15,15 +13,14 @@ public class Program
 {
     public static Task Main(string[] args)
     {
-        Engine.Start(
-            new Configurator {
+        return Engine.Start(
+            new Configurator
+            {
                 DebugMode = true,
                 HostTitle = "Example"
             },
             EntryPointAsync
         );
-
-        return Task.CompletedTask;
     }
 
     private static IEnumerator EntryPointAsync()

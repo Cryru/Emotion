@@ -1,7 +1,10 @@
 ﻿#nullable enable
 
 using Emotion.Core.Platform;
+
+#if DESKTOP
 using Emotion.Core.Platform.Implementation.CommonDesktop;
+#endif
 
 namespace Emotion.Game.Systems.UI;
 
@@ -44,9 +47,11 @@ public class HorizontalPanelSeparator : UIBaseWindow
 
     protected override void MouseInsideChanged(bool inside, Vector2 mousePos)
     {
+#if DESKTOP
         PlatformBase host = Engine.Host;
         if (host is DesktopPlatform desktopPlatform)
             desktopPlatform.SetCursor(inside ? DesktopPlatform.MouseCursor.ResizeLR : DesktopPlatform.MouseCursor.Default);
+#endif
         base.MouseInsideChanged(inside, mousePos);
     }
 

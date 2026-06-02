@@ -6,9 +6,11 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Emotion.Core.Platform.Implementation.Null;
 using Emotion.Core.Systems.Audio;
-using Emotion.Core.Platform.Implementation.Win32;
 using OpenGL;
 
+#if WINDOWS
+using Emotion.Core.Platform.Implementation.Win32;
+#endif
 #if GLFW
 using Emotion.Core.Platform.Implementation.GlfwImplementation;
 #endif
@@ -100,13 +102,15 @@ public abstract partial class PlatformBase
 #endif
 
 #if WEB
-        platform = new WebPlatform();
+        platform = WebPlatform.ActiveHost;
 #endif
 
 #if GLFW
         platform ??= new GlfwPlatform();
 #endif
+#if WINDOWS
         if (platform == null && RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) platform = new Win32Platform();
+#endif
 
         // If none initialized - fallback to null.
         platform ??= new NullPlatform();

@@ -3,7 +3,10 @@
 #region Using
 
 using System.Runtime.CompilerServices;
+
+#if DESKTOP
 using Emotion.Core.Utility.Profiling.RenderDoc;
+#endif
 
 #endregion
 
@@ -43,7 +46,9 @@ public abstract class GraphicsContext : IDisposable
 
     protected GraphicsContext()
     {
+#if DESKTOP
         RenderDoc.TryLoad();
+#endif
     }
 
     /// <summary>

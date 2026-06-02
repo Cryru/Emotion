@@ -24,11 +24,6 @@ public struct PngChunkType
 /// </summary>
 public struct PngChunk
 {
-    /// <summary>
-    /// Whether the chunk is valid.
-    /// </summary>
-    public bool Valid;
-
     public PngChunkType Type;
 
     /// <summary>
@@ -43,13 +38,6 @@ public struct PngChunk
 
     public PngChunk(ref NonAllocByteReader stream)
     {
-        int bytesLeft = stream.BytesLeft;
-        if (bytesLeft < 8)
-        {
-            Engine.Log.Warning($"Chunk header missing chunk length!", MessageSource.ImagePng);
-            return;
-        }
-
         int chunkLength = stream.ReadInt32BE();
 
         // Read chunk type
@@ -61,14 +49,6 @@ public struct PngChunk
         ChunkOffset = stream.Position;
         ChunkLength = chunkLength;
         stream.SkipBytes(chunkLength);
-
-        bytesLeft = stream.BytesLeft;
-        if (bytesLeft < 4)
-        {
-            Engine.Log.Warning($"Chunk header missing compressed data header!", MessageSource.ImagePng);
-            return;
-        }
         stream.SkipBytes(4); // CRC - we don't care to check it :)
-        Valid = true;
     }
 }

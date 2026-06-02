@@ -1,65 +1,47 @@
-﻿<Project ToolsVersion="Current">
+<Project ToolsVersion="Current">
     <PropertyGroup>
         <OutputType>Library</OutputType>
-        <TargetFramework>net10.0-android</TargetFramework>
-        <NuspecFile>./Emotion.nuspec</NuspecFile>
+        <TargetFramework>net10.0</TargetFramework>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <NoWarn>1701;1702;1591;1734;IDE0001;IDE0002;IDE0049</NoWarn>
         <Configurations>Debug;Release</Configurations>
         <Platforms>AnyCPU</Platforms>
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-        <DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
+        <Nullable>enable</Nullable>
+        <DefineConstants>$(DefineConstants);WEB</DefineConstants>
         <PlatformTarget>AnyCPU</PlatformTarget>
-        <SupportedOSPlatformVersion>28.0</SupportedOSPlatformVersion>
-
-         <!--You should use Emotion's deserialization anyway, but just in case you use the built in one. -->
+        <StaticWebAssetBasePath>Emotion</StaticWebAssetBasePath>
+        <PublishAot>false</PublishAot>
         <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
     </PropertyGroup>
 
-    <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
-    <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
-    
+    <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk.Razor" />
+    <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.Razor" />
+
     <ItemGroup>
+        <SupportedPlatform Include="browser" />
         <ProjectReference Include="..\Emotion.SourceGeneration\Emotion.SourceGeneration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
     <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-        <DebugType>full</DebugType>
+        <DebugType>portable</DebugType>
         <DebugSymbols>true</DebugSymbols>
-        <DocumentationFile />
         <Optimize>false</Optimize>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)'=='Release'">
-        <Optimize>True</Optimize>
+        <Optimize>true</Optimize>
+        <IsTrimmable>true</IsTrimmable>
+        <IsAotCompatible>true</IsAotCompatible>
     </PropertyGroup>
-
-    <!-- todo -->
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Android'">
-      <IsTrimmable>False</IsTrimmable>
-      <IsAotCompatible>False</IsAotCompatible>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Android'">
-      <IsTrimmable>False</IsTrimmable>
-      <IsAotCompatible>False</IsAotCompatible>
-      <DebugType>embedded</DebugType>
-    </PropertyGroup>
-    
-    <ItemGroup>
-         <!-- Workaround for a stupid bug where Android assumes .so means it should include it -->
-        <AndroidNativeLibrary Remove="AssetsNativeLibs\GLFW\linux\glfw.so" />
-        <AndroidNativeLibrary Remove="AssetsNativeLibs\OpenAL\linux\openal32.so" />
-        <AndroidNativeLibrary Remove="AssetsNativeLibs\OpenAL\linux\libsndio.so.6.1" />
-    </ItemGroup>
 
     <!-- Don't include other platform files -->
     <ItemGroup>
-        <Compile Remove="Core\Platform\Implementation\Web\**\*.cs" />
-        <None Remove="Core\Platform\Implementation\Web\**\*.razor" />
+        <Compile Remove="Core\Platform\Implementation\Android\**\*.cs" />
         <Compile Remove="Core\Platform\Implementation\Win32\**\*.cs" />
         <Compile Remove="Core\Platform\Implementation\CommonDesktop\**\*.cs" />
     </ItemGroup>
-    
+
     <!-- Libraries Code Include -->
     <ItemGroup>
         <Compile Remove="Core\Platform\Implementation\OpenAL\**\*.cs" />
@@ -79,13 +61,13 @@
     </ItemGroup>
 
     <ItemGroup>
-        <!-- All engine assets are embedded -->
         <EmbeddedResource Include="Assets\**\*.*">
             <CopyToOutputDirectory>Never</CopyToOutputDirectory>
         </EmbeddedResource>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="System.Text.Json" Version="10.0.8" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.8" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.8" />
     </ItemGroup>
 </Project>
