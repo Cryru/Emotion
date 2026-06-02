@@ -1,3 +1,6 @@
+> [!WARNING]
+> Due to contractual obligations, development of the project is paused for the foreseeable future.
+
 # Emotion
 <img src="EmotionLogo.png" width="128px" />
 
